@@ -17,7 +17,7 @@ export function renderProgress(container: HTMLElement) {
     d.setDate(today.getDate() - i);
     const dStr = d.toISOString().split('T')[0];
     const summary = ds.find(x => x.date.startsWith(dStr));
-    const score = summary ? summary.totalScore : 0;
+    const score = Math.round(summary ? summary.totalScore : 0);
     weeklyScore += score;
     bars.push({
       label: d.toLocaleDateString('ru-RU', {weekday: 'short'}),
@@ -50,6 +50,7 @@ export function renderProgress(container: HTMLElement) {
       const d = new Date(h.date);
       const dateStr = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
       const acc = Math.round(h.accuracy * 100);
+      const displayScore = Math.round(h.score);
       return `
         <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line);">
           <div>
@@ -57,7 +58,7 @@ export function renderProgress(container: HTMLElement) {
             <div style="color: var(--muted); font-size: 13px; margin-top: 4px;">${h.minutes} мин</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-weight: 600; color: var(--accent);">${h.score} очков</div>
+            <div style="font-weight: 600; color: var(--accent);">${displayScore} очков</div>
             <div style="color: var(--muted); font-size: 13px; margin-top: 4px;">Точность ${acc}%</div>
           </div>
         </div>
@@ -77,7 +78,7 @@ export function renderProgress(container: HTMLElement) {
   let domainsHtml = allDomains.map(d => {
     const val = domains.find(x => x.domain === d.id)?.value || 0;
     const isZero = val === 0;
-    const displayVal = isZero ? 500 : val;
+    const displayVal = Math.round(isZero ? 500 : val);
     const pct = Math.min(100, Math.max(0, displayVal / 10));
     return `
       <div class="scale-row dom-${d.id} ${isZero ? 'scale-empty' : ''}">

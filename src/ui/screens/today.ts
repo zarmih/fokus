@@ -20,7 +20,7 @@ export function renderToday(container: HTMLElement) {
     if (playedToday) streak = last.streak;
     else if (last.date.startsWith(yesterdayDate.toISOString().split('T')[0])) {
       streak = last.streak;
-      yesterdayScore = last.totalScore;
+      yesterdayScore = Math.round(last.totalScore);
     }
   }
 
@@ -45,7 +45,7 @@ export function renderToday(container: HTMLElement) {
   let domainsHtml = allDomains.map(d => {
     const val = domains.find(x => x.domain === d.id)?.value || 0;
     const isZero = val === 0;
-    const displayVal = isZero ? 500 : val;
+    const displayVal = Math.round(isZero ? 500 : val);
     const pct = Math.min(100, Math.max(0, displayVal / 10));
     return `
       <div class="scale-row dom-${d.id} ${isZero ? 'scale-empty' : ''}">

@@ -42,7 +42,7 @@ export function renderResult(container: HTMLElement, params: {session: Session})
           <div style="font-weight: 600; font-size: 15px;">${ex?.manifest.name}</div>
           <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Ур. ${item.level} · Точность ${Math.round(item.accuracy*100)}%</div>
         </div>
-        <div style="color: var(--accent); font-weight: 600;">+${item.score}</div>
+        <div style="color: var(--accent); font-weight: 600;">+${Math.round(item.score)}</div>
       </div>
     `;
   }).join('');
@@ -63,7 +63,7 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     <h2 style="text-align: center; margin-bottom: 24px; font-size: 24px;">Тренировка завершена</h2>
     
     <div class="surface" style="text-align: center; padding: 32px 24px;">
-      <div style="font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1;">${totalScore}</div>
+      <div style="font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1;">${Math.round(totalScore)}</div>
       <div style="color: var(--muted); font-size: 14px; margin-top: 8px;">всего очков</div>
       <div style="margin-top: 16px; font-size: 14px; color: var(--text);">Средняя точность: <b>${avgAcc}%</b></div>
     </div>
