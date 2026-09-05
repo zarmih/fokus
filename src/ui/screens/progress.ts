@@ -141,11 +141,13 @@ export function renderProgress(container: HTMLElement) {
   if (insights.length > 0) {
     const topInsights = insights.slice(0, 3).map(ins => `<li style="margin-bottom: 8px;">${ins.description}</li>`).join('');
     insightHtml = `
-      <div class="surface" style="margin-bottom: 24px; border-left: 4px solid var(--accent);">
-        <h3 style="margin-bottom: 12px;">Что Fokus заметил</h3>
-        <ul style="font-size: 14px; color: var(--text); line-height: 1.4; margin: 0; padding-left: 16px; opacity: 0.9;">
-          ${topInsights}
-        </ul>
+      <div class="insight-banner">
+        <div style="flex: 1;">
+          <h3 style="margin-bottom: 8px;">Что Fokus заметил</h3>
+          <ul style="font-size: 14px; color: var(--text); line-height: 1.4; margin: 0; padding-left: 16px; opacity: 0.9;">
+            ${topInsights}
+          </ul>
+        </div>
       </div>
     `;
   } else {
@@ -190,7 +192,7 @@ export function renderProgress(container: HTMLElement) {
   }
 
   const legendHtml = `
-    <div style="font-size: 12px; color: var(--muted); margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+    <div class="legend-box">
       <div style="margin-bottom: 6px;"><strong>Форма (Performance)</strong> — как вы справляетесь прямо сейчас.</div>
       <div style="margin-bottom: 6px;"><strong>Освоение (Mastery)</strong> — насколько навык устойчиво закреплён.</div>
       <div><strong>Уверенность (Confidence)</strong> — насколько Fokus уверен в оценке.</div>

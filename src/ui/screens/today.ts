@@ -72,14 +72,14 @@ export function renderToday(container: HTMLElement) {
     
     return `<div class="chip dom-${r?.manifest.domain}" style="margin-bottom: 12px; display: flex; flex-direction: column; width: 100%; padding: 12px 16px; border-radius: 12px; border: ${isPrimary ? '1px solid var(--accent)' : '1px solid var(--line)'}; position: relative;">
       ${isPrimary ? `<div style="position: absolute; top: -10px; left: 16px; background: var(--surface); padding: 0 8px; font-size: 11px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Главный фокус</div>` : ''}
-      <button class="expand-btn" aria-expanded="false" aria-controls="exp-${item.exerciseId}" style="all: unset; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; cursor: pointer; width: 100%;">
+      <button class="expand-btn" aria-expanded="false" aria-controls="exp-${item.exerciseId}">
         <span style="display: flex; align-items: center; font-weight: 600; font-size: 15px;"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="20" height="20" style="margin-right: 8px; border-radius: 6px;">${r?.manifest.name}</span>
         <span style="display: flex; align-items: center; gap: 8px;">
           <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">${r?.manifest.domain}</span>
           <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </span>
       </button>
-      <div id="exp-${item.exerciseId}" class="expand-content" style="display: none; font-size: 13px; color: var(--text); opacity: 0.9; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+      <div id="exp-${item.exerciseId}" class="expand-content" style="display: none;">
         <div style="display: flex; gap: 8px;">
           <span style="color: var(--accent);">✦</span> <span>${item.reason}</span>
         </div>
@@ -136,7 +136,7 @@ export function renderToday(container: HTMLElement) {
     const topInsight = insights[0];
     const confText = topInsight.confidence === 'high' ? 'Уверенный' : (topInsight.confidence === 'medium' ? 'Подтверждается' : 'Изучаем');
     insightHtml = `
-      <div class="insight-banner" style="background: var(--surface); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border-left: 4px solid var(--accent); display: flex; align-items: center; gap: 12px; font-size: 14px;">
+      <div class="insight-banner">
         <div style="flex: 1;">
           <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; letter-spacing: 0.5px; margin-bottom: 2px;">
             Инсайт • ${confText}
