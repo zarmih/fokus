@@ -19,6 +19,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
   let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
   let isPaused = false;
+  let currentCleanup: any = null;
 
   const content = renderShell(container, { active: 'today', hideNav: true });
 
@@ -61,6 +62,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     `;
 
     document.getElementById('btn-back')?.addEventListener('click', () => {
+      if (currentCleanup) currentCleanup();
       clearInterval(timerInterval);
       navigateTo(mode === 'practice' ? 'trainers' : 'today');
     });
@@ -84,6 +86,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     });
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
+      if (currentCleanup) currentCleanup();
       timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
       const t = document.getElementById('session-timer');
       if (t) {
@@ -107,9 +110,15 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       
       const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
       
+      let cleanupFn: any = null;
+
       const onBlockEnd = (res: any) => {
-        const tp = exDispatch.getParams(state!.level);
-        const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: tp.targetMs});
+        if (cleanupFn) cleanupFn();
+        
+        import('../../core/audio').then(a => a.playBeep(res.accuracy >= 0.8)).catch(() => {});
+
+        // Fallback targetMs for generic score if getParams is unavailable
+        const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: 1500});
         sessionResults.push({
           exerciseId: item.exerciseId,
           level: state!.level,
@@ -122,14 +131,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           const newLevel = mapAccuracyToStartLevel(res.accuracy);
           const domain = manifest.domain;
           const st = storage.getExerciseStates();
-          registry.filter(r => r.domain === domain).forEach(ex => {
-            const idx = st.findIndex(s => s.exerciseId === ex.id);
+          registry.filter(r => r.manifest.domain === domain).forEach(ex => {
+            const idx = st.findIndex(s => s.exerciseId === ex.manifest.id);
             if (idx >= 0) st[idx].level = newLevel;
-            else st.push({ exerciseId: ex.id, level: newLevel, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
+            else st.push({ exerciseId: ex.manifest.id, level: newLevel, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
           });
           storage.setExerciseStates(st);
         } else {
-          const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, tp.targetMs);
+          const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, 1500);
           state!.level = newLevel;
           state!.lastPlayedAt = new Date().toISOString();
           state!.lastAccuracy = res.accuracy;
@@ -158,11 +167,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         renderCurrent();
       };
 
-      exDispatch.render(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
+      cleanupFn = exDispatch.render(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
+      // store it globally for other exit routes
+      currentCleanup = cleanupFn;
     });
   };
 
   const finishSession = () => {
+    if (currentCleanup) currentCleanup();
     clearInterval(timerInterval);
     
     if (mode === 'calibration') {
@@ -200,6 +212,18 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       skipped: ns.skipped
     };
     storage.addDaySummary(ds);
+
+    let totalAccuracy = 0;
+    sessionResults.forEach(r => totalAccuracy += r.accuracy);
+    const avgAcc = sessionResults.length > 0 ? totalAccuracy / sessionResults.length : 0;
+
+    storage.addHistory({
+      date: sessionStartedAt,
+      minutes: Math.round(duration / 60),
+      score: totalScore,
+      accuracy: avgAcc,
+      domainDeltas
+    });
 
     navigateTo('result', {session: s});
   };

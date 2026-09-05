@@ -35,11 +35,11 @@ export function renderResult(container: HTMLElement, params: {session: Session})
   const tomorrowFocus = lowest ? nextFocusMap[lowest.domain] || lowest.domain : 'баланс';
 
   let itemsHtml = session.items.map(item => {
-    const ex = registry.find(r => r.id === item.exerciseId);
+    const ex = registry.find(r => r.manifest.id === item.exerciseId);
     return `
       <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line);">
         <div>
-          <div style="font-weight: 600; font-size: 15px;">${ex?.name}</div>
+          <div style="font-weight: 600; font-size: 15px;">${ex?.manifest.name}</div>
           <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Ур. ${item.level} · Точность ${Math.round(item.accuracy*100)}%</div>
         </div>
         <div style="color: var(--accent); font-weight: 600;">+${item.score}</div>

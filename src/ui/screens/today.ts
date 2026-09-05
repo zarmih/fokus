@@ -57,8 +57,8 @@ export function renderToday(container: HTMLElement) {
   }).join('');
 
   let compositionHtml = items.map(item => {
-    const r = registry.find(x => x.id === item.exerciseId);
-    return `<div class="chip dom-${r?.domain}"><img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="16" height="16" style="margin-right: 6px; border-radius: 4px;">${r?.name}<span>${r?.domain}</span></div>`;
+    const r = registry.find(x => x.manifest.id === item.exerciseId);
+    return `<div class="chip dom-${r?.manifest.domain}"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="16" height="16" style="margin-right: 6px; border-radius: 4px;">${r?.manifest.name}<span>${r?.manifest.domain}</span></div>`;
   }).join('');
 
   let topCard = '';

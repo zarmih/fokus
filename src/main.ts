@@ -5,6 +5,7 @@ import { renderResult } from './ui/screens/result';
 import { renderProgress } from './ui/screens/progress';
 import { renderSettings } from './ui/screens/settings';
 import { renderTrainers } from './ui/screens/trainers';
+import { renderOnboarding } from './ui/screens/onboarding';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
 
@@ -12,10 +13,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
   if (!app) return;
   
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW reg failed', err));
+    });
+  }
+
   try {
     const p = storage.getProfile(); // ensures initialization
     applyTheme(p.theme || 'dark');
-    renderToday(app);
+    if (!p.onboarded) {
+      renderOnboarding(app);
+    } else {
+      renderToday(app);
+    }
   } catch (e: any) {
     app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
       <h3>Ошибка инициализации</h3>

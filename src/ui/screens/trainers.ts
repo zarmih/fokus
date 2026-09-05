@@ -8,15 +8,15 @@ export function renderTrainers(container: HTMLElement) {
   const exStates = storage.getExerciseStates();
   
   let gridHtml = registry.map(ex => {
-    const st = exStates.find(s => s.exerciseId === ex.id);
+    const st = exStates.find(s => s.exerciseId === ex.manifest.id);
     const lvl = st ? st.level : 1;
     return `
-      <div class="trainer-card dom-${ex.domain}" data-id="${ex.id}">
+      <div class="trainer-card dom-${ex.manifest.domain}" data-id="${ex.manifest.id}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <div class="trainer-domain">${ex.domain}</div>
-          <img src="${import.meta.env.BASE_URL}art/icon-${ex.id}.svg" width="32" height="32" style="border-radius: 8px;">
+          <div class="trainer-domain">${ex.manifest.domain}</div>
+          <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="32" height="32" style="border-radius: 8px;">
         </div>
-        <div class="trainer-name">${ex.name}</div>
+        <div class="trainer-name">${ex.manifest.name}</div>
         <div class="trainer-level">Ур. ${lvl}</div>
       </div>
     `;

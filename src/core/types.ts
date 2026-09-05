@@ -3,6 +3,7 @@ export interface Profile {
   createdAt: string;
   sessionLengthSec: number;
   calibrated?: boolean;
+  onboarded?: boolean;
   theme?: 'dark' | 'light';
   soundOn: boolean;
   locale: 'ru';
@@ -33,6 +34,13 @@ export interface Session {
   durationSec: number;
   items: SessionItem[];
 }
+export interface HistoryItem {
+  date: string;
+  minutes: number;
+  score: number;
+  accuracy: number;
+  domainDeltas: Record<string, number>;
+}
 export interface DaySummary {
   date: string;
   totalScore: number;
@@ -46,4 +54,5 @@ export interface AppState {
   exerciseStates: ExerciseState[];
   sessions: Session[];
   daySummaries: DaySummary[];
+  history: HistoryItem[];
 }

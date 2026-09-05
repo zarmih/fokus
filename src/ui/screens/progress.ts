@@ -5,6 +5,7 @@ import { registry } from '../../exercises/registry';
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
   const ds = storage.getDaySummaries();
+  const history = storage.getHistory().slice().reverse();
   
   // Weekly chart logic
   let weeklyScore = 0;
@@ -41,6 +42,29 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  let historyHtml = '';
+  if (history.length === 0) {
+    historyHtml = '<p style="color: var(--muted); text-align: center; margin: 24px 0;">Нет истории тренировок</p>';
+  } else {
+    historyHtml = history.map(h => {
+      const d = new Date(h.date);
+      const dateStr = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+      const acc = Math.round(h.accuracy * 100);
+      return `
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line);">
+          <div>
+            <div style="font-weight: 600;">${dateStr}</div>
+            <div style="color: var(--muted); font-size: 13px; margin-top: 4px;">${h.minutes} мин</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-weight: 600; color: var(--accent);">${h.score} очков</div>
+            <div style="color: var(--muted); font-size: 13px; margin-top: 4px;">Точность ${acc}%</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   const domains = storage.getDomains();
   const allDomains = [
     {id: 'attention', name: 'Внимание'},
@@ -66,14 +90,14 @@ export function renderProgress(container: HTMLElement) {
 
   const exStates = storage.getExerciseStates();
   let exHtml = registry.map(ex => {
-    const st = exStates.find(s => s.exerciseId === ex.id);
+    const st = exStates.find(s => s.exerciseId === ex.manifest.id);
     const lvl = st ? st.level : 1;
     const acc = st ? Math.round(st.lastAccuracy * 100) : 0;
     return `
-      <div class="domain-card dom-${ex.domain}" style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 12px 0 12px 12px; border-bottom: 1px solid var(--line);">
+      <div class="domain-card dom-${ex.manifest.domain}" style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 12px 0 12px 12px; border-bottom: 1px solid var(--line);">
         <div>
-          <div style="font-weight: 600; font-size: 15px;">${ex.name}</div>
-          <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">${ex.domain}</div>
+          <div style="font-weight: 600; font-size: 15px;">${ex.manifest.name}</div>
+          <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">${ex.manifest.domain}</div>
         </div>
         <div style="text-align: right;">
           <div style="color: var(--text); font-weight: 600;">Ур. ${lvl}</div>
@@ -87,6 +111,11 @@ export function renderProgress(container: HTMLElement) {
     <h2>Прогресс</h2>
     ${chartHtml}
     
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Последние сессии</h3>
+      ${historyHtml}
+    </div>
+
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Навыки</h3>
       ${domainsHtml}

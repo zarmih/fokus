@@ -1,21 +1,22 @@
-import { gridMemoryManifest } from './grid-memory/manifest';
-import { sequenceManifest } from './sequence/manifest';
-import { stroopManifest } from './stroop/manifest';
-import { oddOneManifest } from './odd-one/manifest';
-import { switchRuleManifest } from './switch-rule/manifest';
-import { patternNextManifest } from './pattern-next/manifest';
-import { pairsManifest } from './pairs/manifest';
-import { pulleyManifest } from './pulley/manifest';
-import { swingsManifest } from './swings/manifest';
+import { ExerciseModule } from './contract';
+import gridMemoryModule from './grid-memory';
+import oddOneModule from './odd-one';
+import pairsModule from './pairs';
+import patternNextModule from './pattern-next';
+import pulleyModule from './pulley';
+import sequenceModule from './sequence';
+import stroopModule from './stroop';
+import swingsModule from './swings';
+import switchRuleModule from './switch-rule';
 
-export const registry = [
-  gridMemoryManifest, 
-  sequenceManifest,
-  stroopManifest,
-  oddOneManifest,
-  switchRuleManifest,
-  patternNextManifest,
-  pairsManifest,
-  pulleyManifest,
-  swingsManifest
+export const registry: ExerciseModule[] = [
+  gridMemoryModule,
+  oddOneModule,
+  pairsModule,
+  patternNextModule,
+  pulleyModule,
+  sequenceModule,
+  stroopModule,
+  swingsModule,
+  switchRuleModule
 ];

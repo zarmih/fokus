@@ -1,6 +1,6 @@
-import type { AppState, Profile, DomainIndex, ExerciseState, Session, DaySummary } from './types';
+import type { AppState, Profile, DomainIndex, ExerciseState, Session, DaySummary, HistoryItem } from './types';
 
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
 export const STORAGE_KEY = 'fokus.v1';
 
 export interface StorageBackend {
@@ -14,6 +14,7 @@ const defaultProfile: Profile = {
   createdAt: new Date().toISOString(),
   sessionLengthSec: 300,
   soundOn: true,
+  onboarded: false,
   theme: typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark',
   locale: 'ru',
   schemaVersion: CURRENT_SCHEMA_VERSION
@@ -24,7 +25,8 @@ const defaultState: AppState = {
   domains: [],
   exerciseStates: [],
   sessions: [],
-  daySummaries: []
+  daySummaries: [],
+  history: []
 };
 
 export class Storage {
@@ -38,8 +40,11 @@ export class Storage {
     try {
       const parsed = JSON.parse(raw);
       if (parsed.profile && parsed.profile.schemaVersion < CURRENT_SCHEMA_VERSION) {
-        // Migration logic would go here
-        parsed.profile.schemaVersion = CURRENT_SCHEMA_VERSION;
+        if (parsed.profile.schemaVersion === 1) {
+          parsed.profile.onboarded = !!parsed.profile.calibrated;
+          parsed.history = parsed.history || [];
+          parsed.profile.schemaVersion = 2;
+        }
         this.backend.setItem(STORAGE_KEY, JSON.stringify(parsed));
       }
     } catch (e) {
@@ -51,7 +56,9 @@ export class Storage {
     const raw = this.backend.getItem(STORAGE_KEY);
     if (!raw) return JSON.parse(JSON.stringify(defaultState));
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      if (!parsed.history) parsed.history = [];
+      return parsed;
     } catch (e) {
       return JSON.parse(JSON.stringify(defaultState));
     }
@@ -73,6 +80,17 @@ export class Storage {
   getSessions(): Session[] { return this.getState().sessions; }
   addSession(session: Session) { const s = this.getState(); s.sessions.push(session); this.saveState(s); }
 
+  getHistory(): HistoryItem[] { return this.getState().history || []; }
+  addHistory(item: HistoryItem) {
+    const s = this.getState();
+    if (!s.history) s.history = [];
+    s.history.push(item);
+    if (s.history.length > 30) {
+      s.history = s.history.slice(-30);
+    }
+    this.saveState(s);
+  }
+
   getDaySummaries(limit = 28): DaySummary[] { 
     return this.getState().daySummaries.slice(-limit); 
   }
@@ -84,6 +102,19 @@ export class Storage {
 
   exportJson(): string {
     return this.backend.getItem(STORAGE_KEY) || JSON.stringify(defaultState);
+  }
+  importJson(json: string): boolean {
+    try {
+      const parsed = JSON.parse(json);
+      if (parsed.profile) {
+        this.backend.setItem(STORAGE_KEY, json);
+        this.migrate();
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   reset() {
