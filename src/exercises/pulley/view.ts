@@ -56,7 +56,7 @@ export function renderPulley(
             </div>
           </div>
           
-          <div style="position: relative; width: ${boardWidth}px; height: 200px; background: var(--surface); border-radius: 8px; overflow: hidden; margin-bottom: 24px;">
+          <div style="position: relative; width: ${boardWidth}px; height: 200px; background: var(--surface); border-radius: 8px; overflow: visible; margin-bottom: 24px;">
             <!-- Player -->
             <div id="player-sprite" style="position: absolute; bottom: 20px; left: ${engine.playerAt * 80 + 20}px; transition: transform 500ms ease;">
               <svg width="40" height="60" viewBox="0 0 40 60">
@@ -116,6 +116,18 @@ export function renderPulley(
             <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: var(--surface-2);"></div>
           </div>
 
+          <!-- Weights on Hook (Large) -->
+          <div style="text-align: center; margin-bottom: 16px;">
+            <div style="font-size: 14px; color: var(--muted); margin-bottom: 8px;">На крюке (Нажми гирю — упадёт на пол):</div>
+            <div style="min-height: 40px; display: flex; gap: 8px; justify-content: center;">
+              ${(currentGate ? currentGate.hook : []).map((w, idx) => `
+                <div class="weight-hook-large" data-idx="${idx}" style="width: 40px; height: 40px; background: var(--dom-speed); color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
+                  ${w}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
           <!-- Weights on Floor -->
           <div style="min-height: 50px; display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; max-width: 400px;">
             ${engine.floor.map((w, idx) => `
@@ -125,8 +137,9 @@ export function renderPulley(
             `).join('')}
           </div>
 
-          <div style="display: flex; gap: 16px;">
+          <div style="display: flex; gap: 16px; margin-bottom: 16px;">
             <button id="btn-walk" class="btn-primary" style="padding: 16px 48px; font-size: 20px; opacity: ${canWalk ? 1 : 0.5}; pointer-events: ${canWalk ? 'auto' : 'none'};">Идти</button>
+            <button id="btn-drop-all" class="btn-secondary" style="padding: 16px 24px; font-size: 16px;">Все на пол</button>
             <button id="btn-reset" class="btn-secondary" style="padding: 16px 24px; font-size: 16px;">Сброс пазла</button>
           </div>
         </div>
@@ -150,6 +163,23 @@ export function renderPulley(
           engine.dropHook(idx);
           render();
         });
+      });
+
+      container.querySelectorAll('.weight-hook-large').forEach(el => {
+        el.addEventListener('click', () => {
+          if (isTimeUp() || isAnimating) return;
+          const idx = parseInt((el as HTMLElement).dataset.idx || '0');
+          engine.dropHook(idx);
+          render();
+        });
+      });
+
+      document.getElementById('btn-drop-all')?.addEventListener('click', () => {
+        if (isTimeUp() || isAnimating) return;
+        while(engine.gates[engine.playerAt]?.hook.length > 0) {
+           engine.dropHook(0);
+        }
+        render();
       });
 
       document.getElementById('btn-reset')?.addEventListener('click', () => {
