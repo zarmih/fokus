@@ -1,0 +1,42 @@
+export interface Profile {
+  createdAt: string;
+  sessionLengthSec: number;
+  soundOn: boolean;
+  locale: 'ru';
+}
+
+export interface DomainIndex {
+  domain: string;
+  value: number;
+  updatedAt: string;
+}
+
+export interface ExerciseState {
+  exerciseId: string;
+  level: number;
+  lastPlayedAt: string;
+  lastAccuracy: number;
+}
+
+export interface SessionItem {
+  exerciseId: string;
+  level: number;
+  accuracy: number;
+  avgRtMs: number;
+  score: number;
+}
+
+export interface Session {
+  id: string;
+  startedAt: string;
+  finishedAt: string | null;
+  durationSec: number;
+  items: SessionItem[];
+}
+
+export interface DaySummary {
+  date: string;
+  totalScore: number;
+  domainDeltas: Record<string, number>;
+  streak: number;
+}
