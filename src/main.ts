@@ -5,16 +5,39 @@ import { renderResult } from './ui/screens/result';
 import { renderProgress } from './ui/screens/progress';
 import { renderSettings } from './ui/screens/settings';
 import { renderTrainers } from './ui/screens/trainers';
+import { storage } from './core/storage';
 
-const app = document.getElementById('app')!;
-renderToday(app);
+document.addEventListener('DOMContentLoaded', () => {
+  const app = document.getElementById('app');
+  if (!app) return;
+  
+  try {
+    const p = storage.getProfile(); // ensures initialization
+    renderToday(app);
+  } catch (e: any) {
+    app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
+      <h3>Ошибка инициализации</h3>
+      <p>${e?.message || e}</p>
+    </div>`;
+    console.error(e);
+  }
+});
 
 window.addEventListener('navigate', (e: any) => {
+  const app = document.getElementById('app')!;
   const {screenId, params} = e.detail;
-  if (screenId === 'today') renderToday(app);
-  else if (screenId === 'session') renderSession(app, params);
-  else if (screenId === 'result') renderResult(app, params);
-  else if (screenId === 'progress') renderProgress(app);
-  else if (screenId === 'settings') renderSettings(app);
-  else if (screenId === 'trainers') renderTrainers(app);
+  try {
+    if (screenId === 'today') renderToday(app);
+    else if (screenId === 'session') renderSession(app, params);
+    else if (screenId === 'result') renderResult(app, params);
+    else if (screenId === 'progress') renderProgress(app);
+    else if (screenId === 'settings') renderSettings(app);
+    else if (screenId === 'trainers') renderTrainers(app);
+  } catch (err: any) {
+    app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
+      <h3>Ошибка навигации</h3>
+      <p>${err?.message || err}</p>
+    </div>`;
+    console.error(err);
+  }
 });

@@ -60,7 +60,7 @@ export class Storage {
     this.backend.setItem(STORAGE_KEY, JSON.stringify(state));
   }
 
-  getProfile(): Profile { return this.getState().profile; }
+  getProfile(): Profile { return { ...defaultProfile, ...(this.getState().profile || {}) }; }
   setProfile(p: Profile) { const s = this.getState(); s.profile = p; this.saveState(s); }
 
   getDomains(): DomainIndex[] { return this.getState().domains; }
@@ -90,4 +90,9 @@ export class Storage {
   }
 }
 
-export const storage = new Storage(window.localStorage);
+const fallbackStorage: StorageBackend = {
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {}
+};
+export const storage = new Storage(typeof window !== 'undefined' && window.localStorage ? window.localStorage : fallbackStorage);
