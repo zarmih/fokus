@@ -47,3 +47,21 @@ test('storage migrate (mock)', () => {
   expect(s2.getProfile().schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   expect(s2.getProfile().onboarded).toBe(true);
 });
+
+test('storage migrate v2 to v3 (sources and mastery)', () => {
+  backend.setItem('fokus.v1', JSON.stringify({
+    profile: {schemaVersion: 2},
+    skills: [{ skill: 'visual_memory', value: 500 }],
+    exerciseStates: [{ exerciseId: 'grid-memory', level: 1 }]
+  }));
+  const s2 = new Storage(backend as any);
+  expect(s2.getProfile().schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
+  
+  const skills = s2.getSkills();
+  expect(skills[0].sources).toEqual([]);
+  
+  const states = s2.getExerciseStates();
+  expect(states[0].mastery).toBe(0);
+  expect(states[0].stability).toBe(0.5);
+  expect(states[0].consecutivePlateau).toBe(0);
+});
