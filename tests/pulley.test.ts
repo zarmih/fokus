@@ -80,6 +80,26 @@ describe('pulley engine', () => {
     expect(engine.gates[0].hook.length).toBe(0);
     expect(engine.playerAt).toBe(0);
   });
+
+  it('dumpAllToFloor drops everything and resets player', () => {
+    const engine = new PulleyEngine();
+    engine.generate({ doors: 4, need: [6,9,7,5], pool: [2,4,4,5,1,6,1,4] });
+    
+    engine.takeFloor(engine.floor.indexOf(2));
+    engine.takeFloor(engine.floor.indexOf(4));
+    engine.walk();
+    expect(engine.playerAt).toBe(1);
+    expect(engine.gates[0].hook.length).toBe(2);
+    
+    engine.dumpAllToFloor();
+    
+    expect(engine.playerAt).toBe(0);
+    expect(engine.status).toBe('play');
+    expect(engine.floor.length).toBe(8);
+    for (const gate of engine.gates) {
+      expect(gate.hook.length).toBe(0);
+    }
+  });
 });
 
 import { isSolvable } from '../src/exercises/pulley/engine';

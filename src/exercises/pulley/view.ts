@@ -176,9 +176,7 @@ export function renderPulley(
 
       document.getElementById('btn-drop-all')?.addEventListener('click', () => {
         if (isTimeUp() || isAnimating) return;
-        while(engine.gates[engine.playerAt]?.hook.length > 0) {
-           engine.dropHook(0);
-        }
+        engine.dumpAllToFloor();
         render();
       });
 

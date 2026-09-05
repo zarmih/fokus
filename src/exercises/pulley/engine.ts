@@ -61,16 +61,26 @@ export class PulleyEngine {
     return true;
   }
 
-  dropHook(idx: number) {
-    if (this.status !== 'play' || this.playerAt >= this.gates.length) return false;
-    const hook = this.gates[this.playerAt].hook;
-    if (idx < 0 || idx >= hook.length) return false;
-    const w = hook.splice(idx, 1)[0];
+  dropHook(hookIdx: number): boolean {
+    if (this.status !== 'play') return false;
+    const currentGate = this.gates[this.playerAt];
+    if (hookIdx < 0 || hookIdx >= currentGate.hook.length) return false;
+    
+    const w = currentGate.hook.splice(hookIdx, 1)[0];
     this.floor.push(w);
     return true;
   }
 
-  walk() {
+  dumpAllToFloor() {
+    for (const gate of this.gates) {
+      this.floor.push(...gate.hook);
+      gate.hook = [];
+    }
+    this.playerAt = 0;
+    this.status = 'play';
+  }
+
+  walk(): boolean {
     if (this.status !== 'play' || this.playerAt >= this.gates.length) return false;
     const hookSum = this.gates[this.playerAt].hook.reduce((a, b) => a + b, 0);
     if (hookSum === this.gates[this.playerAt].need) {
