@@ -5,6 +5,7 @@ export const swingsManifest = {
   name: 'Качели',
   domain: 'speed',
   skills: ['reaction_speed', 'visual_scanning'],
+  metricModel: 'timing-precision',
   instruction: 'Прыгай на перекладину. Мимо — сначала.'
 };
 

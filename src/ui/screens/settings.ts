@@ -19,6 +19,18 @@ export function renderSettings(container: HTMLElement) {
     </div>
     
     <div class="surface">
+      <h3 style="margin-bottom: 16px;">Главная цель</h3>
+      <div class="segmented" id="goal-segmented" style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button data-val="balance" class="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'active' : ''}">Баланс</button>
+        <button data-val="memory" class="${profile.primaryGoal === 'memory' ? 'active' : ''}">Память</button>
+        <button data-val="attention" class="${profile.primaryGoal === 'attention' ? 'active' : ''}">Внимание</button>
+        <button data-val="speed" class="${profile.primaryGoal === 'speed' ? 'active' : ''}">Скорость</button>
+        <button data-val="flexibility" class="${profile.primaryGoal === 'flexibility' ? 'active' : ''}">Гибкость</button>
+        <button data-val="logic" class="${profile.primaryGoal === 'logic' ? 'active' : ''}">Логика</button>
+      </div>
+    </div>
+    
+    <div class="surface">
       <h3 style="margin-bottom: 16px;">Тема</h3>
       <div class="segmented" id="theme-segmented">
         <button data-val="light" class="${profile.theme === 'light' ? 'active' : ''}">Светлая</button>
@@ -71,6 +83,18 @@ export function renderSettings(container: HTMLElement) {
       p.theme = val;
       storage.setProfile(p);
       applyTheme(val);
+    });
+  });
+
+  const gbtns = content.querySelectorAll('#goal-segmented button');
+  gbtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      gbtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const val = (btn as HTMLElement).dataset.val;
+      const p = storage.getProfile();
+      p.primaryGoal = val;
+      storage.setProfile(p);
     });
   });
 

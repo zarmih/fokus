@@ -9,6 +9,7 @@ export interface Profile {
   locale: 'ru';
   schemaVersion: number;
   xp?: number;
+  primaryGoal?: string; // e.g. 'memory', 'attention', 'speed', 'flexibility', 'logic' or 'balance'
 }
 
 export interface SkillIndex {
@@ -18,6 +19,7 @@ export interface SkillIndex {
   confidence: number;
   attempts: number;
   lastUpdated: string;
+  sources?: string[];
 }
 
 export interface DomainIndex {
@@ -34,6 +36,10 @@ export interface ExerciseState {
   performance: number;
   lastPlayedAt: string;
   lastAccuracy: number;
+  attempts?: number;
+  mastery?: number; // 0 to 100
+  stability?: number; // recent performance stability
+  consecutivePlateau?: number; // for plateau detection
 }
 export interface SessionItem {
   exerciseId: string;

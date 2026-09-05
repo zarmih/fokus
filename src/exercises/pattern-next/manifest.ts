@@ -5,6 +5,7 @@ export const patternNextManifest: ExerciseManifest = {
   name: 'Ряд',
   domain: 'logic',
   skills: ['pattern_recognition', 'logical_reasoning'],
+  metricModel: 'logic-correctness',
   instruction: 'Выбери, что идёт дальше в ряду.',
   levels: {
     1: { ruleType: 'ADD_1', distractors: 3, targetMs: 8000, deadlineMs: 15000 },

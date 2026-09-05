@@ -5,6 +5,7 @@ export const stroopManifest: ExerciseManifest = {
   name: 'Чернила',
   domain: 'flexibility',
   skills: ['selective_attention', 'inhibition', 'processing_speed'],
+  metricModel: 'speed-accuracy',
   instruction: 'Нажми цвет букв, не читай слово.',
   levels: {
     1: { deadlineMs: 2200, incongruentPct: 0.3, colors: 3, targetMs: 1800 },

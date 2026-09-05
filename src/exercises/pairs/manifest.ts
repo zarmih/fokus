@@ -3,6 +3,7 @@ export const pairsManifest = {
   name: 'Пары',
   domain: 'memory',
   skills: ['visual_memory', 'working_memory'],
+  metricModel: 'memory-span',
   instruction: 'Найди одинаковые картинки.'
 };
 

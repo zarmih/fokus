@@ -3,6 +3,7 @@ export const pulleyManifest = {
   name: 'Шкив',
   domain: 'logic',
   skills: ['logical_reasoning', 'mental_calculation', 'working_memory'],
+  metricModel: 'logic-correctness',
   instruction: 'Подвесь ровно столько, сколько нужно двери. Лишнее — канат не тянет как надо.'
 };
 

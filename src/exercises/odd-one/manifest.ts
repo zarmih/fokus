@@ -5,6 +5,7 @@ export const oddOneManifest: ExerciseManifest = {
   name: 'Лишний',
   domain: 'attention',
   skills: ['visual_scanning', 'selective_attention', 'processing_speed'],
+  metricModel: 'speed-accuracy',
   instruction: 'Найди элемент, который отличается от остальных.',
   levels: {
     1: { grid: 3, deltaHue: 60, targetMs: 5000, deadlineMs: 8000 },

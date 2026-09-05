@@ -78,13 +78,17 @@ export function renderProgress(container: HTMLElement) {
       const trendColor = s.trend > 0 ? 'var(--ok)' : s.trend < 0 ? 'var(--danger)' : 'var(--muted)';
       const skillName = s.skill.replace('_', ' ');
       
+      const isReliable = s.confidence >= 10;
+      const valueText = isReliable ? `<span style="color: ${trendColor}; margin-right: 8px;">${trendStr}</span> ${displayVal}` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
+      const trackOpacity = isReliable ? '1' : '0.4';
+      
       return `
         <div style="margin-bottom: 8px;">
           <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px;">
             <span style="text-transform: capitalize;">${skillName}</span>
-            <span><span style="color: ${trendColor}; margin-right: 8px;">${trendStr}</span> ${displayVal}</span>
+            <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px;"><div class="scale-fill" style="width: ${pct}%; background: var(--accent);"></div></div>
+          <div class="scale-track" style="height: 4px; opacity: ${trackOpacity};"><div class="scale-fill" style="width: ${pct}%; background: var(--accent);"></div></div>
         </div>
       `;
     }).join('');

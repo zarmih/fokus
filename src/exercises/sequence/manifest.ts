@@ -5,6 +5,7 @@ export const sequenceManifest: ExerciseManifest = {
   name: 'Цепочка',
   domain: 'memory',
   skills: ['spatial_memory', 'working_memory'],
+  metricModel: 'memory-span',
   instruction: 'Запомните порядок вспыхивающих клеток и повторите его.',
   levels: {
     1: { grid: 3, length: 3, flashMs: 800, gapMs: 200, targetMs: 6000 },
