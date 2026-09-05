@@ -1,8 +1,6 @@
 import { expect, test, describe, vi, beforeEach } from 'vitest';
 import { renderSession } from '../src/ui/screens/session';
 import { storage } from '../src/core/storage';
-import * as dispatch from '../src/exercises/dispatch';
-import * as router from '../src/ui/router';
 
 vi.mock('../src/ui/router', () => ({
   navigateTo: vi.fn()
@@ -11,24 +9,20 @@ vi.mock('../src/core/audio', () => ({
   playBeep: vi.fn()
 }));
 
-// Quick mock for dispatch
-(dispatch as any).dispatch = {
-  'grid-memory': {
-    manifest: { id: 'grid-memory', name: 'Grid Memory', domain: 'memory', skills: ['visual_memory'] },
-    render: vi.fn((container, diff, onEnd, isTimeUp) => {
-      // Mock immediately finishing a block
-      setTimeout(() => onEnd({ accuracy: 0.6, avgRtMs: 1500 }), 10);
-      return () => {};
-    })
-  },
-  'pattern-next': {
-    manifest: { id: 'pattern-next', name: 'Pattern', domain: 'memory', skills: ['pattern_recognition'] },
-    render: vi.fn((container, diff, onEnd, isTimeUp) => {
-      setTimeout(() => onEnd({ accuracy: 0.9, avgRtMs: 1500 }), 10);
-      return () => {};
-    })
+vi.mock('../src/exercises/dispatch', () => ({
+  dispatch: {
+    'grid-memory': {
+      manifest: { id: 'grid-memory', name: 'Grid Memory', domain: 'memory', skills: ['visual_memory'] },
+      render: vi.fn((container, diff, onEnd, isTimeUp) => {
+        // Mock immediately finishing a block
+        setTimeout(() => onEnd({ accuracy: 0.5, avgRtMs: 1500 }), 10);
+        return () => {};
+      })
+    }
   }
-};
+}));
+
+import { dispatch } from '../src/exercises/dispatch';
 
 describe('Session Fatigue Duration', () => {
   beforeEach(() => {
@@ -39,13 +33,6 @@ describe('Session Fatigue Duration', () => {
 
   test('Fatigue stop records partial duration', async () => {
     storage.setProfile({ ...storage.getProfile(), sessionLengthSec: 300 });
-    
-    // Simulate fatigue logic by injecting low accuracy repeatedly
-    (dispatch as any).dispatch['grid-memory'].render = vi.fn((container, diff, onEnd, isTimeUp) => {
-      // Force low accuracy to trigger fatigue (below 0.70)
-      setTimeout(() => onEnd({ accuracy: 0.5, avgRtMs: 1500 }), 0);
-      return () => {};
-    });
 
     renderSession(document.getElementById('app')!, { mode: 'normal', items: [{ exerciseId: 'grid-memory' }, { exerciseId: 'grid-memory' }, { exerciseId: 'grid-memory' }] });
 
