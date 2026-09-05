@@ -6,6 +6,7 @@ import { switchRuleManifest } from './switch-rule/manifest';
 import { patternNextManifest } from './pattern-next/manifest';
 import { pairsManifest } from './pairs/manifest';
 import { pulleyManifest } from './pulley/manifest';
+import { swingsManifest } from './swings/manifest';
 
 export const registry = [
   gridMemoryManifest, 
@@ -15,5 +16,6 @@ export const registry = [
   switchRuleManifest,
   patternNextManifest,
   pairsManifest,
-  pulleyManifest
+  pulleyManifest,
+  swingsManifest
 ];

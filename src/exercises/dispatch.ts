@@ -22,6 +22,9 @@ import { renderPairs } from './pairs/view';
 import { pulleyManifest, getPulleyParams } from './pulley/manifest';
 import { renderPulley } from './pulley/view';
 
+import { swingsManifest, getSwingsParams } from './swings/manifest';
+import { renderSwings } from './swings/view';
+
 export const dispatch: Record<string, {manifest: any, getParams: Function, render: Function}> = {
   'grid-memory': { manifest: gridMemoryManifest, getParams: getGridMemoryParams, render: renderGridMemory },
   'sequence': { manifest: sequenceManifest, getParams: getSequenceParams, render: renderSequence },
@@ -30,5 +33,6 @@ export const dispatch: Record<string, {manifest: any, getParams: Function, rende
   'switch-rule': { manifest: switchRuleManifest, getParams: getSwitchRuleParams, render: renderSwitchRule },
   'pattern-next': { manifest: patternNextManifest, getParams: getPatternNextParams, render: renderPatternNext },
   'pairs': { manifest: pairsManifest, getParams: getPairsParams, render: renderPairs },
-  'pulley': { manifest: pulleyManifest, getParams: getPulleyParams, render: renderPulley }
+  'pulley': { manifest: pulleyManifest, getParams: getPulleyParams, render: renderPulley },
+  'swings': { manifest: swingsManifest, getParams: getSwingsParams, render: renderSwings }
 };

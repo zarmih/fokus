@@ -1,0 +1,10 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <rect width="64" height="64" rx="12" fill="#1e293b"/>
+  <!-- Central rotor -->
+  <circle cx="32" cy="32" r="6" fill="#e8b86d"/>
+  <!-- Plank -->
+  <rect x="28" y="16" width="8" height="32" rx="4" fill="#e8b86d"/>
+  <!-- Swirl arrows to indicate rotation -->
+  <path d="M42 22 A 16 16 0 0 1 48 32" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M48 32 L 44 28 M 48 32 L 52 28" stroke="#4ade80" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>
