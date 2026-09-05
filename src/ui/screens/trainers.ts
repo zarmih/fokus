@@ -11,7 +11,7 @@ export function renderTrainers(container: HTMLElement) {
     const st = exStates.find(s => s.exerciseId === ex.id);
     const lvl = st ? st.level : 1;
     return `
-      <div class="trainer-card" data-id="${ex.id}">
+      <div class="trainer-card dom-${ex.domain}" data-id="${ex.id}">
         <div class="trainer-domain">${ex.domain}</div>
         <div class="trainer-name">${ex.name}</div>
         <div class="trainer-level">Ур. ${lvl}</div>

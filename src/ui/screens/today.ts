@@ -48,7 +48,7 @@ export function renderToday(container: HTMLElement) {
     const displayVal = isZero ? 500 : val;
     const pct = Math.min(100, Math.max(0, displayVal / 10));
     return `
-      <div class="scale-row ${isZero ? 'scale-empty' : ''}">
+      <div class="scale-row dom-${d.id} ${isZero ? 'scale-empty' : ''}">
         <div class="scale-label">${d.name}</div>
         <div class="scale-track"><div class="scale-fill" style="width: ${pct}%"></div></div>
         <div class="scale-value">${displayVal}</div>
@@ -58,23 +58,23 @@ export function renderToday(container: HTMLElement) {
 
   let compositionHtml = items.map(item => {
     const r = registry.find(x => x.id === item.exerciseId);
-    return `<div class="chip">${r?.name}<span>${r?.domain}</span></div>`;
+    return `<div class="chip dom-${r?.domain}">${r?.name}<span>${r?.domain}</span></div>`;
   }).join('');
 
   let topCard = '';
   if (streak > 0) {
     topCard = `
-      <div class="surface" style="text-align: center; padding: 24px;">
-        <div style="font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1;">${streak}</div>
-        <div style="color: var(--muted); font-size: 14px; margin-top: 8px;">дней подряд</div>
-        ${yesterdayScore > 0 && !playedToday ? `<div style="font-size: 12px; margin-top: 16px; color: var(--muted);">Вчера · ${yesterdayScore} очков</div>` : ''}
+      <div class="streak-card">
+        <div class="streak-num">${streak}</div>
+        <div class="streak-text">дней подряд</div>
+        ${yesterdayScore > 0 && !playedToday ? `<div style="font-size: 12px; margin-top: 16px; color: rgba(255,255,255,0.7);">Вчера · ${yesterdayScore} очков</div>` : ''}
       </div>
     `;
   } else {
     topCard = `
-      <div class="surface" style="text-align: center; padding: 24px;">
-        <div style="font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1;">0</div>
-        <div style="color: var(--muted); font-size: 14px; margin-top: 8px;">начни серию</div>
+      <div class="streak-card">
+        <div class="streak-num">0</div>
+        <div class="streak-text">начни серию</div>
       </div>
     `;
   }

@@ -34,7 +34,7 @@ export function renderStroop(
         </div>
         <div class="stroop-options" style="display: flex; gap: 10px;">
           ${trial.options.map(opt => `
-            <button class="btn-primary stroop-btn" data-color="${opt}" style="background: ${COLORS.find(c=>c.id===opt)!.hex}; color: #000;">
+            <button class="btn-primary stroop-btn" data-color="${opt}" style="background: ${COLORS.find(c=>c.id===opt)!.hex}; color: #1a2332;">
               ${COLORS.find(c=>c.id===opt)!.word}
             </button>
           `).join('')}

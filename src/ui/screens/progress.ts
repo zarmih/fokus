@@ -56,7 +56,7 @@ export function renderProgress(container: HTMLElement) {
     const displayVal = isZero ? 500 : val;
     const pct = Math.min(100, Math.max(0, displayVal / 10));
     return `
-      <div class="scale-row ${isZero ? 'scale-empty' : ''}">
+      <div class="scale-row dom-${d.id} ${isZero ? 'scale-empty' : ''}">
         <div class="scale-label">${d.name}</div>
         <div class="scale-track"><div class="scale-fill" style="width: ${pct}%"></div></div>
         <div class="scale-value">${displayVal}</div>
@@ -70,13 +70,13 @@ export function renderProgress(container: HTMLElement) {
     const lvl = st ? st.level : 1;
     const acc = st ? Math.round(st.lastAccuracy * 100) : 0;
     return `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line);">
+      <div class="domain-card dom-${ex.domain}" style="display: flex; justify-content: space-between; margin-bottom: 12px; padding: 12px 0 12px 12px; border-bottom: 1px solid var(--line);">
         <div>
           <div style="font-weight: 600; font-size: 15px;">${ex.name}</div>
           <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">${ex.domain}</div>
         </div>
         <div style="text-align: right;">
-          <div style="color: var(--accent); font-weight: 600;">Ур. ${lvl}</div>
+          <div style="color: var(--text); font-weight: 600;">Ур. ${lvl}</div>
           <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Точность ${acc}%</div>
         </div>
       </div>

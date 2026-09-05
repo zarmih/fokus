@@ -1,10 +1,10 @@
 export type ColorId = 'red' | 'blue' | 'green' | 'yellow';
 
 export const COLORS: {id: ColorId, word: string, hex: string}[] = [
-  {id: 'red', word: 'Красный', hex: '#f44336'},
-  {id: 'blue', word: 'Синий', hex: '#2196f3'},
-  {id: 'green', word: 'Зелёный', hex: '#4caf50'},
-  {id: 'yellow', word: 'Жёлтый', hex: '#ffeb3b'}
+  {id: 'red', word: 'Красный', hex: '#ef7a7a'},
+  {id: 'blue', word: 'Синий', hex: '#5b9dff'},
+  {id: 'green', word: 'Зелёный', hex: '#7dcc8a'},
+  {id: 'yellow', word: 'Жёлтый', hex: '#f5d067'}
 ];
 
 export class StroopEngine {
