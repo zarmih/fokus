@@ -72,12 +72,17 @@ export function renderToday(container: HTMLElement) {
     
     return `<div class="chip dom-${r?.manifest.domain}" style="margin-bottom: 12px; display: flex; flex-direction: column; width: 100%; padding: 12px 16px; border-radius: 12px; border: ${isPrimary ? '1px solid var(--accent)' : '1px solid var(--line)'}; position: relative;">
       ${isPrimary ? `<div style="position: absolute; top: -10px; left: 16px; background: var(--surface); padding: 0 8px; font-size: 11px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Главный фокус</div>` : ''}
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+      <button class="expand-btn" aria-expanded="false" aria-controls="exp-${item.exerciseId}" style="all: unset; display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; cursor: pointer; width: 100%;">
         <span style="display: flex; align-items: center; font-weight: 600; font-size: 15px;"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="20" height="20" style="margin-right: 8px; border-radius: 6px;">${r?.manifest.name}</span>
-        <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">${r?.manifest.domain}</span>
-      </div>
-      <div style="font-size: 13px; color: var(--text); opacity: 0.9; display: flex; align-items: center; gap: 8px;">
-        <span style="opacity: 0.5;">↳</span> <span>${item.reason}</span>
+        <span style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">${r?.manifest.domain}</span>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transition: transform 0.2s;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </span>
+      </button>
+      <div id="exp-${item.exerciseId}" class="expand-content" style="display: none; font-size: 13px; color: var(--text); opacity: 0.9; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);">
+        <div style="display: flex; gap: 8px;">
+          <span style="color: var(--accent);">✦</span> <span>${item.reason}</span>
+        </div>
       </div>
     </div>`;
   }).join('');
@@ -177,5 +182,26 @@ export function renderToday(container: HTMLElement) {
     } else {
       navigateTo('session', {mode: 'normal', items: plan.items});
     }
+  });
+
+  content.querySelectorAll('.expand-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const button = e.currentTarget as HTMLButtonElement;
+      const targetId = button.getAttribute('aria-controls');
+      const target = document.getElementById(targetId || '');
+      const chevron = button.querySelector('.chevron') as HTMLElement;
+      if (target && chevron) {
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+          button.setAttribute('aria-expanded', 'false');
+          target.style.display = 'none';
+          chevron.style.transform = 'rotate(0deg)';
+        } else {
+          button.setAttribute('aria-expanded', 'true');
+          target.style.display = 'block';
+          chevron.style.transform = 'rotate(180deg)';
+        }
+      }
+    });
   });
 }

@@ -58,3 +58,35 @@ test('getExerciseIntelligence returns mastery data when calibrated', () => {
   expect(int.plateau).toBe(false);
   expect(int.skills[0].name).toBe('visual_memory');
 });
+
+test('getExerciseIntelligence returns progression states correctly', () => {
+  const baseState = {
+    exerciseId: 'grid-memory',
+    level: 1,
+    difficulty: 2.5,
+    performance: 600,
+    lastPlayedAt: '',
+    lastAccuracy: 0.9,
+    attempts: 10,
+    mastery: 50,
+    consecutivePlateau: 0,
+    stability: 0.5
+  };
+  
+  // Developing
+  (storage.getExerciseStates as any).mockReturnValue([{...baseState}]);
+  (storage.getSkills as any).mockReturnValue([{ skill: 'visual_memory', confidence: 25, value: 600, trend: 1 }]);
+  expect(getExerciseIntelligence('grid-memory').state).toBe('DEVELOPING');
+
+  // Plateau
+  (storage.getExerciseStates as any).mockReturnValue([{...baseState, consecutivePlateau: 3}]);
+  expect(getExerciseIntelligence('grid-memory').state).toBe('PLATEAU');
+
+  // Stable
+  (storage.getExerciseStates as any).mockReturnValue([{...baseState, mastery: 85, stability: 0.85}]);
+  expect(getExerciseIntelligence('grid-memory').state).toBe('STABLE');
+
+  // Challenge
+  (storage.getExerciseStates as any).mockReturnValue([{...baseState, mastery: 75, difficulty: 5.5}]);
+  expect(getExerciseIntelligence('grid-memory').state).toBe('CHALLENGE');
+});

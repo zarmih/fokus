@@ -1,4 +1,5 @@
 import { generateInsights } from "../../core/insights";
+import { buildTrainingPlan } from "../../core/session-builder";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
@@ -134,23 +135,72 @@ export function renderProgress(container: HTMLElement) {
 
   if (!profileHtml) profileHtml = '<p style="color: var(--muted); font-size: 13px;">Данные собираются...</p>';
 
-  
   const exStates = storage.getExerciseStates();
   const insights = generateInsights(domains, skills, exStates, ds);
   let insightHtml = '';
   if (insights.length > 0) {
-    const topInsight = insights[0];
+    const topInsights = insights.slice(0, 3).map(ins => `<li style="margin-bottom: 8px;">${ins.description}</li>`).join('');
     insightHtml = `
       <div class="surface" style="margin-bottom: 24px; border-left: 4px solid var(--accent);">
-        <h3 style="margin-bottom: 8px;">Что Fokus заметил</h3>
-        <p style="font-size: 14px; color: var(--text); line-height: 1.4; margin: 0;">${topInsight.description}</p>
+        <h3 style="margin-bottom: 12px;">Что Fokus заметил</h3>
+        <ul style="font-size: 14px; color: var(--text); line-height: 1.4; margin: 0; padding-left: 16px; opacity: 0.9;">
+          ${topInsights}
+        </ul>
+      </div>
+    `;
+  } else {
+    insightHtml = `
+      <div class="surface" style="margin-bottom: 24px; border-left: 4px solid var(--line);">
+        <h3 style="margin-bottom: 12px;">Что Fokus заметил</h3>
+        <p style="font-size: 14px; color: var(--muted); line-height: 1.4; margin: 0;">Fokus собирает данные, чтобы дать вам полезные наблюдения.</p>
       </div>
     `;
   }
 
+  // Next Step Block
+  
+  const profile = storage.getProfile();
+  const plan = buildTrainingPlan({
+    durationSec: profile.sessionLengthSec || 300,
+    catalog: registry as any,
+    domains,
+    skills,
+    states: exStates,
+    primaryGoal: profile.primaryGoal
+  });
+
+  let nextStepHtml = '';
+  if (plan.items.length > 0) {
+    const nextItem = plan.items[0];
+    const nextEx = registry.find(r => r.manifest.id === nextItem.exerciseId)?.manifest;
+    if (nextEx) {
+      nextStepHtml = `
+        <div class="surface" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Следующий шаг</div>
+          <div style="display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${nextEx.name}</div>
+              <div style="font-size: 13px; color: var(--text); opacity: 0.8;">${nextItem.reason}</div>
+            </div>
+            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" width="40" height="40" style="border-radius: 8px; opacity: 0.9;">
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  const legendHtml = `
+    <div style="font-size: 12px; color: var(--muted); margin-bottom: 16px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">
+      <div style="margin-bottom: 6px;"><strong>Форма (Performance)</strong> — как вы справляетесь прямо сейчас.</div>
+      <div style="margin-bottom: 6px;"><strong>Освоение (Mastery)</strong> — насколько навык устойчиво закреплён.</div>
+      <div><strong>Уверенность (Confidence)</strong> — насколько Fokus уверен в оценке.</div>
+    </div>
+  `;
+
   content.innerHTML = `
     <h2>Прогресс</h2>
     ${insightHtml}
+    ${nextStepHtml}
     ${chartHtml}
     
     <div class="surface">
@@ -159,6 +209,7 @@ export function renderProgress(container: HTMLElement) {
     </div>
 
     <h3 style="margin: 32px 0 16px 0;">Когнитивный профиль</h3>
+    ${legendHtml}
     ${profileHtml}
   `;
 }

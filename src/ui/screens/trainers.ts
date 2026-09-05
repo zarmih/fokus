@@ -14,14 +14,47 @@ export function renderTrainers(container: HTMLElement) {
     const intel = getExerciseIntelligence(ex.manifest.id);
     
     let intelHtml = '';
-    if (intel.isCalibrating) {
-      intelHtml = `<div style="font-size: 11px; color: var(--muted); margin-top: 8px;">Калибровка (${intel.attempts}/3)</div>`;
-    } else {
-      const masteryColor = intel.mastery > 80 ? 'var(--ok)' : intel.mastery > 50 ? 'var(--accent)' : 'var(--text)';
+    const stateLabels = {
+      'CALIBRATING': 'Калибровка',
+      'DEVELOPING': 'Освоение',
+      'STABLE': 'Стабильно',
+      'CHALLENGE': 'Вызов',
+      'PLATEAU': 'Плато'
+    };
+
+    if (intel.state === 'CALIBRATING') {
       intelHtml = `
-        <div style="font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; gap: 12px;">
-          <div>Освоение: <span style="color: ${masteryColor}; font-weight: 600;">${intel.mastery}%</span></div>
-          <div>Сложность: <span style="color: var(--text);">${intel.difficulty}</span></div>
+        <div style="margin-top: 12px;">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Калибровка (${intel.attempts}/3)</div>
+          <div class="scale-track" style="height: 4px; opacity: 0.3; margin: 0;"><div class="scale-fill" style="width: 100%; background: var(--muted);"></div></div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Сложность: ${intel.difficulty}</div>
+        </div>`;
+    } else {
+      const stateColor = intel.state === 'STABLE' ? 'var(--ok)' : intel.state === 'CHALLENGE' ? 'var(--accent)' : intel.state === 'PLATEAU' ? 'var(--danger)' : 'var(--text)';
+      let avgTrend = 0;
+      if (intel.skills.length > 0) {
+        avgTrend = intel.skills.reduce((sum, s) => sum + s.trend, 0) / intel.skills.length;
+      }
+      const trendStr = avgTrend > 0.05 ? '↑' : avgTrend < -0.05 ? '↓' : '→';
+      const trendColor = avgTrend > 0.05 ? 'var(--ok)' : avgTrend < -0.05 ? 'var(--danger)' : 'var(--muted)';
+
+      intelHtml = `
+        <div style="margin-top: 12px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
+            <div style="font-size: 11px; color: ${stateColor}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${stateLabels[intel.state]}
+            </div>
+            <div style="font-size: 12px; font-weight: 700;">
+              ${intel.mastery}<span style="font-size: 10px; color: var(--muted); font-weight: 500;">/100</span>
+            </div>
+          </div>
+          <div class="scale-track" style="height: 4px; margin: 0 0 6px 0; background: rgba(255,255,255,0.05);">
+            <div class="scale-fill" style="width: ${intel.mastery}%; background: ${stateColor};"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);">
+            <div>Сложность: <span style="color: var(--text);">${intel.difficulty}</span></div>
+            <div>Тренд: <span style="color: ${trendColor}; font-weight: 700;">${trendStr}</span></div>
+          </div>
         </div>
       `;
     }
