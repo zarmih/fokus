@@ -46,8 +46,8 @@ export function renderSwings(
       const pEl = container.querySelector('#player-sprite') as HTMLElement;
       if (pEl) {
         const cs = 80;
-        pEl.style.left = `${engine.playerC * cs + cs/2 - 12}px`;
-        pEl.style.top = `${engine.playerR * cs + cs/2 - 12}px`;
+        pEl.style.left = `${engine.playerC * cs + cs/2 - 14}px`;
+        pEl.style.top = `${engine.playerR * cs + cs/2 - 14}px`;
       }
     };
 
@@ -109,23 +109,23 @@ export function renderSwings(
 
       const html = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
-          <div class="board-container" style="position: relative; width: ${width}px; height: ${height}px; background: var(--surface); border-radius: 12px; margin-bottom: 24px; overflow: hidden; transition: box-shadow 100ms;">
+          <div class="board-container" style="position: relative; width: ${width}px; height: ${height}px; background: var(--surface); border-radius: 20px; margin-bottom: 32px; overflow: hidden; transition: box-shadow 100ms; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.05);">
             
             ${Array.from({length: engine.cols}).map((_, c) => `
-              <div style="position: absolute; left: ${c*cs}px; top: 0; bottom: 0; width: 1px; background: var(--surface-2);"></div>
+              <div style="position: absolute; left: ${c*cs}px; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.05);"></div>
             `).join('')}
             ${Array.from({length: engine.rows}).map((_, r) => `
-              <div style="position: absolute; top: ${r*cs}px; left: 0; right: 0; height: 1px; background: var(--surface-2);"></div>
+              <div style="position: absolute; top: ${r*cs}px; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.05);"></div>
             `).join('')}
 
             <!-- Start Platform -->
-            <div style="position: absolute; left: 0; top: ${engine.startR*cs}px; width: ${cs}px; height: ${cs}px; background: var(--surface-2); display: flex; align-items: center; justify-content: center; border-radius: 8px;">
-              <span style="color: var(--muted); font-size: 12px; font-weight: bold;">СТАРТ</span>
+            <div style="position: absolute; left: 10px; top: ${engine.startR*cs + 10}px; width: ${cs - 20}px; height: ${cs - 20}px; background: rgba(59, 130, 246, 0.1); border: 2px dashed var(--dom-attention); display: flex; align-items: center; justify-content: center; border-radius: 12px;">
+              <span style="color: var(--dom-attention); font-size: 10px; font-weight: 800; letter-spacing: 1px;">START</span>
             </div>
 
             <!-- Goal Platform -->
-            <div style="position: absolute; left: ${(engine.cols-1)*cs}px; top: ${engine.goalR*cs}px; width: ${cs}px; height: ${cs}px; border: 4px solid var(--ok); border-radius: 8px; box-sizing: border-box; display: flex; align-items: center; justify-content: center;">
-              <span style="color: var(--ok); font-size: 12px; font-weight: bold;">ФИНИШ</span>
+            <div style="position: absolute; left: ${(engine.cols-1)*cs + 10}px; top: ${engine.goalR*cs + 10}px; width: ${cs - 20}px; height: ${cs - 20}px; background: rgba(16, 185, 129, 0.1); border: 2px solid var(--ok); border-radius: 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);">
+              <span style="color: var(--ok); font-size: 10px; font-weight: 800; letter-spacing: 1px;">FINISH</span>
             </div>
 
             <!-- Rotors -->
@@ -138,35 +138,35 @@ export function renderSwings(
               return `
                 <g style="position: absolute; left: ${cx}px; top: ${cy}px; width: 0; height: 0; overflow: visible;">
                   <div id="rotor-${i}" style="position: absolute; width: 0; height: 0; transform: rotate(${angle}deg);">
-                    <div style="position: absolute; left: -10px; top: -${cs}px; width: 20px; height: ${cs + 10}px; background: var(--accent-2); border-radius: 10px;"></div>
+                    <div style="position: absolute; left: -8px; top: -${cs - 4}px; width: 16px; height: ${cs + 8}px; background: linear-gradient(180deg, var(--accent-2) 0%, #0d9488 100%); border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4);"></div>
                   </div>
                   <svg style="position: absolute; left: -30px; top: -30px; width: 60px; height: 60px; pointer-events: none;" viewBox="-30 -30 60 60">
-                    <circle cx="0" cy="0" r="12" fill="var(--surface-2)" />
+                    <circle cx="0" cy="0" r="14" fill="var(--surface-2)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
                     <circle cx="0" cy="0" r="6" fill="var(--accent-2)" />
-                    <path d="${pathD}" stroke="var(--ok)" stroke-width="2" fill="none" stroke-linecap="round"/>
-                    <path d="${arrowHead}" stroke="var(--ok)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="${pathD}" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none" stroke-linecap="round"/>
+                    <path d="${arrowHead}" stroke="rgba(255,255,255,0.3)" stroke-width="2" fill="none" stroke-linecap="round"/>
                   </svg>
                 </g>
               `;
             }).join('')}
 
             <!-- Player -->
-            <div id="player-sprite" style="position: absolute; left: ${engine.playerC * cs + cs/2 - 12}px; top: ${engine.playerR * cs + cs/2 - 12}px; width: 24px; height: 24px; background: var(--accent); border-radius: 50%; transition: left 150ms ease-out, top 150ms ease-out;"></div>
+            <div id="player-sprite" style="position: absolute; left: ${engine.playerC * cs + cs/2 - 14}px; top: ${engine.playerR * cs + cs/2 - 14}px; width: 28px; height: 28px; background: radial-gradient(circle at 30% 30%, #fbbf24 0%, var(--accent) 100%); border-radius: 50%; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5), inset 0 -2px 4px rgba(0,0,0,0.2); transition: left 150ms ease-out, top 150ms ease-out;"></div>
           </div>
 
           <!-- Controls -->
-          <div style="display: grid; grid-template-columns: 64px 64px 64px; grid-template-rows: 64px 64px; gap: 8px;">
+          <div style="display: grid; grid-template-columns: 72px 72px 72px; grid-template-rows: 72px 72px; gap: 12px;">
             <div style="grid-column: 2; grid-row: 1;">
-              <button class="btn-secondary btn-U" style="width: 100%; height: 100%; font-size: 24px;">↑</button>
+              <button class="btn-secondary btn-U" style="width: 100%; height: 100%; margin:0; padding:0; font-size: 24px; border-radius: 16px;">↑</button>
             </div>
             <div style="grid-column: 1; grid-row: 2;">
-              <button class="btn-secondary btn-L" style="width: 100%; height: 100%; font-size: 24px;">←</button>
+              <button class="btn-secondary btn-L" style="width: 100%; height: 100%; margin:0; padding:0; font-size: 24px; border-radius: 16px;">←</button>
             </div>
             <div style="grid-column: 2; grid-row: 2;">
-              <button class="btn-secondary btn-D" style="width: 100%; height: 100%; font-size: 24px;">↓</button>
+              <button class="btn-secondary btn-D" style="width: 100%; height: 100%; margin:0; padding:0; font-size: 24px; border-radius: 16px;">↓</button>
             </div>
             <div style="grid-column: 3; grid-row: 2;">
-              <button class="btn-secondary btn-R" style="width: 100%; height: 100%; font-size: 24px;">→</button>
+              <button class="btn-secondary btn-R" style="width: 100%; height: 100%; margin:0; padding:0; font-size: 24px; border-radius: 16px;">→</button>
             </div>
           </div>
         </div>

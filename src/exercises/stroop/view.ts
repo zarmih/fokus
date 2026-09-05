@@ -28,13 +28,13 @@ export function renderStroop(
     const roundStartTime = Date.now();
     
     container.innerHTML = `
-      <div class="stroop-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-        <div class="stroop-word" style="font-size: 48px; font-weight: bold; margin-bottom: 40px; color: ${COLORS.find(c=>c.id===trial.ink)!.hex}">
+      <div class="stroop-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
+        <div class="stroop-word" style="color: ${COLORS.find(c=>c.id===trial.ink)!.hex}">
           ${COLORS.find(c=>c.id===trial.word)!.word}
         </div>
-        <div class="stroop-options" style="display: flex; gap: 10px;">
+        <div class="stroop-options" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; max-width: 360px;">
           ${trial.options.map(opt => `
-            <button class="btn-primary stroop-btn" data-color="${opt}" style="background: ${COLORS.find(c=>c.id===opt)!.hex}; color: #1a2332;">
+            <button class="stroop-btn" data-color="${opt}" style="background: ${COLORS.find(c=>c.id===opt)!.hex}; color: #fff;">
               ${COLORS.find(c=>c.id===opt)!.word}
             </button>
           `).join('')}

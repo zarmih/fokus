@@ -28,9 +28,9 @@ export function renderOddOne(
     const roundStartTime = Date.now();
     
     container.innerHTML = `
-      <div class="odd-one-board" style="display: grid; gap: 8px; margin: 20px auto; width: 100%; max-width: 400px; aspect-ratio: 1; grid-template-columns: repeat(${params.grid}, 1fr);">
+      <div class="odd-one-grid" style="grid-template-columns: repeat(${params.grid}, 1fr); gap: 12px; margin: 20px auto; width: 100%; max-width: 400px; aspect-ratio: 1;">
         ${cells.map((c, i) => `
-          <button class="odd-one-cell" data-index="${i}" style="background-color: hsl(${c.hue}, 70%, 50%); border: none; border-radius: 8px; cursor: pointer;"></button>
+          <button class="oo-btn" data-index="${i}" style="background-color: hsl(${c.hue}, 70%, 50%);"></button>
         `).join('')}
       </div>
     `;
@@ -42,13 +42,13 @@ export function renderOddOne(
       totalRt += rt;
       rounds++;
 
-      const btns = container.querySelectorAll('.odd-one-cell');
+      const btns = container.querySelectorAll('.oo-btn');
       btns.forEach((b: any, i) => {
         b.disabled = true;
         if (i === oddIndex) {
           b.style.border = '4px solid #fff';
         } else if (i === choiceIndex) {
-          b.style.border = '4px solid #f44336';
+          b.style.border = '4px solid #ef4444'; // Red
         }
       });
 
@@ -66,7 +66,7 @@ export function renderOddOne(
       finishRound(null, params.deadlineMs);
     }, params.deadlineMs);
 
-    const btns = container.querySelectorAll('.odd-one-cell');
+    const btns = container.querySelectorAll('.oo-btn');
     btns.forEach(btn => {
       btn.addEventListener('click', () => {
         const idx = parseInt((btn as HTMLElement).dataset.index!);

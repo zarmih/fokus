@@ -27,13 +27,13 @@ export function renderPairs(container: HTMLElement, level: number, finishBlock: 
     else gridStyle = 'grid-template-columns: repeat(4, 1fr);';
 
     container.innerHTML = `
-      <div style="display: grid; ${gridStyle} gap: 10px; max-width: 400px; margin: 0 auto; padding: 20px 0;">
+      <div style="display: grid; ${gridStyle} gap: 16px; width: 100%; max-width: 440px; margin: 20px auto;">
         ${game.cards.map((c, i) => `
           <div class="pairs-card" data-idx="${i}" style="perspective: 1000px; aspect-ratio: 3/4; cursor: pointer;">
-            <div class="pairs-card-inner" style="position: relative; width: 100%; height: 100%; transition: transform 0.4s; transform-style: preserve-3d; ${params.previewMs > 0 ? 'transform: rotateY(180deg);' : ''}">
-              <div class="pairs-card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--dom-memory); border-radius: 8px; box-shadow: inset 0 0 0 4px rgba(255,255,255,0.2);"></div>
-              <div class="pairs-card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--surface-2); border-radius: 8px; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center;">
-                <img src="${import.meta.env.BASE_URL}art/tiles/${c}.svg" width="60%" style="pointer-events: none;">
+            <div class="pairs-card-inner" style="position: relative; width: 100%; height: 100%; transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1); transform-style: preserve-3d; ${params.previewMs > 0 ? 'transform: rotateY(180deg);' : ''}">
+              <div class="pairs-card-front" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: linear-gradient(135deg, var(--dom-memory) 0%, #9333ea 100%); border-radius: 16px; box-shadow: var(--shadow-sm); border: 2px solid rgba(255,255,255,0.1);"></div>
+              <div class="pairs-card-back" style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; background: var(--surface-2); border-radius: 16px; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow); border: 1px solid rgba(255,255,255,0.05);">
+                <img src="${import.meta.env.BASE_URL}art/tiles/${c}.svg" width="60%" style="pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
               </div>
             </div>
           </div>

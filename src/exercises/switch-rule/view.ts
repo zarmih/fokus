@@ -30,23 +30,23 @@ export function renderSwitchRule(
     const ruleLabel = trial.rule === 'EVEN' ? 'Левое число чётное?' : 'Левое больше правого?';
     
     container.innerHTML = `
-      <div class="switch-rule-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-        <div class="rule-label" style="font-size: 24px; color: var(--accent); margin-bottom: 32px; text-align: center;">${ruleLabel}</div>
+      <div class="switch-rule-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
+        <div class="rule-label" style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 40px; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">${ruleLabel}</div>
         
-        <div class="cards-container" style="display: flex; gap: 24px; margin-bottom: 48px;">
-          <div class="card-left" style="display: flex; flex-direction: column; align-items: center; background: var(--surface-2); padding: 24px; border-radius: 16px; min-width: 120px;">
-            <div style="font-size: 64px; font-weight: bold; color: var(--text);">${trial.left}</div>
-            <div style="font-size: 14px; color: var(--muted); margin-top: 8px; text-transform: uppercase;">Левое</div>
+        <div class="cards-container" style="display: flex; gap: 24px; margin-bottom: 48px; width: 100%; max-width: 360px;">
+          <div class="card-left" style="flex: 1; display: flex; flex-direction: column; align-items: center; background: var(--surface-2); padding: 32px 16px; border-radius: 20px; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.05);">
+            <div style="font-size: 64px; font-weight: 900; color: var(--text);">${trial.left}</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 12px; text-transform: uppercase; letter-spacing: 1px;">Левое</div>
           </div>
-          <div class="card-right" style="display: flex; flex-direction: column; align-items: center; background: var(--surface-2); padding: 24px; border-radius: 16px; min-width: 120px; ${trial.rule === 'EVEN' ? 'opacity: 0.35;' : ''}">
-            <div style="font-size: 64px; font-weight: bold; color: var(--text);">${trial.right}</div>
-            <div style="font-size: 14px; color: var(--muted); margin-top: 8px; text-transform: uppercase;">Правое</div>
+          <div class="card-right" style="flex: 1; display: flex; flex-direction: column; align-items: center; background: var(--surface-2); padding: 32px 16px; border-radius: 20px; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.05); ${trial.rule === 'EVEN' ? 'opacity: 0.25; filter: grayscale(100%);' : ''}">
+            <div style="font-size: 64px; font-weight: 900; color: var(--text);">${trial.right}</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--muted); margin-top: 12px; text-transform: uppercase; letter-spacing: 1px;">Правое</div>
           </div>
         </div>
 
-        <div class="options" style="display: flex; gap: 20px;">
-          <button class="btn-primary sr-btn" data-choice="true" style="padding: 16px 40px; font-size: 24px;">Да</button>
-          <button class="btn-secondary sr-btn" data-choice="false" style="padding: 16px 40px; font-size: 24px;">Нет</button>
+        <div class="options" style="display: flex; gap: 24px; width: 100%; max-width: 360px;">
+          <button class="sr-btn" data-choice="true" style="flex: 1; background: linear-gradient(135deg, var(--ok) 0%, #059669 100%); font-size: 24px; font-weight: 800; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">Да</button>
+          <button class="sr-btn" data-choice="false" style="flex: 1; background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%); font-size: 24px; font-weight: 800; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">Нет</button>
         </div>
       </div>
     `;

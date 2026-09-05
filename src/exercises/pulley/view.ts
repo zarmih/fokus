@@ -46,26 +46,18 @@ export function renderPulley(
 
       const html = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; overflow-x: auto;">
-          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; color: var(--text);">
-            <div style="font-size: 20px;">
-              Двери: ${engine.gates.map((g, i) => `<span style="color: ${i < engine.playerAt ? 'var(--ok)' : (i === engine.playerAt ? 'var(--accent)' : 'var(--muted)')}; font-weight: bold; margin: 0 4px;">${g.need}</span>`).join(' ')}
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 32px; color: var(--text);">
+            <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">
+              Двери: ${engine.gates.map((g, i) => `<span style="color: ${i < engine.playerAt ? 'var(--ok)' : (i === engine.playerAt ? 'var(--accent)' : 'var(--muted)')}; margin: 0 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${g.need}</span>`).join(' ')}
             </div>
-            <div style="font-size: 16px; color: var(--muted); text-align: center;">
-              На крюке: <b style="color: var(--accent-2);">${hookSum}</b> (макс. 2 гири)
-              <div style="font-size: 14px; margin-top: 4px; opacity: 0.8;">Гирю с пройденной двери вернуть нельзя.</div>
+            <div style="font-size: 16px; color: var(--muted); text-align: center; font-weight: 500;">
+              На крюке: <b style="color: var(--accent-2); font-size: 18px;">${hookSum}</b> (макс. 2 гири)
             </div>
           </div>
           
-          <div style="position: relative; width: ${boardWidth}px; height: 200px; background: var(--surface); border-radius: 8px; overflow: visible; margin-bottom: 24px;">
+          <div style="position: relative; width: ${boardWidth}px; height: 220px; background: var(--surface); border-radius: 20px; overflow: visible; margin-bottom: 40px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1), var(--shadow-sm); border: 1px solid rgba(255,255,255,0.05);">
             <!-- Player -->
-            <div id="player-sprite" style="position: absolute; bottom: 20px; left: ${engine.playerAt * 80 + 20}px; transition: transform 500ms ease;">
-              <svg width="40" height="60" viewBox="0 0 40 60">
-                <circle cx="20" cy="15" r="10" fill="var(--accent)"/>
-                <rect x="15" y="25" width="10" height="25" rx="4" fill="var(--accent)"/>
-                <rect x="10" y="50" width="8" height="10" rx="4" fill="var(--accent)"/>
-                <rect x="22" y="50" width="8" height="10" rx="4" fill="var(--accent)"/>
-              </svg>
-            </div>
+            <div id="player-sprite" style="position: absolute; bottom: 20px; left: ${engine.playerAt * 80 + 20}px; transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1); width: 32px; height: 32px; background: radial-gradient(circle at 30% 30%, #fbbf24 0%, var(--accent) 100%); border-radius: 50%; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5), inset 0 -2px 4px rgba(0,0,0,0.2); z-index: 10;"></div>
 
             <!-- Gates -->
             ${engine.gates.map((g, i) => {
@@ -76,52 +68,54 @@ export function renderPulley(
               const gSum = g.hook.reduce((a,b)=>a+b, 0);
               const isOpen = isPast || (isActive && gSum === g.need);
               
-              const doorColor = isOpen ? 'var(--ok)' : 'var(--danger)';
+              const doorColor = isOpen ? 'linear-gradient(180deg, var(--ok) 0%, #059669 100%)' : 'linear-gradient(180deg, var(--danger) 0%, #dc2626 100%)';
+              const doorShadow = isOpen ? '0 0 16px rgba(16, 185, 129, 0.4)' : '0 0 16px rgba(239, 68, 68, 0.4)';
               const doorY = isOpen ? -140 : 0;
               const ropeDoorY = isOpen ? 40 : 90; 
               const hookY = isOpen ? 80 : 40; 
               const xPos = 80 + i * 80;
               
-              const outline = isActive ? 'outline: 2px solid var(--accent);' : '';
+              const outline = isActive ? 'background: rgba(245, 158, 11, 0.05); border-radius: 12px;' : '';
 
               return `
-                <div style="position: absolute; top: 0; bottom: 0; left: ${xPos}px; width: 80px; ${outline}">
+                <div style="position: absolute; top: 0; bottom: 0; left: ${xPos}px; width: 80px; ${outline} transition: background 300ms;">
                   <!-- Pulley and Rope -->
                   <div style="position: absolute; top: 10px; left: 10px; width: 60px; height: 100px;">
-                    <svg width="60" height="100" viewBox="0 0 60 100">
-                      <circle cx="30" cy="10" r="8" fill="var(--accent-2)"/>
+                    <svg width="60" height="100" viewBox="0 0 60 100" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                      <circle cx="30" cy="10" r="10" fill="var(--surface-2)" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+                      <circle cx="30" cy="10" r="4" fill="var(--accent-2)"/>
                       <!-- Rope to hook -->
-                      <line x1="22" y1="10" x2="22" y2="${hookY}" stroke="var(--accent-2)" stroke-width="2" style="transition: y2 400ms ease;"/>
+                      <line x1="20" y1="10" x2="20" y2="${hookY}" stroke="rgba(255,255,255,0.5)" stroke-width="3" style="transition: y2 500ms cubic-bezier(0.4, 0, 0.2, 1);"/>
                       <!-- Rope to door -->
-                      <line x1="38" y1="10" x2="38" y2="${ropeDoorY}" stroke="var(--accent-2)" stroke-width="2" style="transition: y2 400ms ease;"/>
+                      <line x1="40" y1="10" x2="40" y2="${ropeDoorY}" stroke="rgba(255,255,255,0.5)" stroke-width="3" style="transition: y2 500ms cubic-bezier(0.4, 0, 0.2, 1);"/>
                       <!-- Hook element -->
-                      <path d="M22,${hookY} Q30,${hookY+5} 38,${hookY}" stroke="var(--accent-2)" stroke-width="2" fill="none" style="transition: d 400ms ease;"/>
+                      <path d="M20,${hookY} Q30,${hookY+8} 40,${hookY}" stroke="var(--accent-2)" stroke-width="4" fill="none" stroke-linecap="round" style="transition: d 500ms cubic-bezier(0.4, 0, 0.2, 1);"/>
                     </svg>
                   </div>
                   <!-- Weights on this door's hook -->
-                  <div style="position: absolute; top: ${hookY + 15}px; left: 14px; display: flex; gap: 4px; transition: top 400ms ease;">
+                  <div style="position: absolute; top: ${hookY + 15}px; left: 14px; display: flex; gap: 4px; transition: top 500ms cubic-bezier(0.4, 0, 0.2, 1);">
                     ${g.hook.map((w, idx) => `
-                      <div class="${isActive ? 'weight-hook-on-door' : ''}" data-idx="${idx}" style="width: 24px; height: 24px; background: var(--dom-speed); color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; cursor: ${isActive ? 'pointer' : 'default'};">
+                      <div class="${isActive ? 'weight-hook-on-door' : ''}" data-idx="${idx}" style="width: 24px; height: 24px; background: linear-gradient(135deg, var(--dom-speed) 0%, #ea580c 100%); color: #fff; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; cursor: ${isActive ? 'pointer' : 'default'};">
                         ${w}
                       </div>
                     `).join('')}
                   </div>
                   <!-- Door -->
-                  <div style="position: absolute; bottom: 20px; left: 30px; width: 20px; height: 60px; background: ${doorColor}; transform: translateY(${doorY}%); transition: transform 400ms ease, background 400ms ease; border-radius: 4px;"></div>
+                  <div style="position: absolute; bottom: 20px; left: 30px; width: 24px; height: 70px; background: ${doorColor}; box-shadow: ${doorShadow}, inset 0 2px 4px rgba(255,255,255,0.2); transform: translateY(${doorY}%); transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1), background 500ms ease; border-radius: 6px; z-index: 5;"></div>
                 </div>
               `;
             }).join('')}
 
             <!-- Floor Line -->
-            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: var(--surface-2);"></div>
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: var(--surface-2); border-radius: 0 0 20px 20px; border-top: 1px solid rgba(255,255,255,0.05);"></div>
           </div>
 
           <!-- Weights on Hook (Large) -->
-          <div style="text-align: center; margin-bottom: 16px;">
-            <div style="font-size: 14px; color: var(--muted); margin-bottom: 8px;">На крюке (Нажми гирю — упадёт на пол):</div>
-            <div style="min-height: 40px; display: flex; gap: 8px; justify-content: center;">
+          <div style="text-align: center; margin-bottom: 24px;">
+            <div style="font-size: 14px; color: var(--muted); margin-bottom: 12px; font-weight: 600;">НА КРЮКЕ (нажми, чтобы сбросить)</div>
+            <div style="min-height: 48px; display: flex; gap: 12px; justify-content: center;">
               ${(currentGate ? currentGate.hook : []).map((w, idx) => `
-                <div class="weight-hook-large" data-idx="${idx}" style="width: 40px; height: 40px; background: var(--dom-speed); color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
+                <div class="weight-hook-large" data-idx="${idx}" style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--dom-speed) 0%, #ea580c 100%); color: #fff; border-radius: 12px; box-shadow: 0 4px 8px rgba(234, 88, 12, 0.4); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; cursor: pointer; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
                   ${w}
                 </div>
               `).join('')}
@@ -129,18 +123,18 @@ export function renderPulley(
           </div>
 
           <!-- Weights on Floor -->
-          <div style="min-height: 50px; display: flex; gap: 8px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center; max-width: 400px;">
+          <div style="min-height: 56px; display: flex; gap: 12px; margin-bottom: 40px; flex-wrap: wrap; justify-content: center; max-width: 440px;">
             ${engine.floor.map((w, idx) => `
-              <div class="weight-floor" data-idx="${idx}" style="width: 40px; height: 40px; background: var(--dom-logic); color: #1a2332; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
+              <div class="weight-floor" data-idx="${idx}" style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--dom-logic) 0%, #ca8a04 100%); color: #1a2332; border-radius: 12px; box-shadow: 0 4px 8px rgba(202, 138, 4, 0.4); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; cursor: pointer; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
                 ${w}
               </div>
             `).join('')}
           </div>
 
-          <div style="display: flex; gap: 16px; margin-bottom: 16px;">
-            <button id="btn-walk" class="btn-primary" style="padding: 16px 48px; font-size: 20px; opacity: ${canWalk ? 1 : 0.5}; pointer-events: ${canWalk ? 'auto' : 'none'};">Идти</button>
-            <button id="btn-drop-all" class="btn-secondary" style="padding: 16px 24px; font-size: 16px;">Все на пол</button>
-            <button id="btn-reset" class="btn-secondary" style="padding: 16px 24px; font-size: 16px;">Сброс пазла</button>
+          <div style="display: flex; gap: 16px; margin-bottom: 16px; width: 100%; max-width: 440px;">
+            <button id="btn-walk" class="btn-primary" style="flex: 2; padding: 16px; font-size: 20px; font-weight: 800; opacity: ${canWalk ? 1 : 0.5}; pointer-events: ${canWalk ? 'auto' : 'none'};">ИДТИ</button>
+            <button id="btn-drop-all" class="btn-secondary" style="flex: 1; padding: 16px; font-size: 14px;">Все на пол</button>
+            <button id="btn-reset" class="btn-secondary" style="flex: 1; padding: 16px; font-size: 14px;">Сброс</button>
           </div>
         </div>
       `;

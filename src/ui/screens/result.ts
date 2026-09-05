@@ -50,7 +50,7 @@ export function renderResult(container: HTMLElement, params: {session: Session})
   let deltasHtml = Object.keys(deltas).map(k => {
     const d = deltas[k];
     const sign = d >= 0 ? '+' : '';
-    const color = d >= 0 ? 'var(--success)' : 'var(--danger)';
+    const color = d >= 0 ? 'var(--ok)' : 'var(--danger)';
     return `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
       <span style="color: var(--text); text-transform: capitalize;">${k}</span>
       <span style="color: ${color}; font-weight: 600;">${sign}${Math.round(d)}</span>
