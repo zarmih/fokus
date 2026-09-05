@@ -4,4 +4,4 @@ Stage A complete.
 
 ## Setup
 `npm i && npm run dev`
-Run tests: `npm test`\n
+Run tests: `npm test`\nPhase B goals: PWA support, more exercises, backend sync

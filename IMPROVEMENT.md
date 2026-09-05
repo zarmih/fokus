@@ -29,3 +29,6 @@
    Изменение: media query prefers-reduced-motion
    Статус: backlog
    Результат: -
+6. ID: sequence-game
+   Гипотеза: Увеличение разнообразия
+   Статус: done
