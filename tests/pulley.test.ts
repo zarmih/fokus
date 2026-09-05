@@ -68,10 +68,22 @@ describe('pulley engine', () => {
     
     expect(engineWin.status).toBe('win');
   });
+
+  it('resets properly on generate', () => {
+    const engine = new PulleyEngine();
+    engine.generate({ doors: 4, need: [10,10,10,10], pool: [1,2,3,4] });
+    engine.takeFloor(0);
+    engine.walk(); // maybe wait, it fails but playerAt=0
+    expect(engine.gates[0].hook.length).toBe(1);
+    
+    engine.generate({ doors: 4, need: [11,11,11,11], pool: [1,2,3,4] });
+    expect(engine.gates[0].hook.length).toBe(0);
+    expect(engine.playerAt).toBe(0);
+  });
 });
 
 import { isSolvable } from '../src/exercises/pulley/engine';
-import { LEVELS } from '../src/exercises/pulley/manifest';
+import { LEVELS, generateDynamicTask } from '../src/exercises/pulley/manifest';
 
 describe('pulley solvable', () => {
   it('detects unsolvable', () => {
@@ -82,5 +94,14 @@ describe('pulley solvable', () => {
     LEVELS.forEach((l, i) => {
        expect(isSolvable(l.need, l.pool)).toBe(true);
     });
+  });
+
+  it('dynamic generator provides solvable task avoiding old need', () => {
+    const oldNeed = [10, 10, 10, 10];
+    const { need, pool } = generateDynamicTask(5, oldNeed);
+    expect(need).not.toEqual(oldNeed);
+    expect(need.length).toBe(4);
+    expect(pool.length).toBe(8);
+    expect(isSolvable(need, pool)).toBe(true);
   });
 });

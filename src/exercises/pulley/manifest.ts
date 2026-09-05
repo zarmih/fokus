@@ -34,3 +34,37 @@ export function getPulleyParams(level: number) {
   const deadlineMs = Math.max(15000, 35000 - (l - 1) * 800);
   return { doors: 4, pool: [...data.pool], need: [...data.need], deadlineMs, targetMs: deadlineMs * 0.7 };
 }
+
+import { isSolvable } from './engine';
+
+export function generateDynamicTask(level: number, avoidNeed?: number[]) {
+  const l = Math.min(20, Math.max(1, level));
+  const maxWeight = 4 + Math.floor(l / 2);
+  let pool: number[] = [];
+  let need: number[] = [];
+  
+  while (true) {
+    pool = [];
+    need = [];
+    for (let i = 0; i < 4; i++) {
+      const a = 1 + Math.floor(Math.random() * maxWeight);
+      const b = 1 + Math.floor(Math.random() * maxWeight);
+      pool.push(a, b);
+      need.push(a + b);
+    }
+    
+    if (avoidNeed && need.every((n, i) => n === avoidNeed[i])) {
+      continue;
+    }
+    
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+    
+    if (isSolvable(need, pool)) {
+      break;
+    }
+  }
+  return { pool, need };
+}

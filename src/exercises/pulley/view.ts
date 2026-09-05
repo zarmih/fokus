@@ -1,5 +1,5 @@
 import { PulleyEngine } from './engine';
-import { getPulleyParams } from './manifest';
+import { getPulleyParams, generateDynamicTask } from './manifest';
 
 export function renderPulley(
   container: HTMLElement,
@@ -11,13 +11,13 @@ export function renderPulley(
   let totalAcc = 0;
   let totalRt = 0;
   
-  const startRound = () => {
+  const startRound = (customParams?: any) => {
     if (isTimeUp()) {
       finishBlock();
       return;
     }
 
-    const params = getPulleyParams(level);
+    const params = customParams || getPulleyParams(level);
     const engine = new PulleyEngine();
     engine.generate(params);
     const roundStart = Date.now();
@@ -186,7 +186,10 @@ export function renderPulley(
         if (isTimeUp() || isAnimating) return;
         rounds++;
         totalRt += Date.now() - roundStart;
-        startRound(); // this will generate new and not add accuracy, exactly as asked
+        
+        const newTask = generateDynamicTask(level, engine.gates.map(g => g.need));
+        const newParams = { ...params, need: newTask.need, pool: newTask.pool };
+        startRound(newParams);
       });
 
       document.getElementById('btn-walk')?.addEventListener('click', () => {
