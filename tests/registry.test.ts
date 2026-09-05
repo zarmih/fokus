@@ -13,6 +13,7 @@ test('registry contains all exercises', () => {
   expect(ids).toContain('pairs');
   expect(ids).toContain('pulley');
   expect(ids).toContain('swings');
+  expect(ids).toContain('math-sprint');
 });
 
 test('dispatch maps id to module', () => {
