@@ -3,21 +3,19 @@ export interface Profile {
   sessionLengthSec: number;
   soundOn: boolean;
   locale: 'ru';
+  schemaVersion: number;
 }
-
 export interface DomainIndex {
   domain: string;
   value: number;
   updatedAt: string;
 }
-
 export interface ExerciseState {
   exerciseId: string;
   level: number;
   lastPlayedAt: string;
   lastAccuracy: number;
 }
-
 export interface SessionItem {
   exerciseId: string;
   level: number;
@@ -25,7 +23,6 @@ export interface SessionItem {
   avgRtMs: number;
   score: number;
 }
-
 export interface Session {
   id: string;
   startedAt: string;
@@ -33,10 +30,17 @@ export interface Session {
   durationSec: number;
   items: SessionItem[];
 }
-
 export interface DaySummary {
   date: string;
   totalScore: number;
   domainDeltas: Record<string, number>;
   streak: number;
+  skipped: boolean;
+}
+export interface AppState {
+  profile: Profile;
+  domains: DomainIndex[];
+  exerciseStates: ExerciseState[];
+  sessions: Session[];
+  daySummaries: DaySummary[];
 }

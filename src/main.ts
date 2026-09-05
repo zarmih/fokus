@@ -2,23 +2,19 @@ import './styles.css';
 import { renderToday } from './ui/screens/today';
 import { renderSession } from './ui/screens/session';
 import { renderResult } from './ui/screens/result';
-import { navigateTo } from './ui/router';
+import { renderProgress } from './ui/screens/progress';
+import { renderSettings } from './ui/screens/settings';
+import { renderTrainers } from './ui/screens/trainers';
 
 const app = document.getElementById('app')!;
 renderToday(app);
 
 window.addEventListener('navigate', (e: any) => {
-  if (e.detail === 'today') renderToday(app);
-  else if (e.detail === 'session') renderSession(app);
-  else if (e.detail === 'result') renderResult(app);
-  
-  if (e.detail === 'today') {
-    setTimeout(() => {
-      document.getElementById('btn-start')?.addEventListener('click', () => navigateTo('session'));
-    }, 0);
-  }
+  const {screenId, params} = e.detail;
+  if (screenId === 'today') renderToday(app);
+  else if (screenId === 'session') renderSession(app, params);
+  else if (screenId === 'result') renderResult(app, params);
+  else if (screenId === 'progress') renderProgress(app);
+  else if (screenId === 'settings') renderSettings(app);
+  else if (screenId === 'trainers') renderTrainers(app);
 });
-
-setTimeout(() => {
-  document.getElementById('btn-start')?.addEventListener('click', () => navigateTo('session'));
-}, 0);

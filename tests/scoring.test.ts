@@ -1,6 +1,9 @@
 import { expect, test } from 'vitest';
-import { calculateScore } from '../src/core/scoring';
+import { scoreBlock } from '../src/core/scoring';
 
-test('calculateScore', () => {
-  expect(calculateScore(1.0, 3, 1000, 1500)).toBeGreaterThan(0);
+test('scoring logic', () => {
+  const s1 = scoreBlock({accuracy: 1.0, level: 1, avgRtMs: 1000, targetMs: 1000}); // 1.0 * (100+12) * 1 = 112
+  expect(s1).toBe(112);
+  const s2 = scoreBlock({accuracy: 0.0, level: 1, avgRtMs: 1000, targetMs: 1000}); 
+  expect(s2).toBe(0);
 });

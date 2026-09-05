@@ -1,2 +1,2 @@
-import { gridMemoryManifest } from "./grid-memory/manifest";
+import { gridMemoryManifest } from './grid-memory/manifest';
 export const registry = [gridMemoryManifest];
