@@ -10,14 +10,28 @@ export interface Profile {
   schemaVersion: number;
   xp?: number;
 }
+
+export interface SkillIndex {
+  skill: string;
+  value: number;
+  trend: number;
+  confidence: number;
+  attempts: number;
+  lastUpdated: string;
+}
+
 export interface DomainIndex {
   domain: string;
   value: number;
+  trend?: number;
   updatedAt: string;
 }
+
 export interface ExerciseState {
   exerciseId: string;
   level: number;
+  difficulty: number;
+  performance: number;
   lastPlayedAt: string;
   lastAccuracy: number;
 }
@@ -52,6 +66,7 @@ export interface DaySummary {
 export interface AppState {
   profile: Profile;
   domains: DomainIndex[];
+  skills: SkillIndex[];
   exerciseStates: ExerciseState[];
   sessions: Session[];
   daySummaries: DaySummary[];

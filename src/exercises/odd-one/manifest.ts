@@ -4,6 +4,7 @@ export const oddOneManifest: ExerciseManifest = {
   id: 'odd-one',
   name: 'Лишний',
   domain: 'attention',
+  skills: ['visual_scanning', 'selective_attention', 'processing_speed'],
   instruction: 'Найди элемент, который отличается от остальных.',
   levels: {
     1: { grid: 3, deltaHue: 60, targetMs: 5000, deadlineMs: 8000 },
@@ -31,5 +32,5 @@ export const oddOneManifest: ExerciseManifest = {
 
 export function getOddOneParams(level: number) {
   const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return oddOneManifest.levels[lvl as keyof typeof oddOneManifest.levels];
+  return oddOneManifest.levels![lvl as keyof typeof oddOneManifest.levels];
 }

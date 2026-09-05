@@ -4,6 +4,7 @@ export const switchRuleManifest: ExerciseManifest = {
   id: 'switch-rule',
   name: 'Смена правила',
   domain: 'flexibility',
+  skills: ['rule_switching', 'task_switching', 'cognitive_flexibility'],
   instruction: 'Смотри на подпись. Да или нет. Правило меняется.',
   levels: {
     1: { switchEvery: 8, deadlineMs: 2000, targetMs: 1500 },
@@ -31,5 +32,5 @@ export const switchRuleManifest: ExerciseManifest = {
 
 export function getSwitchRuleParams(level: number) {
   const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return switchRuleManifest.levels[lvl as keyof typeof switchRuleManifest.levels];
+  return switchRuleManifest.levels![lvl as keyof typeof switchRuleManifest.levels];
 }

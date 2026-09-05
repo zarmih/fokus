@@ -4,6 +4,7 @@ export const stroopManifest: ExerciseManifest = {
   id: 'stroop',
   name: 'Чернила',
   domain: 'flexibility',
+  skills: ['selective_attention', 'inhibition', 'processing_speed'],
   instruction: 'Нажми цвет букв, не читай слово.',
   levels: {
     1: { deadlineMs: 2200, incongruentPct: 0.3, colors: 3, targetMs: 1800 },
@@ -31,5 +32,5 @@ export const stroopManifest: ExerciseManifest = {
 
 export function getStroopParams(level: number) {
   const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return stroopManifest.levels[lvl as keyof typeof stroopManifest.levels];
+  return stroopManifest.levels![lvl as keyof typeof stroopManifest.levels];
 }

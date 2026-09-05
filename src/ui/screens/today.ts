@@ -1,6 +1,6 @@
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
-import { buildSession } from '../../core/session-builder';
+import { buildTrainingPlan } from '../../core/session-builder';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -28,12 +28,14 @@ export function renderToday(container: HTMLElement) {
 
   // Pre-build session to show composition
   const domains = storage.getDomains();
-  const items = buildSession({
+  const skills = storage.getSkills();
+  const states = storage.getExerciseStates();
+  const plan = buildTrainingPlan({
     durationSec: profile.sessionLengthSec,
-    catalog: registry,
-    domainIndexes: domains,
-    lastPlayedByExercise: {},
-    yesterdayDomains: []
+    catalog: registry as any,
+    domains,
+    skills,
+    states
   });
 
   const allDomains = [
@@ -48,7 +50,7 @@ export function renderToday(container: HTMLElement) {
     const val = domains.find(x => x.domain === d.id)?.value || 0;
     const isZero = val === 0;
     const displayVal = Math.round(isZero ? 500 : val);
-    const pct = Math.min(100, Math.max(0, displayVal / 10));
+    const pct = Math.min(100, Math.max(0, displayVal / 15));
     return `
       <div class="scale-row dom-${d.id} ${isZero ? 'scale-empty' : ''}">
         <div class="scale-label">${d.name}</div>
@@ -58,9 +60,19 @@ export function renderToday(container: HTMLElement) {
     `;
   }).join('');
 
-  let compositionHtml = items.map(item => {
+  const focusText = plan.focusDomains.length > 0 
+    ? plan.focusDomains.map(d => allDomains.find(x => x.id === d)?.name?.toUpperCase()).join(' + ')
+    : 'СБАЛАНСИРОВАННАЯ ТРЕНИРОВКА';
+
+  let compositionHtml = plan.items.map(item => {
     const r = registry.find(x => x.manifest.id === item.exerciseId);
-    return `<div class="chip dom-${r?.manifest.domain}"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="16" height="16" style="margin-right: 6px; border-radius: 4px;">${r?.manifest.name}<span>${r?.manifest.domain}</span></div>`;
+    return `<div class="chip dom-${r?.manifest.domain}" style="margin-bottom: 8px; display: flex; flex-direction: column; width: 100%; padding: 8px 12px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+        <span style="display: flex; align-items: center; font-weight: 600;"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="16" height="16" style="margin-right: 6px; border-radius: 4px;">${r?.manifest.name}</span>
+        <span style="font-size: 10px; color: var(--muted); text-transform: uppercase;">${r?.manifest.domain}</span>
+      </div>
+      <div style="font-size: 12px; color: var(--text); opacity: 0.8;">${item.reason}</div>
+    </div>`;
   }).join('');
 
   let topCard = '';
@@ -96,7 +108,10 @@ export function renderToday(container: HTMLElement) {
   } else {
     actionHtml = `
       <div class="surface" style="padding-bottom: 4px;">
-        <h3 style="margin-bottom: 12px;">Состав сессии</h3>
+        <div style="text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Фокус сегодня</div>
+          <div style="color: var(--accent); font-weight: 700; font-size: 15px;">${focusText}</div>
+        </div>
         <div style="margin-bottom: 20px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" style="margin-bottom: 12px;">Начать ${Math.floor(profile.sessionLengthSec/60)} мин</button>
       </div>
@@ -132,7 +147,7 @@ export function renderToday(container: HTMLElement) {
     if (!profile.calibrated) {
       navigateTo('session', {mode: 'calibration', items: [{exerciseId: 'odd-one'}, {exerciseId: 'grid-memory'}, {exerciseId: 'stroop'}]});
     } else {
-      navigateTo('session', {mode: 'normal', items});
+      navigateTo('session', {mode: 'normal', items: plan.items});
     }
   });
 }

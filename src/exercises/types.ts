@@ -1,7 +1,5 @@
-export interface ExerciseManifest {
-  id: string;
-  name: string;
-  domain: string;
-  instruction: string;
-  levels: Record<number, any>;
-}
+import type { ExerciseManifest as ContractManifest } from './contract';
+
+export type ExerciseManifest = ContractManifest & {
+  levels?: Record<number, any>;
+};

@@ -2,6 +2,7 @@ export const pulleyManifest = {
   id: 'pulley',
   name: 'Шкив',
   domain: 'logic',
+  skills: ['logical_reasoning', 'mental_calculation', 'working_memory'],
   instruction: 'Подвесь ровно столько, сколько нужно двери. Лишнее — канат не тянет как надо.'
 };
 

@@ -1,4 +1,4 @@
-import type { AppState, Profile, DomainIndex, ExerciseState, Session, DaySummary, HistoryItem } from './types';
+import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem } from './types';
 
 export const CURRENT_SCHEMA_VERSION = 2;
 export const STORAGE_KEY = 'fokus.v1';
@@ -24,6 +24,7 @@ const defaultProfile: Profile = {
 const defaultState: AppState = {
   profile: defaultProfile,
   domains: [],
+  skills: [],
   exerciseStates: [],
   sessions: [],
   daySummaries: [],
@@ -44,6 +45,7 @@ export class Storage {
         if (parsed.profile.schemaVersion === 1) {
           parsed.profile.onboarded = !!parsed.profile.calibrated;
           parsed.history = parsed.history || [];
+          parsed.skills = parsed.skills || [];
           parsed.profile.schemaVersion = 2;
         }
         this.backend.setItem(STORAGE_KEY, JSON.stringify(parsed));
@@ -59,6 +61,7 @@ export class Storage {
     try {
       const parsed = JSON.parse(raw);
       if (!parsed.history) parsed.history = [];
+      if (!parsed.skills) parsed.skills = [];
       return parsed;
     } catch (e) {
       return JSON.parse(JSON.stringify(defaultState));
@@ -72,10 +75,13 @@ export class Storage {
   getProfile(): Profile { return { ...defaultProfile, ...(this.getState().profile || {}) }; }
   setProfile(p: Profile) { const s = this.getState(); s.profile = p; this.saveState(s); }
 
-  getDomains(): DomainIndex[] { return this.getState().domains; }
+  getDomains(): DomainIndex[] { return this.getState().domains || []; }
   setDomains(d: DomainIndex[]) { const s = this.getState(); s.domains = d; this.saveState(s); }
 
-  getExerciseStates(): ExerciseState[] { return this.getState().exerciseStates; }
+  getSkills(): SkillIndex[] { return this.getState().skills || []; }
+  setSkills(sk: SkillIndex[]) { const s = this.getState(); s.skills = sk; this.saveState(s); }
+
+  getExerciseStates(): ExerciseState[] { return this.getState().exerciseStates || []; }
   setExerciseStates(st: ExerciseState[]) { const s = this.getState(); s.exerciseStates = st; this.saveState(s); }
 
   getSessions(): Session[] { return this.getState().sessions; }

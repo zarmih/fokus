@@ -4,6 +4,7 @@ export const gridMemoryManifest: ExerciseManifest = {
   id: 'grid-memory',
   name: 'Матрица',
   domain: 'memory',
+  skills: ['visual_memory', 'spatial_memory', 'working_memory'],
   instruction: 'Запомни подсвеченные клетки и отметь их. Порядок не важен.',
   levels: {
     1: { grid: 3, cells: 3, showMs: 1200, targetMs: 8000 },
@@ -31,5 +32,5 @@ export const gridMemoryManifest: ExerciseManifest = {
 
 export function getGridMemoryParams(level: number) {
   const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return gridMemoryManifest.levels[lvl as keyof typeof gridMemoryManifest.levels];
+  return gridMemoryManifest.levels![lvl as keyof typeof gridMemoryManifest.levels];
 }

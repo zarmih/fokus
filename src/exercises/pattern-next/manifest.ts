@@ -4,6 +4,7 @@ export const patternNextManifest: ExerciseManifest = {
   id: 'pattern-next',
   name: 'Ряд',
   domain: 'logic',
+  skills: ['pattern_recognition', 'logical_reasoning'],
   instruction: 'Выбери, что идёт дальше в ряду.',
   levels: {
     1: { ruleType: 'ADD_1', distractors: 3, targetMs: 8000, deadlineMs: 15000 },
@@ -31,5 +32,5 @@ export const patternNextManifest: ExerciseManifest = {
 
 export function getPatternNextParams(level: number) {
   const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return patternNextManifest.levels[lvl as keyof typeof patternNextManifest.levels];
+  return patternNextManifest.levels![lvl as keyof typeof patternNextManifest.levels];
 }

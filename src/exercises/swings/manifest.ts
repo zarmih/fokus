@@ -4,6 +4,7 @@ export const swingsManifest = {
   id: 'swings',
   name: 'Качели',
   domain: 'speed',
+  skills: ['reaction_speed', 'visual_scanning'],
   instruction: 'Прыгай на перекладину. Мимо — сначала.'
 };
 

@@ -2,7 +2,7 @@ import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { dispatch } from '../../exercises/dispatch';
 import { scoreBlock } from '../../core/scoring';
-import { calculateNextLevel, updateDomainIndex } from '../../core/adaptive';
+import { calculateNextDifficulty, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
@@ -40,7 +40,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     
     const manifest = exDispatch.manifest;
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
-    if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
+    if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, difficulty: mode === 'calibration' ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
 
     content.innerHTML = `
       <div class="session-header">
@@ -128,10 +128,15 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           if (cleanupFn) cleanupFn();
           import('../../core/audio').then(a => a.playBeep(res.accuracy >= 0.8)).catch(() => {});
 
-          const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: 1500});
+          // Target MS depends on the exercise manifest, but we fallback to 1500
+          const targetMs = (manifest as any).levels ? ((manifest as any).levels[Math.floor(state!.difficulty)]?.targetMs || 1500) : 1500;
+          
+          const perf = calculateNormalizedPerformance(res.accuracy, res.avgRtMs, targetMs, state!.difficulty);
+          const score = Math.round(perf / 10); // simple mapping for UI score
+
           sessionResults.push({
             exerciseId: item.exerciseId,
-            level: state!.level,
+            level: Math.floor(state!.difficulty),
             accuracy: res.accuracy,
             avgRtMs: res.avgRtMs,
             score
@@ -143,13 +148,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             const st = storage.getExerciseStates();
             registry.filter(r => r.manifest.domain === domain).forEach(ex => {
               const idx = st.findIndex(s => s.exerciseId === ex.manifest.id);
-              if (idx >= 0) st[idx].level = newLevel;
-              else st.push({ exerciseId: ex.manifest.id, level: newLevel, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
+              if (idx >= 0) {
+                st[idx].level = newLevel;
+                st[idx].difficulty = newLevel;
+              }
+              else {
+                st.push({ exerciseId: ex.manifest.id, level: newLevel, difficulty: newLevel, performance: perf, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
+              }
             });
             storage.setExerciseStates(st);
           } else {
-            const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, 1500);
-            state!.level = newLevel;
+            const newDiff = calculateNextDifficulty(state!.difficulty, res.accuracy, res.avgRtMs, targetMs);
+            state!.difficulty = newDiff;
+            state!.level = Math.floor(newDiff);
+            state!.performance = perf;
             state!.lastPlayedAt = new Date().toISOString();
             state!.lastAccuracy = res.accuracy;
             
@@ -159,18 +171,29 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             else st.push(state!);
             storage.setExerciseStates(st);
 
+            // Update skills
+            const skills = storage.getSkills();
+            manifest.skills.forEach(skillId => {
+              const sIdx = skills.findIndex(s => s.skill === skillId);
+              const updated = updateSkillIndex(sIdx >= 0 ? skills[sIdx] : undefined, skillId, perf);
+              if (sIdx >= 0) skills[sIdx] = updated;
+              else skills.push(updated);
+            });
+            storage.setSkills(skills);
+
+            // Update domain
             const domains = storage.getDomains();
             const dIdx = domains.findIndex(d => d.domain === manifest.domain);
-            const currentDomainValue = dIdx >= 0 ? domains[dIdx].value : 1000;
-            const newDomainValue = updateDomainIndex(currentDomainValue, res.accuracy, state!.level);
+            const currentVal = dIdx >= 0 ? domains[dIdx].value : 0;
+            const updatedDomain = updateDomainIndex(dIdx >= 0 ? domains[dIdx] : undefined, manifest.domain, perf);
+            
             if (dIdx >= 0) {
-              domains[dIdx].value = newDomainValue;
-              domains[dIdx].updatedAt = new Date().toISOString();
+              domains[dIdx] = updatedDomain;
             } else {
-              domains.push({ domain: manifest.domain, value: newDomainValue, updatedAt: new Date().toISOString() });
+              domains.push(updatedDomain);
             }
             storage.setDomains(domains);
-            domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (newDomainValue - currentDomainValue);
+            domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (updatedDomain.value - currentVal);
           }
           
           currentIndex++;

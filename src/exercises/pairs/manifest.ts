@@ -2,6 +2,7 @@ export const pairsManifest = {
   id: 'pairs',
   name: 'Пары',
   domain: 'memory',
+  skills: ['visual_memory', 'working_memory'],
   instruction: 'Найди одинаковые картинки.'
 };
 

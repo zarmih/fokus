@@ -4,6 +4,7 @@ export const sequenceManifest: ExerciseManifest = {
   id: 'sequence',
   name: 'Цепочка',
   domain: 'memory',
+  skills: ['spatial_memory', 'working_memory'],
   instruction: 'Запомните порядок вспыхивающих клеток и повторите его.',
   levels: {
     1: { grid: 3, length: 3, flashMs: 800, gapMs: 200, targetMs: 6000 },
@@ -31,5 +32,5 @@ export const sequenceManifest: ExerciseManifest = {
 
 export function getSequenceParams(level: number) {
   const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return sequenceManifest.levels[lvl as keyof typeof sequenceManifest.levels];
+  return sequenceManifest.levels![lvl as keyof typeof sequenceManifest.levels];
 }

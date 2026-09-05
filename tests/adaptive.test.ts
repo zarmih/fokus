@@ -1,23 +1,27 @@
 import { expect, test } from 'vitest';
-import { calculateNextLevel, updateDomainIndex } from '../src/core/adaptive';
+import { calculateNextDifficulty, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex } from '../src/core/adaptive';
 
-test('adaptive level +1', () => {
-  expect(calculateNextLevel(3, 0.9, 1000, 1500)).toBe(4);
+test('adaptive difficulty increase', () => {
+  const next = calculateNextDifficulty(3.0, 0.96, 1000, 1500);
+  expect(next).toBeGreaterThan(3.0);
 });
-test('adaptive level 0', () => {
-  expect(calculateNextLevel(3, 0.7, 1000, 1500)).toBe(3);
+test('adaptive difficulty drop on fail', () => {
+  const next = calculateNextDifficulty(3.0, 0.5, 1000, 1500);
+  expect(next).toBeLessThan(3.0);
 });
-test('adaptive level -1', () => {
-  expect(calculateNextLevel(3, 0.5, 1000, 1500)).toBe(2);
+test('performance calculation', () => {
+  const perfGood = calculateNormalizedPerformance(1.0, 1000, 1500, 5);
+  const perfBad = calculateNormalizedPerformance(0.5, 2000, 1500, 5);
+  expect(perfGood).toBeGreaterThan(perfBad);
 });
-test('adaptive level max', () => {
-  expect(calculateNextLevel(20, 0.9, 1000, 1500)).toBe(20);
-});
-test('adaptive level min', () => {
-  expect(calculateNextLevel(1, 0.5, 1000, 1500)).toBe(1);
-});
-
 test('update domain index', () => {
-  const next = updateDomainIndex(100, 1.0, 5);
-  expect(next).toBeGreaterThan(100);
+  const next = updateDomainIndex(undefined, 'memory', 500);
+  expect(next.domain).toBe('memory');
+  expect(next.value).toBe(500);
+});
+test('update skill index', () => {
+  const next = updateSkillIndex(undefined, 'visual_memory', 500);
+  expect(next.skill).toBe('visual_memory');
+  expect(next.value).toBe(500);
+  expect(next.attempts).toBe(1);
 });
