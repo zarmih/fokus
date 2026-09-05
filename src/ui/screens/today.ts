@@ -4,6 +4,7 @@ import { buildTrainingPlan } from '../../core/session-builder';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
+import { generateInsights } from '../../core/insights';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -35,7 +36,8 @@ export function renderToday(container: HTMLElement) {
     catalog: registry as any,
     domains,
     skills,
-    states
+    states,
+    primaryGoal: profile.primaryGoal
   });
 
   const allDomains = [
@@ -118,6 +120,25 @@ export function renderToday(container: HTMLElement) {
     `;
   }
 
+  const insights = generateInsights(domains, skills, states, ds);
+  let insightHtml = '';
+  if (insights.length > 0) {
+    const topInsight = insights[0];
+    const confText = topInsight.confidence === 'high' ? 'Уверенный' : (topInsight.confidence === 'medium' ? 'Подтверждается' : 'Изучаем');
+    insightHtml = `
+      <div class="insight-banner" style="background: var(--surface); padding: 12px 16px; border-radius: 12px; margin-bottom: 16px; border-left: 4px solid var(--accent); display: flex; align-items: center; gap: 12px; font-size: 14px;">
+        <div style="flex: 1;">
+          <div style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; letter-spacing: 0.5px; margin-bottom: 2px;">
+            Инсайт • ${confText}
+          </div>
+          <div style="color: var(--text); font-weight: 500; line-height: 1.3;">
+            ${topInsight.description}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
   const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
   const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
 
@@ -126,6 +147,8 @@ export function renderToday(container: HTMLElement) {
     <p style="margin-bottom: 24px;">${dateStr}</p>
     
     ${topCard}
+    
+    ${insightHtml}
     
     <div class="surface">
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
