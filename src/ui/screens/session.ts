@@ -2,11 +2,12 @@ import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { dispatch } from '../../exercises/dispatch';
 import { scoreBlock } from '../../core/scoring';
-import { calculateNextDifficulty, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex } from '../../core/adaptive';
+import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex, initializeExerciseStateFromCalibration, initializeSkillFromCalibration } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
 import { mapAccuracyToStartLevel } from '../../core/calibration';
+import { buildTrainingPlan } from '../../core/session-builder';
 import type { SessionItem } from '../../core/types';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
@@ -20,6 +21,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
+  let fatigueCounter = 0;
 
   const content = renderShell(container, { active: 'today', hideNav: true });
 
@@ -29,6 +31,23 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       return;
     }
     blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+
+    if (mode === 'normal' && currentIndex > 0) {
+      // Adaptive Session: re-evaluate the next item based on fresh results
+      const plan = buildTrainingPlan({
+        durationSec: timeLeft,
+        catalog: registry as any,
+        domains: storage.getDomains(),
+        skills: storage.getSkills(),
+        states: storage.getExerciseStates(),
+        primaryGoal: storage.getProfile().primaryGoal
+      });
+      const nextItem = plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
+      if (nextItem) {
+        items[currentIndex].exerciseId = nextItem.exerciseId;
+      }
+    }
+
     const item = items[currentIndex];
     const exDispatch = dispatch[item.exerciseId];
     if (!exDispatch) {
@@ -131,7 +150,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           // Target MS depends on the exercise manifest, but we fallback to 1500
           const targetMs = (manifest as any).levels ? ((manifest as any).levels[Math.floor(state!.difficulty)]?.targetMs || 1500) : 1500;
           
-          const perf = calculateNormalizedPerformance(res.accuracy, res.avgRtMs, targetMs, state!.difficulty);
+          const perf = calculateNormalizedPerformance(res.accuracy, res.avgRtMs, targetMs, state!.difficulty, manifest.metricModel);
           const score = Math.round(perf / 10); // simple mapping for UI score
 
           sessionResults.push({
@@ -153,17 +172,32 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
                 st[idx].difficulty = newLevel;
               }
               else {
-                st.push({ exerciseId: ex.manifest.id, level: newLevel, difficulty: newLevel, performance: perf, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
+                st.push(initializeExerciseStateFromCalibration(ex.manifest.id, newLevel, perf));
               }
             });
             storage.setExerciseStates(st);
+            
+            // Initialize domains and skills
+            const domains = storage.getDomains();
+            const dIdx = domains.findIndex(d => d.domain === domain);
+            if (dIdx < 0) {
+              domains.push({ domain: domain, value: perf, trend: 0, updatedAt: new Date().toISOString() });
+              storage.setDomains(domains);
+            }
+            
+            const skills = storage.getSkills();
+            let skillsChanged = false;
+            manifest.skills.forEach(skillId => {
+              const sIdx = skills.findIndex(s => s.skill === skillId);
+              if (sIdx < 0) {
+                skills.push(initializeSkillFromCalibration(skillId, perf, item.exerciseId));
+                skillsChanged = true;
+              }
+            });
+            if (skillsChanged) storage.setSkills(skills);
           } else {
-            const newDiff = calculateNextDifficulty(state!.difficulty, res.accuracy, res.avgRtMs, targetMs);
-            state!.difficulty = newDiff;
-            state!.level = Math.floor(newDiff);
-            state!.performance = perf;
-            state!.lastPlayedAt = new Date().toISOString();
-            state!.lastAccuracy = res.accuracy;
+            const newState = updateExerciseState(state!, res.accuracy, res.avgRtMs, targetMs, perf);
+            state = newState;
             
             const st = storage.getExerciseStates();
             const idx = st.findIndex(s => s.exerciseId === item.exerciseId);
@@ -175,9 +209,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             const skills = storage.getSkills();
             manifest.skills.forEach(skillId => {
               const sIdx = skills.findIndex(s => s.skill === skillId);
-              const updated = updateSkillIndex(sIdx >= 0 ? skills[sIdx] : undefined, skillId, perf);
-              if (sIdx >= 0) skills[sIdx] = updated;
-              else skills.push(updated);
+              const newSk = updateSkillIndex(sIdx >= 0 ? skills[sIdx] : undefined, skillId, perf, item.exerciseId);
+              if (sIdx >= 0) skills[sIdx] = newSk;
+              else skills.push(newSk);
             });
             storage.setSkills(skills);
 
@@ -196,11 +230,22 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (updatedDomain.value - currentVal);
           }
           
+          if (mode === 'normal' && res.accuracy < 0.70 && (storage.getProfile().sessionLengthSec - timeLeft) > 300) {
+            fatigueCounter++;
+            if (fatigueCounter >= 2) {
+              console.log('[Fatigue] Ending session early due to consecutive low performance.');
+              finishSession();
+              return;
+            }
+          } else if (res.accuracy >= 0.8) {
+            fatigueCounter = 0;
+          }
+          
           currentIndex++;
           renderCurrent();
         };
 
-        cleanupFn = exDispatch.render(container, state!.level, onBlockEnd, isTimeUp);
+        cleanupFn = exDispatch.render(container, state!.difficulty, onBlockEnd, isTimeUp);
         currentCleanup = cleanupFn;
       };
 
