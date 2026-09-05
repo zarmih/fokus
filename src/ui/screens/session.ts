@@ -108,68 +108,95 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       document.getElementById('instruction-card')?.remove();
       document.getElementById('btn-next')?.remove();
       
-      const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
+      const container = document.getElementById('game-container');
+      if (!container) return;
       
-      let cleanupFn: any = null;
+      const countdown = document.createElement('div');
+      countdown.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; font-weight: bold; color: var(--accent); z-index: 50;';
+      container.appendChild(countdown);
+      
+      let count = 3;
+      countdown.textContent = count.toString();
+      let iv: any = null;
+      
+      const startBlock = () => {
+        countdown.remove();
+        const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
+        let cleanupFn: any = null;
 
-      const onBlockEnd = (res: any) => {
-        if (cleanupFn) cleanupFn();
-        
-        import('../../core/audio').then(a => a.playBeep(res.accuracy >= 0.8)).catch(() => {});
+        const onBlockEnd = (res: any) => {
+          if (cleanupFn) cleanupFn();
+          import('../../core/audio').then(a => a.playBeep(res.accuracy >= 0.8)).catch(() => {});
 
-        // Fallback targetMs for generic score if getParams is unavailable
-        const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: 1500});
-        sessionResults.push({
-          exerciseId: item.exerciseId,
-          level: state!.level,
-          accuracy: res.accuracy,
-          avgRtMs: res.avgRtMs,
-          score
-        });
-        
-        if (mode === 'calibration') {
-          const newLevel = mapAccuracyToStartLevel(res.accuracy);
-          const domain = manifest.domain;
-          const st = storage.getExerciseStates();
-          registry.filter(r => r.manifest.domain === domain).forEach(ex => {
-            const idx = st.findIndex(s => s.exerciseId === ex.manifest.id);
-            if (idx >= 0) st[idx].level = newLevel;
-            else st.push({ exerciseId: ex.manifest.id, level: newLevel, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
+          const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: 1500});
+          sessionResults.push({
+            exerciseId: item.exerciseId,
+            level: state!.level,
+            accuracy: res.accuracy,
+            avgRtMs: res.avgRtMs,
+            score
           });
-          storage.setExerciseStates(st);
-        } else {
-          const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, 1500);
-          state!.level = newLevel;
-          state!.lastPlayedAt = new Date().toISOString();
-          state!.lastAccuracy = res.accuracy;
           
-          const st = storage.getExerciseStates();
-          const idx = st.findIndex(s => s.exerciseId === item.exerciseId);
-          if (idx >= 0) st[idx] = state!;
-          else st.push(state!);
-          storage.setExerciseStates(st);
-
-          const domains = storage.getDomains();
-          const dIdx = domains.findIndex(d => d.domain === manifest.domain);
-          const currentDomainValue = dIdx >= 0 ? domains[dIdx].value : 1000;
-          const newDomainValue = updateDomainIndex(currentDomainValue, res.accuracy, state!.level);
-          if (dIdx >= 0) {
-            domains[dIdx].value = newDomainValue;
-            domains[dIdx].updatedAt = new Date().toISOString();
+          if (mode === 'calibration') {
+            const newLevel = mapAccuracyToStartLevel(res.accuracy);
+            const domain = manifest.domain;
+            const st = storage.getExerciseStates();
+            registry.filter(r => r.manifest.domain === domain).forEach(ex => {
+              const idx = st.findIndex(s => s.exerciseId === ex.manifest.id);
+              if (idx >= 0) st[idx].level = newLevel;
+              else st.push({ exerciseId: ex.manifest.id, level: newLevel, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
+            });
+            storage.setExerciseStates(st);
           } else {
-            domains.push({ domain: manifest.domain, value: newDomainValue, updatedAt: new Date().toISOString() });
+            const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, 1500);
+            state!.level = newLevel;
+            state!.lastPlayedAt = new Date().toISOString();
+            state!.lastAccuracy = res.accuracy;
+            
+            const st = storage.getExerciseStates();
+            const idx = st.findIndex(s => s.exerciseId === item.exerciseId);
+            if (idx >= 0) st[idx] = state!;
+            else st.push(state!);
+            storage.setExerciseStates(st);
+
+            const domains = storage.getDomains();
+            const dIdx = domains.findIndex(d => d.domain === manifest.domain);
+            const currentDomainValue = dIdx >= 0 ? domains[dIdx].value : 1000;
+            const newDomainValue = updateDomainIndex(currentDomainValue, res.accuracy, state!.level);
+            if (dIdx >= 0) {
+              domains[dIdx].value = newDomainValue;
+              domains[dIdx].updatedAt = new Date().toISOString();
+            } else {
+              domains.push({ domain: manifest.domain, value: newDomainValue, updatedAt: new Date().toISOString() });
+            }
+            storage.setDomains(domains);
+            domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (newDomainValue - currentDomainValue);
           }
-          storage.setDomains(domains);
-          domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (newDomainValue - currentDomainValue);
-        }
-        
-        currentIndex++;
-        renderCurrent();
+          
+          currentIndex++;
+          renderCurrent();
+        };
+
+        cleanupFn = exDispatch.render(container, state!.level, onBlockEnd, isTimeUp);
+        currentCleanup = cleanupFn;
       };
 
-      cleanupFn = exDispatch.render(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
-      // store it globally for other exit routes
-      currentCleanup = cleanupFn;
+      currentCleanup = () => {
+        if (iv) clearInterval(iv);
+        countdown.remove();
+      };
+
+      iv = setInterval(() => {
+        if (isPaused) return; // Wait if paused during countdown
+        count--;
+        if (count > 0) {
+          countdown.textContent = count.toString();
+        } else {
+          clearInterval(iv);
+          iv = null;
+          startBlock();
+        }
+      }, 700);
     });
   };
 
