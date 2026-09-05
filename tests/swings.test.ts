@@ -21,7 +21,7 @@ describe('Swings Engine', () => {
     engine.generate({
       rows: 3, cols: 4, startR: 0, goalR: 0,
       rotors: [
-        { r: 0, c: 1, angle: 90, spin: 1, period: 1, ticks: 0 }
+        { r: 0, c: 1, angle: 90, spin: 1, speed: 90 }
       ]
     });
     // Jump right (occupied by rotor center)
@@ -36,7 +36,7 @@ describe('Swings Engine', () => {
     engine.generate({
       rows: 3, cols: 4, startR: 0, goalR: 0,
       rotors: [
-        { r: 1, c: 1, angle: 0, spin: 1, period: 1, ticks: 0 }
+        { r: 1, c: 1, angle: 0, spin: 1, speed: 90 }
       ]
     });
     // Rotor center at (1,1). Angle 0 = UP. So (0,1) is occupied.
@@ -45,7 +45,7 @@ describe('Swings Engine', () => {
     engine.playerC = 1;
     
     // Tick rotates it by 90 (spin 1). Angle becomes 90 = RIGHT. (1,2) is occupied.
-    engine.tick();
+    engine.tick(1000);
     expect(engine.rotors[0].angle).toBe(90);
     
     // (0,1) is no longer occupied! Player should drop

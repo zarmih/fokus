@@ -5,8 +5,7 @@ export interface Rotor {
   c: number;
   angle: number;
   spin: 1 | -1;
-  period: number;
-  ticks: number;
+  speed: number;
 }
 
 export class SwingsEngine {
@@ -42,25 +41,27 @@ export class SwingsEngine {
     
     for (const rot of this.rotors) {
       if (rot.r === r && rot.c === c) return true;
-      let dr = 0, dc = 0;
-      if (rot.angle === 0) dr = -1;
-      else if (rot.angle === 90) dc = 1;
-      else if (rot.angle === 180) dr = 1;
-      else if (rot.angle === 270) dc = -1;
       
-      if (rot.r + dr === r && rot.c + dc === c) return true;
+      const dr = r - rot.r;
+      const dc = c - rot.c;
+      if (Math.abs(dr) + Math.abs(dc) === 1) {
+        let targetAngle = 0;
+        if (dr === -1) targetAngle = 0;
+        else if (dc === 1) targetAngle = 90;
+        else if (dr === 1) targetAngle = 180;
+        else if (dc === -1) targetAngle = 270;
+        
+        let diff = Math.abs((rot.angle - targetAngle + 540) % 360 - 180);
+        if (diff <= 25) return true;
+      }
     }
     return false;
   }
 
-  tick() {
+  tick(dtMs: number = 16) {
     if (this.status !== 'play') return;
     for (const rot of this.rotors) {
-      rot.ticks++;
-      if (rot.ticks >= rot.period) {
-        rot.ticks = 0;
-        rot.angle = (rot.angle + rot.spin * 90 + 360) % 360;
-      }
+      rot.angle = (rot.angle + rot.spin * (rot.speed || 90) * (dtMs / 1000) + 360) % 360;
     }
     if (!this.occupied(this.playerR, this.playerC)) {
       this.resetPlayer();

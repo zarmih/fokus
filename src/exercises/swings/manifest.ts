@@ -22,10 +22,9 @@ export function getSwingsParams(level: number) {
         if (Math.random() < 0.8) {
           rotors.push({
             r, c, 
-            angle: Math.floor(Math.random() * 4) * 90,
+            angle: Math.floor(Math.random() * 360),
             spin: Math.random() < 0.5 ? 1 : -1,
-            period: l < 10 ? (Math.random() < 0.5 ? 2 : 3) : (Math.random() < 0.7 ? 1 : 2),
-            ticks: 0
+            speed: l < 10 ? (Math.random() < 0.5 ? 40 : 60) : (Math.random() < 0.7 ? 80 : 120)
           });
         }
       }
