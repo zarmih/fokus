@@ -8,6 +8,10 @@ export function renderTrainers(container: HTMLElement) {
         <h3>Матрица</h3>
         <p>Память</p>
       </div>
+      <div class="card" id="card-sequence">
+        <h3>Цепочка</h3>
+        <p>Память</p>
+      </div>
       <div class="nav-bottom">
         <span id="nav-today">Сегодня</span>
         <span class="active">Тренажёры</span>
@@ -18,6 +22,9 @@ export function renderTrainers(container: HTMLElement) {
   `;
   document.getElementById('card-matrix')?.addEventListener('click', () => {
     navigateTo('session', {items: [{exerciseId: 'grid-memory'}]});
+  });
+  document.getElementById('card-sequence')?.addEventListener('click', () => {
+    navigateTo('session', {items: [{exerciseId: 'sequence'}]});
   });
   document.getElementById('nav-today')?.addEventListener('click', () => navigateTo('today'));
   document.getElementById('nav-progress')?.addEventListener('click', () => navigateTo('progress'));

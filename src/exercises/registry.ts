@@ -1,2 +1,3 @@
 import { gridMemoryManifest } from './grid-memory/manifest';
-export const registry = [gridMemoryManifest];
+import { sequenceManifest } from './sequence/manifest';
+export const registry = [gridMemoryManifest, sequenceManifest];

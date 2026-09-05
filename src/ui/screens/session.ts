@@ -1,5 +1,7 @@
 import { navigateTo } from '../router';
 import { renderGridMemory } from '../../exercises/grid-memory/view';
+import { renderSequence } from '../../exercises/sequence/view';
+import { getSequenceParams } from '../../exercises/sequence/manifest';
 import { getGridMemoryParams } from '../../exercises/grid-memory/manifest';
 import { scoreBlock } from '../../core/scoring';
 import { calculateNextLevel, updateDomainIndex } from '../../core/adaptive';
@@ -12,6 +14,7 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
   const {items} = params;
   let currentIndex = 0;
   const sessionResults: SessionItem[] = [];
+  const domainDeltas: Record<string, number> = {};
   const sessionStartedAt = new Date().toISOString();
   let timerInterval: any;
   let timeLeft = storage.getProfile().sessionLengthSec;
@@ -43,32 +46,54 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
       document.querySelector('.instruction')?.remove();
       document.getElementById('btn-next')?.remove();
       
-      if (item.exerciseId === 'grid-memory') {
-        renderGridMemory(document.getElementById('game-container')!, state!.level, (res) => {
-          const tp = getGridMemoryParams(state!.level);
-          const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: tp.targetMs});
-          sessionResults.push({
-            exerciseId: item.exerciseId,
-            level: state!.level,
-            accuracy: res.accuracy,
-            avgRtMs: res.avgRtMs,
-            score
-          });
-          
-          const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, tp.targetMs);
-          state!.level = newLevel;
-          state!.lastPlayedAt = new Date().toISOString();
-          state!.lastAccuracy = res.accuracy;
-          
-          const st = storage.getExerciseStates();
-          const idx = st.findIndex(s => s.exerciseId === item.exerciseId);
-          if (idx >= 0) st[idx] = state!;
-          else st.push(state!);
-          storage.setExerciseStates(st);
-          
-          currentIndex++;
-          renderCurrent();
+      const isTimeUp = () => timeLeft <= 0;
+      
+      const onBlockEnd = (res: any) => {
+        let tp: any;
+        if (item.exerciseId === 'grid-memory') tp = getGridMemoryParams(state!.level);
+        else tp = getSequenceParams(state!.level);
+
+        const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: tp.targetMs});
+        sessionResults.push({
+          exerciseId: item.exerciseId,
+          level: state!.level,
+          accuracy: res.accuracy,
+          avgRtMs: res.avgRtMs,
+          score
         });
+        
+        const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, tp.targetMs);
+        state!.level = newLevel;
+        state!.lastPlayedAt = new Date().toISOString();
+        state!.lastAccuracy = res.accuracy;
+        
+        const st = storage.getExerciseStates();
+        const idx = st.findIndex(s => s.exerciseId === item.exerciseId);
+        if (idx >= 0) st[idx] = state!;
+        else st.push(state!);
+        storage.setExerciseStates(st);
+
+        const domains = storage.getDomains();
+        const dIdx = domains.findIndex(d => d.domain === manifest.domain);
+        const currentDomainValue = dIdx >= 0 ? domains[dIdx].value : 1000;
+        const newDomainValue = updateDomainIndex(currentDomainValue, res.accuracy, state!.level);
+        if (dIdx >= 0) {
+          domains[dIdx].value = newDomainValue;
+          domains[dIdx].updatedAt = new Date().toISOString();
+        } else {
+          domains.push({ domain: manifest.domain, value: newDomainValue, updatedAt: new Date().toISOString() });
+        }
+        storage.setDomains(domains);
+        domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (newDomainValue - currentDomainValue);
+        
+        currentIndex++;
+        renderCurrent();
+      };
+
+      if (item.exerciseId === 'grid-memory') {
+        renderGridMemory(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
+      } else if (item.exerciseId === 'sequence') {
+        renderSequence(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
       }
     });
   };
@@ -97,7 +122,7 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
     const ds = {
       date: sessionStartedAt,
       totalScore,
-      domainDeltas: {},
+      domainDeltas,
       streak: ns.streak,
       skipped: ns.skipped
     };

@@ -4,7 +4,8 @@ import { getGridMemoryParams } from './manifest';
 export function renderGridMemory(
   container: HTMLElement, 
   level: number, 
-  onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void
+  onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
+  isTimeUp: () => boolean = () => false
 ) {
   const engine = new GridMemoryEngine();
   let rounds = 0;
@@ -15,6 +16,14 @@ export function renderGridMemory(
   const minRounds = 3;
 
   const startRound = () => {
+    if (isTimeUp()) {
+      onBlockEnd({
+        accuracy: rounds > 0 ? totalAccuracy / rounds : 0,
+        avgRtMs: rounds > 0 ? totalRt / rounds : 0,
+        rounds
+      });
+      return;
+    }
     container.innerHTML = '';
     const params = getGridMemoryParams(level);
     const { cellsToRemember } = engine.start(params);

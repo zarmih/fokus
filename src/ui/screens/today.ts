@@ -27,7 +27,7 @@ export function renderToday(container: HTMLElement) {
         <span>Длительность: ~${min} мин.</span>
       </div>
       <div class="session-composition">
-        Состав: Матрица &times; ${min > 0 ? min : 1}
+        Состав: ${registry.map(r => r.name).join(', ')}
       </div>
       <button id="btn-start" class="btn-primary">Начать</button>
       <div class="disclaimer">Это не медицинское изделие и не диагностика.</div>
