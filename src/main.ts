@@ -6,6 +6,7 @@ import { renderProgress } from './ui/screens/progress';
 import { renderSettings } from './ui/screens/settings';
 import { renderTrainers } from './ui/screens/trainers';
 import { storage } from './core/storage';
+import { applyTheme } from './ui/theme';
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
@@ -13,6 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   try {
     const p = storage.getProfile(); // ensures initialization
+    applyTheme(p.theme || 'dark');
     renderToday(app);
   } catch (e: any) {
     app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">

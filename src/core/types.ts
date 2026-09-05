@@ -3,6 +3,7 @@ export interface Profile {
   createdAt: string;
   sessionLengthSec: number;
   calibrated?: boolean;
+  theme?: 'dark' | 'light';
   soundOn: boolean;
   locale: 'ru';
   schemaVersion: number;

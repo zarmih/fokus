@@ -14,6 +14,7 @@ const defaultProfile: Profile = {
   createdAt: new Date().toISOString(),
   sessionLengthSec: 300,
   soundOn: true,
+  theme: typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark',
   locale: 'ru',
   schemaVersion: CURRENT_SCHEMA_VERSION
 };
