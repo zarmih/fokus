@@ -84,8 +84,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     });
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
+      timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+      const t = document.getElementById('session-timer');
+      if (t) {
+        t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
+      }
       isPaused = false;
       document.getElementById('pause-overlay')?.remove();
+      const pBtn = document.getElementById('btn-pause');
+      if (pBtn) pBtn.textContent = 'Пауза';
+      
+      currentIndex = 0;
+      sessionResults.length = 0;
+      for (const key in domainDeltas) delete domainDeltas[key];
+      
       renderCurrent();
     });
 
