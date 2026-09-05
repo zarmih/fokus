@@ -7,31 +7,29 @@ export const pulleyManifest = {
 
 export function getPulleyParams(level: number) {
   const l = Math.min(20, Math.max(1, level));
-  let doors = 1;
+  let doors = 3;
   let pool = [1, 2];
   let need = [3];
   
-  if (l === 1) { doors = 1; pool = [1, 2]; need = [3]; }
-  else if (l === 2) { doors = 1; pool = [2, 3]; need = [5]; }
-  else if (l === 3) { doors = 1; pool = [1, 1, 2, 3]; need = [4]; }
-  else if (l === 4) { doors = 1; pool = [2, 3, 4, 1]; need = [6]; }
-  else if (l === 5) { doors = 1; pool = [1, 2, 3, 4, 5]; need = [8]; }
-  else if (l === 6) { doors = 2; pool = [1, 2, 3, 4]; need = [3, 4]; }
+  if (l === 1) { doors = 3; need = [2,3,4]; pool = [1,1,2,2,3]; }
+  else if (l === 2) { doors = 3; need = [3,3,5]; pool = [1,2,2,3,3]; }
+  else if (l === 3) { doors = 3; need = [4,5,6]; pool = [1,2,3,4,5]; }
   else {
-    doors = l < 12 ? 2 : 3;
+    doors = l < 10 ? 3 : 4;
     pool = [];
     need = [];
-    let parts = [];
     for(let i=0; i<doors; i++) {
-      const n = 3 + Math.floor(Math.random() * 5); // 3..7
-      need.push(n);
-      const p1 = Math.max(1, Math.floor(n / 2));
-      const p2 = n - p1;
-      parts.push(p1, p2);
+      const parts = Math.random() < 0.5 ? 1 : (Math.random() < 0.8 ? 2 : 3);
+      let sum = 0;
+      for(let p=0; p<parts; p++) {
+        const w = 1 + Math.floor(Math.random() * (l > 10 ? 6 : 4));
+        pool.push(w);
+        sum += w;
+      }
+      need.push(sum);
     }
-    pool = [...parts];
-    const extra = Math.floor(l / 4);
-    for(let i=0; i<extra; i++) pool.push(1 + Math.floor(Math.random() * 3));
+    const extra = 1 + Math.floor(l / 6);
+    for(let i=0; i<extra; i++) pool.push(1 + Math.floor(Math.random() * 4));
     
     for(let i=pool.length-1; i>0; i--) {
       const j = Math.floor(Math.random() * (i+1));
@@ -39,6 +37,6 @@ export function getPulleyParams(level: number) {
     }
   }
 
-  const deadlineMs = Math.max(12000, 25000 - (l - 1) * 800);
+  const deadlineMs = Math.max(15000, 30000 - (l - 1) * 800);
   return { doors, pool, need, deadlineMs, targetMs: deadlineMs * 0.7 };
 }
