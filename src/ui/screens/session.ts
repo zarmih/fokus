@@ -1,4 +1,5 @@
 import { navigateTo } from '../router';
+import { renderShell } from '../shell';
 import { dispatch } from '../../exercises/dispatch';
 import { scoreBlock } from '../../core/scoring';
 import { calculateNextLevel, updateDomainIndex } from '../../core/adaptive';
@@ -17,6 +18,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let timerInterval: any;
   let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
   let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+
+  const content = renderShell(container, { active: 'today', hideNav: true });
 
   const renderCurrent = () => {
     if (currentIndex >= items.length || timeLeft <= 0) {
@@ -37,20 +40,21 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
     if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
 
-    container.innerHTML = `
-      <div class="screen screen-session">
-        <div class="header">
-          <span class="timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</span>
-          <h2>${manifest.name}</h2>
-        </div>
-        <p class="instruction">${manifest.instruction}</p>
-        <button id="btn-next" class="btn-primary">Дальше</button>
-        <div id="game-container"></div>
+    content.innerHTML = `
+      <div class="session-header">
+        <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
+        <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
+      <div class="instruction-card" id="instruction-card">
+        <h2>${manifest.name}</h2>
+        <p>${manifest.instruction}</p>
+      </div>
+      <button id="btn-next" class="btn-primary">Начать</button>
+      <div id="game-container"></div>
     `;
 
     document.getElementById('btn-next')?.addEventListener('click', () => {
-      document.querySelector('.instruction')?.remove();
+      document.getElementById('instruction-card')?.remove();
       document.getElementById('btn-next')?.remove();
       
       const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
@@ -155,7 +159,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   timerInterval = setInterval(() => {
     timeLeft--;
     blockTimeLeft--;
-    const t = document.querySelector('.timer');
+    const t = document.getElementById('session-timer');
     if (t) {
       t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
     }

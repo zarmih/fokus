@@ -1,32 +1,36 @@
 import { navigateTo } from '../router';
 import { registry } from '../../exercises/registry';
+import { renderShell } from '../shell';
+import { storage } from '../../core/storage';
 
 export function renderTrainers(container: HTMLElement) {
-  container.innerHTML = `
-    <div class="screen screen-trainers">
-      <h2>Тренажёры</h2>
-      ${registry.map(ex => `
-        <div class="card" id="card-${ex.id}">
-          <h3>${ex.name}</h3>
-          <p>${ex.domain}</p>
-        </div>
-      `).join('')}
-      <div class="nav-bottom">
-        <span id="nav-today">Сегодня</span>
-        <span class="active">Тренажёры</span>
-        <span id="nav-progress">Прогресс</span>
-        <span id="nav-settings">Настройки</span>
+  const content = renderShell(container, { active: 'trainers' });
+  const exStates = storage.getExerciseStates();
+  
+  let gridHtml = registry.map(ex => {
+    const st = exStates.find(s => s.exerciseId === ex.id);
+    const lvl = st ? st.level : 1;
+    return `
+      <div class="trainer-card" data-id="${ex.id}">
+        <div class="trainer-domain">${ex.domain}</div>
+        <div class="trainer-name">${ex.name}</div>
+        <div class="trainer-level">Ур. ${lvl}</div>
       </div>
+    `;
+  }).join('');
+
+  content.innerHTML = `
+    <h2>Тренажёры</h2>
+    <p style="margin-bottom: 24px;">Тренируйте отдельные упражнения без влияния на общую статистику доменов.</p>
+    <div class="trainers-grid">
+      ${gridHtml}
     </div>
   `;
-  
-  registry.forEach(ex => {
-    document.getElementById(`card-${ex.id}`)?.addEventListener('click', () => {
-      navigateTo('session', {items: [{exerciseId: ex.id}]});
+
+  content.querySelectorAll('.trainer-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = (card as HTMLElement).dataset.id;
+      if (id) navigateTo('session', { mode: 'practice', items: [{exerciseId: id}] });
     });
   });
-
-  document.getElementById('nav-today')?.addEventListener('click', () => navigateTo('today'));
-  document.getElementById('nav-progress')?.addEventListener('click', () => navigateTo('progress'));
-  document.getElementById('nav-settings')?.addEventListener('click', () => navigateTo('settings'));
 }
