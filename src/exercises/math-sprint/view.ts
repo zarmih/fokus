@@ -14,19 +14,19 @@ export function renderMathSprint(
   wrapper.style.cssText = 'display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;';
   
   const eqDisplay = document.createElement('div');
-  eqDisplay.style.cssText = 'font-size: 48px; font-weight: bold; color: var(--text); margin-bottom: 40px; text-align: center;';
+  eqDisplay.style.cssText = 'font-size: 64px; font-weight: 900; color: var(--text); margin-bottom: 64px; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.1); letter-spacing: -0.02em;';
   
   const btnRow = document.createElement('div');
-  btnRow.style.cssText = 'display: flex; gap: 20px;';
+  btnRow.style.cssText = 'display: flex; gap: 24px; width: 100%; max-width: 320px;';
   
   const btnTrue = document.createElement('button');
   btnTrue.className = 'btn-primary';
-  btnTrue.style.cssText = 'background: var(--success); border-color: var(--success); width: 120px; font-size: 18px;';
+  btnTrue.style.cssText = 'background: linear-gradient(135deg, var(--ok) 0%, #059669 100%); flex: 1; font-size: 20px; font-weight: 700; margin: 0; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);';
   btnTrue.textContent = 'Верно (→)';
   
   const btnFalse = document.createElement('button');
   btnFalse.className = 'btn-primary';
-  btnFalse.style.cssText = 'background: var(--danger); border-color: var(--danger); width: 120px; font-size: 18px;';
+  btnFalse.style.cssText = 'background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%); flex: 1; font-size: 20px; font-weight: 700; margin: 0; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);';
   btnFalse.textContent = 'Неверно (←)';
 
   btnRow.appendChild(btnFalse);

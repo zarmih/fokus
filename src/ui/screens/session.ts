@@ -112,7 +112,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       if (!container) return;
       
       const countdown = document.createElement('div');
-      countdown.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 72px; font-weight: bold; color: var(--accent); z-index: 50;';
+      countdown.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 96px; font-weight: 800; color: var(--accent); z-index: 50; text-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); background: radial-gradient(circle, rgba(15,23,42,0.6) 0%, rgba(15,23,42,0.9) 100%); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: var(--radius); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);';
       container.appendChild(countdown);
       
       let count = 3;
@@ -191,6 +191,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         count--;
         if (count > 0) {
           countdown.textContent = count.toString();
+          countdown.style.transform = 'scale(1.2)';
+          setTimeout(() => countdown.style.transform = 'scale(1)', 150);
         } else {
           clearInterval(iv);
           iv = null;
