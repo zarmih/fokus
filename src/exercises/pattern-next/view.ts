@@ -28,13 +28,14 @@ export function renderPatternNext(
     const roundStartTime = Date.now();
     
     container.innerHTML = `
-      <div class="pattern-next-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-        <div class="sequence-display" style="font-size: 32px; font-weight: bold; margin-bottom: 40px; color: #fff; letter-spacing: 5px;">
-          ${trial.sequence.join(', ')}, ?
+      <div class="pn-board">
+        <div class="pn-seq">
+          ${trial.sequence.map(n => `<div class="pn-item">${n}</div>`).join('')}
+          <div class="pn-item missing">?</div>
         </div>
-        <div class="options" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-          ${trial.options.map(opt => `
-            <button class="btn-primary pn-btn" data-val="${opt}" style="font-size: 20px; padding: 12px 24px; min-width: 80px;">
+        <div class="pn-options">
+          ${trial.options.map((opt, i) => `
+            <button class="pn-btn" data-val="${opt}" data-idx="${i}">
               ${opt}
             </button>
           `).join('')}
@@ -49,13 +50,24 @@ export function renderPatternNext(
       totalRt += rt;
       rounds++;
 
-      const seqEl = container.querySelector('.sequence-display') as HTMLElement;
-      if (seqEl) {
-        seqEl.style.color = correct ? '#4caf50' : '#f44336';
+      const missing = container.querySelector('.pn-item.missing') as HTMLElement;
+      if (missing) {
+        missing.textContent = choice !== null ? choice.toString() : '?';
+        missing.style.border = 'none';
+        missing.style.background = correct ? 'var(--ok)' : 'var(--danger)';
+        missing.style.color = '#fff';
       }
       
       const btns = container.querySelectorAll('.pn-btn');
-      btns.forEach(b => (b as HTMLButtonElement).disabled = true);
+      btns.forEach(b => {
+        const btn = b as HTMLButtonElement;
+        btn.disabled = true;
+        if (choice !== null && parseInt(btn.dataset.val!) === choice) {
+          btn.classList.add(correct ? 'correct' : 'wrong');
+        } else if (parseInt(btn.dataset.val!) === trial.answer) {
+          btn.classList.add('correct');
+        }
+      });
 
       setTimeout(() => {
         const elapsed = Date.now() - blockStartTime;

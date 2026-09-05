@@ -18,6 +18,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let timerInterval: any;
   let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
   let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+  let isPaused = false;
 
   const content = renderShell(container, { active: 'today', hideNav: true });
 
@@ -42,6 +43,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     content.innerHTML = `
       <div class="session-header">
+        <div class="session-controls" style="display: flex; gap: 4px;">
+          <button id="btn-back" class="btn-tiny">Назад</button>
+          <button id="btn-pause" class="btn-tiny">Пауза</button>
+          <button id="btn-restart" class="btn-tiny">Заново</button>
+        </div>
         <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
@@ -51,8 +57,37 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <p>${manifest.instruction}</p>
       </div>
       <button id="btn-next" class="btn-primary">Начать</button>
-      <div id="game-container"></div>
+      <div id="game-container" style="position: relative;"></div>
     `;
+
+    document.getElementById('btn-back')?.addEventListener('click', () => {
+      clearInterval(timerInterval);
+      navigateTo(mode === 'practice' ? 'trainers' : 'today');
+    });
+
+    document.getElementById('btn-pause')?.addEventListener('click', (e) => {
+      const btn = e.target as HTMLButtonElement;
+      isPaused = !isPaused;
+      btn.textContent = isPaused ? 'Прод.' : 'Пауза';
+      let overlay = document.getElementById('pause-overlay');
+      if (isPaused) {
+        if (!overlay) {
+          overlay = document.createElement('div');
+          overlay.id = 'pause-overlay';
+          overlay.innerHTML = '<div style="background: var(--surface); padding: 24px; border-radius: 16px; text-align: center; font-size: 20px; font-weight: bold; color: var(--text);">ПАУЗА</div>';
+          overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; pointer-events: all; border-radius: 16px;';
+          document.getElementById('game-container')?.appendChild(overlay);
+        }
+      } else {
+        overlay?.remove();
+      }
+    });
+
+    document.getElementById('btn-restart')?.addEventListener('click', () => {
+      isPaused = false;
+      document.getElementById('pause-overlay')?.remove();
+      renderCurrent();
+    });
 
     document.getElementById('btn-next')?.addEventListener('click', () => {
       document.getElementById('instruction-card')?.remove();
@@ -158,6 +193,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   };
 
   timerInterval = setInterval(() => {
+    if (isPaused) return;
     timeLeft--;
     blockTimeLeft--;
     const t = document.getElementById('session-timer');
