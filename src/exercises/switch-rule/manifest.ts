@@ -4,7 +4,7 @@ export const switchRuleManifest: ExerciseManifest = {
   id: 'switch-rule',
   name: 'Смена правила',
   domain: 'flexibility',
-  instruction: 'Следуй текущему правилу над числами. Правило меняется.',
+  instruction: 'Смотри на подпись. Да или нет. Правило меняется.',
   levels: {
     1: { switchEvery: 8, deadlineMs: 2000, targetMs: 1500 },
     2: { switchEvery: 8, deadlineMs: 1800, targetMs: 1400 },

@@ -27,14 +27,23 @@ export function renderSwitchRule(
     const trial = engine.nextTrial(params);
     const roundStartTime = Date.now();
     
-    const ruleLabel = trial.rule === 'EVEN' ? 'Первое чётное?' : 'Первое больше?';
+    const ruleLabel = trial.rule === 'EVEN' ? 'Левое число чётное?' : 'Левое больше правого?';
     
     container.innerHTML = `
       <div class="switch-rule-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%;">
-        <div class="rule-label" style="font-size: 24px; color: #e8b86d; margin-bottom: 20px;">${ruleLabel}</div>
-        <div class="numbers" style="font-size: 56px; font-weight: bold; margin-bottom: 40px; letter-spacing: 20px;">
-          ${trial.n1} ${trial.n2}
+        <div class="rule-label" style="font-size: 24px; color: var(--accent); margin-bottom: 32px; text-align: center;">${ruleLabel}</div>
+        
+        <div class="cards-container" style="display: flex; gap: 24px; margin-bottom: 48px;">
+          <div class="card-left" style="display: flex; flex-direction: column; align-items: center; background: var(--surface-2); padding: 24px; border-radius: 16px; min-width: 120px;">
+            <div style="font-size: 64px; font-weight: bold; color: var(--text);">${trial.left}</div>
+            <div style="font-size: 14px; color: var(--muted); margin-top: 8px; text-transform: uppercase;">Левое</div>
+          </div>
+          <div class="card-right" style="display: flex; flex-direction: column; align-items: center; background: var(--surface-2); padding: 24px; border-radius: 16px; min-width: 120px; ${trial.rule === 'EVEN' ? 'opacity: 0.35;' : ''}">
+            <div style="font-size: 64px; font-weight: bold; color: var(--text);">${trial.right}</div>
+            <div style="font-size: 14px; color: var(--muted); margin-top: 8px; text-transform: uppercase;">Правое</div>
+          </div>
         </div>
+
         <div class="options" style="display: flex; gap: 20px;">
           <button class="btn-primary sr-btn" data-choice="true" style="padding: 16px 40px; font-size: 24px;">Да</button>
           <button class="btn-secondary sr-btn" data-choice="false" style="padding: 16px 40px; font-size: 24px;">Нет</button>
@@ -44,14 +53,15 @@ export function renderSwitchRule(
 
     const finishRound = (choice: boolean | null, rt: number) => {
       clearTimeout(currentTimer);
-      const correct = engine.submit(choice, trial.answer);
+      const correct = engine.submit(choice, trial.correctYes);
       if (correct) correctCount++;
       totalRt += rt;
       rounds++;
 
-      const numsEl = container.querySelector('.numbers') as HTMLElement;
-      if (numsEl) {
-        numsEl.style.color = correct ? '#4caf50' : '#f44336';
+      const board = container.querySelector('.switch-rule-board') as HTMLElement;
+      if (board) {
+        board.style.backgroundColor = correct ? 'rgba(76, 175, 80, 0.1)' : 'rgba(244, 67, 54, 0.1)';
+        board.style.borderRadius = '16px';
       }
       
       const btns = container.querySelectorAll('.sr-btn');
