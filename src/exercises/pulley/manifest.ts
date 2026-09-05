@@ -5,7 +5,7 @@ export const pulleyManifest = {
   instruction: 'Подвесь ровно столько, сколько нужно двери. Лишнее — канат не тянет как надо.'
 };
 
-const LEVELS = [
+export const LEVELS = [
   { need: [6, 9, 7, 5], pool: [1, 1, 2, 4, 4, 4, 4, 5, 6] },
   { need: [5, 8, 7, 6], pool: [1, 1, 2, 3, 5, 7, 7, 7] },
   { need: [5, 7, 9, 5], pool: [1, 1, 3, 3, 4, 4, 4, 4, 5] },

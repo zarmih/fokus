@@ -1,3 +1,41 @@
+export function isSolvable(need: number[], pool: number[]): boolean {
+  let found = false;
+  
+  function backtrack(doorIdx: number, currentPool: number[]) {
+    if (found) return;
+    if (doorIdx === need.length) {
+      found = true;
+      return;
+    }
+    
+    const target = need[doorIdx];
+    
+    for (let i = 0; i < currentPool.length; i++) {
+      if (currentPool[i] === target) {
+        const nextPool = [...currentPool];
+        nextPool.splice(i, 1);
+        backtrack(doorIdx + 1, nextPool);
+      }
+    }
+    
+    if (found) return;
+    
+    for (let i = 0; i < currentPool.length; i++) {
+      for (let j = i + 1; j < currentPool.length; j++) {
+        if (currentPool[i] + currentPool[j] === target) {
+          const nextPool = [...currentPool];
+          nextPool.splice(j, 1);
+          nextPool.splice(i, 1);
+          backtrack(doorIdx + 1, nextPool);
+        }
+      }
+    }
+  }
+  
+  backtrack(0, pool);
+  return found;
+}
+
 export class PulleyEngine {
   gates: { id: number, need: number, hook: number[] }[] = [];
   floor: number[] = [];

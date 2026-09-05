@@ -69,3 +69,18 @@ describe('pulley engine', () => {
     expect(engineWin.status).toBe('win');
   });
 });
+
+import { isSolvable } from '../src/exercises/pulley/engine';
+import { LEVELS } from '../src/exercises/pulley/manifest';
+
+describe('pulley solvable', () => {
+  it('detects unsolvable', () => {
+    expect(isSolvable([7], [2,2,4,4])).toBe(false);
+  });
+  
+  it('all 20 levels are solvable', () => {
+    LEVELS.forEach((l, i) => {
+       expect(isSolvable(l.need, l.pool)).toBe(true);
+    });
+  });
+});

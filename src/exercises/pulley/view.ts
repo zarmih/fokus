@@ -76,7 +76,7 @@ export function renderPulley(
               const isOpen = isPast || (isActive && gSum === g.need);
               
               const doorColor = isOpen ? 'var(--ok)' : 'var(--danger)';
-              const doorY = isOpen ? -70 : 0;
+              const doorY = isOpen ? -140 : 0;
               const ropeDoorY = isOpen ? 40 : 90; 
               const hookY = isOpen ? 80 : 40; 
               const xPos = 80 + i * 80;
