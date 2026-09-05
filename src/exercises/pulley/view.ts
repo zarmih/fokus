@@ -50,8 +50,9 @@ export function renderPulley(
             <div style="font-size: 20px;">
               Двери: ${engine.gates.map((g, i) => `<span style="color: ${i < engine.playerAt ? 'var(--ok)' : (i === engine.playerAt ? 'var(--accent)' : 'var(--muted)')}; font-weight: bold; margin: 0 4px;">${g.need}</span>`).join(' ')}
             </div>
-            <div style="font-size: 16px; color: var(--muted);">
+            <div style="font-size: 16px; color: var(--muted); text-align: center;">
               На крюке: <b style="color: var(--accent-2);">${hookSum}</b> (макс. 2 гири)
+              <div style="font-size: 14px; margin-top: 4px; opacity: 0.8;">Гирю с пройденной двери вернуть нельзя.</div>
             </div>
           </div>
           
@@ -97,6 +98,14 @@ export function renderPulley(
                       <path d="M22,${hookY} Q30,${hookY+5} 38,${hookY}" stroke="var(--accent-2)" stroke-width="2" fill="none" style="transition: d 400ms ease;"/>
                     </svg>
                   </div>
+                  <!-- Weights on this door's hook -->
+                  <div style="position: absolute; top: ${hookY + 15}px; left: 14px; display: flex; gap: 4px; transition: top 400ms ease;">
+                    ${g.hook.map((w, idx) => `
+                      <div class="${isActive ? 'weight-hook-on-door' : ''}" data-idx="${idx}" style="width: 24px; height: 24px; background: var(--dom-speed); color: #fff; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; cursor: ${isActive ? 'pointer' : 'default'};">
+                        ${w}
+                      </div>
+                    `).join('')}
+                  </div>
                   <!-- Door -->
                   <div style="position: absolute; bottom: 20px; left: 30px; width: 20px; height: 60px; background: ${doorColor}; transform: translateY(${doorY}%); transition: transform 400ms ease, background 400ms ease; border-radius: 4px;"></div>
                 </div>
@@ -105,15 +114,6 @@ export function renderPulley(
 
             <!-- Floor Line -->
             <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 20px; background: var(--surface-2);"></div>
-          </div>
-
-          <!-- Weights on Hook -->
-          <div style="min-height: 50px; display: flex; gap: 8px; margin-bottom: 24px;">
-            ${(currentGate ? currentGate.hook : []).map((w, idx) => `
-              <div class="weight-hook" data-idx="${idx}" style="width: 40px; height: 40px; background: var(--dom-speed); color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer;">
-                ${w}
-              </div>
-            `).join('')}
           </div>
 
           <!-- Weights on Floor -->
@@ -143,7 +143,7 @@ export function renderPulley(
         });
       });
 
-      container.querySelectorAll('.weight-hook').forEach(el => {
+      container.querySelectorAll('.weight-hook-on-door').forEach(el => {
         el.addEventListener('click', () => {
           if (isTimeUp() || isAnimating) return;
           const idx = parseInt((el as HTMLElement).dataset.idx || '0');
