@@ -46,9 +46,13 @@ export function renderPulley(
 
       const html = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; overflow-x: auto;">
-          <div style="display: flex; gap: 20px; font-size: 20px; margin-bottom: 24px; color: var(--text);">
-            <div>Нужно: <b style="color: var(--accent);">${currentGate ? currentGate.need : 0}</b></div>
-            <div>На крюке: <b style="color: var(--accent-2);">${hookSum}</b></div>
+          <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 24px; color: var(--text);">
+            <div style="font-size: 20px;">
+              Двери: ${engine.gates.map((g, i) => `<span style="color: ${i < engine.playerAt ? 'var(--ok)' : (i === engine.playerAt ? 'var(--accent)' : 'var(--muted)')}; font-weight: bold; margin: 0 4px;">${g.need}</span>`).join(' ')}
+            </div>
+            <div style="font-size: 16px; color: var(--muted);">
+              На крюке: <b style="color: var(--accent-2);">${hookSum}</b> (макс. 2 гири)
+            </div>
           </div>
           
           <div style="position: relative; width: ${boardWidth}px; height: 200px; background: var(--surface); border-radius: 8px; overflow: hidden; margin-bottom: 24px;">

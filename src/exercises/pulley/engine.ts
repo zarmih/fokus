@@ -17,6 +17,7 @@ export class PulleyEngine {
   takeFloor(idx: number) {
     if (this.status !== 'play' || this.playerAt >= this.gates.length) return false;
     if (idx < 0 || idx >= this.floor.length) return false;
+    if (this.gates[this.playerAt].hook.length >= 2) return false;
     const w = this.floor.splice(idx, 1)[0];
     this.gates[this.playerAt].hook.push(w);
     return true;
