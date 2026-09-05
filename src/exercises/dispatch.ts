@@ -10,6 +10,12 @@ import { renderStroop } from './stroop/view';
 import { oddOneManifest, getOddOneParams } from './odd-one/manifest';
 import { renderOddOne } from './odd-one/view';
 
+import { switchRuleManifest, getSwitchRuleParams } from './switch-rule/manifest';
+import { renderSwitchRule } from './switch-rule/view';
+
+import { patternNextManifest, getPatternNextParams } from './pattern-next/manifest';
+import { renderPatternNext } from './pattern-next/view';
+
 export const dispatch: Record<string, {
   manifest: any, 
   getParams: (level: number) => any, 
@@ -34,5 +40,15 @@ export const dispatch: Record<string, {
     manifest: oddOneManifest,
     getParams: getOddOneParams,
     render: renderOddOne
+  },
+  'switch-rule': {
+    manifest: switchRuleManifest,
+    getParams: getSwitchRuleParams,
+    render: renderSwitchRule
+  },
+  'pattern-next': {
+    manifest: patternNextManifest,
+    getParams: getPatternNextParams,
+    render: renderPatternNext
   }
 };

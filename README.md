@@ -10,7 +10,7 @@ npm run dev
 Run tests: `npm test`
 
 ## Features
-- **Four exercises:** Grid Memory (Матрица), Sequence (Цепочка), Stroop (Чернила), Odd One Out (Лишний).
+- **Six exercises:** Grid Memory (Матрица), Sequence (Цепочка), Stroop (Чернила), Odd One Out (Лишний), Switch Rule (Смена правила), Pattern Next (Ряд).
 - **Adaptive Difficulty:** Dynamic level adjustment based on performance.
 - **Smart Session Builder:** Generates 5, 8, or 12 minute sessions targeting weak domains.
 - **Progress Tracking:** Saves streaks and domain score deltas.
