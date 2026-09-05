@@ -58,7 +58,7 @@ export function renderToday(container: HTMLElement) {
 
   let compositionHtml = items.map(item => {
     const r = registry.find(x => x.id === item.exerciseId);
-    return `<div class="chip dom-${r?.domain}">${r?.name}<span>${r?.domain}</span></div>`;
+    return `<div class="chip dom-${r?.domain}"><img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="16" height="16" style="margin-right: 6px; border-radius: 4px;">${r?.name}<span>${r?.domain}</span></div>`;
   }).join('');
 
   let topCard = '';

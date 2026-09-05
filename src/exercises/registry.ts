@@ -4,6 +4,7 @@ import { stroopManifest } from './stroop/manifest';
 import { oddOneManifest } from './odd-one/manifest';
 import { switchRuleManifest } from './switch-rule/manifest';
 import { patternNextManifest } from './pattern-next/manifest';
+import { pairsManifest } from './pairs/manifest';
 
 export const registry = [
   gridMemoryManifest, 
@@ -11,5 +12,6 @@ export const registry = [
   stroopManifest,
   oddOneManifest,
   switchRuleManifest,
-  patternNextManifest
+  patternNextManifest,
+  pairsManifest
 ];

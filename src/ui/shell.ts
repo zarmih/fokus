@@ -38,18 +38,18 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
     </div>
   `;
 
-  const topHtml = params.hideNav ? '' : `
+  const headerHtml = params.hideNav ? '' : `
     <div class="top-bar">
-      <div class="brand">Fokus</div>
+      <div class="brand" style="display: flex; align-items: center; gap: 8px;"><img src="${import.meta.env.BASE_URL}art/logo-fokus.svg" width="24" height="24">Fokus</div>
       <div class="streak-badge">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.66 11.2c-.23-.3-.51-.56-.77-.82-.67-.6-1.43-1.03-2.07-1.66C13.33 7.26 13 4.85 13.95 3c-.95.23-1.78.75-2.49 1.32-2.59 2.08-3.61 5.75-2.39 8.9.04.1.08.2.08.33 0 .22-.15.42-.35.5-.22.1-.46.04-.64-.12a7.33 7.33 0 0 1-1.38-1.66c-.34-.53-.61-1.12-.8-1.73-.24 1.15-.17 2.36.19 3.49C7 16.32 9.07 19.34 12 20.67c3.67 1.66 8.04.25 9.8-3.41 1.05-2.18.9-4.71-.3-6.75-.12-.22-.3-.42-.51-.62-.05-.04-.09-.07-.15-.11zM14.9 17.5c-1.5 1.14-3.6 1.13-5-.05-.8-.74-1.2-1.76-1.1-2.83.05-.56.24-1.11.55-1.58.5-1.05 1.33-1.8 2.37-2.12.35-.11.72-.18 1.09-.23.1-.01.2-.03.29-.05a1.86 1.86 0 0 1 .49-.04c.16 0 .32.02.47.07 1.15.38 2.06 1.37 2.31 2.56.24 1.1-.06 2.22-.65 3.09-.3.42-.65.81-1.03 1.16-.14.12-.28.25-.43.37l-.02.01c-.13.11-.22.25-.3.4z"/></svg>
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
         ${streak}
       </div>
     </div>
   `;
 
   container.innerHTML = `
-    ${topHtml}
+    ${headerHtml}
     <div class="shell-content ${params.hideNav ? 'no-nav' : ''}"></div>
     ${navHtml}
   `;

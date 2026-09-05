@@ -46,6 +46,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
       <div class="instruction-card" id="instruction-card">
+        <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="64" height="64" style="margin-bottom: 16px; border-radius: 16px;">
         <h2>${manifest.name}</h2>
         <p>${manifest.instruction}</p>
       </div>

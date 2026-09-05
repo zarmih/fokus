@@ -15,6 +15,8 @@ import { renderSwitchRule } from './switch-rule/view';
 
 import { patternNextManifest, getPatternNextParams } from './pattern-next/manifest';
 import { renderPatternNext } from './pattern-next/view';
+import { pairsManifest, getPairsParams } from './pairs/manifest';
+import { renderPairs } from './pairs/view';
 
 export const dispatch: Record<string, {
   manifest: any, 
@@ -50,5 +52,10 @@ export const dispatch: Record<string, {
     manifest: patternNextManifest,
     getParams: getPatternNextParams,
     render: renderPatternNext
+  },
+  'pairs': {
+    manifest: pairsManifest,
+    getParams: getPairsParams,
+    render: renderPairs
   }
 };

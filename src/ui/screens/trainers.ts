@@ -12,7 +12,10 @@ export function renderTrainers(container: HTMLElement) {
     const lvl = st ? st.level : 1;
     return `
       <div class="trainer-card dom-${ex.domain}" data-id="${ex.id}">
-        <div class="trainer-domain">${ex.domain}</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div class="trainer-domain">${ex.domain}</div>
+          <img src="${import.meta.env.BASE_URL}art/icon-${ex.id}.svg" width="32" height="32" style="border-radius: 8px;">
+        </div>
         <div class="trainer-name">${ex.name}</div>
         <div class="trainer-level">Ур. ${lvl}</div>
       </div>
