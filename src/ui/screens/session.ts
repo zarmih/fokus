@@ -1,14 +1,11 @@
 import { navigateTo } from '../router';
-import { renderGridMemory } from '../../exercises/grid-memory/view';
-import { renderSequence } from '../../exercises/sequence/view';
-import { getSequenceParams } from '../../exercises/sequence/manifest';
-import { getGridMemoryParams } from '../../exercises/grid-memory/manifest';
+import { dispatch } from '../../exercises/dispatch';
 import { scoreBlock } from '../../core/scoring';
 import { calculateNextLevel, updateDomainIndex } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
-import type { SessionItem, ExerciseState } from '../../core/types';
+import type { SessionItem } from '../../core/types';
 
 export function renderSession(container: HTMLElement, params: {items: {exerciseId: string}[]}) {
   const {items} = params;
@@ -25,8 +22,15 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
       return;
     }
     const item = items[currentIndex];
-    const manifest = registry.find(m => m.id === item.exerciseId)!;
+    const exDispatch = dispatch[item.exerciseId];
+    if (!exDispatch) {
+      console.error('Unknown exercise', item.exerciseId);
+      currentIndex++;
+      renderCurrent();
+      return;
+    }
     
+    const manifest = exDispatch.manifest;
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
     if (!state) state = { exerciseId: item.exerciseId, level: 3, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
 
@@ -49,10 +53,7 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
       const isTimeUp = () => timeLeft <= 0;
       
       const onBlockEnd = (res: any) => {
-        let tp: any;
-        if (item.exerciseId === 'grid-memory') tp = getGridMemoryParams(state!.level);
-        else tp = getSequenceParams(state!.level);
-
+        const tp = exDispatch.getParams(state!.level);
         const score = scoreBlock({accuracy: res.accuracy, level: state!.level, avgRtMs: res.avgRtMs, targetMs: tp.targetMs});
         sessionResults.push({
           exerciseId: item.exerciseId,
@@ -90,11 +91,7 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
         renderCurrent();
       };
 
-      if (item.exerciseId === 'grid-memory') {
-        renderGridMemory(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
-      } else if (item.exerciseId === 'sequence') {
-        renderSequence(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
-      }
+      exDispatch.render(document.getElementById('game-container')!, state!.level, onBlockEnd, isTimeUp);
     });
   };
 
