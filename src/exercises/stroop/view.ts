@@ -73,12 +73,30 @@ export function renderStroop(
     }, params.deadlineMs);
 
     const btns = container.querySelectorAll('.stroop-btn');
+    const onClick = (btn: HTMLElement) => {
+      if ((btn as HTMLButtonElement).disabled) return;
+      const choice = btn.dataset.color;
+      document.removeEventListener('keydown', onKey);
+      finishRound(choice, Date.now() - roundStartTime);
+    };
+
     btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const choice = (btn as HTMLElement).dataset.color;
-        finishRound(choice, Date.now() - roundStartTime);
-      });
+      btn.addEventListener('click', () => onClick(btn as HTMLElement));
     });
+
+    const onKey = (e: KeyboardEvent) => {
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        const idx = parseInt(e.key) - 1;
+        if (idx < btns.length) {
+          onClick(btns[idx] as HTMLElement);
+        }
+      } else if (['ArrowLeft', 'ArrowUp', 'ArrowRight', 'ArrowDown'].includes(e.key)) {
+        const mapping: Record<string, number> = { 'ArrowLeft': 0, 'ArrowUp': 1, 'ArrowRight': 2, 'ArrowDown': 3 };
+        const idx = mapping[e.key];
+        if (idx < btns.length) onClick(btns[idx] as HTMLElement);
+      }
+    };
+    document.addEventListener('keydown', onKey);
   };
 
   const finishBlock = () => {

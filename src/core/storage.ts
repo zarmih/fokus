@@ -10,6 +10,7 @@ export interface StorageBackend {
 }
 
 const defaultProfile: Profile = {
+  name: 'User',
   createdAt: new Date().toISOString(),
   sessionLengthSec: 300,
   soundOn: true,

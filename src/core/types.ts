@@ -1,6 +1,8 @@
 export interface Profile {
+  name: string;
   createdAt: string;
   sessionLengthSec: number;
+  calibrated?: boolean;
   soundOn: boolean;
   locale: 'ru';
   schemaVersion: number;

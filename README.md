@@ -1,6 +1,7 @@
 # Fokus
 Fokus — 5-minute cognitive training ritual.
-Stage B complete.
+Demo: https://zarmih.github.io/fokus/
+Stage C complete.
 
 ## Setup
 ```bash

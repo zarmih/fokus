@@ -72,12 +72,26 @@ export function renderSwitchRule(
     }, params.deadlineMs);
 
     const btns = container.querySelectorAll('.sr-btn');
+    const onClick = (btn: HTMLElement) => {
+      if ((btn as HTMLButtonElement).disabled) return;
+      const choice = btn.dataset.choice === 'true';
+      document.removeEventListener('keydown', onKey);
+      finishRound(choice, Date.now() - roundStartTime);
+    };
+
     btns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const choice = (btn as HTMLElement).dataset.choice === 'true';
-        finishRound(choice, Date.now() - roundStartTime);
-      });
+      btn.addEventListener('click', () => onClick(btn as HTMLElement));
     });
+
+    const onKey = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (key === 'y' || key === 'д' || key === 'arrowleft') {
+        onClick(container.querySelector('[data-choice="true"]') as HTMLElement);
+      } else if (key === 'n' || key === 'н' || key === 'arrowright') {
+        onClick(container.querySelector('[data-choice="false"]') as HTMLElement);
+      }
+    };
+    document.addEventListener('keydown', onKey);
   };
 
   const finishBlock = () => {

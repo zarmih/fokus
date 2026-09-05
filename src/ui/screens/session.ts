@@ -5,22 +5,25 @@ import { calculateNextLevel, updateDomainIndex } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
+import { mapAccuracyToStartLevel } from '../../core/calibration';
 import type { SessionItem } from '../../core/types';
 
-export function renderSession(container: HTMLElement, params: {items: {exerciseId: string}[]}) {
-  const {items} = params;
+export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
+  const {items, mode = 'normal'} = params;
   let currentIndex = 0;
   const sessionResults: SessionItem[] = [];
   const domainDeltas: Record<string, number> = {};
   const sessionStartedAt = new Date().toISOString();
   let timerInterval: any;
-  let timeLeft = storage.getProfile().sessionLengthSec;
+  let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+  let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
 
   const renderCurrent = () => {
     if (currentIndex >= items.length || timeLeft <= 0) {
       finishSession();
       return;
     }
+    blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
     const item = items[currentIndex];
     const exDispatch = dispatch[item.exerciseId];
     if (!exDispatch) {
@@ -32,7 +35,7 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
     
     const manifest = exDispatch.manifest;
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
-    if (!state) state = { exerciseId: item.exerciseId, level: 3, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
+    if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
 
     container.innerHTML = `
       <div class="screen screen-session">
@@ -50,7 +53,7 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
       document.querySelector('.instruction')?.remove();
       document.getElementById('btn-next')?.remove();
       
-      const isTimeUp = () => timeLeft <= 0;
+      const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
       
       const onBlockEnd = (res: any) => {
         const tp = exDispatch.getParams(state!.level);
@@ -63,29 +66,41 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
           score
         });
         
-        const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, tp.targetMs);
-        state!.level = newLevel;
-        state!.lastPlayedAt = new Date().toISOString();
-        state!.lastAccuracy = res.accuracy;
-        
-        const st = storage.getExerciseStates();
-        const idx = st.findIndex(s => s.exerciseId === item.exerciseId);
-        if (idx >= 0) st[idx] = state!;
-        else st.push(state!);
-        storage.setExerciseStates(st);
-
-        const domains = storage.getDomains();
-        const dIdx = domains.findIndex(d => d.domain === manifest.domain);
-        const currentDomainValue = dIdx >= 0 ? domains[dIdx].value : 1000;
-        const newDomainValue = updateDomainIndex(currentDomainValue, res.accuracy, state!.level);
-        if (dIdx >= 0) {
-          domains[dIdx].value = newDomainValue;
-          domains[dIdx].updatedAt = new Date().toISOString();
+        if (mode === 'calibration') {
+          const newLevel = mapAccuracyToStartLevel(res.accuracy);
+          const domain = manifest.domain;
+          const st = storage.getExerciseStates();
+          registry.filter(r => r.domain === domain).forEach(ex => {
+            const idx = st.findIndex(s => s.exerciseId === ex.id);
+            if (idx >= 0) st[idx].level = newLevel;
+            else st.push({ exerciseId: ex.id, level: newLevel, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 });
+          });
+          storage.setExerciseStates(st);
         } else {
-          domains.push({ domain: manifest.domain, value: newDomainValue, updatedAt: new Date().toISOString() });
+          const newLevel = calculateNextLevel(state!.level, res.accuracy, res.avgRtMs, tp.targetMs);
+          state!.level = newLevel;
+          state!.lastPlayedAt = new Date().toISOString();
+          state!.lastAccuracy = res.accuracy;
+          
+          const st = storage.getExerciseStates();
+          const idx = st.findIndex(s => s.exerciseId === item.exerciseId);
+          if (idx >= 0) st[idx] = state!;
+          else st.push(state!);
+          storage.setExerciseStates(st);
+
+          const domains = storage.getDomains();
+          const dIdx = domains.findIndex(d => d.domain === manifest.domain);
+          const currentDomainValue = dIdx >= 0 ? domains[dIdx].value : 1000;
+          const newDomainValue = updateDomainIndex(currentDomainValue, res.accuracy, state!.level);
+          if (dIdx >= 0) {
+            domains[dIdx].value = newDomainValue;
+            domains[dIdx].updatedAt = new Date().toISOString();
+          } else {
+            domains.push({ domain: manifest.domain, value: newDomainValue, updatedAt: new Date().toISOString() });
+          }
+          storage.setDomains(domains);
+          domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (newDomainValue - currentDomainValue);
         }
-        storage.setDomains(domains);
-        domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (newDomainValue - currentDomainValue);
         
         currentIndex++;
         renderCurrent();
@@ -97,6 +112,15 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
 
   const finishSession = () => {
     clearInterval(timerInterval);
+    
+    if (mode === 'calibration') {
+      const p = storage.getProfile();
+      p.calibrated = true;
+      storage.setProfile(p);
+      navigateTo('today');
+      return;
+    }
+
     const finishedAt = new Date().toISOString();
     const duration = storage.getProfile().sessionLengthSec - timeLeft;
     const s = {
@@ -130,6 +154,7 @@ export function renderSession(container: HTMLElement, params: {items: {exerciseI
 
   timerInterval = setInterval(() => {
     timeLeft--;
+    blockTimeLeft--;
     const t = document.querySelector('.timer');
     if (t) {
       t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;

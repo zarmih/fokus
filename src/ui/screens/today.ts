@@ -8,9 +8,13 @@ export function renderToday(container: HTMLElement) {
   const summaries = storage.getDaySummaries();
   const profile = storage.getProfile();
   
+  const ds = storage.getDaySummaries();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const playedToday = ds.some(d => d.date.startsWith(todayStr));
+
   let streak = 0;
-  if (summaries.length > 0) {
-    const last = summaries[summaries.length - 1];
+  if (ds.length > 0) {
+    const last = ds[ds.length - 1];
     const ns = nextStreak(last.date, last.streak, new Date().toISOString());
     streak = ns.streak;
     if (ns.skipped || streak === 1) streak = 0; // hasn't played today yet
@@ -19,6 +23,24 @@ export function renderToday(container: HTMLElement) {
   
   const min = Math.floor(profile.sessionLengthSec / 60);
 
+  let content = '';
+  if (!profile.calibrated) {
+    content = `
+      <div class="session-composition">Сначала короткая настройка уровня, ~90 сек</div>
+      <button id="btn-start" class="btn-primary">Пройти калибровку</button>
+    `;
+  } else if (playedToday) {
+    content = `
+      <div class="session-composition">Отличная работа! Тренировка на сегодня завершена.</div>
+      <button id="btn-start" class="btn-secondary">Повторить сессию</button>
+    `;
+  } else {
+    content = `
+      <div class="session-composition">Состав: ${registry.map(r => r.name).join(', ')}</div>
+      <button id="btn-start" class="btn-primary">Начать сессию</button>
+    `;
+  }
+
   container.innerHTML = `
     <div class="screen screen-today">
       <h1>Fokus</h1>
@@ -26,10 +48,7 @@ export function renderToday(container: HTMLElement) {
         <span>Серия: ${streak} дн.</span>
         <span>Длительность: ~${min} мин.</span>
       </div>
-      <div class="session-composition">
-        Состав: ${registry.map(r => r.name).join(', ')}
-      </div>
-      <button id="btn-start" class="btn-primary">Начать</button>
+      ${content}
       <div class="disclaimer">Это не медицинское изделие и не диагностика.</div>
       <div class="nav-bottom">
         <span class="active">Сегодня</span>
@@ -40,14 +59,21 @@ export function renderToday(container: HTMLElement) {
     </div>
   `;
   document.getElementById('btn-start')?.addEventListener('click', () => {
-    const sessionItems = buildSession({
-      durationSec: profile.sessionLengthSec,
-      catalog: registry,
-      domainIndexes: [],
-      lastPlayedByExercise: {},
-      yesterdayDomains: []
-    });
-    navigateTo('session', {items: sessionItems});
+    if (!profile.calibrated) {
+      navigateTo('session', {mode: 'calibration', items: [{exerciseId: 'odd-one'}, {exerciseId: 'grid-memory'}, {exerciseId: 'stroop'}]});
+    } else {
+      const domains = storage.getDomains();
+      const lastPlayed = {};
+      const yesterday: string[] = [];
+      const items = buildSession({
+        durationSec: storage.getProfile().sessionLengthSec,
+        catalog: registry,
+        domainIndexes: domains,
+        lastPlayedByExercise: lastPlayed,
+        yesterdayDomains: yesterday
+      });
+      navigateTo('session', {mode: 'normal', items});
+    }
   });
   document.getElementById('nav-trainers')?.addEventListener('click', () => navigateTo('trainers'));
   document.getElementById('nav-progress')?.addEventListener('click', () => navigateTo('progress'));

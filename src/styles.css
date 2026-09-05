@@ -74,3 +74,12 @@ h1, h2, h3 { color: #e8b86d; margin-top: 0; }
 .card:hover { background: #2a2a2a; }
 .header { display: flex; justify-content: space-between; align-items: center; }
 .timer { font-size: 20px; font-weight: bold; color: #aaa; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
