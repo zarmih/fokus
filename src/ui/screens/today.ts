@@ -66,14 +66,19 @@ export function renderToday(container: HTMLElement) {
     ? plan.focusDomains.map(d => allDomains.find(x => x.id === d)?.name?.toUpperCase()).join(' + ')
     : 'СБАЛАНСИРОВАННАЯ ТРЕНИРОВКА';
 
-  let compositionHtml = plan.items.map(item => {
+  let compositionHtml = plan.items.map((item, index) => {
     const r = registry.find(x => x.manifest.id === item.exerciseId);
-    return `<div class="chip dom-${r?.manifest.domain}" style="margin-bottom: 8px; display: flex; flex-direction: column; width: 100%; padding: 8px 12px;">
-      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-        <span style="display: flex; align-items: center; font-weight: 600;"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="16" height="16" style="margin-right: 6px; border-radius: 4px;">${r?.manifest.name}</span>
-        <span style="font-size: 10px; color: var(--muted); text-transform: uppercase;">${r?.manifest.domain}</span>
+    const isPrimary = index === 0;
+    
+    return `<div class="chip dom-${r?.manifest.domain}" style="margin-bottom: 12px; display: flex; flex-direction: column; width: 100%; padding: 12px 16px; border-radius: 12px; border: ${isPrimary ? '1px solid var(--accent)' : '1px solid var(--line)'}; position: relative;">
+      ${isPrimary ? `<div style="position: absolute; top: -10px; left: 16px; background: var(--surface); padding: 0 8px; font-size: 11px; color: var(--accent); font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Главный фокус</div>` : ''}
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+        <span style="display: flex; align-items: center; font-weight: 600; font-size: 15px;"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="20" height="20" style="margin-right: 8px; border-radius: 6px;">${r?.manifest.name}</span>
+        <span style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">${r?.manifest.domain}</span>
       </div>
-      <div style="font-size: 12px; color: var(--text); opacity: 0.8;">${item.reason}</div>
+      <div style="font-size: 13px; color: var(--text); opacity: 0.9; display: flex; align-items: center; gap: 8px;">
+        <span style="opacity: 0.5;">↳</span> <span>${item.reason}</span>
+      </div>
     </div>`;
   }).join('');
 
