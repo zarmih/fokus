@@ -1,6 +1,6 @@
 import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem } from './types';
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 export const STORAGE_KEY = 'fokus.v1';
 
 export interface StorageBackend {
@@ -47,6 +47,21 @@ export class Storage {
           parsed.history = parsed.history || [];
           parsed.skills = parsed.skills || [];
           parsed.profile.schemaVersion = 2;
+        }
+        if (parsed.profile.schemaVersion === 2) {
+          if (parsed.skills) {
+            parsed.skills.forEach((s: any) => {
+              if (!s.sources) s.sources = [];
+            });
+          }
+          if (parsed.exerciseStates) {
+            parsed.exerciseStates.forEach((st: any) => {
+              if (typeof st.mastery === 'undefined') st.mastery = 0;
+              if (typeof st.stability === 'undefined') st.stability = 0.5;
+              if (typeof st.consecutivePlateau === 'undefined') st.consecutivePlateau = 0;
+            });
+          }
+          parsed.profile.schemaVersion = 3;
         }
         this.backend.setItem(STORAGE_KEY, JSON.stringify(parsed));
       }
