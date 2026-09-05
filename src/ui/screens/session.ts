@@ -252,6 +252,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       domainDeltas
     });
 
+    const p = storage.getProfile();
+    p.xp = (p.xp || 0) + totalScore;
+    storage.setProfile(p);
+
     navigateTo('result', {session: s});
   };
 

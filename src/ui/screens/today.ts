@@ -3,10 +3,12 @@ import { registry } from '../../exercises/registry';
 import { buildSession } from '../../core/session-builder';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
+import { getLevelProgress } from '../../core/xp';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
   const profile = storage.getProfile();
+  const lvl = getLevelProgress(profile.xp || 0);
   const ds = storage.getDaySummaries();
   const todayStr = new Date().toISOString().split('T')[0];
   const playedToday = ds.some(d => d.date.startsWith(todayStr));
@@ -109,6 +111,14 @@ export function renderToday(container: HTMLElement) {
     <p style="margin-bottom: 24px;">${dateStr}</p>
     
     ${topCard}
+    
+    <div class="surface">
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
+        <h3 style="margin: 0;">Уровень ${lvl.currentLevel}</h3>
+        <div style="font-size: 13px; color: var(--muted);">${Math.round(lvl.currentXP)} / ${Math.round(lvl.nextLevelXP)} XP</div>
+      </div>
+      <div class="scale-track" style="height: 8px; border-radius: 4px; overflow: hidden;"><div class="scale-fill" style="width: ${lvl.progressPct}%; background: var(--accent);"></div></div>
+    </div>
     
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Когнитивный профиль</h3>

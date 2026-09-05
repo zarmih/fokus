@@ -8,6 +8,7 @@ export interface Profile {
   soundOn: boolean;
   locale: 'ru';
   schemaVersion: number;
+  xp?: number;
 }
 export interface DomainIndex {
   domain: string;

@@ -17,7 +17,8 @@ const defaultProfile: Profile = {
   onboarded: false,
   theme: typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark',
   locale: 'ru',
-  schemaVersion: CURRENT_SCHEMA_VERSION
+  schemaVersion: CURRENT_SCHEMA_VERSION,
+  xp: 0
 };
 
 const defaultState: AppState = {
