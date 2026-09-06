@@ -30,7 +30,10 @@ export function renderProgress(container: HTMLElement) {
 
   const chartHtml = `
     <div class="surface">
-      <h3>Неделя</h3>
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <h3>Неделя</h3>
+        <button id="btn-weekly-review" class="btn-tiny" style="margin: 0;">Итоги недели</button>
+      </div>
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
       <div class="bar-chart">
         ${bars.map(b => `
@@ -214,4 +217,8 @@ export function renderProgress(container: HTMLElement) {
     ${legendHtml}
     ${profileHtml}
   `;
+
+  content.querySelector('#btn-weekly-review')?.addEventListener('click', () => {
+    import('../router').then(({navigateTo}) => navigateTo('weekly-review'));
+  });
 }

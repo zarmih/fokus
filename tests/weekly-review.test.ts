@@ -1,0 +1,233 @@
+import { expect, test, beforeEach, vi } from 'vitest';
+import { renderWeeklyReview } from '../src/ui/screens/weekly-review';
+import { storage } from '../src/core/storage';
+import { registry } from '../src/exercises/registry';
+import type { Session, DaySummary, DomainIndex, SkillIndex, ExerciseState } from '../src/core/types';
+
+class MockStorage {
+  data: Record<string, string> = {};
+  getItem(k: string) { return this.data[k] || null; }
+  setItem(k: string, v: string) { this.data[k] = v; }
+  removeItem(k: string) { delete this.data[k]; }
+}
+
+beforeEach(() => {
+  (storage as any).backend = new MockStorage();
+  storage.reset();
+  document.body.innerHTML = '<div id="app"></div>';
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-09-06T12:00:00Z'));
+});
+
+test('renderWeeklyReview - empty week', () => {
+  const container = document.getElementById('app')!;
+  renderWeeklyReview(container);
+  const html = container.innerHTML;
+  
+  expect(html).toContain('Недостаточно данных');
+  expect(html).not.toContain('Что изменилось');
+  // No fake precision
+  expect(html).not.toContain('Уровень освоения');
+});
+
+test('renderWeeklyReview - insufficient evidence (1 session)', () => {
+  const container = document.getElementById('app')!;
+  storage.addSession({
+    id: 's1',
+    startedAt: '2026-09-05T10:00:00Z',
+    finishedAt: '2026-09-05T10:05:00Z',
+    durationSec: 300,
+    items: [
+      {
+        exerciseId: 'grid-memory',
+        level: 1,
+        accuracy: 0.8,
+        avgRtMs: 1200,
+        score: 50,
+        masteryBefore: 10,
+        masteryAfter: 15,
+        difficultyBefore: 1.0,
+        difficultyAfter: 1.2,
+        confidenceAfter: 10 // Low confidence
+      }
+    ]
+  });
+  
+  storage.addDaySummary({
+    date: '2026-09-05T10:00:00Z',
+    totalScore: 50,
+    domainDeltas: {},
+    streak: 1,
+    skipped: false
+  });
+
+  renderWeeklyReview(container);
+  const html = container.innerHTML;
+  
+  expect(html).toContain('1</div>'); // 1 day
+  expect(html).toContain('Пока недостаточно подтверждённых изменений.'); // Honest message
+  expect(html).not.toContain('вырос на 5'); // Delta not shown due to low conf
+});
+
+test('renderWeeklyReview - real aggregation, mastery and difficulty delta', () => {
+  const container = document.getElementById('app')!;
+  
+  storage.addSession({
+    id: 's1',
+    startedAt: '2026-09-02T10:00:00Z',
+    finishedAt: '2026-09-02T10:05:00Z',
+    durationSec: 300,
+    items: [
+      {
+        exerciseId: 'math-sprint',
+        level: 3,
+        accuracy: 0.9,
+        avgRtMs: 1000,
+        score: 100,
+        masteryBefore: 40,
+        masteryAfter: 50,
+        difficultyBefore: 3.0,
+        difficultyAfter: 3.1,
+        confidenceAfter: 80
+      },
+      {
+        exerciseId: 'grid-memory',
+        level: 1,
+        accuracy: 0.9,
+        avgRtMs: 1000,
+        score: 100,
+        masteryBefore: 10,
+        masteryAfter: 12,
+        difficultyBefore: 1.0,
+        difficultyAfter: 1.5,
+        confidenceAfter: 80
+      }
+    ]
+  });
+  
+  storage.addDaySummary({
+    date: '2026-09-02T10:00:00Z',
+    totalScore: 200,
+    domainDeltas: {},
+    streak: 1,
+    skipped: false
+  });
+
+  renderWeeklyReview(container);
+  const html = container.innerHTML;
+  
+  expect(html).toContain('Арифметика');
+  expect(html).toContain('вырос на 10'); // mDelta for math-sprint
+  expect(html).toContain('повысил сложность');
+  expect(html).toContain('Матрица');
+  expect(html).toContain('на 0.5'); // dDelta for grid-memory
+});
+
+test('renderWeeklyReview - rolling time boundaries', () => {
+  const container = document.getElementById('app')!;
+  
+  // Outside of 7-day window
+  storage.addSession({
+    id: 's0',
+    startedAt: '2026-08-25T10:00:00Z',
+    finishedAt: '2026-08-25T10:05:00Z',
+    durationSec: 300,
+    items: [{
+      exerciseId: 'stroop', level: 2, accuracy: 1, avgRtMs: 1000, score: 50,
+      masteryBefore: 20, masteryAfter: 40, difficultyBefore: 2, difficultyAfter: 3, confidenceAfter: 100
+    }]
+  });
+  
+  // Inside 7-day window
+  storage.addSession({
+    id: 's1',
+    startedAt: '2026-09-05T10:00:00Z',
+    finishedAt: '2026-09-05T10:05:00Z',
+    durationSec: 300,
+    items: [{
+      exerciseId: 'grid-memory', level: 1, accuracy: 1, avgRtMs: 1000, score: 50,
+      masteryBefore: 10, masteryAfter: 15, difficultyBefore: 1, difficultyAfter: 1.2, confidenceAfter: 50
+    }]
+  });
+
+  renderWeeklyReview(container);
+  const html = container.innerHTML;
+  
+  // Should not see Stroop
+  expect(html).not.toContain('Струпа');
+  // Should see Grid Memory
+  expect(html).toContain('вырос на 5');
+});
+
+test('renderWeeklyReview - legacy data handling', () => {
+  const container = document.getElementById('app')!;
+  
+  storage.addSession({
+    id: 's1',
+    startedAt: '2026-09-05T10:00:00Z',
+    finishedAt: '2026-09-05T10:05:00Z',
+    durationSec: 300,
+    items: [
+      {
+        exerciseId: 'sequence',
+        level: 2,
+        accuracy: 0.8,
+        avgRtMs: 1000,
+        score: 25
+      } as any // No masteryBefore/After or confidence
+    ]
+  });
+  
+  storage.addDaySummary({
+    date: '2026-09-05T10:00:00Z',
+    totalScore: 25,
+    domainDeltas: {},
+    streak: 1,
+    skipped: false
+  });
+
+  renderWeeklyReview(container);
+  const html = container.innerHTML;
+  
+  // Should not crash, should show 1 session, but no fake changes
+  expect(html).toContain('1</div>'); // 1 session
+  expect(html).toContain('Пока недостаточно подтверждённых изменений');
+});
+
+test('renderWeeklyReview - plateau surfaced', () => {
+  const container = document.getElementById('app')!;
+  
+  storage.addSession({
+    id: 's1',
+    startedAt: '2026-09-05T10:00:00Z',
+    finishedAt: '2026-09-05T10:05:00Z',
+    durationSec: 300,
+    items: [
+      {
+        exerciseId: 'odd-one',
+        level: 3,
+        accuracy: 0.8,
+        avgRtMs: 1000,
+        score: 50,
+        masteryBefore: 60,
+        masteryAfter: 60, // Delta 0
+        difficultyBefore: 3.0,
+        difficultyAfter: 3.0,
+        confidenceAfter: 80 // High conf
+      }
+    ]
+  });
+  
+  storage.addDaySummary({
+    date: '2026-09-05T10:00:00Z',
+    totalScore: 50,
+    domainDeltas: {},
+    streak: 1,
+    skipped: false
+  });
+
+  renderWeeklyReview(container);
+  const html = container.innerHTML;
+  
+  expect(html).toContain('стабилен');
+});

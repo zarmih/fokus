@@ -46,6 +46,9 @@ window.addEventListener('navigate', (e: any) => {
     else if (screenId === 'progress') renderProgress(app);
     else if (screenId === 'settings') renderSettings(app);
     else if (screenId === 'trainers') renderTrainers(app);
+    else if (screenId === 'weekly-review') {
+      import('./ui/screens/weekly-review').then(m => m.renderWeeklyReview(app));
+    }
   } catch (err: any) {
     app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
       <h3>Ошибка навигации</h3>
