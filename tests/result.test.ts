@@ -82,7 +82,7 @@ test('renderResult - mastery delta zero / plateau / low confidence', () => {
   
   const html = container.innerHTML;
   expect(html).toContain('(=)'); // Zero delta
-  expect(html).toContain('➖ Плато'); // plateau
+  expect(html).toContain('🔄 Калибровка'); // forced calibrating state due to low confidence
   expect(html).toContain('20%'); // Low confidence
 });
 
@@ -142,7 +142,7 @@ test('renderResult - legacy / empty state (stale snapshot fallback)', () => {
   const html = container.innerHTML;
   // Should compute default Fallbacks safely
   expect(html).toContain('(Perf: 250)'); // score * 10
-  expect(html).toContain('100%'); // Default confidence fallback
+  expect(html).toContain('Н/Д'); // No fake precision
   expect(html).toContain('(=)');
-  expect(html).toContain('Стабильно');
+  expect(html).toContain('🔄 Калибровка'); // Calibrating for legacy
 });

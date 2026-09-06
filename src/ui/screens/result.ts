@@ -44,7 +44,7 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     const mAfter = item.masteryAfter || 0;
     const diffBefore = item.difficultyBefore || item.level;
     const diffAfter = item.difficultyAfter || item.level;
-    const conf = item.confidenceAfter !== undefined ? item.confidenceAfter : 100;
+    const conf = item.confidenceAfter;
     
     const mDelta = mAfter - mBefore;
     const mSign = mDelta > 0 ? '+' : '';
@@ -54,8 +54,23 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     const dSign = dDelta > 0 ? '+' : '';
     const dColor = dDelta > 0 ? 'var(--ok)' : (dDelta < 0 ? 'var(--danger)' : 'var(--muted)');
     
-    const pState = item.progressionState || (mDelta > 0 ? 'up' : (mDelta < 0 ? 'down' : 'stable'));
-    const stateLabel = pState === 'up' ? '📈 Растёт' : (pState === 'down' ? '📉 Падает' : (pState === 'plateau' ? '➖ Плато' : 'Стабильно'));
+    const isLegacy = conf === undefined;
+    const isCalibrating = isLegacy || conf < 30;
+    
+    let pState = item.progressionState;
+    if (isCalibrating) {
+       pState = 'calibrating';
+    } else if (!pState) {
+       pState = mDelta > 0 ? 'up' : (mDelta < 0 ? 'down' : 'stable');
+    }
+
+    let stateLabel = 'Стабильно';
+    if (pState === 'up') stateLabel = '📈 Растёт';
+    else if (pState === 'down') stateLabel = '📉 Падает';
+    else if (pState === 'plateau') stateLabel = '➖ Плато';
+    else if (pState === 'calibrating') stateLabel = '🔄 Калибровка';
+
+    const confDisplay = isLegacy ? 'Н/Д' : `${Math.round(conf)}%`;
 
     return `
       <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
@@ -84,7 +99,7 @@ export function renderResult(container: HTMLElement, params: {session: Session})
           </div>
           <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
             <div style="color: var(--muted); margin-bottom: 4px;">Калибровка</div>
-            <div style="font-weight: 500;">${Math.round(conf)}%</div>
+            <div style="font-weight: 500;">${confDisplay}</div>
           </div>
         </div>
       </div>

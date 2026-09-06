@@ -234,7 +234,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             sr.masteryAfter = state.mastery;
             sr.difficultyAfter = state.difficulty;
             sr.confidenceAfter = Math.min(1.0, (state.attempts || 1) / 15) * 100;
-            if (state.mastery! > sr.masteryBefore!) sr.progressionState = 'up';
+            if (sr.confidenceAfter < 30) sr.progressionState = 'calibrating';
+            else if (state.mastery! > sr.masteryBefore!) sr.progressionState = 'up';
             else if (state.mastery! < sr.masteryBefore!) sr.progressionState = 'down';
             else if ((state.consecutivePlateau || 0) >= 3) sr.progressionState = 'plateau';
             else sr.progressionState = 'stable';
