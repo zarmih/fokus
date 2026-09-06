@@ -3,6 +3,7 @@ import { renderShell } from '../shell';
 import type { Session } from '../../core/types';
 import { registry } from '../../exercises/registry';
 import { storage } from '../../core/storage';
+import { buildTrainingPlan } from '../../core/session-builder';
 
 export function renderResult(container: HTMLElement, params: {session: Session}) {
   const content = renderShell(container, { active: 'today', hideNav: true });
@@ -36,13 +37,56 @@ export function renderResult(container: HTMLElement, params: {session: Session})
 
   let itemsHtml = session.items.map(item => {
     const ex = registry.find(r => r.manifest.id === item.exerciseId);
+    
+    // Fallbacks for legacy snapshots where these fields might be missing
+    const p = Math.round(item.performance || item.score * 10);
+    const mBefore = item.masteryBefore || 0;
+    const mAfter = item.masteryAfter || 0;
+    const diffBefore = item.difficultyBefore || item.level;
+    const diffAfter = item.difficultyAfter || item.level;
+    const conf = item.confidenceAfter !== undefined ? item.confidenceAfter : 100;
+    
+    const mDelta = mAfter - mBefore;
+    const mSign = mDelta > 0 ? '+' : '';
+    const mColor = mDelta > 0 ? 'var(--ok)' : (mDelta < 0 ? 'var(--danger)' : 'var(--muted)');
+    
+    const dDelta = diffAfter - diffBefore;
+    const dSign = dDelta > 0 ? '+' : '';
+    const dColor = dDelta > 0 ? 'var(--ok)' : (dDelta < 0 ? 'var(--danger)' : 'var(--muted)');
+    
+    const pState = item.progressionState || (mDelta > 0 ? 'up' : (mDelta < 0 ? 'down' : 'stable'));
+    const stateLabel = pState === 'up' ? '📈 Растёт' : (pState === 'down' ? '📉 Падает' : (pState === 'plateau' ? '➖ Плато' : 'Стабильно'));
+
     return `
-      <div style="display: flex; justify-content: space-between; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--line);">
-        <div>
+      <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
+        <div style="display: flex; justify-content: space-between; align-items: baseline;">
           <div style="font-weight: 600; font-size: 15px;">${ex?.manifest.name}</div>
-          <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">Ур. ${item.level} · Точность ${Math.round(item.accuracy*100)}%</div>
+          <div style="color: var(--accent); font-weight: 600;">+${Math.round(item.score)} (Perf: ${p})</div>
         </div>
-        <div style="color: var(--accent); font-weight: 600;">+${Math.round(item.score)}</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; font-size: 13px;">
+          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
+            <div style="color: var(--muted); margin-bottom: 4px;">Мастерство</div>
+            <div>
+              <span style="font-weight: 600;">${mAfter}</span>
+              <span style="color: ${mColor}; margin-left: 4px;">${mDelta !== 0 ? `(${mSign}${mDelta})` : '(=)'}</span>
+            </div>
+          </div>
+          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
+            <div style="color: var(--muted); margin-bottom: 4px;">Сложность</div>
+            <div>
+              <span style="font-weight: 600;">${diffAfter.toFixed(1)}</span>
+              <span style="color: ${dColor}; margin-left: 4px;">${dDelta !== 0 ? `(${dSign}${dDelta.toFixed(1)})` : '(=)'}</span>
+            </div>
+          </div>
+          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
+            <div style="color: var(--muted); margin-bottom: 4px;">Статус</div>
+            <div style="font-weight: 500;">${stateLabel}</div>
+          </div>
+          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
+            <div style="color: var(--muted); margin-bottom: 4px;">Калибровка</div>
+            <div style="font-weight: 500;">${Math.round(conf)}%</div>
+          </div>
+        </div>
       </div>
     `;
   }).join('');
@@ -59,6 +103,25 @@ export function renderResult(container: HTMLElement, params: {session: Session})
 
   if (!deltasHtml) deltasHtml = '<div style="color: var(--muted); font-size: 14px;">Нет изменений</div>';
 
+  const plan = buildTrainingPlan({
+    durationSec: 300,
+    catalog: registry as any,
+    domains: storage.getDomains(),
+    skills: storage.getSkills(),
+    states: storage.getExerciseStates(),
+    primaryGoal: storage.getProfile().primaryGoal
+  });
+  
+  const nextItem = plan.items[0];
+  const nextEx = nextItem ? registry.find(r => r.manifest.id === nextItem.exerciseId) : null;
+  const nextHtml = nextEx ? `
+    <div class="surface" style="background: rgba(16, 185, 129, 0.1);">
+      <h3 style="color: var(--ok); margin-bottom: 8px;">Следующий шаг</h3>
+      <p style="margin: 0 0 8px 0; color: var(--text); font-weight: 600;">${nextEx.manifest.name}</p>
+      <p style="margin: 0; color: var(--muted); font-size: 13px;">${nextItem.reason}</p>
+    </div>
+  ` : '';
+
   content.innerHTML = `
     <h2 style="text-align: center; margin-bottom: 24px; font-size: 24px;">Тренировка завершена</h2>
     
@@ -74,14 +137,11 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Результаты</h3>
+      <h3 style="margin-bottom: 16px;">Результаты и прогресс</h3>
       ${itemsHtml}
     </div>
 
-    <div class="surface" style="background: rgba(232, 184, 109, 0.1);">
-      <h3 style="color: var(--accent); margin-bottom: 8px;">Завтра</h3>
-      <p style="margin: 0; color: var(--text); font-size: 14px;">В следующей сессии больше времени уйдёт на ${tomorrowFocus}.</p>
-    </div>
+    ${nextHtml}
     
     <button id="btn-done" class="btn-primary" style="margin-top: 16px;">Готово</button>
   `;

@@ -47,6 +47,14 @@ export interface SessionItem {
   accuracy: number;
   avgRtMs: number;
   score: number;
+  // Mastery Progression UI v1
+  performance?: number;
+  masteryBefore?: number;
+  masteryAfter?: number;
+  difficultyBefore?: number;
+  difficultyAfter?: number;
+  confidenceAfter?: number;
+  progressionState?: string;
 }
 export interface Session {
   id: string;

@@ -147,19 +147,21 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           if (cleanupFn) cleanupFn();
           import('../../core/audio').then(a => a.playBeep(res.accuracy >= 0.8)).catch(() => {});
 
-          // Target MS depends on the exercise manifest, but we fallback to 1500
           const targetMs = (manifest as any).levels ? ((manifest as any).levels[Math.floor(state!.difficulty)]?.targetMs || 1500) : 1500;
           
           const perf = calculateNormalizedPerformance(res.accuracy, res.avgRtMs, targetMs, state!.difficulty, manifest.metricModel);
           const score = Math.round(perf / 10); // simple mapping for UI score
-
-          sessionResults.push({
+          
+          let sr: SessionItem = {
             exerciseId: item.exerciseId,
             level: Math.floor(state!.difficulty),
             accuracy: res.accuracy,
             avgRtMs: res.avgRtMs,
-            score
-          });
+            score,
+            performance: perf,
+            masteryBefore: state?.mastery || 0,
+            difficultyBefore: state?.difficulty || 1.0
+          };
           
           if (mode === 'calibration') {
             const newLevel = mapAccuracyToStartLevel(res.accuracy);
@@ -228,7 +230,17 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             }
             storage.setDomains(domains);
             domainDeltas[manifest.domain] = (domainDeltas[manifest.domain] || 0) + (updatedDomain.value - currentVal);
+            
+            sr.masteryAfter = state.mastery;
+            sr.difficultyAfter = state.difficulty;
+            sr.confidenceAfter = Math.min(1.0, (state.attempts || 1) / 15) * 100;
+            if (state.mastery! > sr.masteryBefore!) sr.progressionState = 'up';
+            else if (state.mastery! < sr.masteryBefore!) sr.progressionState = 'down';
+            else if ((state.consecutivePlateau || 0) >= 3) sr.progressionState = 'plateau';
+            else sr.progressionState = 'stable';
           }
+          
+          sessionResults.push(sr);
           
           if (mode === 'normal' && res.accuracy < 0.70 && (storage.getProfile().sessionLengthSec - timeLeft) > 300) {
             fatigueCounter++;
