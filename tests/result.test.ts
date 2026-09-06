@@ -72,7 +72,7 @@ test('renderResult - mastery delta zero / plateau / low confidence', () => {
         masteryAfter: 40,
         difficultyBefore: 5.0,
         difficultyAfter: 5.0,
-        confidenceAfter: 20, // Low confidence
+        confidenceAfter: 10, // Low confidence
         progressionState: 'plateau'
       }
     ]
@@ -83,7 +83,7 @@ test('renderResult - mastery delta zero / plateau / low confidence', () => {
   const html = container.innerHTML;
   expect(html).toContain('(=)'); // Zero delta
   expect(html).toContain('🔄 Калибровка'); // forced calibrating state due to low confidence
-  expect(html).toContain('20%'); // Low confidence
+  expect(html).toContain('10%'); // Low confidence
 });
 
 test('renderResult - mastery delta negative / down', () => {

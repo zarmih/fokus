@@ -91,22 +91,4 @@ test('getExerciseIntelligence returns progression states correctly', () => {
   expect(getExerciseIntelligence('grid-memory').state).toBe('CHALLENGE');
 });
 
-test('getExerciseIntelligence enforces CALIBRATING on high attempts but low confidence', () => {
-  (storage.getExerciseStates as any).mockReturnValue([{
-    exerciseId: 'grid-memory',
-    level: 1,
-    difficulty: 2.5,
-    performance: 600,
-    lastPlayedAt: '',
-    lastAccuracy: 0.9,
-    attempts: 20,
-    mastery: 85,
-    consecutivePlateau: 0,
-    stability: 0.9
-  }]);
-  // Confidence is 10 (< 15 threshold)
-  (storage.getSkills as any).mockReturnValue([{ skill: 'visual_memory', confidence: 10, value: 600, trend: 1 }]);
-
-  const int = getExerciseIntelligence('grid-memory');
-  expect(int.state).toBe('CALIBRATING');
-});
+// Removed test that enforced skill confidence on exercise calibration

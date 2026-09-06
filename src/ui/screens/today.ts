@@ -56,8 +56,8 @@ export function renderToday(container: HTMLElement) {
     return `
       <div class="scale-row dom-${d.id} ${isZero ? 'scale-empty' : ''}">
         <div class="scale-label">${d.name}</div>
-        <div class="scale-track"><div class="scale-fill" style="width: ${pct}%"></div></div>
-        <div class="scale-value">${displayVal}</div>
+        <div class="scale-track"><div class="scale-fill" style="width: ${isZero ? 0 : pct}%"></div></div>
+        <div class="scale-value" style="${isZero ? 'color: var(--muted)' : ''}">${isZero ? 'Н/Д' : displayVal}</div>
       </div>
     `;
   }).join('');

@@ -55,7 +55,7 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     const dColor = dDelta > 0 ? 'var(--ok)' : (dDelta < 0 ? 'var(--danger)' : 'var(--muted)');
     
     const isLegacy = conf === undefined;
-    const isCalibrating = isLegacy || conf < 30;
+    const isCalibrating = isLegacy || conf < 20; // < 3 attempts
     
     let pState = item.progressionState;
     if (isCalibrating) {

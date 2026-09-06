@@ -82,7 +82,7 @@ export function renderWeeklyReview(container: HTMLElement) {
       conf: data.conf,
       mAfter: data.mAfter
     };
-  }).filter(d => d.conf >= 30); // Need evidence to state facts
+  }).filter(d => d.conf >= 20); // Need evidence (>= 3 attempts)
 
   sortedDeltas.sort((a, b) => b.mDelta - a.mDelta);
 

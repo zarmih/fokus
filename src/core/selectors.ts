@@ -16,7 +16,7 @@ export function getExerciseIntelligence(exerciseId: string) {
   const skills = storage.getSkills().filter(s => manifest.skills.includes(s.skill as any));
   const avgConfidence = skills.length ? skills.reduce((acc, s) => acc + s.confidence, 0) / skills.length : 0;
   
-  const isCalibrating = (state.attempts || 0) < 3 || avgConfidence < 15;
+  const isCalibrating = (state.attempts || 0) < 3;
   const isPlateau = (state.consecutivePlateau || 0) >= 3;
   const mastery = Math.round(state.mastery || 0);
   
