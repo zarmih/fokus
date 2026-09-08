@@ -163,6 +163,13 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             difficultyBefore: state?.difficulty || 1.0
           };
           
+          if (mode === 'normal') {
+            import('../../core/quests').then(q => {
+              q.updateQuestProgress('blocks', 1);
+              q.updateQuestProgress('accuracy', Math.round(res.accuracy * 100));
+            }).catch(() => {});
+          }
+
           if (mode === 'calibration') {
             const newLevel = mapAccuracyToStartLevel(res.accuracy);
             const domain = manifest.domain;
@@ -338,6 +345,12 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const p = storage.getProfile();
     p.xp = (p.xp || 0) + totalScore;
     storage.setProfile(p);
+
+    if (mode === 'normal') {
+      import('../../core/quests').then(q => {
+        q.updateQuestProgress('score', totalScore);
+      }).catch(() => {});
+    }
 
     navigateTo('result', {session: s});
   };

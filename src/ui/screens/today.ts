@@ -5,11 +5,21 @@ import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
 import { generateInsights } from '../../core/insights';
+import { getDailyQuests } from '../../core/quests';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
   const profile = storage.getProfile();
   const lvl = getLevelProgress(profile.xp || 0);
+  
+  const getLeagueName = (level: number) => {
+    if (level < 10) return 'Бронза';
+    if (level < 20) return 'Серебро';
+    if (level < 30) return 'Золото';
+    if (level < 40) return 'Платина';
+    return 'Алмаз';
+  };
+
   const ds = storage.getDaySummaries();
   const todayStr = new Date().toISOString().split('T')[0];
   const playedToday = ds.some(d => d.date.startsWith(todayStr));
@@ -152,6 +162,35 @@ export function renderToday(container: HTMLElement) {
   const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
   const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
 
+  const quests = getDailyQuests();
+  let questsHtml = `
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
+        Квесты дня
+        <span style="font-size: 11px; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 4px;">XP</span>
+      </h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        ${quests.map(q => {
+          const pct = Math.min(100, (q.progress / q.target) * 100);
+          return `
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 8px; padding: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                <div>
+                  <div style="font-weight: bold; color: ${q.completed ? 'var(--ok)' : 'var(--text)'};">${q.title} ${q.completed ? '✓' : ''}</div>
+                  <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">${q.description}</div>
+                </div>
+                <div style="font-size: 12px; font-weight: bold; color: var(--muted);">${q.progress}/${q.target}</div>
+              </div>
+              <div class="scale-track" style="height: 6px; margin: 0; background: rgba(0,0,0,0.2);">
+                <div class="scale-fill" style="width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
   content.innerHTML = `
     <h2 style="text-transform: capitalize; margin-bottom: 4px;">Сегодня</h2>
     <p style="margin-bottom: 24px;">${dateStr}</p>
@@ -160,9 +199,14 @@ export function renderToday(container: HTMLElement) {
     
     ${insightHtml}
     
+    ${questsHtml}
+    
     <div class="surface">
       <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px;">
-        <h3 style="margin: 0;">Уровень ${lvl.currentLevel}</h3>
+        <h3 style="margin: 0; display: flex; align-items: center; gap: 8px;">
+          Уровень ${lvl.currentLevel}
+          <span style="font-size: 11px; background: var(--surface); color: var(--accent); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--accent);">${getLeagueName(lvl.currentLevel)}</span>
+        </h3>
         <div style="font-size: 13px; color: var(--muted);">${Math.round(lvl.currentXP)} / ${Math.round(lvl.nextLevelXP)} XP</div>
       </div>
       <div class="scale-track" style="height: 8px; border-radius: 4px; overflow: hidden;"><div class="scale-fill" style="width: ${lvl.progressPct}%; background: var(--accent);"></div></div>
@@ -177,10 +221,87 @@ export function renderToday(container: HTMLElement) {
   `;
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
-    if (!profile.calibrated) {
-      navigateTo('session', {mode: 'calibration', items: [{exerciseId: 'odd-one'}, {exerciseId: 'grid-memory'}, {exerciseId: 'stroop'}]});
+    const startSession = () => {
+      if (!profile.calibrated) {
+        navigateTo('session', {mode: 'calibration', items: [{exerciseId: 'odd-one'}, {exerciseId: 'grid-memory'}, {exerciseId: 'stroop'}]});
+      } else {
+        navigateTo('session', {mode: 'normal', items: plan.items});
+      }
+    };
+
+    if (!playedToday && profile.calibrated) {
+      // Show lifestyle modal
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px;';
+      modal.innerHTML = `
+        <div class="surface" style="width: 100%; max-width: 400px;">
+          <h3 style="margin-bottom: 16px; text-align: center;">Факторы среды</h3>
+          <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px; text-align: center;">Для анализа корреляций ваших результатов</p>
+          
+          <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 8px; font-weight: 500;">Сон сегодня:</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-ls-sleep btn-secondary" data-val="low" style="flex: 1; padding: 8px;">&lt; 6 ч</button>
+              <button class="btn-ls-sleep btn-secondary" data-val="normal" style="flex: 1; padding: 8px;">6-8 ч</button>
+              <button class="btn-ls-sleep btn-secondary" data-val="high" style="flex: 1; padding: 8px;">&gt; 8 ч</button>
+            </div>
+          </div>
+          
+          <div style="margin-bottom: 24px;">
+            <div style="margin-bottom: 8px; font-weight: 500;">Уровень стресса:</div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-ls-stress btn-secondary" data-val="low" style="flex: 1; padding: 8px;">Низкий</button>
+              <button class="btn-ls-stress btn-secondary" data-val="normal" style="flex: 1; padding: 8px;">Средний</button>
+              <button class="btn-ls-stress btn-secondary" data-val="high" style="flex: 1; padding: 8px;">Высокий</button>
+            </div>
+          </div>
+          
+          <button id="btn-ls-done" class="btn-primary" style="width: 100%;" disabled>Начать тренировку</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      let sleepVal: string | null = null;
+      let stressVal: string | null = null;
+
+      const checkDone = () => {
+        const btnDone = modal.querySelector('#btn-ls-done') as HTMLButtonElement;
+        if (sleepVal && stressVal) {
+          btnDone.disabled = false;
+        }
+      };
+
+      modal.querySelectorAll('.btn-ls-sleep').forEach(b => {
+        b.addEventListener('click', (e) => {
+          modal.querySelectorAll('.btn-ls-sleep').forEach(x => x.classList.remove('btn-primary'));
+          modal.querySelectorAll('.btn-ls-sleep').forEach(x => x.classList.add('btn-secondary'));
+          (e.target as HTMLElement).classList.remove('btn-secondary');
+          (e.target as HTMLElement).classList.add('btn-primary');
+          sleepVal = (e.target as HTMLElement).dataset.val || null;
+          checkDone();
+        });
+      });
+
+      modal.querySelectorAll('.btn-ls-stress').forEach(b => {
+        b.addEventListener('click', (e) => {
+          modal.querySelectorAll('.btn-ls-stress').forEach(x => x.classList.remove('btn-primary'));
+          modal.querySelectorAll('.btn-ls-stress').forEach(x => x.classList.add('btn-secondary'));
+          (e.target as HTMLElement).classList.remove('btn-secondary');
+          (e.target as HTMLElement).classList.add('btn-primary');
+          stressVal = (e.target as HTMLElement).dataset.val || null;
+          checkDone();
+        });
+      });
+
+      modal.querySelector('#btn-ls-done')?.addEventListener('click', () => {
+        const p = storage.getProfile();
+        p.lastLifestyle = { sleep: sleepVal, stress: stressVal, date: todayStr };
+        storage.setProfile(p);
+        document.body.removeChild(modal);
+        startSession();
+      });
     } else {
-      navigateTo('session', {mode: 'normal', items: plan.items});
+      startSession();
     }
   });
 

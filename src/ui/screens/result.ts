@@ -158,8 +158,22 @@ export function renderResult(container: HTMLElement, params: {session: Session})
 
     ${nextHtml}
     
-    <button id="btn-done" class="btn-primary" style="margin-top: 16px;">Готово</button>
+    <div style="display: flex; gap: 16px; margin-top: 16px;">
+      <button id="btn-share" class="btn-secondary" style="flex: 1;">Поделиться</button>
+      <button id="btn-done" class="btn-primary" style="flex: 2;">Готово</button>
+    </div>
   `;
 
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
+  content.querySelector('#btn-share')?.addEventListener('click', () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Fokus — Тренировка завершена',
+        text: `Я набрал ${Math.round(totalScore)} очков с точностью ${avgAcc}% в Fokus! Присоединяйся к прокачке мозга.`,
+        url: window.location.origin
+      }).catch(console.error);
+    } else {
+      alert('Ваш браузер не поддерживает функцию "Поделиться"');
+    }
+  });
 }

@@ -10,6 +10,9 @@ export interface Profile {
   schemaVersion: number;
   xp?: number;
   primaryGoal?: string; // e.g. 'memory', 'attention', 'speed', 'flexibility', 'logic' or 'balance'
+  quests?: any[];
+  questsDate?: string;
+  lastLifestyle?: { sleep: string | null; stress: string | null; date: string };
 }
 
 export interface SkillIndex {

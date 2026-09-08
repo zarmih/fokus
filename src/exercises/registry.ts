@@ -13,6 +13,7 @@ import schulteModule from './schulte';
 import nbackModule from './n-back';
 import corsiModule from './corsi';
 import posnerModule from './posner';
+import verbalFluencyModule from './verbal-fluency';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -28,5 +29,6 @@ export const registry: ExerciseModule[] = [
   schulteModule,
   nbackModule,
   corsiModule,
-  posnerModule
+  posnerModule,
+  verbalFluencyModule
 ];

@@ -47,6 +47,12 @@ export function renderSettings(container: HTMLElement) {
     </div>
 
     <div class="surface">
+      <h3 style="margin-bottom: 16px;">Уведомления</h3>
+      <button id="btn-notifications" class="btn-secondary" style="width: 100%;">Разрешить уведомления</button>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Мы напомним вам о тренировке.</div>
+    </div>
+
+    <div class="surface">
       <h3 style="margin-bottom: 16px;">Данные</h3>
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <button id="btn-export" class="btn-primary" style="flex: 1;">Экспорт</button>
@@ -103,6 +109,29 @@ export function renderSettings(container: HTMLElement) {
     p.soundOn = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
   });
+
+  const btnNotif = document.getElementById('btn-notifications');
+  if (btnNotif) {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      btnNotif.textContent = 'Уведомления включены';
+      (btnNotif as HTMLButtonElement).disabled = true;
+    }
+    btnNotif.addEventListener('click', () => {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(perm => {
+          if (perm === 'granted') {
+            btnNotif.textContent = 'Уведомления включены';
+            (btnNotif as HTMLButtonElement).disabled = true;
+            new Notification('Fokus', { body: 'Отлично! Теперь вы не пропустите тренировку.' });
+          } else {
+            alert('Разрешение не получено.');
+          }
+        });
+      } else {
+        alert('Ваш браузер не поддерживает уведомления.');
+      }
+    });
+  }
 
   document.getElementById('btn-export')?.addEventListener('click', () => {
     const json = storage.exportJson();
