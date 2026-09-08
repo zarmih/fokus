@@ -145,7 +145,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
         const onBlockEnd = (res: any) => {
           if (cleanupFn) cleanupFn();
-          import('../../core/audio').then(a => a.playBeep(res.accuracy >= 0.8)).catch(() => {});
+          import('../../core/audio').then(a => {
+            a.playBeep(res.accuracy >= 0.8);
+          }).catch(() => {});
 
           const targetMs = (manifest as any).levels ? ((manifest as any).levels[Math.floor(state!.difficulty)]?.targetMs || 1500) : 1500;
           
@@ -281,9 +283,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           countdown.textContent = count.toString();
           countdown.style.transform = 'scale(1.2)';
           setTimeout(() => countdown.style.transform = 'scale(1)', 150);
+          import('../../core/audio').then(a => a.playTick()).catch(() => {});
         } else {
           clearInterval(iv);
           iv = null;
+          import('../../core/audio').then(a => a.playBeep(true)).catch(() => {});
           startBlock();
         }
       }, 700);

@@ -39,11 +39,25 @@ export function renderSettings(container: HTMLElement) {
     </div>
 
     <div class="surface">
+      <h3 style="margin-bottom: 16px;">Язык / Language</h3>
+      <div class="segmented" id="lang-segmented">
+        <button data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}">Русский</button>
+        <button data-val="en" class="${profile.language === 'en' ? 'active' : ''}">English</button>
+      </div>
+    </div>
+
+    <div class="surface">
       <h3 style="margin-bottom: 16px;">Звук</h3>
       <label style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
         Включить звуковые сигналы
       </label>
+    </div>
+
+    <div class="surface" id="install-container" style="display: none;">
+      <h3 style="margin-bottom: 16px;">Установка</h3>
+      <button id="btn-install" class="btn-primary" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
+      <div style="font-size: 11px; color: var(--muted); text-align: center;">Для быстрого доступа без браузера</div>
     </div>
 
     <div class="surface">
@@ -108,6 +122,37 @@ export function renderSettings(container: HTMLElement) {
     const p = storage.getProfile();
     p.soundOn = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
+  });
+
+  const lbtns = content.querySelectorAll('#lang-segmented button');
+  lbtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      lbtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const val = (btn as HTMLElement).dataset.val;
+      const p = storage.getProfile();
+      p.language = val;
+      storage.setProfile(p);
+      import('../../core/i18n').then(({setLocale}) => {
+        setLocale(val as 'ru' | 'en');
+        location.reload(); // Quick way to apply translations everywhere
+      });
+    });
+  });
+
+  import('../../main').then(({ deferredPrompt }) => {
+    const installContainer = document.getElementById('install-container');
+    const btnInstall = document.getElementById('btn-install');
+    if (deferredPrompt && installContainer && btnInstall) {
+      installContainer.style.display = 'block';
+      btnInstall.addEventListener('click', async () => {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          installContainer.style.display = 'none';
+        }
+      });
+    }
   });
 
   const btnNotif = document.getElementById('btn-notifications');

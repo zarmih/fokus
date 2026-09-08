@@ -1,0 +1,184 @@
+import { P2PConnection } from '../../core/webrtc';
+import { registry } from '../../exercises/registry';
+import { navigateTo } from '../router';
+import { renderShell } from '../shell';
+
+export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConnection, isHost: boolean }) {
+  const content = renderShell(container, { active: 'duel', hideNav: true });
+  
+  // We choose Math Sprint for duels for now
+  const exManifest = registry.find(r => r.manifest.id === 'math-sprint')?.manifest;
+  const exRender = registry.find(r => r.manifest.id === 'math-sprint')?.render;
+  
+  if (!exManifest || !exRender) {
+    content.innerHTML = '<div style="padding: 24px; text-align: center;">Тренажер не найден</div>';
+    return;
+  }
+
+  content.innerHTML = `
+    <div style="display: flex; flex-direction: column; height: 100vh;">
+      <div style="padding: 16px; display: flex; justify-content: space-between; align-items: center; background: var(--surface);">
+        <div style="font-weight: 600; font-size: 14px;">Дуэль: ${exManifest.name}</div>
+        <div id="duel-timer" style="font-weight: 700; font-variant-numeric: tabular-nums;">--:--</div>
+      </div>
+      
+      <!-- Top: Opponent's progress -->
+      <div style="padding: 16px; border-bottom: 1px solid var(--line);">
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between;">
+          <span>Оппонент</span>
+          <span id="opp-score">0</span>
+        </div>
+        <div class="scale-track" style="height: 8px;"><div id="opp-bar" class="scale-fill" style="width: 0%; background: var(--danger);"></div></div>
+      </div>
+
+      <!-- Bottom: My progress -->
+      <div style="padding: 16px; border-bottom: 1px solid var(--line);">
+        <div style="font-size: 12px; color: var(--muted); margin-bottom: 4px; display: flex; justify-content: space-between;">
+          <span>Вы</span>
+          <span id="my-score">0</span>
+        </div>
+        <div class="scale-track" style="height: 8px;"><div id="my-bar" class="scale-fill" style="width: 0%; background: var(--accent);"></div></div>
+      </div>
+
+      <!-- Exercise Area -->
+      <div id="ex-container" style="flex: 1; position: relative; overflow: hidden;">
+        <div id="countdown-overlay" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.8); z-index: 10; font-size: 64px; font-weight: 800; color: var(--accent);">
+          Ожидание...
+        </div>
+      </div>
+    </div>
+  `;
+
+  const exContainer = content.querySelector('#ex-container') as HTMLElement;
+  const overlay = content.querySelector('#countdown-overlay') as HTMLElement;
+  const oppScore = content.querySelector('#opp-score') as HTMLElement;
+  const oppBar = content.querySelector('#opp-bar') as HTMLElement;
+  const myScore = content.querySelector('#my-score') as HTMLElement;
+  const myBar = content.querySelector('#my-bar') as HTMLElement;
+  const timerEl = content.querySelector('#duel-timer') as HTMLElement;
+
+  let myPoints = 0;
+  let oppPoints = 0;
+  const targetScore = 3;
+
+  let cleanup: any;
+  let sessionActive = false;
+  let startTime = 0;
+  let duration = 60; // 60 seconds
+
+  const updateBars = () => {
+    myScore.textContent = myPoints.toString();
+    oppScore.textContent = oppPoints.toString();
+    myBar.style.width = Math.min(100, (myPoints / targetScore) * 100) + '%';
+    oppBar.style.width = Math.min(100, (oppPoints / targetScore) * 100) + '%';
+  };
+
+  const endDuel = (didIWin: boolean) => {
+    sessionActive = false;
+    if (cleanup) cleanup();
+    
+    exContainer.innerHTML = `
+      <div style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
+        <h2 style="color: ${didIWin ? 'var(--ok)' : 'var(--danger)'}; margin-bottom: 16px;">${didIWin ? 'Вы победили!' : 'Вы проиграли!'}</h2>
+        <div style="font-size: 24px; font-weight: 700; margin-bottom: 32px;">Счет: ${myPoints} - ${oppPoints}</div>
+        <button id="btn-back" class="btn-primary">Вернуться</button>
+      </div>
+    `;
+    
+    exContainer.querySelector('#btn-back')?.addEventListener('click', () => {
+      navigateTo('duel');
+    });
+  };
+
+  params.p2p.onMessage = (msg: any) => {
+    if (msg.type === 'START') {
+      startCountdown();
+    } else if (msg.type === 'UPDATE') {
+      oppPoints = msg.points;
+      updateBars();
+      if (oppPoints >= targetScore) {
+        endDuel(false);
+      }
+    } else if (msg.type === 'TIMEUP') {
+      endDuel(myPoints > oppPoints);
+    }
+  };
+
+  const startCountdown = () => {
+    let count = 3;
+    overlay.textContent = count.toString();
+    import('../../core/audio').then(a => a.playTick());
+    const iv = setInterval(() => {
+      count--;
+      if (count > 0) {
+        overlay.textContent = count.toString();
+        import('../../core/audio').then(a => a.playTick());
+      } else {
+        clearInterval(iv);
+        overlay.style.display = 'none';
+        import('../../core/audio').then(a => a.playBeep(true));
+        startGame();
+      }
+    }, 1000);
+  };
+
+  const mountExercise = () => {
+    cleanup = exRender(
+      exContainer,
+      2, // level
+      (res) => {
+        if (!sessionActive) return;
+        if (res.accuracy >= 0.8) {
+          myPoints++;
+          updateBars();
+          params.p2p.send({ type: 'UPDATE', points: myPoints });
+          
+          if (myPoints >= targetScore) {
+            endDuel(true);
+            return;
+          }
+        }
+        
+        // We restart the exercise immediately for duel mode
+        if (sessionActive) {
+          if (cleanup) cleanup();
+          mountExercise();
+        }
+      },
+      () => !sessionActive || (Date.now() - startTime) / 1000 >= duration
+    );
+  };
+
+  const startGame = () => {
+    sessionActive = true;
+    startTime = Date.now();
+    
+    // Timer loop
+    const timerIv = setInterval(() => {
+      if (!sessionActive) {
+        clearInterval(timerIv);
+        return;
+      }
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      const rem = Math.max(0, duration - elapsed);
+      timerEl.textContent = `00:${rem.toString().padStart(2, '0')}`;
+      if (rem === 0) {
+        clearInterval(timerIv);
+        if (sessionActive) {
+          params.p2p.send({ type: 'TIMEUP' });
+          endDuel(myPoints >= oppPoints);
+        }
+      }
+    }, 1000);
+
+    mountExercise();
+  };
+
+  if (params.isHost) {
+    // Host waits 2 seconds to make sure channel is fully stable, then sends start
+    setTimeout(() => {
+      params.p2p.send({ type: 'START' });
+      startCountdown();
+    }, 2000);
+  }
+}

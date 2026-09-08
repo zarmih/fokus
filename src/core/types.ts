@@ -6,6 +6,7 @@ export interface Profile {
   onboarded?: boolean;
   theme?: 'dark' | 'light';
   soundOn: boolean;
+  language?: string;
   locale: 'ru';
   schemaVersion: number;
   xp?: number;

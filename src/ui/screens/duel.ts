@@ -52,9 +52,7 @@ export function renderDuel(container: HTMLElement) {
     loading.style.display = 'none';
     codeContainer.innerHTML = '<div style="color: #4caf50; font-weight: bold; font-size: 1.2rem;">Соединение установлено! 🚀</div><p style="font-size: 12px; margin-top: 8px;">Запуск матча...</p>';
     setTimeout(() => {
-      // Pass p2p connection to a special session
-      // For now, we will just alert.
-      alert('Дуэль начнется в следующем обновлении! (Тестовое соединение успешно)');
+      import('./duel-session').then(m => m.renderDuelSession(container, { p2p, isHost: !!btnHost.disabled && !btnJoin.disabled }));
     }, 1500);
   };
 

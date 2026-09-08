@@ -8,6 +8,13 @@ import { renderTrainers } from './ui/screens/trainers';
 import { renderOnboarding } from './ui/screens/onboarding';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
+import { initI18n } from './core/i18n';
+
+export let deferredPrompt: any = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
@@ -21,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   try {
     const p = storage.getProfile(); // ensures initialization
+    initI18n(p.language);
     applyTheme(p.theme || 'dark');
     if (!p.onboarded) {
       renderOnboarding(app);
