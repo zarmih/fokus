@@ -12,6 +12,7 @@ import mathSprintModule from './math-sprint';
 import schulteModule from './schulte';
 import nbackModule from './n-back';
 import corsiModule from './corsi';
+import posnerModule from './posner';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -26,5 +27,6 @@ export const registry: ExerciseModule[] = [
   mathSprintModule,
   schulteModule,
   nbackModule,
-  corsiModule
+  corsiModule,
+  posnerModule
 ];
