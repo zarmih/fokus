@@ -54,7 +54,7 @@ export function renderOnboarding(container: HTMLElement) {
         storage.setProfile(p);
         
         if (!p.calibrated && storage.getHistory().length === 0) {
-          navigateTo('session', { mode: 'calibration' });
+          navigateTo('session', { mode: 'calibration', items: [{exerciseId: 'odd-one'}, {exerciseId: 'grid-memory'}, {exerciseId: 'stroop'}] });
         } else {
           navigateTo('today');
         }
