@@ -9,6 +9,6 @@
 4. ID: reduced-motion
    Статус: done (Добавлен медиазапрос prefers-reduced-motion для отключения анимаций)
 5. ID: stroop-balance-level-10
-   Статус: todo (Отрегулировать сложность Stroop после 10 уровня)
+   Статус: done (Отрегулировать сложность Stroop после 10 уровня)
 6. ID: readme-screenshots
-   Статус: todo (Добавить скриншоты в README)
+   Статус: done (Добавить скриншоты в README)

@@ -18,16 +18,16 @@ export const stroopManifest: ExerciseManifest = {
     8: { deadlineMs: 1300, incongruentPct: 0.7, colors: 4, targetMs: 950 },
     9: { deadlineMs: 1200, incongruentPct: 0.7, colors: 4, targetMs: 900 },
     10: { deadlineMs: 1100, incongruentPct: 0.8, colors: 4, targetMs: 850 },
-    11: { deadlineMs: 1050, incongruentPct: 0.8, colors: 4, targetMs: 800 },
-    12: { deadlineMs: 1000, incongruentPct: 0.8, colors: 4, targetMs: 750 },
-    13: { deadlineMs: 950, incongruentPct: 0.8, colors: 4, targetMs: 700 },
-    14: { deadlineMs: 900, incongruentPct: 0.9, colors: 4, targetMs: 650 },
-    15: { deadlineMs: 850, incongruentPct: 0.9, colors: 4, targetMs: 600 },
-    16: { deadlineMs: 800, incongruentPct: 0.9, colors: 4, targetMs: 550 },
-    17: { deadlineMs: 750, incongruentPct: 1.0, colors: 4, targetMs: 500 },
-    18: { deadlineMs: 700, incongruentPct: 1.0, colors: 4, targetMs: 450 },
-    19: { deadlineMs: 650, incongruentPct: 1.0, colors: 4, targetMs: 400 },
-    20: { deadlineMs: 600, incongruentPct: 1.0, colors: 4, targetMs: 350 }
+    11: { deadlineMs: 1080, incongruentPct: 0.8, colors: 4, targetMs: 830 },
+    12: { deadlineMs: 1060, incongruentPct: 0.85, colors: 4, targetMs: 810 },
+    13: { deadlineMs: 1040, incongruentPct: 0.85, colors: 4, targetMs: 790 },
+    14: { deadlineMs: 1020, incongruentPct: 0.9, colors: 4, targetMs: 770 },
+    15: { deadlineMs: 1000, incongruentPct: 0.9, colors: 4, targetMs: 750 },
+    16: { deadlineMs: 980, incongruentPct: 0.9, colors: 4, targetMs: 730 },
+    17: { deadlineMs: 960, incongruentPct: 0.95, colors: 4, targetMs: 710 },
+    18: { deadlineMs: 940, incongruentPct: 0.95, colors: 4, targetMs: 690 },
+    19: { deadlineMs: 920, incongruentPct: 1.0, colors: 4, targetMs: 670 },
+    20: { deadlineMs: 900, incongruentPct: 1.0, colors: 4, targetMs: 650 }
   }
 };
 

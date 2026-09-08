@@ -9,6 +9,8 @@ import stroopModule from './stroop';
 import swingsModule from './swings';
 import switchRuleModule from './switch-rule';
 import mathSprintModule from './math-sprint';
+import schulteModule from './schulte';
+import nbackModule from './n-back';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -20,5 +22,7 @@ export const registry: ExerciseModule[] = [
   stroopModule,
   swingsModule,
   switchRuleModule,
-  mathSprintModule
+  mathSprintModule,
+  schulteModule,
+  nbackModule
 ];

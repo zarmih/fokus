@@ -2,6 +2,8 @@
 
 Короткие тренировки внимания и памяти.
 
+![Fokus Screenshot](public/art/screenshot.jpg)
+
 ## Как запустить
 
 Убедитесь, что у вас установлен Node.js.
