@@ -124,7 +124,7 @@ export function renderWeeklyReview(container: HTMLElement) {
   const domains = storage.getDomains();
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
-  const insights = generateInsights(domains, skills, states, daySummaries);
+  const insights = generateInsights(domains, skills, states, daySummaries, sessions);
   
   let insightHtml = '';
   if (insights.length > 0 && totalSessions > 0) {

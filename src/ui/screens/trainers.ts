@@ -3,6 +3,7 @@ import { registry } from '../../exercises/registry';
 import { renderShell } from '../shell';
 import { storage } from '../../core/storage';
 import { getExerciseIntelligence } from '../../core/selectors';
+import { domainLabel } from '../../core/labels';
 
 export function renderTrainers(container: HTMLElement) {
   const content = renderShell(container, { active: 'trainers' });
@@ -62,7 +63,7 @@ export function renderTrainers(container: HTMLElement) {
     return `
       <div class="trainer-card dom-${ex.manifest.domain}" data-id="${ex.manifest.id}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <div class="trainer-domain">${ex.manifest.domain}</div>
+          <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
           <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="32" height="32" style="border-radius: 8px;">
         </div>
         <div class="trainer-name">${ex.manifest.name}</div>

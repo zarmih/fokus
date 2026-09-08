@@ -149,4 +149,18 @@ const fallbackStorage: StorageBackend = {
   setItem: () => {},
   removeItem: () => {}
 };
-export const storage = new Storage(typeof window !== 'undefined' && window.localStorage ? window.localStorage : fallbackStorage);
+
+function liveBackend(): StorageBackend {
+  try {
+    if (typeof window !== 'undefined' && window.localStorage) return window.localStorage;
+  } catch {
+    /* Node experimental localStorage or blocked access */
+  }
+  return fallbackStorage;
+}
+
+export const storage = new Storage({
+  getItem: (key) => liveBackend().getItem(key),
+  setItem: (key, value) => liveBackend().setItem(key, value),
+  removeItem: (key) => liveBackend().removeItem(key)
+});

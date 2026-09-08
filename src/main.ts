@@ -9,6 +9,7 @@ import { renderOnboarding } from './ui/screens/onboarding';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
 import { initI18n } from './core/i18n';
+import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 
 export let deferredPrompt: any = null;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -30,6 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const p = storage.getProfile(); // ensures initialization
     initI18n(p.language);
     applyTheme(p.theme || 'dark');
+    scheduleLocalReminder();
+    maybeNotify();
     if (!p.onboarded) {
       renderOnboarding(app);
     } else {

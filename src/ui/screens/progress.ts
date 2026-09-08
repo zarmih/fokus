@@ -3,7 +3,9 @@ import { buildTrainingPlan } from "../../core/session-builder";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
-import { renderScatterPlot } from '../components/charts';
+import { renderScatterPlot, renderRadarChart } from '../components/charts';
+import { computeFokusIndex } from '../../core/fokus-index';
+import { domainLabel, skillLabel } from '../../core/labels';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -109,7 +111,7 @@ export function renderProgress(container: HTMLElement) {
       const pct = isReliable ? Math.min(100, Math.max(0, displayVal / 15)) : 0;
       const trendStr = s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '→';
       const trendColor = s.trend > 0 ? 'var(--ok)' : s.trend < 0 ? 'var(--danger)' : 'var(--muted)';
-      const skillName = s.skill.replace('_', ' ');
+      const skillName = skillLabel(s.skill);
       
       const valueText = isReliable ? `<span style="color: ${trendColor}; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
       
@@ -131,7 +133,7 @@ export function renderProgress(container: HTMLElement) {
     return `
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${dSkills.length > 0 ? '12px' : '0'};">
-          <div style="font-weight: 700; font-size: 16px;">${d.name}</div>
+          <div style="font-weight: 700; font-size: 16px;">${domainLabel(d.id)}</div>
           <div style="font-size: 18px; font-weight: 800;">${dScore}</div>
         </div>
         ${skillsListHtml}
@@ -142,7 +144,7 @@ export function renderProgress(container: HTMLElement) {
   if (!profileHtml) profileHtml = '<p style="color: var(--muted); font-size: 13px;">Данные собираются...</p>';
 
   const exStates = storage.getExerciseStates();
-  const insights = generateInsights(domains, skills, exStates, ds);
+  const insights = generateInsights(domains, skills, exStates, ds, storage.getSessions());
   let insightHtml = '';
   if (insights.length > 0) {
     const topInsights = insights.slice(0, 3).map(ins => `<li style="margin-bottom: 8px;">${ins.description}</li>`).join('');
@@ -229,8 +231,21 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  const fi = computeFokusIndex(domains);
+  const fiHtml = fi.coverage > 0 ? `
+    <div class="fi-hero">
+      <div class="fi-copy">
+        <div class="fi-kicker">Fokus Index</div>
+        <div class="fi-value">${fi.value}</div>
+        <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
+      </div>
+      <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
+    </div>
+  ` : '';
+
   content.innerHTML = `
     <h2>Прогресс</h2>
+    ${fiHtml}
     ${insightHtml}
     ${nextStepHtml}
     

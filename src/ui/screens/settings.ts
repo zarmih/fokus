@@ -63,7 +63,23 @@ export function renderSettings(container: HTMLElement) {
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Уведомления</h3>
       <button id="btn-notifications" class="btn-secondary" style="width: 100%;">Разрешить уведомления</button>
-      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Мы напомним вам о тренировке.</div>
+      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
+      <div class="segmented" id="reminder-segmented">
+        <button data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}">08:00</button>
+        <button data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}">09:00</button>
+        <button data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}">12:00</button>
+        <button data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}">19:00</button>
+        <button data-val="off" class="${profile.reminderHour === null ? 'active' : ''}">Выкл</button>
+      </div>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
+    </div>
+
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Перед сессией</h3>
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="lifestyle-toggle" ${profile.skipLifestylePrompt ? 'checked' : ''} />
+        Не спрашивать про сон и стресс
+      </label>
     </div>
 
     <div class="surface">
@@ -155,6 +171,25 @@ export function renderSettings(container: HTMLElement) {
     }
   });
 
+  document.getElementById('lifestyle-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.skipLifestylePrompt = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+  });
+
+  const rbtns = content.querySelectorAll('#reminder-segmented button');
+  rbtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      rbtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const raw = (btn as HTMLElement).dataset.val;
+      const p = storage.getProfile();
+      p.reminderHour = raw === 'off' ? null : parseInt(raw || '9', 10);
+      storage.setProfile(p);
+      import('../../core/reminders').then(m => m.scheduleLocalReminder());
+    });
+  });
+
   const btnNotif = document.getElementById('btn-notifications');
   if (btnNotif) {
     if ('Notification' in window && Notification.permission === 'granted') {
@@ -168,6 +203,7 @@ export function renderSettings(container: HTMLElement) {
             btnNotif.textContent = 'Уведомления включены';
             (btnNotif as HTMLButtonElement).disabled = true;
             new Notification('Fokus', { body: 'Отлично! Теперь вы не пропустите тренировку.' });
+            import('../../core/reminders').then(m => m.scheduleLocalReminder());
           } else {
             alert('Разрешение не получено.');
           }

@@ -8,6 +8,8 @@ import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
 import { mapAccuracyToStartLevel } from '../../core/calibration';
 import { buildTrainingPlan } from '../../core/session-builder';
+import { computeFokusIndex } from '../../core/fokus-index';
+import { checkAchievements } from '../../core/achievements';
 import type { SessionItem } from '../../core/types';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
@@ -61,6 +63,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
     if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, difficulty: mode === 'calibration' ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
 
+    const last = sessionResults[sessionResults.length - 1];
+    const lastEx = last ? registry.find(r => r.manifest.id === last.exerciseId) : null;
+    const lastBanner = last && lastEx ? `
+      <div class="block-recap">
+        ${lastEx.manifest.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
+      </div>
+    ` : '';
+
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
@@ -71,6 +81,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
+      ${lastBanner}
       <div class="instruction-card" id="instruction-card">
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="64" height="64" style="margin-bottom: 16px; border-radius: 16px;">
         <h2>${manifest.name}</h2>
@@ -255,8 +266,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           if (mode === 'normal' && res.accuracy < 0.70 && (storage.getProfile().sessionLengthSec - timeLeft) > 300) {
             fatigueCounter++;
             if (fatigueCounter >= 2) {
-              console.log('[Fatigue] Ending session early due to consecutive low performance.');
-              finishSession();
+              showFatiguePrompt();
               return;
             }
           } else if (res.accuracy >= 0.8) {
@@ -302,7 +312,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       const p = storage.getProfile();
       p.calibrated = true;
       storage.setProfile(p);
-      navigateTo('today');
+      const s = {
+        id: Date.now().toString(),
+        startedAt: sessionStartedAt,
+        finishedAt: new Date().toISOString(),
+        durationSec: items.length * 30 - timeLeft,
+        items: sessionResults
+      };
+      navigateTo('result', { session: s, calibration: true });
       return;
     }
 
@@ -325,12 +342,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
     const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
+    const fiNow = computeFokusIndex(storage.getDomains());
     const ds: any = {
       date: sessionStartedAt,
       totalScore,
       domainDeltas,
       streak: ns.streak,
-      skipped: ns.skipped
+      skipped: ns.skipped,
+      fokusIndex: fiNow.value
     };
     const prof = storage.getProfile();
     if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
@@ -354,7 +373,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     p.xp = (p.xp || 0) + totalScore;
     storage.setProfile(p);
 
-    import('../../core/achievements').then(a => a.checkAchievements());
+    const unlocked = checkAchievements();
 
     if (mode === 'normal') {
       import('../../core/quests').then(q => {
@@ -362,8 +381,32 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       }).catch(() => {});
     }
 
-    navigateTo('result', {session: s});
+    navigateTo('result', { session: s, unlocked });
   };
+
+  function showFatiguePrompt() {
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-root';
+    overlay.innerHTML = `
+      <div class="surface modal-card">
+        <h3>Похоже, внимание падает</h3>
+        <p class="modal-lead">Два слабых блока подряд — это маркер усталости, не провала. Можно сохранить результат и остановиться.</p>
+        <button id="btn-fatigue-end" class="btn-primary" type="button">Завершить сессию</button>
+        <button id="btn-fatigue-go" class="btn-secondary" type="button">Продолжить</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    overlay.querySelector('#btn-fatigue-end')?.addEventListener('click', () => {
+      overlay.remove();
+      finishSession();
+    });
+    overlay.querySelector('#btn-fatigue-go')?.addEventListener('click', () => {
+      overlay.remove();
+      fatigueCounter = 0;
+      currentIndex++;
+      renderCurrent();
+    });
+  }
 
   timerInterval = setInterval(() => {
     if (isPaused) return;

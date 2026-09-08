@@ -4,11 +4,18 @@ import type { Session } from '../../core/types';
 import { registry } from '../../exercises/registry';
 import { storage } from '../../core/storage';
 import { buildTrainingPlan } from '../../core/session-builder';
+import { getLevelProgress } from '../../core/xp';
+import { ACHIEVEMENTS_DEF } from '../../core/achievements';
+import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
+import { domainLabel } from '../../core/labels';
+import { renderRadarChart } from '../components/charts';
+import { shareSessionCard } from '../components/share-card';
 
-export function renderResult(container: HTMLElement, params: {session: Session}) {
+export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'today', hideNav: true });
   const session = params.session;
-  
+  const isCalibration = !!params.calibration;
+
   let totalScore = 0;
   let totalAcc = 0;
   session.items.forEach(i => {
@@ -16,53 +23,47 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     totalAcc += i.accuracy;
   });
   const avgAcc = session.items.length > 0 ? Math.round((totalAcc / session.items.length) * 100) : 0;
-  
+
   const dsList = storage.getDaySummaries();
   const ds = dsList.find(d => d.date === session.startedAt);
   const deltas = ds ? ds.domainDeltas : {};
+  const streak = ds?.streak || 0;
 
-  const domains = storage.getDomains();
-  let lowest = domains[0];
-  if (lowest) {
-    domains.forEach(d => { if (d.value < lowest.value) lowest = d; });
-  }
-  const nextFocusMap: Record<string, string> = {
-    'attention': 'внимание',
-    'memory': 'память',
-    'speed': 'скорость',
-    'flexibility': 'гибкость',
-    'logic': 'логику'
-  };
-  const tomorrowFocus = lowest ? nextFocusMap[lowest.domain] || lowest.domain : 'баланс';
+  const fi = computeFokusIndex(storage.getDomains());
+  const prevFi = previousFokusIndex(dsList, session.startedAt);
+  const fiDelta = indexDelta(fi.value, prevFi);
 
-  let itemsHtml = session.items.map(item => {
+  const history = storage.getHistory();
+  const prevSession = history.length >= 2 ? history[history.length - 2] : null;
+  const scoreDelta = prevSession ? totalScore - prevSession.score : 0;
+
+  const profile = storage.getProfile();
+  const xpNow = profile.xp || 0;
+  const xpBefore = Math.max(0, xpNow - totalScore);
+  const lvl = getLevelProgress(xpNow);
+  const lvlBefore = getLevelProgress(xpBefore);
+  const leveledUp = lvl.currentLevel > lvlBefore.currentLevel;
+
+  const itemsHtml = session.items.map(item => {
     const ex = registry.find(r => r.manifest.id === item.exerciseId);
-    
-    // Fallbacks for legacy snapshots where these fields might be missing
     const p = Math.round(item.performance || item.score * 10);
     const mBefore = item.masteryBefore || 0;
     const mAfter = item.masteryAfter || 0;
     const diffBefore = item.difficultyBefore || item.level;
     const diffAfter = item.difficultyAfter || item.level;
     const conf = item.confidenceAfter;
-    
+
     const mDelta = mAfter - mBefore;
     const mSign = mDelta > 0 ? '+' : '';
-    const mColor = mDelta > 0 ? 'var(--ok)' : (mDelta < 0 ? 'var(--danger)' : 'var(--muted)');
-    
     const dDelta = diffAfter - diffBefore;
     const dSign = dDelta > 0 ? '+' : '';
-    const dColor = dDelta > 0 ? 'var(--ok)' : (dDelta < 0 ? 'var(--danger)' : 'var(--muted)');
-    
+
     const isLegacy = conf === undefined;
-    const isCalibrating = isLegacy || conf < 20; // < 3 attempts
-    
+    const isCalibrating = isLegacy || conf < 20;
+
     let pState = item.progressionState;
-    if (isCalibrating) {
-       pState = 'calibrating';
-    } else if (!pState) {
-       pState = mDelta > 0 ? 'up' : (mDelta < 0 ? 'down' : 'stable');
-    }
+    if (isCalibrating) pState = 'calibrating';
+    else if (!pState) pState = mDelta > 0 ? 'up' : (mDelta < 0 ? 'down' : 'stable');
 
     let stateLabel = 'Стабильно';
     if (pState === 'up') stateLabel = '📈 Растёт';
@@ -71,52 +72,47 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     else if (pState === 'calibrating') stateLabel = '🔄 Калибровка';
 
     const confDisplay = isLegacy ? 'Н/Д' : `${Math.round(conf)}%`;
+    const accPct = Math.round(item.accuracy * 100);
 
     return `
-      <div style="margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
-        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-          <div style="font-weight: 600; font-size: 15px;">${ex?.manifest.name}</div>
-          <div style="color: var(--accent); font-weight: 600;">+${Math.round(item.score)} (Perf: ${p})</div>
+      <div class="result-block">
+        <div class="result-block-head">
+          <div class="result-ex">${ex?.manifest.name}</div>
+          <div class="result-score">+${Math.round(item.score)}</div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; font-size: 13px;">
-          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
-            <div style="color: var(--muted); margin-bottom: 4px;">Мастерство</div>
-            <div>
-              <span style="font-weight: 600;">${mAfter}</span>
-              <span style="color: ${mColor}; margin-left: 4px;">${mDelta !== 0 ? `(${mSign}${mDelta})` : '(=)'}</span>
-            </div>
+        <div class="result-sub">Точность ${accPct}% · Форма ${p}</div>
+        <div class="result-grid">
+          <div class="result-cell">
+            <div class="muted">Мастерство</div>
+            <div><b>${mAfter}</b> <span>${mDelta !== 0 ? `(${mSign}${mDelta})` : '(=)'}</span></div>
           </div>
-          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
-            <div style="color: var(--muted); margin-bottom: 4px;">Сложность</div>
-            <div>
-              <span style="font-weight: 600;">${diffAfter.toFixed(1)}</span>
-              <span style="color: ${dColor}; margin-left: 4px;">${dDelta !== 0 ? `(${dSign}${dDelta.toFixed(1)})` : '(=)'}</span>
-            </div>
+          <div class="result-cell">
+            <div class="muted">Сложность</div>
+            <div><b>${Number(diffAfter).toFixed(1)}</b> <span>${dDelta !== 0 ? `(${dSign}${dDelta.toFixed(1)})` : '(=)'}</span></div>
           </div>
-          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
-            <div style="color: var(--muted); margin-bottom: 4px;">Статус</div>
-            <div style="font-weight: 500;">${stateLabel}</div>
+          <div class="result-cell">
+            <div class="muted">Статус</div>
+            <div>${stateLabel}</div>
           </div>
-          <div class="surface" style="padding: 8px; background: rgba(0,0,0,0.02);">
-            <div style="color: var(--muted); margin-bottom: 4px;">Калибровка</div>
-            <div style="font-weight: 500;">${confDisplay}</div>
+          <div class="result-cell">
+            <div class="muted">Калибровка</div>
+            <div>${confDisplay}</div>
           </div>
         </div>
       </div>
     `;
   }).join('');
-  
+
   let deltasHtml = Object.keys(deltas).map(k => {
     const d = deltas[k];
     const sign = d >= 0 ? '+' : '';
     const color = d >= 0 ? 'var(--ok)' : 'var(--danger)';
-    return `<div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-      <span style="color: var(--text); text-transform: capitalize;">${k}</span>
+    return `<div class="delta-row">
+      <span>${domainLabel(k)}</span>
       <span style="color: ${color}; font-weight: 600;">${sign}${Math.round(d)}</span>
     </div>`;
   }).join('');
-
-  if (!deltasHtml) deltasHtml = '<div style="color: var(--muted); font-size: 14px;">Нет изменений</div>';
+  if (!deltasHtml) deltasHtml = '<div class="muted">Нет изменений</div>';
 
   const plan = buildTrainingPlan({
     durationSec: 300,
@@ -126,54 +122,83 @@ export function renderResult(container: HTMLElement, params: {session: Session})
     states: storage.getExerciseStates(),
     primaryGoal: storage.getProfile().primaryGoal
   });
-  
+
   const nextItem = plan.items[0];
   const nextEx = nextItem ? registry.find(r => r.manifest.id === nextItem.exerciseId) : null;
   const nextHtml = nextEx ? `
-    <div class="surface" style="background: rgba(16, 185, 129, 0.1);">
-      <h3 style="color: var(--ok); margin-bottom: 8px;">Следующий шаг</h3>
-      <p style="margin: 0 0 8px 0; color: var(--text); font-weight: 600;">${nextEx.manifest.name}</p>
-      <p style="margin: 0; color: var(--muted); font-size: 13px;">${nextItem.reason}</p>
+    <div class="surface next-card">
+      <h3>Следующий шаг</h3>
+      <p class="next-name">${nextEx.manifest.name}</p>
+      <p class="muted">${nextItem.reason}</p>
     </div>
   ` : '';
 
-  content.innerHTML = `
-    <h2 style="text-align: center; margin-bottom: 24px; font-size: 24px;">Тренировка завершена</h2>
-    
-    <div class="surface" style="text-align: center; padding: 32px 24px;">
-      <div style="font-size: 48px; font-weight: 700; color: var(--accent); line-height: 1;">${Math.round(totalScore)}</div>
-      <div style="color: var(--muted); font-size: 14px; margin-top: 8px;">всего очков</div>
-      <div style="margin-top: 16px; font-size: 14px; color: var(--text);">Средняя точность: <b>${avgAcc}%</b></div>
+  const unlocked = (params.unlocked || [])
+    .map(id => ACHIEVEMENTS_DEF.find(a => a.id === id))
+    .filter(Boolean);
+  const unlockedHtml = unlocked.length > 0 ? `
+    <div class="surface unlock-row">
+      ${unlocked.map(a => `<div class="unlock-chip"><span>${a!.icon}</span>${a!.name}</div>`).join('')}
     </div>
-    
+  ` : '';
+
+  const compareHtml = prevSession
+    ? `<div class="result-compare">${scoreDelta >= 0 ? '+' : ''}${Math.round(scoreDelta)} к прошлой сессии</div>`
+    : '';
+
+  content.innerHTML = `
+    <div class="result-hero">
+      <div class="result-kicker">${isCalibration ? 'Профиль готов' : 'Тренировка завершена'}</div>
+      <div class="result-big">${Math.round(totalScore)}</div>
+      <div class="muted">${isCalibration ? 'стартовая оценка' : 'всего очков'}</div>
+      <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
+      ${compareHtml}
+    </div>
+
+    ${leveledUp ? `<div class="level-up">Новый уровень ${lvl.currentLevel}</div>` : ''}
+    ${unlockedHtml}
+
+    ${fi.coverage > 0 ? `
+      <div class="fi-hero compact">
+        <div class="fi-copy">
+          <div class="fi-kicker">Fokus Index</div>
+          <div class="fi-value">${fi.value}</div>
+          <div class="fi-meta">${fiDelta.label}</div>
+        </div>
+        <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 160, max: 1200 })}</div>
+      </div>
+    ` : ''}
+
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Сдвиги навыков</h3>
+      <h3>Сдвиги навыков</h3>
       ${deltasHtml}
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Результаты и прогресс</h3>
+      <h3>Результаты и прогресс</h3>
       ${itemsHtml}
     </div>
 
     ${nextHtml}
-    
-    <div style="display: flex; gap: 16px; margin-top: 16px;">
-      <button id="btn-share" class="btn-secondary" style="flex: 1;">Поделиться</button>
-      <button id="btn-done" class="btn-primary" style="flex: 2;">Готово</button>
+
+    <div class="result-actions">
+      <button id="btn-share" class="btn-secondary">Поделиться</button>
+      <button id="btn-done" class="btn-primary">Готово</button>
     </div>
   `;
 
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
-  content.querySelector('#btn-share')?.addEventListener('click', () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Fokus — Тренировка завершена',
-        text: `Я набрал ${Math.round(totalScore)} очков с точностью ${avgAcc}% в Fokus! Присоединяйся к прокачке мозга.`,
-        url: window.location.origin
-      }).catch(console.error);
-    } else {
-      alert('Ваш браузер не поддерживает функцию "Поделиться"');
+  content.querySelector('#btn-share')?.addEventListener('click', async () => {
+    try {
+      await shareSessionCard({
+        score: totalScore,
+        accuracy: avgAcc,
+        streak,
+        fokusIndex: fi.value,
+        focus: plan.focusDomains.map(domainLabel).join(' · ')
+      });
+    } catch {
+      /* user cancelled share */
     }
   });
 }

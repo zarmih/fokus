@@ -197,6 +197,8 @@ describe('Cognitive Engine Closed Loop', () => {
   });
   
   test('Counterfactual Test: Causal sensitivity to single performance event', () => {
+    const originalRandom = Math.random;
+    Math.random = () => 0.9;
     const userA = new TestHarness();
     const userB = new TestHarness();
     
@@ -212,6 +214,7 @@ describe('Cognitive Engine Closed Loop', () => {
     const logicCountB = planB.items.filter(i => registry.find(r => r.manifest.id === i.exerciseId)?.manifest.domain === 'logic').length;
     
     expect(logicCountA).toBeGreaterThanOrEqual(logicCountB);
+    Math.random = originalRandom;
   });
   test('Goal Causal Test: Switching goal immediately changes recommendation priority', () => {
     const user = new TestHarness();

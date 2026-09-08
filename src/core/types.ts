@@ -15,6 +15,9 @@ export interface Profile {
   quests?: any[];
   questsDate?: string;
   lastLifestyle?: { sleep: string | null; stress: string | null; date: string };
+  reminderHour?: number | null;
+  skipLifestylePrompt?: boolean;
+  displayName?: string;
 }
 
 export interface SkillIndex {
@@ -82,6 +85,7 @@ export interface DaySummary {
   streak: number;
   skipped: boolean;
   lifestyle?: { sleep: string | null; stress: string | null };
+  fokusIndex?: number;
 }
 export interface AppState {
   profile: Profile;

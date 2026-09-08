@@ -40,7 +40,7 @@ test('renderResult Mastery Progression UI v1 - basic provenance', () => {
   
   // Data provenance
   expect(html).toContain('Матрица'); // Result=Registry
-  expect(html).toContain('(Perf: 450)');
+  expect(html).toContain('Форма 450');
   expect(html).toContain('25'); // masteryAfter
   expect(html).toContain('(+5)'); // mastery delta
   expect(html).toContain('3.2'); // difficultyAfter
@@ -141,7 +141,7 @@ test('renderResult - legacy / empty state (stale snapshot fallback)', () => {
   
   const html = container.innerHTML;
   // Should compute default Fallbacks safely
-  expect(html).toContain('(Perf: 250)'); // score * 10
+  expect(html).toContain('Форма 250'); // score * 10
   expect(html).toContain('Н/Д'); // No fake precision
   expect(html).toContain('(=)');
   expect(html).toContain('🔄 Калибровка'); // Calibrating for legacy
