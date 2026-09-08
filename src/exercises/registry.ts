@@ -16,6 +16,7 @@ import posnerModule from './posner';
 import verbalFluencyModule from './verbal-fluency';
 import goNoGoModule from './go-no-go';
 import mentalRotationModule from './mental-rotation';
+import arcadeShooterModule from './arcade-shooter';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -34,5 +35,6 @@ export const registry: ExerciseModule[] = [
   posnerModule,
   verbalFluencyModule,
   goNoGoModule,
-  mentalRotationModule
+  mentalRotationModule,
+  arcadeShooterModule
 ];

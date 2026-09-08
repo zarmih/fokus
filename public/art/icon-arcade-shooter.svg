@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="#0f172a" rx="16"/>
+  
+  <!-- Ship -->
+  <path d="M32 16 L44 48 L32 40 L20 48 Z" fill="#10b981"/>
+  <path d="M32 16 L44 48 L32 40 Z" fill="#34d399"/>
+  
+  <!-- Bullets -->
+  <circle cx="32" cy="24" r="3" fill="#38bdf8"/>
+  <circle cx="32" cy="12" r="3" fill="#38bdf8"/>
+</svg>

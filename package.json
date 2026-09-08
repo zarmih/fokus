@@ -11,9 +11,13 @@
     "test:watch": "vitest"
   },
   "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "jsdom": "^26.0.0",
     "typescript": "~5.7.2",
     "vite": "^6.0.5",
-    "vitest": "^3.0.0",
-    "jsdom": "^26.0.0"
+    "vitest": "^3.0.0"
+  },
+  "dependencies": {
+    "ws": "^8.21.3"
   }
 }

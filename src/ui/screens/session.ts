@@ -354,6 +354,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     p.xp = (p.xp || 0) + totalScore;
     storage.setProfile(p);
 
+    import('../../core/achievements').then(a => a.checkAchievements());
+
     if (mode === 'normal') {
       import('../../core/quests').then(q => {
         q.updateQuestProgress('score', totalScore);

@@ -7,6 +7,7 @@ export interface Profile {
   theme?: 'dark' | 'light';
   soundOn: boolean;
   language?: string;
+  achievements?: string[];
   locale: 'ru';
   schemaVersion: number;
   xp?: number;
