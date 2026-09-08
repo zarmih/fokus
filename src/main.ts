@@ -44,6 +44,9 @@ window.addEventListener('navigate', (e: any) => {
     else if (screenId === 'session') renderSession(app, params);
     else if (screenId === 'result') renderResult(app, params);
     else if (screenId === 'progress') renderProgress(app);
+    else if (screenId === 'duel') {
+      import('./ui/screens/duel').then(m => m.renderDuel(app));
+    }
     else if (screenId === 'settings') renderSettings(app);
     else if (screenId === 'trainers') renderTrainers(app);
     else if (screenId === 'weekly-review') {

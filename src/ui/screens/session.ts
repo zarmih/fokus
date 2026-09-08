@@ -321,13 +321,17 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
     const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
-    const ds = {
+    const ds: any = {
       date: sessionStartedAt,
       totalScore,
       domainDeltas,
       streak: ns.streak,
       skipped: ns.skipped
     };
+    const prof = storage.getProfile();
+    if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
+      ds.lifestyle = { sleep: prof.lastLifestyle.sleep, stress: prof.lastLifestyle.stress };
+    }
     storage.addDaySummary(ds);
 
     let totalAccuracy = 0;

@@ -14,6 +14,8 @@ import nbackModule from './n-back';
 import corsiModule from './corsi';
 import posnerModule from './posner';
 import verbalFluencyModule from './verbal-fluency';
+import goNoGoModule from './go-no-go';
+import mentalRotationModule from './mental-rotation';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -30,5 +32,7 @@ export const registry: ExerciseModule[] = [
   nbackModule,
   corsiModule,
   posnerModule,
-  verbalFluencyModule
+  verbalFluencyModule,
+  goNoGoModule,
+  mentalRotationModule
 ];

@@ -3,6 +3,7 @@ import { buildTrainingPlan } from "../../core/session-builder";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
+import { renderScatterPlot } from '../components/charts';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -206,6 +207,18 @@ export function renderProgress(container: HTMLElement) {
     <h2>Прогресс</h2>
     ${insightHtml}
     ${nextStepHtml}
+    
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
+      ${renderScatterPlot(
+        ds.filter(d => d.lifestyle?.sleep && d.totalScore > 0).map(d => ({
+          x: d.lifestyle!.sleep === 'high' ? 9 : d.lifestyle!.sleep === 'normal' ? 7 : 5,
+          y: d.totalScore
+        })),
+        'Сон (часы)', 'Очки'
+      )}
+    </div>
+
     ${chartHtml}
     
     <div class="surface">

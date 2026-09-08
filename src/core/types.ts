@@ -79,6 +79,7 @@ export interface DaySummary {
   domainDeltas: Record<string, number>;
   streak: number;
   skipped: boolean;
+  lifestyle?: { sleep: string | null; stress: string | null };
 }
 export interface AppState {
   profile: Profile;
