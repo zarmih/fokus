@@ -1,53 +1,45 @@
 import { GoNoGoEngine } from './engine';
 import { goNoGoManifest } from './manifest';
+import { mountStage } from '../stage';
 
 export function renderGoNoGo(
-  container: HTMLElement, 
-  level: number, 
+  container: HTMLElement,
+  level: number,
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
   const cfg = (level <= 3 && goNoGoManifest.levels) ? goNoGoManifest.levels[level as keyof typeof goNoGoManifest.levels] : { trials: 30, noGoRatio: 0.4 };
   const engine = new GoNoGoEngine(cfg.trials, cfg.noGoRatio);
-  
-  container.innerHTML = `
-    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
-      <div id="stimulus" style="width: 120px; height: 120px; border-radius: 50%; background: transparent; transition: background 0.1s; margin-bottom: 60px;"></div>
-      <button id="btn-react" class="btn-primary" style="width: 200px; height: 64px; font-size: 20px;">НАЖАТЬ</button>
-    </div>
+  const stage = mountStage(container, 'attention');
+  stage.setStatus('Зелёный — жми, красный — стой');
+  stage.board.innerHTML = `
+    <div class="go-orb" id="stimulus"></div>
+    <button id="btn-react" class="btn-primary" style="width:220px;height:64px;font-size:20px;margin:0">ЖМИ</button>
   `;
-
-  const stimulus = container.querySelector('#stimulus') as HTMLElement;
-  const btnReact = container.querySelector('#btn-react') as HTMLButtonElement;
-  
+  const stimulus = stage.board.querySelector('#stimulus') as HTMLElement;
+  const btnReact = stage.board.querySelector('#btn-react') as HTMLButtonElement;
   let currentIsGo = false;
   let showTime = 0;
-  let timeoutId: any;
+  let timeoutId: number;
   let isWaiting = true;
 
   const showNext = () => {
     if (engine.isFinished() || isTimeUp()) {
+      stage.cleanup();
       onBlockEnd(engine.getScore());
       return;
     }
-    
     isWaiting = true;
-    stimulus.style.background = 'transparent';
+    stimulus.className = 'go-orb';
     btnReact.disabled = true;
-
-    // ITI
-    timeoutId = setTimeout(() => {
+    timeoutId = window.setTimeout(() => {
       currentIsGo = engine.nextTrial();
-      stimulus.style.background = currentIsGo ? '#4caf50' : '#f44336';
+      stimulus.className = `go-orb ${currentIsGo ? 'go' : 'nogo'}`;
       showTime = performance.now();
       btnReact.disabled = false;
       isWaiting = false;
-
-      // Max time to react
-      timeoutId = setTimeout(() => {
-        handleReaction(false);
-      }, 1000);
-    }, 500 + Math.random() * 1000);
+      timeoutId = window.setTimeout(() => handleReaction(false), 1000);
+    }, 420 + Math.random() * 900);
   };
 
   const handleReaction = (reacted: boolean) => {
@@ -55,17 +47,13 @@ export function renderGoNoGo(
     clearTimeout(timeoutId);
     isWaiting = true;
     const rt = performance.now() - showTime;
+    const ok = currentIsGo ? reacted : !reacted;
     engine.recordAction(currentIsGo, reacted, rt);
+    stage.pulse(ok);
     showNext();
   };
 
-  btnReact.addEventListener('click', () => {
-    handleReaction(true);
-  });
-
+  btnReact.addEventListener('click', () => handleReaction(true));
   showNext();
-  
-  return () => {
-    clearTimeout(timeoutId);
-  };
+  return () => { clearTimeout(timeoutId); stage.cleanup(); };
 }

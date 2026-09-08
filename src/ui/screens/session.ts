@@ -83,12 +83,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       </div>
       ${lastBanner}
       <div class="instruction-card" id="instruction-card">
-        <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="64" height="64" style="margin-bottom: 16px; border-radius: 16px;">
+        <div class="instruction-glow" aria-hidden="true"></div>
+        <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
         <p>${manifest.instruction}</p>
+        <div class="instruction-meta">Блок ${currentIndex + 1} · уровень ${Math.floor(state.difficulty)}</div>
       </div>
       <button id="btn-next" class="btn-primary">Начать</button>
-      <div id="game-container" style="position: relative;"></div>
+      <div id="game-container" class="play-arena"></div>
     `;
 
     document.getElementById('btn-back')?.addEventListener('click', () => {
@@ -106,8 +108,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         if (!overlay) {
           overlay = document.createElement('div');
           overlay.id = 'pause-overlay';
-          overlay.innerHTML = '<div style="background: var(--surface); padding: 24px; border-radius: 16px; text-align: center; font-size: 20px; font-weight: bold; color: var(--text);">ПАУЗА</div>';
-          overlay.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: center; justify-content: center; pointer-events: all; border-radius: 16px;';
+          overlay.className = 'pause-overlay';
+          overlay.innerHTML = '<div class="pause-card">Пауза</div>';
           document.getElementById('game-container')?.appendChild(overlay);
         }
       } else {
@@ -142,7 +144,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       if (!container) return;
       
       const countdown = document.createElement('div');
-      countdown.style.cssText = 'position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; font-size: 96px; font-weight: 800; color: var(--accent); z-index: 50; text-shadow: 0 4px 12px rgba(245, 158, 11, 0.4); background: radial-gradient(circle, rgba(15,23,42,0.6) 0%, rgba(15,23,42,0.9) 100%); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-radius: var(--radius); transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);';
+      countdown.className = 'count-overlay';
       container.appendChild(countdown);
       
       let count = 3;

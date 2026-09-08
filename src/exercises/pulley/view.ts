@@ -1,5 +1,6 @@
 import { PulleyEngine } from './engine';
 import { getPulleyParams, generateDynamicTask } from './manifest';
+import { mountStage } from '../stage';
 
 export function renderPulley(
   container: HTMLElement,
@@ -7,6 +8,8 @@ export function renderPulley(
   onBlockEnd: (result: { accuracy: number, avgRtMs: number, rounds: number }) => void,
   isTimeUp: () => boolean
 ) {
+  const stage = mountStage(container, 'logic');
+  stage.setStatus('Соберите нужный вес');
   let rounds = 0;
   let totalAcc = 0;
   let totalRt = 0;
@@ -139,9 +142,9 @@ export function renderPulley(
         </div>
       `;
 
-      container.innerHTML = html;
+      stage.board.innerHTML = html;
 
-      container.querySelectorAll('.weight-floor').forEach(el => {
+      stage.board.querySelectorAll('.weight-floor').forEach(el => {
         el.addEventListener('click', () => {
           if (isTimeUp() || isAnimating) return;
           const idx = parseInt((el as HTMLElement).dataset.idx || '0');
@@ -150,7 +153,7 @@ export function renderPulley(
         });
       });
 
-      container.querySelectorAll('.weight-hook-on-door').forEach(el => {
+      stage.board.querySelectorAll('.weight-hook-on-door').forEach(el => {
         el.addEventListener('click', () => {
           if (isTimeUp() || isAnimating) return;
           const idx = parseInt((el as HTMLElement).dataset.idx || '0');
@@ -159,7 +162,7 @@ export function renderPulley(
         });
       });
 
-      container.querySelectorAll('.weight-hook-large').forEach(el => {
+      stage.board.querySelectorAll('.weight-hook-large').forEach(el => {
         el.addEventListener('click', () => {
           if (isTimeUp() || isAnimating) return;
           const idx = parseInt((el as HTMLElement).dataset.idx || '0');
@@ -168,13 +171,13 @@ export function renderPulley(
         });
       });
 
-      document.getElementById('btn-drop-all')?.addEventListener('click', () => {
+      stage.board.querySelector('#btn-drop-all')?.addEventListener('click', () => {
         if (isTimeUp() || isAnimating) return;
         engine.dumpAllToFloor();
         render();
       });
 
-      document.getElementById('btn-reset')?.addEventListener('click', () => {
+      stage.board.querySelector('#btn-reset')?.addEventListener('click', () => {
         if (isTimeUp() || isAnimating) return;
         rounds++;
         totalRt += Date.now() - roundStart;
@@ -184,11 +187,11 @@ export function renderPulley(
         startRound(newParams);
       });
 
-      document.getElementById('btn-walk')?.addEventListener('click', () => {
+      stage.board.querySelector('#btn-walk')?.addEventListener('click', () => {
         if (isTimeUp() || !canWalk || isAnimating) return;
         isAnimating = true;
         
-        const playerEl = container.querySelector('#player-sprite') as HTMLElement;
+        const playerEl = stage.board.querySelector('#player-sprite') as HTMLElement;
         if (playerEl) {
           playerEl.style.transform = `translateX(80px)`;
         }
@@ -210,6 +213,7 @@ export function renderPulley(
   };
 
   const finishBlock = () => {
+    stage.cleanup();
     onBlockEnd({
       accuracy: rounds > 0 ? totalAcc / rounds : 0,
       avgRtMs: rounds > 0 ? totalRt / rounds : 0,
@@ -218,4 +222,5 @@ export function renderPulley(
   };
 
   startRound();
+  return () => stage.cleanup();
 }

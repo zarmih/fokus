@@ -1,74 +1,56 @@
 import { SchulteEngine } from './engine';
 import { getSchulteParams } from './manifest';
+import { mountStage } from '../stage';
 
 export function renderSchulte(
-  container: HTMLElement, 
-  level: number, 
+  container: HTMLElement,
+  level: number,
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
+  const stage = mountStage(container, 'speed');
   let rounds = 0;
   let correctCount = 0;
   let totalRt = 0;
   let errors = 0;
   let roundStartTime = Date.now();
-  let checkInterval: any;
+  let checkInterval: number;
 
   const startRound = () => {
-    if (isTimeUp()) {
-      finishBlock();
-      return;
-    }
-
+    if (isTimeUp()) { finishBlock(); return; }
     const { size } = getSchulteParams(level);
     const engine = new SchulteEngine(size);
     roundStartTime = Date.now();
-
     const grid = engine.getGrid();
-    
-    container.innerHTML = `
-      <div class="schulte-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
-        <div style="margin-bottom: 16px; font-size: 1.2rem; color: #888;">Найдите: <span id="schulte-expected" style="color: #fff; font-weight: bold;">1</span></div>
-        <div style="display: grid; grid-template-columns: repeat(${size}, 1fr); gap: 8px; width: 100%; max-width: 400px; aspect-ratio: 1/1;">
-          ${grid.map(num => `
-            <button class="schulte-btn" data-num="${num}" style="font-size: ${size > 4 ? '1.2rem' : '1.5rem'}; background: #2a2a2a; color: #fff; border: 1px solid #444; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-              ${num}
-            </button>
-          `).join('')}
-        </div>
+    stage.setStatus('Найдите 1');
+    stage.board.innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(${size},1fr);gap:8px;width:100%;max-width:380px;aspect-ratio:1">
+        ${grid.map(num => `<button class="schulte-btn" data-num="${num}" style="font-size:${size > 4 ? '1.05rem' : '1.4rem'}">${num}</button>`).join('')}
       </div>
     `;
-
-    const expectedEl = container.querySelector('#schulte-expected') as HTMLElement;
-    const btns = container.querySelectorAll('.schulte-btn');
-
-    btns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        if ((btn as HTMLElement).style.visibility === 'hidden') return;
-        
+    stage.board.querySelectorAll('.schulte-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
         const val = parseInt((btn as HTMLElement).dataset.num!);
-        const isCorrect = engine.submit(val);
-        
-        if (isCorrect) {
+        if (engine.submit(val)) {
           correctCount++;
-          totalRt += (Date.now() - roundStartTime);
+          totalRt += Date.now() - roundStartTime;
           roundStartTime = Date.now();
-          (btn as HTMLButtonElement).style.visibility = 'hidden';
-          
+          (btn as HTMLElement).classList.add('found');
+          (btn as HTMLButtonElement).disabled = true;
+          stage.burst(true);
           if (engine.isDone()) {
             rounds++;
-            setTimeout(startRound, 300);
+            stage.pulse(true);
+            setTimeout(startRound, 280);
           } else {
-            expectedEl.textContent = engine.getExpected().toString();
+            stage.setStatus(`Найдите ${engine.getExpected()}`);
           }
         } else {
           errors++;
+          stage.pulse(false);
           const b = btn as HTMLElement;
-          const originalBg = b.style.background;
-          b.style.background = '#f44336';
-          setTimeout(() => {
-             b.style.background = originalBg;
-          }, 200);
+          b.style.background = 'linear-gradient(180deg,#f87171,var(--danger))';
+          setTimeout(() => { b.style.background = ''; }, 180);
         }
       });
     });
@@ -76,6 +58,7 @@ export function renderSchulte(
 
   const finishBlock = () => {
     clearInterval(checkInterval);
+    stage.cleanup();
     const totalClicks = correctCount + errors;
     onBlockEnd({
       accuracy: totalClicks > 0 ? correctCount / totalClicks : 0,
@@ -84,15 +67,7 @@ export function renderSchulte(
     });
   };
 
-  checkInterval = setInterval(() => {
-    if (isTimeUp()) {
-      finishBlock();
-    }
-  }, 1000);
-
+  checkInterval = window.setInterval(() => { if (isTimeUp()) finishBlock(); }, 1000);
   startRound();
-  
-  return () => {
-    clearInterval(checkInterval);
-  };
+  return () => { clearInterval(checkInterval); stage.cleanup(); };
 }

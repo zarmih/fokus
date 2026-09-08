@@ -1,31 +1,33 @@
 import { NBackEngine, VisualSymbol } from './engine';
 import { getNBackParams } from './manifest';
+import { mountStage } from '../stage';
 
 const SVGS: Record<VisualSymbol, string> = {
-  square: '<rect x="20" y="20" width="60" height="60" fill="currentColor"/>',
-  circle: '<circle cx="50" cy="50" r="30" fill="currentColor"/>',
-  triangle: '<polygon points="50,20 80,80 20,80" fill="currentColor"/>',
-  star: '<polygon points="50,15 61,38 85,42 68,59 72,83 50,71 28,83 32,59 15,42 39,38" fill="currentColor"/>',
-  cross: '<polygon points="40,20 60,20 60,40 80,40 80,60 60,60 60,80 40,80 40,60 20,60 20,40 40,40" fill="currentColor"/>',
-  hexagon: '<polygon points="50,15 80,32 80,68 50,85 20,68 20,32" fill="currentColor"/>'
+  square: '<rect x="18" y="18" width="64" height="64" rx="10" fill="currentColor"/>',
+  circle: '<circle cx="50" cy="50" r="32" fill="currentColor"/>',
+  triangle: '<polygon points="50,16 84,82 16,82" fill="currentColor"/>',
+  star: '<polygon points="50,12 61,38 88,42 68,60 74,86 50,72 26,86 32,60 12,42 39,38" fill="currentColor"/>',
+  cross: '<polygon points="38,16 62,16 62,38 84,38 84,62 62,62 62,84 38,84 38,62 16,62 16,38 38,38" fill="currentColor"/>',
+  hexagon: '<polygon points="50,12 84,31 84,69 50,88 16,69 16,31" fill="currentColor"/>'
 };
 
 export function renderNBack(
-  container: HTMLElement, 
-  level: number, 
+  container: HTMLElement,
+  level: number,
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
   const params = getNBackParams(level);
   const engine = new NBackEngine(params.n);
-  
+  const stage = mountStage(container, 'memory');
   let rounds = 0;
   let correctCount = 0;
   let totalRt = 0;
-  let currentTimer: any;
+  let currentTimer: number;
   let hasAnswered = false;
   let userVisual = false;
   let userAudio = false;
+  let onKey: ((e: KeyboardEvent) => void) | null = null;
 
   const speak = (text: string) => {
     if ('speechSynthesis' in window) {
@@ -37,110 +39,66 @@ export function renderNBack(
   };
 
   const startRound = () => {
-    if (isTimeUp()) {
-      finishBlock();
-      return;
-    }
-
+    if (isTimeUp()) { finishBlock(); return; }
     const trial = engine.nextTrial(params.matchChance);
     const roundStartTime = Date.now();
     hasAnswered = false;
     userVisual = false;
     userAudio = false;
-
     speak(trial.audio);
-    
-    container.innerHTML = `
-      <div class="nback-board" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
-        <div style="font-size: 1.2rem; color: #888; margin-bottom: 24px; text-align: center;">
-          N = ${params.n}<br>
-          <span style="font-size: 0.9rem;">Включите звук. Жмите кнопки, если есть совпадения.</span>
-        </div>
-        
-        <div class="nback-symbol" style="width: 150px; height: 150px; color: #fff; margin-bottom: 40px; transition: color 0.2s;">
-          <svg viewBox="0 0 100 100" width="100%" height="100%">
-            ${SVGS[trial.visual]}
-          </svg>
-        </div>
-
-        <div style="display: flex; gap: 16px; width: 100%; max-width: 300px;">
-          <button id="btn-visual" class="nback-btn" style="flex: 1; padding: 16px; font-size: 1rem; background: #333; color: #fff; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-            Фигура (Влево)
-          </button>
-          <button id="btn-audio" class="nback-btn" style="flex: 1; padding: 16px; font-size: 1rem; background: #333; color: #fff; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s;">
-            Звук (Вправо)
-          </button>
-        </div>
+    stage.setStatus(`N = ${params.n} · фигура или звук`);
+    stage.board.innerHTML = `
+      <div class="glyph-3d nback-symbol" style="color:#f8fafc">
+        <svg viewBox="0 0 100 100">${SVGS[trial.visual]}</svg>
+      </div>
+      <div class="play-choice" style="margin-top:28px">
+        <button id="btn-visual" class="btn-secondary nback-btn">Фигура ←</button>
+        <button id="btn-audio" class="btn-secondary nback-btn">Звук →</button>
       </div>
     `;
-
-    const btnVisual = container.querySelector('#btn-visual') as HTMLButtonElement;
-    const btnAudio = container.querySelector('#btn-audio') as HTMLButtonElement;
+    const btnVisual = stage.board.querySelector('#btn-visual') as HTMLButtonElement;
+    const btnAudio = stage.board.querySelector('#btn-audio') as HTMLButtonElement;
 
     const evaluateRound = () => {
       hasAnswered = true;
       clearTimeout(currentTimer);
-      document.removeEventListener('keydown', onKey);
-
+      if (onKey) document.removeEventListener('keydown', onKey);
       const correct = engine.submit(trial.isVisualMatch, trial.isAudioMatch, userVisual, userAudio);
-      
-      if (correct) {
-        correctCount++;
-        totalRt += (Date.now() - roundStartTime);
-      } else {
-        totalRt += params.delayMs; // max penalty
-      }
+      if (correct) { correctCount++; totalRt += Date.now() - roundStartTime; }
+      else totalRt += params.delayMs;
       rounds++;
-
-      const symbolEl = container.querySelector('.nback-symbol') as HTMLElement;
-      if (symbolEl) {
-        symbolEl.style.color = correct ? '#4caf50' : '#f44336';
-      }
-
+      stage.pulse(correct);
+      const symbolEl = stage.board.querySelector('.nback-symbol') as HTMLElement;
+      if (symbolEl) symbolEl.style.color = correct ? '#10b981' : '#ef4444';
       btnVisual.disabled = true;
       btnAudio.disabled = true;
-
-      setTimeout(() => {
-        startRound();
-      }, 500);
+      setTimeout(startRound, 420);
     };
 
-    currentTimer = setTimeout(() => {
-      if (!hasAnswered) {
-        evaluateRound();
-      }
-    }, params.delayMs);
-
-    const onKey = (e: KeyboardEvent) => {
+    currentTimer = window.setTimeout(() => { if (!hasAnswered) evaluateRound(); }, params.delayMs);
+    onKey = (e: KeyboardEvent) => {
       if (hasAnswered) return;
-      if (e.key === 'ArrowLeft') {
-        userVisual = !userVisual;
-        btnVisual.style.borderColor = userVisual ? '#2196f3' : 'transparent';
-        btnVisual.style.background = userVisual ? '#1976d2' : '#333';
-      } else if (e.key === 'ArrowRight') {
-        userAudio = !userAudio;
-        btnAudio.style.borderColor = userAudio ? '#2196f3' : 'transparent';
-        btnAudio.style.background = userAudio ? '#1976d2' : '#333';
-      }
+      if (e.key === 'ArrowLeft') { userVisual = !userVisual; btnVisual.classList.toggle('btn-primary', userVisual); }
+      else if (e.key === 'ArrowRight') { userAudio = !userAudio; btnAudio.classList.toggle('btn-primary', userAudio); }
     };
     document.addEventListener('keydown', onKey);
-
     btnVisual.addEventListener('click', () => {
       if (hasAnswered) return;
       userVisual = !userVisual;
-      btnVisual.style.borderColor = userVisual ? '#2196f3' : 'transparent';
-      btnVisual.style.background = userVisual ? '#1976d2' : '#333';
+      btnVisual.classList.toggle('btn-primary', userVisual);
+      btnVisual.classList.toggle('btn-secondary', !userVisual);
     });
-
     btnAudio.addEventListener('click', () => {
       if (hasAnswered) return;
       userAudio = !userAudio;
-      btnAudio.style.borderColor = userAudio ? '#2196f3' : 'transparent';
-      btnAudio.style.background = userAudio ? '#1976d2' : '#333';
+      btnAudio.classList.toggle('btn-primary', userAudio);
+      btnAudio.classList.toggle('btn-secondary', !userAudio);
     });
   };
 
   const finishBlock = () => {
+    if (onKey) document.removeEventListener('keydown', onKey);
+    stage.cleanup();
     onBlockEnd({
       accuracy: rounds > 0 ? correctCount / rounds : 0,
       avgRtMs: rounds > 0 ? totalRt / rounds : 0,
@@ -149,8 +107,9 @@ export function renderNBack(
   };
 
   startRound();
-  
   return () => {
     clearTimeout(currentTimer);
+    if (onKey) document.removeEventListener('keydown', onKey);
+    stage.cleanup();
   };
 }

@@ -1,5 +1,6 @@
 import { SwingsEngine, Direction } from './engine';
 import { getSwingsParams } from './manifest';
+import { mountStage } from '../stage';
 
 export function renderSwings(
   container: HTMLElement,
@@ -11,17 +12,23 @@ export function renderSwings(
   let totalFails = 0;
   let totalRt = 0;
   
+  const stage = mountStage(container, 'speed');
+  stage.setStatus('Прыгайте в такт');
   let engine: SwingsEngine;
   let afId: number;
   let keyHandler: (e: KeyboardEvent) => void;
 
-  const cleanup = () => {
+  const stopLoop = () => {
     if (afId) cancelAnimationFrame(afId);
     if (keyHandler) window.removeEventListener('keydown', keyHandler);
   };
+  const cleanup = () => {
+    stopLoop();
+    stage.cleanup();
+  };
 
   const startRound = () => {
-    cleanup();
+    stopLoop();
     if (isTimeUp()) {
       finishBlock();
       return;
@@ -35,19 +42,30 @@ export function renderSwings(
     let lastTime = 0;
 
     const flashError = () => {
-      const board = container.querySelector('.board-container') as HTMLElement;
+      const board = stage.board.querySelector('.board-container') as HTMLElement;
       if (board) board.style.boxShadow = 'inset 0 0 0 4px var(--danger)';
       setTimeout(() => {
         if (board) board.style.boxShadow = '';
       }, 150);
     };
 
-    const updatePlayerDOM = () => {
-      const pEl = container.querySelector('#player-sprite') as HTMLElement;
-      if (pEl) {
-        const cs = 80;
-        pEl.style.left = `${engine.playerC * cs + cs/2 - 14}px`;
-        pEl.style.top = `${engine.playerR * cs + cs/2 - 14}px`;
+    const placeHero = (el: HTMLElement) => {
+      const cs = 80;
+      el.style.left = `${engine.playerC * cs + cs / 2}px`;
+      el.style.top = `${engine.playerR * cs + cs / 2}px`;
+    };
+
+    const updatePlayerDOM = (reset = false) => {
+      const pEl = stage.board.querySelector('#player-sprite') as HTMLElement;
+      if (!pEl) return;
+      pEl.style.visibility = 'visible';
+      pEl.style.opacity = '1';
+      pEl.style.display = 'block';
+      placeHero(pEl);
+      if (reset) {
+        pEl.classList.remove('is-jump', 'is-reset');
+        void pEl.offsetWidth;
+        pEl.classList.add('is-reset');
       }
     };
 
@@ -60,14 +78,16 @@ export function renderSwings(
       engine.tick(dt);
 
       engine.rotors.forEach((rot, i) => {
-        const el = container.querySelector(`#rotor-${i}`) as HTMLElement;
+        const el = stage.board.querySelector(`#rotor-${i}`) as HTMLElement;
         if (el) el.style.transform = `rotate(${rot.angle}deg)`;
       });
 
       if (engine.fails > prevFails) {
         prevFails = engine.fails;
         flashError();
-        updatePlayerDOM();
+        updatePlayerDOM(true);
+      } else {
+        updatePlayerDOM(false);
       }
 
       afId = requestAnimationFrame(loop);
@@ -75,15 +95,23 @@ export function renderSwings(
 
     const handleJump = (dir: Direction) => {
       if (isTimeUp() || (engine.status as string) === 'win') return;
+      const pEl = stage.board.querySelector('#player-sprite') as HTMLElement;
+      if (pEl) {
+        pEl.classList.remove('is-jump');
+        void pEl.offsetWidth;
+        pEl.classList.add('is-jump');
+      }
       engine.jump(dir);
-      updatePlayerDOM();
+      updatePlayerDOM(engine.fails > prevFails);
       
       if (engine.fails > prevFails) {
         prevFails = engine.fails;
         flashError();
+        stage.pulse(false);
       }
       if ((engine.status as string) === 'win') {
-        cleanup();
+        stopLoop();
+        stage.pulse(true);
         totalRt += Date.now() - roundStart;
         totalFails += engine.fails;
         rounds++;
@@ -109,7 +137,7 @@ export function renderSwings(
 
       const html = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%;">
-          <div class="board-container" style="position: relative; width: ${width}px; height: ${height}px; background: var(--surface); border-radius: 20px; margin-bottom: 32px; overflow: hidden; transition: box-shadow 100ms; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.05);">
+          <div class="board-container" style="position: relative; width: ${width}px; height: ${height}px; background: var(--surface); border-radius: 20px; margin-bottom: 32px; overflow: visible; transition: box-shadow 100ms; box-shadow: var(--shadow-sm); border: 1px solid rgba(255,255,255,0.05);">
             
             ${Array.from({length: engine.cols}).map((_, c) => `
               <div style="position: absolute; left: ${c*cs}px; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,0.05);"></div>
@@ -119,14 +147,10 @@ export function renderSwings(
             `).join('')}
 
             <!-- Start Platform -->
-            <div style="position: absolute; left: 10px; top: ${engine.startR*cs + 10}px; width: ${cs - 20}px; height: ${cs - 20}px; background: rgba(59, 130, 246, 0.1); border: 2px dashed var(--dom-attention); display: flex; align-items: center; justify-content: center; border-radius: 12px;">
-              <span style="color: var(--dom-attention); font-size: 10px; font-weight: 800; letter-spacing: 1px;">START</span>
-            </div>
+            <div class="swings-pad start" style="left: 10px; top: ${engine.startR*cs + 10}px; width: ${cs - 20}px; height: ${cs - 20}px;"></div>
 
             <!-- Goal Platform -->
-            <div style="position: absolute; left: ${(engine.cols-1)*cs + 10}px; top: ${engine.goalR*cs + 10}px; width: ${cs - 20}px; height: ${cs - 20}px; background: rgba(16, 185, 129, 0.1); border: 2px solid var(--ok); border-radius: 12px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);">
-              <span style="color: var(--ok); font-size: 10px; font-weight: 800; letter-spacing: 1px;">FINISH</span>
-            </div>
+            <div class="swings-pad finish" style="left: ${(engine.cols-1)*cs + 10}px; top: ${engine.goalR*cs + 10}px; width: ${cs - 20}px; height: ${cs - 20}px;"></div>
 
             <!-- Rotors -->
             ${engine.rotors.map((rot, i) => {
@@ -136,7 +160,7 @@ export function renderSwings(
               const pathD = rot.spin === 1 ? 'M-12,-12 A 16 16 0 0 1 12,0' : 'M12,-12 A 16 16 0 0 0 -12,0';
               const arrowHead = rot.spin === 1 ? 'M12,0 L6,-6 M12,0 L18,-6' : 'M-12,0 L-6,-6 M-12,0 L-18,-6';
               return `
-                <g style="position: absolute; left: ${cx}px; top: ${cy}px; width: 0; height: 0; overflow: visible;">
+                <g style="position: absolute; left: ${cx}px; top: ${cy}px; width: 0; height: 0; overflow: visible; z-index: 2;">
                   <div id="rotor-${i}" style="position: absolute; width: 0; height: 0; transform: rotate(${angle}deg);">
                     <div style="position: absolute; left: -8px; top: -${cs - 4}px; width: 16px; height: ${cs + 8}px; background: linear-gradient(180deg, var(--accent-2) 0%, #0d9488 100%); border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4);"></div>
                   </div>
@@ -150,8 +174,14 @@ export function renderSwings(
               `;
             }).join('')}
 
-            <!-- Player -->
-            <div id="player-sprite" style="position: absolute; left: ${engine.playerC * cs + cs/2 - 14}px; top: ${engine.playerR * cs + cs/2 - 14}px; width: 28px; height: 28px; background: radial-gradient(circle at 30% 30%, #fbbf24 0%, var(--accent) 100%); border-radius: 50%; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.5), inset 0 -2px 4px rgba(0,0,0,0.2); transition: left 150ms ease-out, top 150ms ease-out;"></div>
+            <div id="player-sprite" class="swings-hero" style="left: ${engine.playerC * cs + cs / 2}px; top: ${engine.playerR * cs + cs / 2}px;">
+              <span class="hero-head"></span>
+              <span class="hero-torso"></span>
+              <span class="hero-arm l"></span>
+              <span class="hero-arm r"></span>
+              <span class="hero-leg l"></span>
+              <span class="hero-leg r"></span>
+            </div>
           </div>
 
           <!-- Controls -->
@@ -172,12 +202,12 @@ export function renderSwings(
         </div>
       `;
 
-      container.innerHTML = html;
+      stage.board.innerHTML = html;
 
-      container.querySelector('.btn-U')?.addEventListener('click', () => handleJump('U'));
-      container.querySelector('.btn-D')?.addEventListener('click', () => handleJump('D'));
-      container.querySelector('.btn-L')?.addEventListener('click', () => handleJump('L'));
-      container.querySelector('.btn-R')?.addEventListener('click', () => handleJump('R'));
+      stage.board.querySelector('.btn-U')?.addEventListener('click', () => handleJump('U'));
+      stage.board.querySelector('.btn-D')?.addEventListener('click', () => handleJump('D'));
+      stage.board.querySelector('.btn-L')?.addEventListener('click', () => handleJump('L'));
+      stage.board.querySelector('.btn-R')?.addEventListener('click', () => handleJump('R'));
       
       afId = requestAnimationFrame(loop);
     };
@@ -186,7 +216,9 @@ export function renderSwings(
   };
 
   const finishBlock = () => {
-    cleanup();
+    if (afId) cancelAnimationFrame(afId);
+    if (keyHandler) window.removeEventListener('keydown', keyHandler);
+    stage.cleanup();
     onBlockEnd({
       accuracy: rounds > 0 ? 1 / (1 + totalFails / rounds) : 0,
       avgRtMs: rounds > 0 ? totalRt / rounds : 0,
