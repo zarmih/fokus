@@ -61,7 +61,7 @@ export function renderTrainers(container: HTMLElement) {
     }
 
     return `
-      <div class="trainer-card dom-${ex.manifest.domain}" data-id="${ex.manifest.id}">
+      <div class="trainer-card dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-domain="${ex.manifest.domain}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
           <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="32" height="32" style="border-radius: 8px;">
@@ -73,13 +73,36 @@ export function renderTrainers(container: HTMLElement) {
     `;
   }).join('');
 
+  const filters = [
+    { id: 'all', name: 'Все' },
+    { id: 'attention', name: 'Внимание' },
+    { id: 'memory', name: 'Память' },
+    { id: 'speed', name: 'Скорость' },
+    { id: 'flexibility', name: 'Гибкость' },
+    { id: 'logic', name: 'Логика' }
+  ];
+
   content.innerHTML = `
     <h2>Тренажёры</h2>
-    <p style="margin-bottom: 24px;">Тренируйте отдельные упражнения без влияния на общую статистику доменов.</p>
+    <p style="margin-bottom: 16px;">Отдельные упражнения. Статистика доменов не меняется.</p>
+    <div class="domain-filters">
+      ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button">${f.name}</button>`).join('')}
+    </div>
     <div class="trainers-grid">
       ${gridHtml}
     </div>
   `;
+
+  content.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const dom = (chip as HTMLElement).dataset.dom;
+      content.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+      content.querySelectorAll('.trainer-card').forEach(card => {
+        const match = dom === 'all' || (card as HTMLElement).dataset.domain === dom;
+        card.classList.toggle('is-hidden', !match);
+      });
+    });
+  });
 
   content.querySelectorAll('.trainer-card').forEach(card => {
     card.addEventListener('click', () => {
