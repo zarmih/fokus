@@ -1,3 +1,5 @@
+import { nextCombo, playCombo, playHit, playMiss } from '../core/audio';
+
 export interface PlayStage {
   root: HTMLElement;
   board: HTMLElement;
@@ -21,6 +23,7 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
       <i></i><i></i><i></i>
     </div>
     <div class="play-hud"></div>
+    <div class="play-combo" aria-live="polite"></div>
     <div class="play-board"></div>
     <canvas class="play-fx"></canvas>
   `;
@@ -28,7 +31,9 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
 
   const board = root.querySelector('.play-board') as HTMLElement;
   const hud = root.querySelector('.play-hud') as HTMLElement;
+  const comboEl = root.querySelector('.play-combo') as HTMLElement;
   const canvas = root.querySelector('.play-fx') as HTMLCanvasElement;
+  let combo = 0;
   const ctx = canvas.getContext('2d');
   const particles: { x: number; y: number; vx: number; vy: number; life: number; color: string; r: number }[] = [];
   let raf = 0;
@@ -95,7 +100,27 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
     } catch { /* ignore */ }
   };
 
+  const showCombo = (n: number) => {
+    if (n >= 2) {
+      comboEl.textContent = `×${n}`;
+      comboEl.classList.remove('on');
+      void comboEl.offsetWidth;
+      comboEl.classList.add('on');
+    } else {
+      comboEl.textContent = '';
+      comboEl.classList.remove('on');
+    }
+  };
+
   const pulse = (ok: boolean) => {
+    combo = nextCombo(combo, ok);
+    if (ok) {
+      playHit(combo);
+      if (combo === 3 || combo === 5 || combo === 8 || combo === 12) playCombo(combo);
+    } else {
+      playMiss();
+    }
+    showCombo(combo);
     root.classList.remove('pulse-ok', 'pulse-bad');
     void root.offsetWidth;
     root.classList.add(ok ? 'pulse-ok' : 'pulse-bad');

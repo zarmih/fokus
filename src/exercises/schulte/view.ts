@@ -37,7 +37,7 @@ export function renderSchulte(
           roundStartTime = Date.now();
           (btn as HTMLElement).classList.add('found');
           (btn as HTMLButtonElement).disabled = true;
-          stage.burst(true);
+          stage.pulse(true);
           if (engine.isDone()) {
             rounds++;
             stage.pulse(true);

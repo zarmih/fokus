@@ -2,7 +2,8 @@
   "name": "Fokus",
   "short_name": "Fokus",
   "description": "Короткие адаптивные тренировки внимания и памяти",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
@@ -10,7 +11,7 @@
   "categories": ["health", "education"],
   "icons": [
     {
-      "src": "/icon.svg",
+      "src": "./icon.svg",
       "sizes": "192x192 512x512",
       "type": "image/svg+xml"
     }

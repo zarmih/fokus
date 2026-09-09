@@ -508,6 +508,29 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .play-orbs i:nth-child(1) { width: 160px; height: 160px; left: -40px; top: 20%; background: var(--accent); }
 .play-orbs i:nth-child(2) { width: 120px; height: 120px; right: -20px; top: 55%; background: var(--accent-2); animation-delay: -3s; }
 .play-orbs i:nth-child(3) { width: 90px; height: 90px; left: 40%; bottom: -20px; background: var(--dom-memory); animation-delay: -6s; }
+.play-combo {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  z-index: 8;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: -0.03em;
+  text-shadow: 0 0 16px rgba(245, 158, 11, 0.55);
+  opacity: 0;
+  transform: scale(0.7);
+  pointer-events: none;
+}
+.play-combo.on {
+  animation: comboPop 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes comboPop {
+  0% { opacity: 0; transform: scale(0.6) translateY(8px); }
+  40% { opacity: 1; transform: scale(1.18) translateY(0); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
 .play-hud {
   position: relative;
   z-index: 6;

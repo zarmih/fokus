@@ -10,6 +10,7 @@ import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
 import { initI18n } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
+import { unlockAudio } from './core/audio';
 
 export let deferredPrompt: any = null;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -21,9 +22,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
   if (!app) return;
   
+  const unlock = () => unlockAudio();
+  window.addEventListener('pointerdown', unlock, { once: true });
+  window.addEventListener('keydown', unlock, { once: true });
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/sw.js').catch(err => console.error('SW reg failed', err));
+      if (import.meta.env.PROD) {
+        navigator.serviceWorker
+          .register(`${import.meta.env.BASE_URL}sw.js`)
+          .catch((err) => console.error('SW reg failed', err));
+      } else {
+        navigator.serviceWorker.getRegistrations().then((regs) => {
+          regs.forEach((r) => r.unregister());
+        });
+      }
     });
   }
 

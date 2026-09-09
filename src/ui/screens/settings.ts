@@ -138,6 +138,7 @@ export function renderSettings(container: HTMLElement) {
     const p = storage.getProfile();
     p.soundOn = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
+    if (p.soundOn) import('../../core/audio').then((a) => a.unlockAudio());
   });
 
   const lbtns = content.querySelectorAll('#lang-segmented button');
