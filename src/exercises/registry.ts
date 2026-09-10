@@ -23,6 +23,9 @@ import numberSortModule from './number-sort';
 import directionSwitchModule from './direction-switch';
 import balanceScalesModule from './balance-scales';
 import flashCardsModule from './flash-cards';
+import movingTargetsModule from './moving-targets';
+import catchTheColorModule from './catch-the-color';
+import symbolMathModule from './symbol-math';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -48,5 +51,8 @@ export const registry: ExerciseModule[] = [
   numberSortModule,
   directionSwitchModule,
   balanceScalesModule,
-  flashCardsModule
+  flashCardsModule,
+  movingTargetsModule,
+  catchTheColorModule,
+  symbolMathModule
 ];
