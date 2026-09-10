@@ -3,7 +3,7 @@ import { ExerciseModule, BlockResult } from './contract';
 const colorShapeSwitchModule: ExerciseModule = {
   manifest: {
     id: 'color-shape-switch',
-    name: 'Двойной Контроль',
+    name: 'Цвет-Форма',
     domain: 'flexibility',
     skills: ['rule_switching', 'cognitive_flexibility'],
     metricModel: 'speed-accuracy',
