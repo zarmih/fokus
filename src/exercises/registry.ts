@@ -74,6 +74,9 @@ import directionMemoryModule from './direction-memory';
 import emotionMatchModule from './emotion-match';
 import categorySortModule from './category-sort';
 import colorBurstModule from './color-burst';
+import clockReadingModule from './clock-reading';
+import locationRecallModule from './location-recall';
+import vowelConsonantModule from './vowel-consonant';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -150,5 +153,8 @@ export const registry: ExerciseModule[] = [
   directionMemoryModule,
   emotionMatchModule,
   categorySortModule,
-  colorBurstModule
+  colorBurstModule,
+  clockReadingModule,
+  locationRecallModule,
+  vowelConsonantModule
 ];
