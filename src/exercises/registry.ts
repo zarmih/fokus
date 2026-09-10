@@ -74,6 +74,9 @@ import directionMemoryModule from './direction-memory';
 import emotionMatchModule from './emotion-match';
 import categorySortModule from './category-sort';
 import colorBurstModule from './color-burst';
+import objectTrackingModule from './object-tracking';
+import flankerModule from './flanker';
+import balanceScaleModule from './balance-scale';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -150,5 +153,8 @@ export const registry: ExerciseModule[] = [
   directionMemoryModule,
   emotionMatchModule,
   categorySortModule,
-  colorBurstModule
+  colorBurstModule,
+  objectTrackingModule,
+  flankerModule,
+  balanceScaleModule
 ];
