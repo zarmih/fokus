@@ -41,6 +41,9 @@ import flankerTaskModule from './flanker-task';
 import weightAnalysisModule from './weight-analysis';
 import spatialSpeedModule from './spatial-speed';
 import directionMatchModule from './direction-match';
+import uniqueFeatureModule from './unique-feature';
+import sequenceReverseModule from './sequence-reverse';
+import numberPyramidModule from './number-pyramid';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -84,5 +87,8 @@ export const registry: ExerciseModule[] = [
   flankerTaskModule,
   weightAnalysisModule,
   spatialSpeedModule,
-  directionMatchModule
+  directionMatchModule,
+  uniqueFeatureModule,
+  sequenceReverseModule,
+  numberPyramidModule
 ];
