@@ -67,6 +67,7 @@ export function renderTrainers(container: HTMLElement) {
           <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="32" height="32" style="border-radius: 8px;">
         </div>
         <div class="trainer-name">${ex.manifest.name}</div>
+        <div class="trainer-instruction">${ex.manifest.instruction}</div>
         <div class="trainer-level">Ур. ${lvl}</div>
         ${intelHtml}
       </div>
@@ -83,8 +84,10 @@ export function renderTrainers(container: HTMLElement) {
   ];
 
   content.innerHTML = `
-    <h2>Тренажёры</h2>
-    <p style="margin-bottom: 16px;">Отдельные упражнения. Статистика доменов не меняется.</p>
+    <div class="today-head">
+      <h2>Каталог тренажёров</h2>
+      <p class="today-date">18 упражнений. Практика без влияния на Fokus Index.</p>
+    </div>
     <div class="domain-filters">
       ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button">${f.name}</button>`).join('')}
     </div>

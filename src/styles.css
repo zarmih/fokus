@@ -1498,3 +1498,4 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .today-date { font-size: 14px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600; color: var(--muted); }
 .dashboard-widgets { display: flex; flex-direction: column; gap: 8px; }
 .highlight-score { color: var(--accent); font-weight: 700; }
+.trainer-instruction { font-size: 11px; color: var(--muted); line-height: 1.4; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
