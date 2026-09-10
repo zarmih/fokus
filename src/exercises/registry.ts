@@ -20,6 +20,9 @@ import arcadeShooterModule from './arcade-shooter';
 import visualSearchModule from './visual-search';
 import dotSpanModule from './dot-span';
 import numberSortModule from './number-sort';
+import directionSwitchModule from './direction-switch';
+import balanceScalesModule from './balance-scales';
+import flashCardsModule from './flash-cards';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -42,5 +45,8 @@ export const registry: ExerciseModule[] = [
   arcadeShooterModule,
   visualSearchModule,
   dotSpanModule,
-  numberSortModule
+  numberSortModule,
+  directionSwitchModule,
+  balanceScalesModule,
+  flashCardsModule
 ];
