@@ -32,6 +32,9 @@ import evenOddModule from './even-odd';
 import splitAttentionModule from './split-attention';
 import shapePositionModule from './shape-position';
 import meteoritesModule from './meteorites';
+import equationBalanceModule from './equation-balance';
+import colorSortModule from './color-sort';
+import pathFinderModule from './path-finder';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -66,5 +69,8 @@ export const registry: ExerciseModule[] = [
   evenOddModule,
   splitAttentionModule,
   shapePositionModule,
-  meteoritesModule
+  meteoritesModule,
+  equationBalanceModule,
+  colorSortModule,
+  pathFinderModule
 ];
