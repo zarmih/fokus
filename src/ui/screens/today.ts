@@ -157,47 +157,51 @@ export function renderToday(container: HTMLElement) {
 
   content.innerHTML = `
     <div class="today-head">
-      <h2>${hello}${greetName ? ', ' + greetName : ''}</h2>
-      <p>${dateStr}</p>
+      <h2>${hello}${greetName ? ', <span class="greet-name">' + greetName + '</span>' : ''}</h2>
+      <p class="today-date">${dateStr}</p>
     </div>
 
     ${heroHtml}
 
     ${actionHtml}
 
-    <div class="stat-row">
-      <div class="stat-pill">
-        <div class="stat-num">${streak}</div>
-        <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
-      </div>
-      <div class="stat-pill">
-        <div class="stat-num">${lvl.currentLevel}</div>
-        <div class="stat-lbl">${leagueName(lvl.currentLevel)}</div>
-      </div>
-      <div class="stat-pill">
-        <div class="stat-num">${Math.round(lvl.progressPct)}%</div>
-        <div class="stat-lbl">до ур. ${lvl.currentLevel + 1}</div>
-      </div>
-    </div>
-    ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчера · ${yesterdayScore} очков</p>` : ''}
-
-    <div class="insight-banner coach-${spark.tone}">
-      <div>
-        <div class="insight-kicker">Коуч · ${spark.title}</div>
-        <div class="insight-body">${spark.body}</div>
-      </div>
-    </div>
-
-    ${topInsight && topInsight.title !== spark.title && topInsight.type !== 'milestone' ? `
-      <div class="insight-banner">
-        <div>
-          <div class="insight-kicker">Инсайт · ${topInsight.confidence === 'high' ? 'уверенный' : topInsight.confidence === 'medium' ? 'подтверждается' : 'изучаем'}</div>
-          <div class="insight-body">${topInsight.description}</div>
+    <div class="dashboard-widgets">
+      <div class="stat-row">
+        <div class="stat-pill">
+          <div class="stat-num">${streak}</div>
+          <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-num">${lvl.currentLevel}</div>
+          <div class="stat-lbl">${leagueName(lvl.currentLevel)}</div>
+        </div>
+        <div class="stat-pill">
+          <div class="stat-num">${Math.round(lvl.progressPct)}%</div>
+          <div class="stat-lbl">до ур. ${lvl.currentLevel + 1}</div>
         </div>
       </div>
-    ` : ''}
+      ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
 
-    ${questsHtml}
+      <div class="insight-banner coach-${spark.tone}">
+        <div class="insight-icon">💡</div>
+        <div>
+          <div class="insight-kicker">Коуч Fokus · ${spark.title}</div>
+          <div class="insight-body">${spark.body}</div>
+        </div>
+      </div>
+
+      ${topInsight && topInsight.title !== spark.title && topInsight.type !== 'milestone' ? `
+        <div class="insight-banner">
+          <div class="insight-icon">🧠</div>
+          <div>
+            <div class="insight-kicker">Инсайт · ${topInsight.confidence === 'high' ? 'уверенный' : topInsight.confidence === 'medium' ? 'подтверждается' : 'изучаем'}</div>
+            <div class="insight-body">${topInsight.description}</div>
+          </div>
+        </div>
+      ` : ''}
+
+      ${questsHtml}
+    </div>
   `;
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
