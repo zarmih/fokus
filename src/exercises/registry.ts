@@ -44,6 +44,9 @@ import directionMatchModule from './direction-match';
 import uniqueFeatureModule from './unique-feature';
 import sequenceReverseModule from './sequence-reverse';
 import numberPyramidModule from './number-pyramid';
+import shapeCountModule from './shape-count';
+import colorShapeSwitchModule from './color-shape-switch';
+import mathChainsModule from './math-chains';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -90,5 +93,8 @@ export const registry: ExerciseModule[] = [
   directionMatchModule,
   uniqueFeatureModule,
   sequenceReverseModule,
-  numberPyramidModule
+  numberPyramidModule,
+  shapeCountModule,
+  colorShapeSwitchModule,
+  mathChainsModule
 ];
