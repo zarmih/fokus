@@ -17,6 +17,9 @@ import verbalFluencyModule from './verbal-fluency';
 import goNoGoModule from './go-no-go';
 import mentalRotationModule from './mental-rotation';
 import arcadeShooterModule from './arcade-shooter';
+import visualSearchModule from './visual-search';
+import dotSpanModule from './dot-span';
+import numberSortModule from './number-sort';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -36,5 +39,8 @@ export const registry: ExerciseModule[] = [
   verbalFluencyModule,
   goNoGoModule,
   mentalRotationModule,
-  arcadeShooterModule
+  arcadeShooterModule,
+  visualSearchModule,
+  dotSpanModule,
+  numberSortModule
 ];
