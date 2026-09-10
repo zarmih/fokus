@@ -35,6 +35,9 @@ import meteoritesModule from './meteorites';
 import equationBalanceModule from './equation-balance';
 import colorSortModule from './color-sort';
 import pathFinderModule from './path-finder';
+import reactionStrikeModule from './reaction-strike';
+import numberMemoryModule from './number-memory';
+import flankerTaskModule from './flanker-task';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -72,5 +75,8 @@ export const registry: ExerciseModule[] = [
   meteoritesModule,
   equationBalanceModule,
   colorSortModule,
-  pathFinderModule
+  pathFinderModule,
+  reactionStrikeModule,
+  numberMemoryModule,
+  flankerTaskModule
 ];
