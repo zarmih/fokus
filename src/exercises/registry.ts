@@ -38,6 +38,9 @@ import pathFinderModule from './path-finder';
 import reactionStrikeModule from './reaction-strike';
 import numberMemoryModule from './number-memory';
 import flankerTaskModule from './flanker-task';
+import weightAnalysisModule from './weight-analysis';
+import spatialSpeedModule from './spatial-speed';
+import directionMatchModule from './direction-match';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -78,5 +81,8 @@ export const registry: ExerciseModule[] = [
   pathFinderModule,
   reactionStrikeModule,
   numberMemoryModule,
-  flankerTaskModule
+  flankerTaskModule,
+  weightAnalysisModule,
+  spatialSpeedModule,
+  directionMatchModule
 ];
