@@ -47,6 +47,9 @@ import numberPyramidModule from './number-pyramid';
 import shapeCountModule from './shape-count';
 import colorShapeSwitchModule from './color-shape-switch';
 import mathChainsModule from './math-chains';
+import shellGameModule from './shell-game';
+import timeMathModule from './time-math';
+import rapidSortingModule from './rapid-sorting';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -96,5 +99,8 @@ export const registry: ExerciseModule[] = [
   numberPyramidModule,
   shapeCountModule,
   colorShapeSwitchModule,
-  mathChainsModule
+  mathChainsModule,
+  shellGameModule,
+  timeMathModule,
+  rapidSortingModule
 ];

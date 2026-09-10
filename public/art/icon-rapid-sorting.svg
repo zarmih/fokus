@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72">
+  <rect width="72" height="72" fill="#1e293b" rx="16"/>
+  <rect x="16" y="16" width="40" height="40" fill="#334155" rx="8"/>
+  <text x="36" y="44" fill="#f8fafc" font-size="24" text-anchor="middle">🐶</text>
+  <path d="M12 36 L4 36 M12 36 L8 32 M12 36 L8 40" fill="none" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M60 36 L68 36 M60 36 L64 32 M60 36 L64 40" fill="none" stroke="#ef4444" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
