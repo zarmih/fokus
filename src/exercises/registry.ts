@@ -29,6 +29,9 @@ import symbolMathModule from './symbol-math';
 import focusCircleModule from './focus-circle';
 import colorSequenceModule from './color-sequence';
 import evenOddModule from './even-odd';
+import splitAttentionModule from './split-attention';
+import shapePositionModule from './shape-position';
+import meteoritesModule from './meteorites';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -60,5 +63,8 @@ export const registry: ExerciseModule[] = [
   symbolMathModule,
   focusCircleModule,
   colorSequenceModule,
-  evenOddModule
+  evenOddModule,
+  splitAttentionModule,
+  shapePositionModule,
+  meteoritesModule
 ];
