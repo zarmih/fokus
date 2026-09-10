@@ -65,6 +65,9 @@ import missingOperatorModule from './missing-operator';
 import targetSumModule from './target-sum';
 import contextSwitchModule from './context-switch';
 import pathRecallModule from './path-recall';
+import sizeCompareModule from './size-compare';
+import mathSignSwitchModule from './math-sign-switch';
+import uniqueColorModule from './unique-color';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -132,5 +135,8 @@ export const registry: ExerciseModule[] = [
   missingOperatorModule,
   targetSumModule,
   contextSwitchModule,
-  pathRecallModule
+  pathRecallModule,
+  sizeCompareModule,
+  mathSignSwitchModule,
+  uniqueColorModule
 ];
