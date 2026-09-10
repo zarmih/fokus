@@ -3,7 +3,7 @@ import { ExerciseModule, BlockResult } from './contract';
 const mathSignSwitchModule: ExerciseModule = {
   manifest: {
     id: 'math-sign-switch',
-    name: 'Счетчик',
+    name: 'Знак Числа',
     domain: 'flexibility',
     skills: ['rule_switching', 'mental_calculation'],
     metricModel: 'speed-accuracy',
