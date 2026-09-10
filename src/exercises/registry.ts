@@ -59,6 +59,9 @@ import avatarNamesModule from './avatar-names';
 import findPairModule from './find-pair';
 import numberCodeModule from './number-code';
 import alphanumericSortModule from './alphanumeric-sort';
+import imposterSearchModule from './imposter-search';
+import wordPairsModule from './word-pairs';
+import missingOperatorModule from './missing-operator';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -120,5 +123,8 @@ export const registry: ExerciseModule[] = [
   avatarNamesModule,
   findPairModule,
   numberCodeModule,
-  alphanumericSortModule
+  alphanumericSortModule,
+  imposterSearchModule,
+  wordPairsModule,
+  missingOperatorModule
 ];
