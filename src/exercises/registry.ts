@@ -50,6 +50,9 @@ import mathChainsModule from './math-chains';
 import shellGameModule from './shell-game';
 import timeMathModule from './time-math';
 import rapidSortingModule from './rapid-sorting';
+import wordCascadeModule from './word-cascade';
+import mathSwitchModule from './math-switch';
+import dotRatioModule from './dot-ratio';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -102,5 +105,8 @@ export const registry: ExerciseModule[] = [
   mathChainsModule,
   shellGameModule,
   timeMathModule,
-  rapidSortingModule
+  rapidSortingModule,
+  wordCascadeModule,
+  mathSwitchModule,
+  dotRatioModule
 ];
