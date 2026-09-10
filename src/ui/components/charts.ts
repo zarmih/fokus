@@ -47,7 +47,7 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
     <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Когнитивный профиль">
       ${rings}
       ${axes}
-      <polygon points="${valuePts}" fill="rgba(245, 158, 11, 0.22)" stroke="var(--accent)" stroke-width="2"/>
+      <polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2"/>
       ${dots}
       ${labels}
     </svg>
