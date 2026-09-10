@@ -62,6 +62,9 @@ import alphanumericSortModule from './alphanumeric-sort';
 import imposterSearchModule from './imposter-search';
 import wordPairsModule from './word-pairs';
 import missingOperatorModule from './missing-operator';
+import targetSumModule from './target-sum';
+import contextSwitchModule from './context-switch';
+import pathRecallModule from './path-recall';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -126,5 +129,8 @@ export const registry: ExerciseModule[] = [
   alphanumericSortModule,
   imposterSearchModule,
   wordPairsModule,
-  missingOperatorModule
+  missingOperatorModule,
+  targetSumModule,
+  contextSwitchModule,
+  pathRecallModule
 ];
