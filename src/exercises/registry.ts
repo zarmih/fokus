@@ -53,6 +53,9 @@ import rapidSortingModule from './rapid-sorting';
 import wordCascadeModule from './word-cascade';
 import mathSwitchModule from './math-switch';
 import dotRatioModule from './dot-ratio';
+import expressionCompareModule from './expression-compare';
+import parityMagnitudeModule from './parity-magnitude';
+import avatarNamesModule from './avatar-names';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -108,5 +111,8 @@ export const registry: ExerciseModule[] = [
   rapidSortingModule,
   wordCascadeModule,
   mathSwitchModule,
-  dotRatioModule
+  dotRatioModule,
+  expressionCompareModule,
+  parityMagnitudeModule,
+  avatarNamesModule
 ];
