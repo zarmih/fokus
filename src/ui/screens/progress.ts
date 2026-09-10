@@ -32,10 +32,10 @@ export function renderProgress(container: HTMLElement) {
   }
 
   const chartHtml = `
-    <div class="surface">
-      <div style="display: flex; justify-content: space-between; align-items: baseline;">
-        <h3>Неделя</h3>
-        <button id="btn-weekly-review" class="btn-tiny" style="margin: 0;">Итоги недели</button>
+    <div class="surface" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
+        <h3 style="margin: 0;">Активность (Неделя)</h3>
+        <button id="btn-weekly-review" class="btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 12px; border-radius: 12px; width: auto;">Итоги</button>
       </div>
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
       <div class="bar-chart">
@@ -62,7 +62,7 @@ export function renderProgress(container: HTMLElement) {
       const acc = Math.round(h.accuracy * 100);
       const displayScore = Math.round(h.score);
       return `
-        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--line);">
+        <div style="display: flex; justify-content: space-between; padding: 16px 0; border-bottom: 1px solid var(--line);">
           <div>
             <div style="font-weight: 600;">${dateStr}</div>
             <div style="color: var(--muted); font-size: 13px; margin-top: 4px;">${h.minutes} мин</div>
@@ -121,7 +121,7 @@ export function renderProgress(container: HTMLElement) {
             <span style="text-transform: capitalize; color: var(--text); opacity: 0.9;">${skillName}</span>
             <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--text);"></div></div>
+          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div></div>
           ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
@@ -133,7 +133,7 @@ export function renderProgress(container: HTMLElement) {
     return `
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${dSkills.length > 0 ? '12px' : '0'};">
-          <div style="font-weight: 700; font-size: 16px;">${domainLabel(d.id)}</div>
+          <div style="font-weight: 700; font-size: 16px; color: var(--dom-${d.id});">${domainLabel(d.id)}</div>
           <div style="font-size: 18px; font-weight: 800;">${dScore}</div>
         </div>
         ${skillsListHtml}
@@ -244,7 +244,10 @@ export function renderProgress(container: HTMLElement) {
   ` : '';
 
   content.innerHTML = `
-    <h2>Прогресс</h2>
+    <div class="today-head">
+      <h2>Статистика</h2>
+      <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
+    </div>
     ${fiHtml}
     ${insightHtml}
     ${nextStepHtml}

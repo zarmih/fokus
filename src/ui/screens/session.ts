@@ -82,7 +82,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
       ${lastBanner}
-      <div class="instruction-card" id="instruction-card">
+      <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
