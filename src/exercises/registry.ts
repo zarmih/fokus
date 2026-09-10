@@ -26,6 +26,9 @@ import flashCardsModule from './flash-cards';
 import movingTargetsModule from './moving-targets';
 import catchTheColorModule from './catch-the-color';
 import symbolMathModule from './symbol-math';
+import focusCircleModule from './focus-circle';
+import colorSequenceModule from './color-sequence';
+import evenOddModule from './even-odd';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -54,5 +57,8 @@ export const registry: ExerciseModule[] = [
   flashCardsModule,
   movingTargetsModule,
   catchTheColorModule,
-  symbolMathModule
+  symbolMathModule,
+  focusCircleModule,
+  colorSequenceModule,
+  evenOddModule
 ];
