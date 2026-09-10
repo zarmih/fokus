@@ -56,6 +56,9 @@ import dotRatioModule from './dot-ratio';
 import expressionCompareModule from './expression-compare';
 import parityMagnitudeModule from './parity-magnitude';
 import avatarNamesModule from './avatar-names';
+import findPairModule from './find-pair';
+import numberCodeModule from './number-code';
+import alphanumericSortModule from './alphanumeric-sort';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -114,5 +117,8 @@ export const registry: ExerciseModule[] = [
   dotRatioModule,
   expressionCompareModule,
   parityMagnitudeModule,
-  avatarNamesModule
+  avatarNamesModule,
+  findPairModule,
+  numberCodeModule,
+  alphanumericSortModule
 ];
