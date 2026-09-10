@@ -77,6 +77,9 @@ import colorBurstModule from './color-burst';
 import clockReadingModule from './clock-reading';
 import locationRecallModule from './location-recall';
 import vowelConsonantModule from './vowel-consonant';
+import arrowSwipeModule from './arrow-swipe';
+import shapeNameModule from './shape-name';
+import numberSeriesModule from './number-series';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -156,5 +159,8 @@ export const registry: ExerciseModule[] = [
   colorBurstModule,
   clockReadingModule,
   locationRecallModule,
-  vowelConsonantModule
+  vowelConsonantModule,
+  arrowSwipeModule,
+  shapeNameModule,
+  numberSeriesModule
 ];
