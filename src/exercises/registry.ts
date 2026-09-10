@@ -68,6 +68,9 @@ import pathRecallModule from './path-recall';
 import sizeCompareModule from './size-compare';
 import mathSignSwitchModule from './math-sign-switch';
 import uniqueColorModule from './unique-color';
+import sameDifferentModule from './same-different';
+import spatialMatchModule from './spatial-match';
+import directionMemoryModule from './direction-memory';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -138,5 +141,8 @@ export const registry: ExerciseModule[] = [
   pathRecallModule,
   sizeCompareModule,
   mathSignSwitchModule,
-  uniqueColorModule
+  uniqueColorModule,
+  sameDifferentModule,
+  spatialMatchModule,
+  directionMemoryModule
 ];
