@@ -71,6 +71,9 @@ import uniqueColorModule from './unique-color';
 import sameDifferentModule from './same-different';
 import spatialMatchModule from './spatial-match';
 import directionMemoryModule from './direction-memory';
+import emotionMatchModule from './emotion-match';
+import categorySortModule from './category-sort';
+import colorBurstModule from './color-burst';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -144,5 +147,8 @@ export const registry: ExerciseModule[] = [
   uniqueColorModule,
   sameDifferentModule,
   spatialMatchModule,
-  directionMemoryModule
+  directionMemoryModule,
+  emotionMatchModule,
+  categorySortModule,
+  colorBurstModule
 ];
