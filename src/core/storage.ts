@@ -1,6 +1,6 @@
 import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem } from './types';
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 export const STORAGE_KEY = 'fokus.v1';
 
 export interface StorageBackend {
@@ -62,6 +62,9 @@ export class Storage {
             });
           }
           parsed.profile.schemaVersion = 3;
+        }
+        if (parsed.profile.schemaVersion === 3) {
+          parsed.profile.schemaVersion = 4;
         }
         this.backend.setItem(STORAGE_KEY, JSON.stringify(parsed));
       }

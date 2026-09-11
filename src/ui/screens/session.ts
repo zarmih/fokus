@@ -2,25 +2,35 @@ import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { dispatch } from '../../exercises/dispatch';
 import { scoreBlock } from '../../core/scoring';
-import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex, initializeExerciseStateFromCalibration, initializeSkillFromCalibration } from '../../core/adaptive';
+import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
-import { mapAccuracyToStartLevel } from '../../core/calibration';
+import {
+  PROBE_BUDGET_SEC,
+  PROBE_BLOCK_SEC,
+  decideNextProbeStep,
+  bootstrapFromProbe,
+  seedStatesFromSnapshot
+} from '../../core/calibration';
+import { buildFirstWeekPlan } from '../../core/onboarding';
 import { buildTrainingPlan } from '../../core/session-builder';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
+import type { ProbeOutcome } from '../../core/calibration';
 import type { SessionItem } from '../../core/types';
 
-export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
+export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[], durationSec?: number}) {
   const {items, mode = 'normal'} = params;
   let currentIndex = 0;
   const sessionResults: SessionItem[] = [];
+  const probeOutcomes: ProbeOutcome[] = [];
   const domainDeltas: Record<string, number> = {};
   const sessionStartedAt = new Date().toISOString();
   let timerInterval: any;
-  let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
-  let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+  const sessionBudget = params.durationSec ?? storage.getProfile().sessionLengthSec;
+  let timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : sessionBudget;
+  let blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
   let fatigueCounter = 0;
@@ -32,7 +42,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       finishSession();
       return;
     }
-    blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+    blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : timeLeft;
 
     if (mode === 'normal' && currentIndex > 0) {
       // Adaptive Session: re-evaluate the next item based on fresh results
@@ -79,7 +89,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           <button id="btn-restart" class="btn-tiny">Заново</button>
         </div>
         <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
-        <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
+        <div class="session-block-info">${mode === 'calibration' ? `Зонд · блок ${currentIndex + 1}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>
       </div>
       ${lastBanner}
       <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
@@ -119,7 +129,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
-      timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+      timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : sessionBudget;
+      probeOutcomes.length = 0;
       const t = document.getElementById('session-timer');
       if (t) {
         t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
@@ -186,39 +197,28 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           }
 
           if (mode === 'calibration') {
-            const newLevel = mapAccuracyToStartLevel(res.accuracy);
-            const domain = manifest.domain;
-            const st = storage.getExerciseStates();
-            registry.filter(r => r.manifest.domain === domain).forEach(ex => {
-              const idx = st.findIndex(s => s.exerciseId === ex.manifest.id);
-              if (idx >= 0) {
-                st[idx].level = newLevel;
-                st[idx].difficulty = newLevel;
-              }
-              else {
-                st.push(initializeExerciseStateFromCalibration(ex.manifest.id, newLevel, perf));
-              }
+            probeOutcomes.push({
+              exerciseId: item.exerciseId,
+              domain: manifest.domain,
+              accuracy: res.accuracy,
+              avgRtMs: res.avgRtMs,
+              rounds: res.rounds,
+              difficulty: state!.difficulty,
+              performance: perf,
+              skills: [...manifest.skills]
             });
-            storage.setExerciseStates(st);
-            
-            // Initialize domains and skills
-            const domains = storage.getDomains();
-            const dIdx = domains.findIndex(d => d.domain === domain);
-            if (dIdx < 0) {
-              domains.push({ domain: domain, value: perf, trend: 0, updatedAt: new Date().toISOString() });
-              storage.setDomains(domains);
+            const next = decideNextProbeStep({
+              outcomes: probeOutcomes,
+              primaryGoal: storage.getProfile().primaryGoal,
+              catalog: registry.map((r) => ({
+                id: r.manifest.id,
+                domain: r.manifest.domain,
+                skills: [...r.manifest.skills]
+              }))
+            });
+            if (next && !items.some((it) => it.exerciseId === next.exerciseId)) {
+              items.push({ exerciseId: next.exerciseId });
             }
-            
-            const skills = storage.getSkills();
-            let skillsChanged = false;
-            manifest.skills.forEach(skillId => {
-              const sIdx = skills.findIndex(s => s.skill === skillId);
-              if (sIdx < 0) {
-                skills.push(initializeSkillFromCalibration(skillId, perf, item.exerciseId));
-                skillsChanged = true;
-              }
-            });
-            if (skillsChanged) storage.setSkills(skills);
           } else {
             const newState = updateExerciseState(state!, res.accuracy, res.avgRtMs, targetMs, perf);
             state = newState;
@@ -311,14 +311,49 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     clearInterval(timerInterval);
     
     if (mode === 'calibration') {
+      if (probeOutcomes.length === 0 && sessionResults.length === 0) {
+        navigateTo('today');
+        return;
+      }
+      const snapshot = bootstrapFromProbe(probeOutcomes, {
+        durationSec: Math.max(0, PROBE_BUDGET_SEC - timeLeft)
+      });
+      const seeded = seedStatesFromSnapshot(
+        snapshot,
+        registry.map((r) => ({
+          id: r.manifest.id,
+          domain: r.manifest.domain,
+          skills: [...r.manifest.skills]
+        }))
+      );
+      storage.setExerciseStates(seeded.exerciseStates);
+      storage.setDomains(seeded.domains);
+      storage.setSkills(seeded.skills);
+
       const p = storage.getProfile();
       p.calibrated = true;
+      p.probeSnapshot = snapshot;
+      if (!p.firstWeekPlan) {
+        p.firstWeekPlan = buildFirstWeekPlan({
+          primaryGoal: p.primaryGoal,
+          sessionLengthSec: p.sessionLengthSec,
+          startDate: new Date().toISOString(),
+          snapshot
+        });
+      } else {
+        p.firstWeekPlan = buildFirstWeekPlan({
+          primaryGoal: p.primaryGoal,
+          sessionLengthSec: p.sessionLengthSec,
+          startDate: p.firstWeekPlan.startDate,
+          snapshot
+        });
+      }
       storage.setProfile(p);
       const s = {
         id: Date.now().toString(),
         startedAt: sessionStartedAt,
         finishedAt: new Date().toISOString(),
-        durationSec: items.length * 30 - timeLeft,
+        durationSec: Math.max(0, PROBE_BUDGET_SEC - timeLeft),
         items: sessionResults
       };
       navigateTo('result', { session: s, calibration: true });

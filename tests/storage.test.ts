@@ -65,3 +65,40 @@ test('storage migrate v2 to v3 (sources and mastery)', () => {
   expect(states[0].stability).toBe(0.5);
   expect(states[0].consecutivePlateau).toBe(0);
 });
+
+test('storage migrate v3 to v4 keeps probe fields optional', () => {
+  backend.setItem('fokus.v1', JSON.stringify({
+    profile: { schemaVersion: 3, onboarded: true, calibrated: true }
+  }));
+  const s2 = new Storage(backend as any);
+  const p = s2.getProfile();
+  expect(p.schemaVersion).toBe(4);
+  expect(p.probeSnapshot).toBeUndefined();
+  expect(p.firstWeekPlan).toBeUndefined();
+});
+
+test('probe snapshot and first-week plan roundtrip', () => {
+  const p = storage.getProfile();
+  p.probeSnapshot = {
+    completedAt: '2026-09-11T10:00:00.000Z',
+    durationSec: 72,
+    blocks: [],
+    domains: [],
+    overallTheta: 0.1,
+    overallPrecision: 2,
+    disclaimer: 'not-iq'
+  };
+  p.firstWeekPlan = {
+    startDate: '2026-09-11',
+    targetSessionSec: 300,
+    primaryGoal: 'balance',
+    skipPolicy: 'one-forgiven',
+    days: []
+  };
+  p.onboardingCompletedAt = '2026-09-11T10:00:00.000Z';
+  storage.setProfile(p);
+  const loaded = storage.getProfile();
+  expect(loaded.probeSnapshot?.disclaimer).toBe('not-iq');
+  expect(loaded.firstWeekPlan?.skipPolicy).toBe('one-forgiven');
+  expect(loaded.onboardingCompletedAt).toBe('2026-09-11T10:00:00.000Z');
+});
