@@ -1,26 +1,44 @@
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
-import { dispatch } from '../../exercises/dispatch';
+import { catalog, getManifest } from '../../exercises/catalog';
+import { loadExercise } from '../../exercises/load-exercise';
+import type { ExerciseModule } from '../../exercises/contract';
 import { scoreBlock } from '../../core/scoring';
-import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex, initializeExerciseStateFromCalibration, initializeSkillFromCalibration } from '../../core/adaptive';
+import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
-import { registry } from '../../exercises/registry';
-import { mapAccuracyToStartLevel } from '../../core/calibration';
-import { buildTrainingPlan } from '../../core/session-builder';
+import {
+  PROBE_BUDGET_SEC,
+  PROBE_BLOCK_SEC,
+  decideNextProbeStep,
+  bootstrapFromProbe,
+  seedStatesFromSnapshot,
+  mapAccuracyToStartLevel
+} from '../../core/calibration';
+import { buildFirstWeekPlan } from '../../core/onboarding';
+import { planWithRecovery } from '../../core/recovery';
+import type { Session, SessionEndReason } from '../../core/types';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
+import type { ProbeOutcome } from '../../core/calibration';
 import type { SessionItem } from '../../core/types';
+import { announce, bindDialog, setScreenTitle } from '../a11y';
+import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
+import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 
-export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
+export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
   const {items, mode = 'normal'} = params;
+  const isProbe = mode === 'calibration' || mode === 'recalibration';
   let currentIndex = 0;
   const sessionResults: SessionItem[] = [];
+  const probeOutcomes: ProbeOutcome[] = [];
   const domainDeltas: Record<string, number> = {};
   const sessionStartedAt = new Date().toISOString();
   let timerInterval: any;
-  let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
-  let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+  const sessionBudget = params.durationSec ?? storage.getProfile().sessionLengthSec;
+  let timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
+  let sessionEndReason: SessionEndReason = 'completed';
+  let blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
   let fatigueCounter = 0;
@@ -32,70 +50,88 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       finishSession();
       return;
     }
-    blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+    blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
 
     if (mode === 'normal' && currentIndex > 0) {
-      // Adaptive Session: re-evaluate the next item based on fresh results
-      const plan = buildTrainingPlan({
-        durationSec: timeLeft,
-        catalog: registry as any,
+      const profile = storage.getProfile();
+      const ritual = planWithRecovery({
+        durationSec: Math.max(180, timeLeft),
+        catalog,
         domains: storage.getDomains(),
         skills: storage.getSkills(),
         states: storage.getExerciseStates(),
-        primaryGoal: storage.getProfile().primaryGoal
+        primaryGoal: profile.primaryGoal,
+        sessions: storage.getSessions(),
+        daySummaries: storage.getDaySummaries(),
+        recoveryHintsEnabled: profile.recoveryHints !== false,
+        excludeIds: sessionResults.map((sr) => sr.exerciseId)
       });
-      const nextItem = plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
+      const nextItem = ritual.plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
       if (nextItem) {
         items[currentIndex].exerciseId = nextItem.exerciseId;
+        items[currentIndex].difficulty = nextItem.difficulty;
       }
     }
 
     const item = items[currentIndex];
-    const exDispatch = dispatch[item.exerciseId];
-    if (!exDispatch) {
+    const preview = getManifest(item.exerciseId);
+    if (!preview) {
       console.error('Unknown exercise', item.exerciseId);
       currentIndex++;
       renderCurrent();
       return;
     }
     
-    const manifest = exDispatch.manifest;
+    const manifest = preview;
+    const loadPromise = loadExercise(item.exerciseId);
+    setScreenTitle(manifest.name);
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
-    if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, difficulty: mode === 'calibration' ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
+    if (!state) state = { exerciseId: item.exerciseId, level: isProbe ? 3 : 1, difficulty: isProbe ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
+
+    const irtPick = !isProbe
+      ? difficultyFor(item.exerciseId, item.difficulty ?? state.difficulty)
+      : null;
+    if (irtPick) {
+      state = { ...state, difficulty: irtPick.difficulty, level: Math.floor(irtPick.difficulty) };
+    }
 
     const last = sessionResults[sessionResults.length - 1];
-    const lastEx = last ? registry.find(r => r.manifest.id === last.exerciseId) : null;
+    const lastEx = last ? getManifest(last.exerciseId) : null;
     const lastBanner = last && lastEx ? `
-      <div class="block-recap">
-        ${lastEx.manifest.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
+      <div class="block-recap fx-enter ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}" aria-live="polite">
+        ${lastEx.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
       </div>
     ` : '';
 
+    content.dataset.sessionPhase = 'intro';
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
-          <button id="btn-back" class="btn-tiny">Назад</button>
-          <button id="btn-pause" class="btn-tiny">Пауза</button>
-          <button id="btn-restart" class="btn-tiny">Заново</button>
+          <button id="btn-back" class="btn-tiny" type="button">Назад</button>
+          <button id="btn-pause" class="btn-tiny" type="button">Пауза</button>
+          <button id="btn-restart" class="btn-tiny" type="button">Заново</button>
         </div>
-        <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
-        <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
+        <div class="session-timer" id="session-timer" role="timer" aria-live="off">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
+        <div class="session-block-info">${mode === 'calibration' ? `Зонд · блок ${currentIndex + 1}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>
       </div>
       ${lastBanner}
-      <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
+      <div class="instruction-card fx-enter" id="instruction-card">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
         <p>${manifest.instruction}</p>
         <div class="instruction-meta">Блок ${currentIndex + 1} · уровень ${Math.floor(state.difficulty)}</div>
       </div>
-      <button id="btn-next" class="btn-primary">Начать</button>
+      <button id="btn-next" class="btn-primary" type="button">Начать</button>
       <div id="game-container" class="play-arena"></div>
     `;
 
     document.getElementById('btn-back')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
       clearInterval(timerInterval);
+      if (mode === 'normal' && sessionResults.length > 0) {
+        persistAbandonedSession();
+      }
       navigateTo(mode === 'practice' ? 'trainers' : 'today');
     });
 
@@ -103,23 +139,28 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       const btn = e.target as HTMLButtonElement;
       isPaused = !isPaused;
       btn.textContent = isPaused ? 'Прод.' : 'Пауза';
+      btn.setAttribute('aria-pressed', isPaused ? 'true' : 'false');
       let overlay = document.getElementById('pause-overlay');
       if (isPaused) {
         if (!overlay) {
           overlay = document.createElement('div');
           overlay.id = 'pause-overlay';
           overlay.className = 'pause-overlay';
+          overlay.setAttribute('role', 'status');
           overlay.innerHTML = '<div class="pause-card">Пауза</div>';
           document.getElementById('game-container')?.appendChild(overlay);
         }
+        announce('Пауза');
       } else {
         overlay?.remove();
+        announce('Продолжаем');
       }
     });
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
-      timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+      timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
+      probeOutcomes.length = 0;
       const t = document.getElementById('session-timer');
       if (t) {
         t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
@@ -142,25 +183,38 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       
       const container = document.getElementById('game-container');
       if (!container) return;
-      
+      content.dataset.sessionPhase = 'countdown';
+      container.setAttribute('aria-busy', 'true');
+
       const countdown = document.createElement('div');
-      countdown.className = 'count-overlay';
+      countdown.className = 'count-overlay is-tick';
+      countdown.setAttribute('role', 'status');
+      countdown.setAttribute('aria-live', 'assertive');
       container.appendChild(countdown);
-      
+
       let count = 3;
       countdown.textContent = count.toString();
+      playSessionCue('tick');
       let iv: any = null;
-      
-      const startBlock = () => {
+      let pendingModule: ExerciseModule | null = null;
+      let countdownDone = false;
+
+      const startBlock = (exDispatch: ExerciseModule) => {
+        container.removeAttribute('aria-busy');
         countdown.remove();
+        content.dataset.sessionPhase = 'play';
+        enterStage(container);
+        playSessionCue('enter');
         const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
         let cleanupFn: any = null;
 
         const onBlockEnd = (res: any) => {
           if (cleanupFn) cleanupFn();
-          import('../../core/audio').then(a => {
-            a.playBeep(res.accuracy >= 0.8);
-          }).catch(() => {});
+          content.dataset.sessionPhase = 'feedback';
+          const ok = res.accuracy >= 0.8;
+          const stageEl = container.querySelector('.play-stage') as HTMLElement | null;
+          applyFeedback(stageEl || container, ok);
+          playSessionCue(ok ? 'hit' : 'miss');
 
           const targetMs = (manifest as any).levels ? ((manifest as any).levels[Math.floor(state!.difficulty)]?.targetMs || 1500) : 1500;
           
@@ -175,7 +229,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             score,
             performance: perf,
             masteryBefore: state?.mastery || 0,
-            difficultyBefore: state?.difficulty || 1.0
+            difficultyBefore: state?.difficulty || 1.0,
+            pSuccess: irtPick?.pSuccess
           };
           
           if (mode === 'normal') {
@@ -185,40 +240,43 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             }).catch(() => {});
           }
 
+          recordEngineObservation({
+            exerciseId: item.exerciseId,
+            domain: manifest.domain,
+            skills: [...(manifest.skills || [])],
+            metricModel: manifest.metricModel || 'speed-accuracy',
+            difficulty: state!.difficulty,
+            accuracy: res.accuracy,
+            avgRtMs: res.avgRtMs,
+            targetMs,
+            performance: perf,
+            rounds: res.rounds,
+            probe: isProbe
+          });
+
           if (mode === 'calibration') {
-            const newLevel = mapAccuracyToStartLevel(res.accuracy);
-            const domain = manifest.domain;
-            const st = storage.getExerciseStates();
-            registry.filter(r => r.manifest.domain === domain).forEach(ex => {
-              const idx = st.findIndex(s => s.exerciseId === ex.manifest.id);
-              if (idx >= 0) {
-                st[idx].level = newLevel;
-                st[idx].difficulty = newLevel;
-              }
-              else {
-                st.push(initializeExerciseStateFromCalibration(ex.manifest.id, newLevel, perf));
-              }
+            probeOutcomes.push({
+              exerciseId: item.exerciseId,
+              domain: manifest.domain,
+              accuracy: res.accuracy,
+              avgRtMs: res.avgRtMs,
+              rounds: res.rounds,
+              difficulty: state!.difficulty,
+              performance: perf,
+              skills: [...manifest.skills]
             });
-            storage.setExerciseStates(st);
-            
-            // Initialize domains and skills
-            const domains = storage.getDomains();
-            const dIdx = domains.findIndex(d => d.domain === domain);
-            if (dIdx < 0) {
-              domains.push({ domain: domain, value: perf, trend: 0, updatedAt: new Date().toISOString() });
-              storage.setDomains(domains);
+            const next = decideNextProbeStep({
+              outcomes: probeOutcomes,
+              primaryGoal: storage.getProfile().primaryGoal,
+              catalog: catalog.map((r) => ({
+                id: r.manifest.id,
+                domain: r.manifest.domain,
+                skills: [...r.manifest.skills]
+              }))
+            });
+            if (next && !items.some((it) => it.exerciseId === next.exerciseId)) {
+              items.push({ exerciseId: next.exerciseId });
             }
-            
-            const skills = storage.getSkills();
-            let skillsChanged = false;
-            manifest.skills.forEach(skillId => {
-              const sIdx = skills.findIndex(s => s.skill === skillId);
-              if (sIdx < 0) {
-                skills.push(initializeSkillFromCalibration(skillId, perf, item.exerciseId));
-                skillsChanged = true;
-              }
-            });
-            if (skillsChanged) storage.setSkills(skills);
           } else {
             const newState = updateExerciseState(state!, res.accuracy, res.avgRtMs, targetMs, perf);
             state = newState;
@@ -283,9 +341,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         currentCleanup = cleanupFn;
       };
 
-      currentCleanup = () => {
+            currentCleanup = () => {
         if (iv) clearInterval(iv);
         countdown.remove();
+      };
+
+      const tryStart = () => {
+        if (!countdownDone || !pendingModule) return;
+        startBlock(pendingModule);
       };
 
       iv = setInterval(() => {
@@ -293,16 +356,27 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         count--;
         if (count > 0) {
           countdown.textContent = count.toString();
-          countdown.style.transform = 'scale(1.2)';
-          setTimeout(() => countdown.style.transform = 'scale(1)', 150);
-          import('../../core/audio').then(a => a.playTick()).catch(() => {});
+          replayClass(countdown, 'is-tick');
+          playSessionCue('tick');
         } else {
           clearInterval(iv);
           iv = null;
-          import('../../core/audio').then(a => a.playBeep(true)).catch(() => {});
-          startBlock();
+          countdownDone = true;
+          tryStart();
         }
       }, 700);
+
+      loadPromise.then((mod) => {
+        pendingModule = mod;
+        tryStart();
+      }).catch(() => {
+        if (iv) clearInterval(iv);
+        countdown.remove();
+        container.removeAttribute('aria-busy');
+        currentIndex++;
+        renderCurrent();
+      });
+
     });
   };
 
@@ -311,28 +385,79 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     clearInterval(timerInterval);
     
     if (mode === 'calibration') {
+      if (probeOutcomes.length === 0 && sessionResults.length === 0) {
+        navigateTo('today');
+        return;
+      }
+      const snapshot = bootstrapFromProbe(probeOutcomes, {
+        durationSec: Math.max(0, PROBE_BUDGET_SEC - timeLeft)
+      });
+      const seeded = seedStatesFromSnapshot(
+        snapshot,
+        catalog.map((r) => ({
+          id: r.manifest.id,
+          domain: r.manifest.domain,
+          skills: [...r.manifest.skills]
+        }))
+      );
+      storage.setExerciseStates(seeded.exerciseStates);
+      storage.setDomains(seeded.domains);
+      storage.setSkills(seeded.skills);
+
       const p = storage.getProfile();
       p.calibrated = true;
+      p.probeSnapshot = snapshot;
+      if (!p.firstWeekPlan) {
+        p.firstWeekPlan = buildFirstWeekPlan({
+          primaryGoal: p.primaryGoal,
+          sessionLengthSec: p.sessionLengthSec,
+          startDate: new Date().toISOString(),
+          snapshot
+        });
+      } else {
+        p.firstWeekPlan = buildFirstWeekPlan({
+          primaryGoal: p.primaryGoal,
+          sessionLengthSec: p.sessionLengthSec,
+          startDate: p.firstWeekPlan.startDate,
+          snapshot
+        });
+      }
       storage.setProfile(p);
+      markEngineCalibrated();
       const s = {
         id: Date.now().toString(),
         startedAt: sessionStartedAt,
         finishedAt: new Date().toISOString(),
-        durationSec: items.length * 30 - timeLeft,
+        durationSec: Math.max(0, PROBE_BUDGET_SEC - timeLeft),
         items: sessionResults
       };
       navigateTo('result', { session: s, calibration: true });
       return;
     }
+    if (isProbe) {
+      markEngineCalibrated();
+      const s = {
+        id: Date.now().toString(),
+        startedAt: sessionStartedAt,
+        finishedAt: new Date().toISOString(),
+        durationSec: Math.max(0, items.length * 30 - timeLeft),
+        items: sessionResults
+      };
+      navigateTo('result', { session: s, recalibration: true });
+      return;
+    }
 
     const finishedAt = new Date().toISOString();
-    const duration = storage.getProfile().sessionLengthSec - timeLeft;
-    const s = {
+    const duration = Math.max(0, plannedDuration - timeLeft);
+    const s: Session = {
       id: Date.now().toString(),
       startedAt: sessionStartedAt,
       finishedAt,
       durationSec: duration,
-      items: sessionResults
+      items: sessionResults,
+      interrupted: false,
+      endReason: sessionEndReason,
+      plannedDurationSec: plannedDuration
     };
     storage.addSession(s);
 
@@ -344,14 +469,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
     const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
-    const fiNow = computeFokusIndex(storage.getDomains());
+    const domainsNow = storage.getDomains();
+    const fiNow = computeFokusIndex(domainsNow);
+    const domainValues: Record<string, number> = {};
+    domainsNow.forEach((d) => {
+      if (d.value > 0) domainValues[d.domain] = d.value;
+    });
     const ds: any = {
       date: sessionStartedAt,
       totalScore,
       domainDeltas,
       streak: ns.streak,
       skipped: ns.skipped,
-      fokusIndex: fiNow.value
+      fokusIndex: fiNow.value,
+      domainValues
     };
     const prof = storage.getProfile();
     if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
@@ -386,23 +517,50 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     navigateTo('result', { session: s, unlocked });
   };
 
+  function persistAbandonedSession() {
+    const duration = Math.max(0, plannedDuration - timeLeft);
+    storage.addSession({
+      id: Date.now().toString(),
+      startedAt: sessionStartedAt,
+      finishedAt: null,
+      durationSec: duration,
+      items: sessionResults,
+      interrupted: true,
+      endReason: 'abandoned',
+      plannedDurationSec: plannedDuration
+    });
+  }
+
   function showFatiguePrompt() {
     const overlay = document.createElement('div');
     overlay.className = 'modal-root';
     overlay.innerHTML = `
       <div class="surface modal-card">
-        <h3>Похоже, внимание падает</h3>
+        <h3 id="fatigue-title">Похоже, внимание падает</h3>
         <p class="modal-lead">Два слабых блока подряд — это маркер усталости, не провала. Можно сохранить результат и остановиться.</p>
         <button id="btn-fatigue-end" class="btn-primary" type="button">Завершить сессию</button>
         <button id="btn-fatigue-go" class="btn-secondary" type="button">Продолжить</button>
       </div>
     `;
     document.body.appendChild(overlay);
+    const unbind = bindDialog(overlay, {
+      labelledBy: 'fatigue-title',
+      onClose: () => {
+        unbind();
+        overlay.remove();
+        fatigueCounter = 0;
+        currentIndex++;
+        renderCurrent();
+      }
+    });
     overlay.querySelector('#btn-fatigue-end')?.addEventListener('click', () => {
+      unbind();
       overlay.remove();
+      sessionEndReason = 'fatigue';
       finishSession();
     });
     overlay.querySelector('#btn-fatigue-go')?.addEventListener('click', () => {
+      unbind();
       overlay.remove();
       fatigueCounter = 0;
       currentIndex++;

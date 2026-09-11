@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { registry } from '../src/exercises/registry';
 import { dispatch } from '../src/exercises/dispatch';
+import { catalog } from '../src/exercises/catalog';
 
 test('registry contains all exercises', () => {
   const ids = registry.map(r => r.manifest.id);
@@ -19,4 +20,8 @@ test('registry contains all exercises', () => {
 test('dispatch maps id to module', () => {
   expect(dispatch['swings']).toBeDefined();
   expect(dispatch['swings'].manifest.id).toBe('swings');
+});
+
+test('lightweight catalog covers every registry id', () => {
+  expect(catalog.map(c => c.manifest.id).sort()).toEqual(registry.map(r => r.manifest.id).sort());
 });

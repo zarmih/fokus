@@ -1,16 +1,20 @@
-import { buildTrainingPlan } from "../../core/session-builder";
+import { generateInsights } from "../../core/insights";
+import { planWithRecovery } from "../../core/recovery";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
-import { registry } from '../../exercises/registry';
-import { renderScatterPlot, renderRadarChart } from '../components/charts';
+import { catalog, getManifest } from '../../exercises/catalog';
+import { renderScatterPlot, renderRadarChart, renderIndexSparkline } from '../components/charts';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
+import { renderQualityCard } from '../components/quality-card';
+import { assessRetention, bandLabel, signalLabel } from '../../core/retention';
+import { buildCoachIntel } from '../../core/coach-intel';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
-  const ds = storage.getDaySummaries();
+  const ds = storage.getDaySummaries(60);
   const history = storage.getHistory().slice().reverse();
   
   // Weekly chart logic
@@ -82,7 +86,7 @@ export function renderProgress(container: HTMLElement) {
   
   // Build domain -> skills map
   const domainSkills = new Map<string, Set<string>>();
-  registry.forEach(ex => {
+  catalog.forEach(ex => {
     if (!domainSkills.has(ex.manifest.domain)) {
       domainSkills.set(ex.manifest.domain, new Set());
     }
@@ -152,20 +156,23 @@ export function renderProgress(container: HTMLElement) {
   // Next Step Block
   
   const profile = storage.getProfile();
-  const plan = buildTrainingPlan({
+  const ritual = planWithRecovery({
     durationSec: profile.sessionLengthSec || 300,
-    catalog: registry as any,
+    catalog,
     domains,
     skills,
     states: exStates,
     primaryGoal: profile.primaryGoal,
-    focusOfTheWeek: weeklyFocus?.domain
+    sessions: storage.getSessions(),
+    daySummaries: ds,
+    recoveryHintsEnabled: profile.recoveryHints !== false
   });
+  const plan = ritual.plan;
 
   let nextStepHtml = '';
   if (plan.items.length > 0) {
     const nextItem = plan.items[0];
-    const nextEx = registry.find(r => r.manifest.id === nextItem.exerciseId)?.manifest;
+    const nextEx = getManifest(nextItem.exerciseId);
     if (nextEx) {
       nextStepHtml = `
         <div class="surface" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);">
@@ -175,7 +182,7 @@ export function renderProgress(container: HTMLElement) {
               <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${nextEx.name}</div>
               <div style="font-size: 13px; color: var(--text); opacity: 0.8;">${nextItem.reason}</div>
             </div>
-            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" width="40" height="40" style="border-radius: 8px; opacity: 0.9;">
+            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" width="40" height="40" alt="" decoding="async" style="border-radius: 8px; opacity: 0.9;">
           </div>
         </div>
       `;
@@ -214,15 +221,108 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const playedToday = ds.some(d => d.date.startsWith(todayStr));
+  let lastStreak = 0;
+  if (ds.length > 0) {
+    const last = ds[ds.length - 1];
+    if (playedToday || last.date.startsWith(todayStr)) lastStreak = last.streak;
+    else {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (last.date.startsWith(yesterday.toISOString().split('T')[0])) lastStreak = last.streak;
+    }
+  }
+
+  let rhythmHtml = '';
+  try {
+    const snap = assessRetention({
+      daySummaries: ds,
+      sessions: storage.getSessions(),
+      domains,
+      playedToday,
+      streak: lastStreak,
+      sessionLengthSec: profile.sessionLengthSec
+    });
+    if (snap.confidence >= 15) {
+      const rows = snap.signals.map(s => {
+        const pct = Math.max(4, s.score);
+        return `<div class="rhythm-signal">
+          <div class="rhythm-signal-head"><span>${signalLabel(s.id)}</span><span>${s.score}</span></div>
+          <div class="scale-track rhythm-track"><div class="scale-fill" style="width:${pct}%;"></div></div>
+        </div>`;
+      }).join('');
+      const nudge = snap.primaryNudge
+        ? `<p class="rhythm-nudge">${snap.primaryNudge.body}</p>`
+        : `<p class="rhythm-nudge">Ритм держится. Регулярность важнее длины сессии.</p>`;
+      rhythmHtml = `
+        <div class="surface rhythm-card band-${snap.band}" data-rhythm="${snap.rhythm}">
+          <div class="rhythm-head">
+            <div>
+              <div class="fi-kicker">Ритм тренировок</div>
+              <div class="rhythm-value">${snap.rhythm}</div>
+              <div class="fi-meta">${bandLabel(snap.band)} · уверенность ${snap.confidence}%</div>
+            </div>
+          </div>
+          ${nudge}
+          ${rows}
+        </div>`;
+    }
+  } catch {
+    rhythmHtml = '';
+  }
+
   const fi = computeFokusIndex(domains);
+  const intel = buildCoachIntel({
+    summaries: ds,
+    domains,
+    window: 14,
+    asOf: new Date().toISOString()
+  });
+  const sparkCount = intel.sparkline.points.filter((p) => p.value != null).length;
+  const sparkHtml = sparkCount >= 2
+    ? `<div class="fi-spark">${renderIndexSparkline(intel.sparkline, { width: 220, height: 44 })}<span class="fi-spark-lbl">${intel.sparkline.deltaLabel}</span></div>`
+    : '';
+  const pbNote = intel.personalBest
+    ? `<div class="fi-pb">${intel.personalBest.isLatest ? 'личный рекорд' : 'рекорд'} · ${intel.personalBest.value}</div>`
+    : '';
+
   const fiHtml = fi.coverage > 0 ? `
     <div class="fi-hero">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value">${fi.value}</div>
         <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
+        ${pbNote}
+        ${sparkHtml}
       </div>
       <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
+    </div>
+  ` : fi.coverage === 0 && intel.ready ? `
+    <div class="fi-hero empty">
+      <div class="fi-copy">
+        <div class="fi-kicker">Fokus Index</div>
+        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+        ${sparkHtml}
+      </div>
+    </div>
+  ` : '';
+
+  const nextMile = intel.milestones.find((m) => !m.reached);
+  const milestonesHtml = intel.ready ? `
+    <div class="intel-card intel-card-compact" style="margin-bottom: 24px;">
+      <div class="intel-kicker">Вехи серии</div>
+      <div class="intel-miles">
+        ${intel.milestones.map((m) => {
+          const state = m.reached ? 'reached' : nextMile && m.days === nextMile.days ? 'next' : '';
+          return `<div class="intel-mile ${state}">
+            <div class="intel-mile-mark">${m.reached ? '●' : '○'}</div>
+            <div class="intel-mile-n">${m.days}</div>
+            <div class="intel-mile-l">дней</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <p class="intel-rhythm">${intel.adherence.currentStreak > 0 ? `сейчас ${intel.adherence.currentStreak}` : 'серия начнётся с сегодняшней сессии'}${nextMile ? ` · дальше ${nextMile.days}` : ''}</p>
     </div>
   ` : '';
 
@@ -232,6 +332,9 @@ export function renderProgress(container: HTMLElement) {
       <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
     </div>
     ${fiHtml}
+    ${renderQualityCard(ritual.snapshot, { detailed: true })}
+    ${rhythmHtml}
+    ${milestonesHtml}
     ${insightHtml}
     ${nextStepHtml}
     
