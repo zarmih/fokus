@@ -351,14 +351,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
     const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
-    const fiNow = computeFokusIndex(storage.getDomains());
+    const domainsNow = storage.getDomains();
+    const fiNow = computeFokusIndex(domainsNow);
+    const domainValues: Record<string, number> = {};
+    domainsNow.forEach((d) => {
+      if (d.value > 0) domainValues[d.domain] = d.value;
+    });
     const ds: any = {
       date: sessionStartedAt,
       totalScore,
       domainDeltas,
       streak: ns.streak,
       skipped: ns.skipped,
-      fokusIndex: fiNow.value
+      fokusIndex: fiNow.value,
+      domainValues
     };
     const prof = storage.getProfile();
     if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
