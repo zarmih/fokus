@@ -811,7 +811,38 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'symbol-bind',
+      name: 'Связка Символов',
+      domain: 'memory',
+      skills: ['visual_memory', 'recall'] as ExerciseManifest['skills'],
+      instruction: 'Запомните пары "символ-число". Затем выберите правильное число для указанного символа.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'twin-search',
+      name: 'Поиск Близнецов',
+      domain: 'attention',
+      skills: ['selective_attention', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Среди всех фигур найдите две абсолютно одинаковые.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'rule-slider',
+      name: 'Скользящее Правило',
+      domain: 'flexibility',
+      skills: ['rule_switching', 'task_switching'] as ExerciseManifest['skills'],
+      instruction: 'Подберите подходящую карту к центральной. Правило (По Форме / По Количеству) меняется каждый раунд.',
+      metricModel: 'speed-accuracy'
+    }
+  }
 ];
+
 
 export function getManifest(id: string): ExerciseManifest | undefined {
   return catalog.find((c) => c.manifest.id === id)?.manifest;
