@@ -98,6 +98,13 @@ export interface DaySummary {
   /** End-of-day domain snapshot. Optional for legacy summaries. */
   domainValues?: Record<string, number>;
 }
+export interface StorageMeta {
+  schemaVersion: number;
+  deviceId: string;
+  rev: number;
+  updatedAt: string;
+}
+
 export interface AppState {
   profile: Profile;
   domains: DomainIndex[];
@@ -106,6 +113,7 @@ export interface AppState {
   sessions: Session[];
   daySummaries: DaySummary[];
   history: HistoryItem[];
+  meta?: StorageMeta;
   /** Adaptive Engine v2 latent-ability snapshot. Optional for pre-v4 saves. */
   abilityModel?: AbilityModel;
 }
