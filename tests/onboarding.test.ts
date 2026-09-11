@@ -19,28 +19,24 @@ test('onboarding collects goal, duration and starts calibration', () => {
   const app = document.getElementById('app')!;
   renderOnboarding(app);
 
-  expect(app.textContent).toMatch(/Пять минут/);
+  expect(app.textContent).toMatch(/5 минут/);
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const memory = [...app.querySelectorAll('.goal-card')].find(el => (el as HTMLElement).dataset.goal === 'memory') as HTMLButtonElement;
   memory.click();
-  (app.querySelector('#btn-next') as HTMLButtonElement).click();
-
-  const eight = app.querySelector('[data-m="8"]') as HTMLButtonElement;
-  eight.click();
-  (app.querySelector('#btn-next') as HTMLButtonElement).click();
-
+  
   const name = app.querySelector('#onboard-name') as HTMLInputElement;
   name.value = 'Михаил';
   name.dispatchEvent(new Event('input'));
+  
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
-  expect(app.textContent).toMatch(/Не медицинское изделие/);
+  expect(app.textContent).toMatch(/Первый ритуал/);
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const p = storage.getProfile();
   expect(p.onboarded).toBe(true);
   expect(p.primaryGoal).toBe('memory');
-  expect(p.sessionLengthSec).toBe(480);
+  expect(p.sessionLengthSec).toBe(300);
   expect(p.displayName).toBe('Михаил');
 });
