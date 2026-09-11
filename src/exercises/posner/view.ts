@@ -1,5 +1,6 @@
 import { PosnerEngine, Side } from './engine';
-import { getPosnerParams } from './manifest';
+import { getPosnerParams, posnerManifest } from './manifest';
+import { BLOCK_SHAPE_MS, elapsedProgress, paramsAlongCurve } from '../diff-curves';
 import { mountStage } from '../stage';
 
 export function renderPosner(
@@ -8,9 +9,10 @@ export function renderPosner(
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
-  const params = getPosnerParams(level);
   const engine = new PosnerEngine();
   const stage = mountStage(container, 'attention');
+  const blockStartTime = Date.now();
+  let params = getPosnerParams(level);
   let rounds = 0;
   let correctCount = 0;
   let totalRt = 0;
@@ -44,6 +46,11 @@ export function renderPosner(
     boxRight.innerHTML = '';
     cueCenter.textContent = '+';
     cueCenter.style.color = '';
+    params = paramsAlongCurve(getPosnerParams, {
+      target: level,
+      t: elapsedProgress(Date.now() - blockStartTime, BLOCK_SHAPE_MS),
+      kind: posnerManifest.diffCurve
+    }).params;
     const trial = engine.nextTrial(params.invalidPct);
     currentTimer = window.setTimeout(() => {
       if (hasEnded) return;

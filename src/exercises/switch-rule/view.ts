@@ -1,5 +1,6 @@
 import { SwitchRuleEngine } from './engine';
-import { getSwitchRuleParams } from './manifest';
+import { getSwitchRuleParams, switchRuleManifest } from './manifest';
+import { elapsedProgress, paramsAlongCurve } from '../diff-curves';
 import { mountStage } from '../stage';
 
 export function renderSwitchRule(
@@ -21,7 +22,11 @@ export function renderSwitchRule(
 
   const startRound = () => {
     if (isTimeUp()) { finishBlock(); return; }
-    const params = getSwitchRuleParams(level);
+    const { params } = paramsAlongCurve(getSwitchRuleParams, {
+      target: level,
+      t: elapsedProgress(Date.now() - blockStartTime, maxBlockMs),
+      kind: switchRuleManifest.diffCurve
+    });
     const trial = engine.nextTrial(params);
     const roundStartTime = Date.now();
     const ruleLabel = trial.rule === 'EVEN' ? 'Левое чётное?' : 'Левое больше?';

@@ -20,6 +20,16 @@ export interface BlockResult {
   rounds: number;
 }
 
+/** Intra-block difficulty shape. Omit = engine default. Not read by Adaptive Engine v2. */
+export type DiffCurveKind =
+  | 'flat'
+  | 'warmup'
+  | 'plateau'
+  | 'surge'
+  | 'warmup-plateau'
+  | 'plateau-surge'
+  | 'warmup-plateau-surge';
+
 export interface ExerciseManifest {
   id: string;
   name: string;
@@ -27,6 +37,8 @@ export interface ExerciseManifest {
   skills: CognitiveSkill[];
   metricModel?: 'speed-accuracy' | 'memory-span' | 'timing-precision' | 'logic-correctness';
   instruction: string;
+  /** Optional G19 metadata. Block anchor still comes from Adaptive Engine / staircase. */
+  diffCurve?: DiffCurveKind;
 }
 
 export interface ExerciseModule {

@@ -1,5 +1,6 @@
 import { NBackEngine, VisualSymbol } from './engine';
-import { getNBackParams } from './manifest';
+import { getNBackParams, nbackManifest } from './manifest';
+import { BLOCK_SHAPE_MS, elapsedProgress, sampleCurve, shiftDeadline } from '../diff-curves';
 import { mountStage } from '../stage';
 
 const SVGS: Record<VisualSymbol, string> = {
@@ -17,9 +18,11 @@ export function renderNBack(
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
-  const params = getNBackParams(level);
-  const engine = new NBackEngine(params.n);
+  const anchor = getNBackParams(level);
+  const engine = new NBackEngine(anchor.n);
   const stage = mountStage(container, 'memory');
+  const blockStartTime = Date.now();
+  let params = anchor;
   let rounds = 0;
   let correctCount = 0;
   let totalRt = 0;
@@ -40,6 +43,16 @@ export function renderNBack(
 
   const startRound = () => {
     if (isTimeUp()) { finishBlock(); return; }
+    const sample = sampleCurve({
+      target: level,
+      t: elapsedProgress(Date.now() - blockStartTime, BLOCK_SHAPE_MS),
+      kind: nbackManifest.diffCurve
+    });
+    params = {
+      n: anchor.n,
+      matchChance: anchor.matchChance,
+      delayMs: shiftDeadline(anchor.delayMs, sample.offset)
+    };
     const trial = engine.nextTrial(params.matchChance);
     const roundStartTime = Date.now();
     hasAnswered = false;

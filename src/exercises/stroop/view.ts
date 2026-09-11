@@ -1,5 +1,6 @@
 import { StroopEngine, COLORS } from './engine';
-import { getStroopParams } from './manifest';
+import { getStroopParams, stroopManifest } from './manifest';
+import { elapsedProgress, paramsAlongCurve } from '../diff-curves';
 import { mountStage } from '../stage';
 
 export function renderStroop(
@@ -21,7 +22,11 @@ export function renderStroop(
 
   const startRound = () => {
     if (isTimeUp()) { finishBlock(); return; }
-    const params = getStroopParams(level);
+    const { params } = paramsAlongCurve(getStroopParams, {
+      target: level,
+      t: elapsedProgress(Date.now() - blockStartTime, maxBlockMs),
+      kind: stroopManifest.diffCurve
+    });
     const trial = engine.nextTrial(params);
     const roundStartTime = Date.now();
     const ink = COLORS.find(c => c.id === trial.ink)!;

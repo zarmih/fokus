@@ -6,6 +6,7 @@ export const posnerManifest: ExerciseManifest = {
   domain: 'attention',
   skills: ['selective_attention', 'reaction_speed'],
   metricModel: 'speed-accuracy',
+  diffCurve: 'warmup-plateau-surge',
   instruction: 'Следи за крестиком в центре. Когда появится круг слева или справа — жми соответствующую стрелку. Осторожно: стрелка-подсказка бывает обманчива!',
   levels: {}
 };

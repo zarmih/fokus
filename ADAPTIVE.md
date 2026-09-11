@@ -67,3 +67,7 @@ Phase 2 program PRs are **not required**. This branch ships its own `program.ts`
 ## Persistence
 
 Schema v4 adds `abilityModel` on `AppState` and `lastCalibrationAt` / `recalibrationSnoozedUntil` on the profile. Missing snapshots are bootstrapped from the existing domain/skill/exercise indexes, so v2 is live the day it ships.
+
+## Intra-block curves (G19)
+
+Block target β* is still chosen here. Trial-to-trial shape (warmup / plateau / surge) lives in `src/core/diff-curves.ts` and is opt-in for exercise engines. It does not write `ExerciseState.difficulty` and is not imported by `src/core/engine/`. See `DIFF_CURVES_G19.md`.

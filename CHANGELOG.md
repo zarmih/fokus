@@ -1,4 +1,8 @@
 # Changelog
+## Diff curves G19
+- Intra-block warmup → plateau → surge around the Adaptive Engine / staircase anchor
+- Shared helpers in `src/core/diff-curves.ts`; stroop, switch-rule, posner, grid-memory, n-back opt in
+- Calibration band shrinks amplitude; n-back keeps `n`; block observations still use the assigned level
 ## [0.5.1] - Session quality & recovery
 - Качество ритуала (0–100) из точности, стабильности реакции, сложности, завершённости и обрывов — не «балл мозга»
 - Короткий горизонт нагрузки (EWMA) и подсказка rest-light / steady / push-hard на экране «Сегодня»

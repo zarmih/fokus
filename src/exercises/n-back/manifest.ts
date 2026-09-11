@@ -6,6 +6,7 @@ export const nbackManifest: ExerciseManifest = {
   domain: 'memory',
   skills: ['working_memory', 'sustained_attention'],
   metricModel: 'speed-accuracy',
+  diffCurve: 'warmup-plateau-surge',
   instruction: 'Следи за фигурой на экране И за буквой, которую произносит диктор. Жми соответствующие кнопки, если фигура или буква совпадает с той, что была N шагов назад.',
   levels: {
     1: { n: 1, delayMs: 3000, matchChance: 0.3 },

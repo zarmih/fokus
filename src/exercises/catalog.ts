@@ -288,7 +288,8 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'memory',
       skills: ['visual_memory', 'spatial_memory', 'working_memory'] as ExerciseManifest['skills'],
       instruction: 'Запомни подсвеченные клетки и отметь их. Порядок не важен.',
-      metricModel: 'memory-span'
+      metricModel: 'memory-span',
+      diffCurve: 'warmup-plateau'
     }
   },
   {
@@ -398,7 +399,8 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'memory',
       skills: ['working_memory', 'sustained_attention'] as ExerciseManifest['skills'],
       instruction: 'Следи за фигурой на экране И за буквой, которую произносит диктор. Жми соответствующие кнопки, если фигура или буква совпадает с той, что была N шагов назад.',
-      metricModel: 'speed-accuracy'
+      metricModel: 'speed-accuracy',
+      diffCurve: 'warmup-plateau-surge'
     }
   },
   {
@@ -518,7 +520,8 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'attention',
       skills: ['selective_attention', 'reaction_speed'] as ExerciseManifest['skills'],
       instruction: 'Следи за крестиком в центре. Когда появится круг слева или справа — жми соответствующую стрелку. Осторожно: стрелка-подсказка бывает обманчива!',
-      metricModel: 'speed-accuracy'
+      metricModel: 'speed-accuracy',
+      diffCurve: 'warmup-plateau-surge'
     }
   },
   {
@@ -678,7 +681,8 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'flexibility',
       skills: ['selective_attention', 'inhibition', 'processing_speed'] as ExerciseManifest['skills'],
       instruction: 'Нажми цвет букв, не читай слово.',
-      metricModel: 'speed-accuracy'
+      metricModel: 'speed-accuracy',
+      diffCurve: 'warmup-plateau-surge'
     }
   },
   {
@@ -698,7 +702,8 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'flexibility',
       skills: ['rule_switching', 'task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
       instruction: 'Смотри на подпись. Да или нет. Правило меняется.',
-      metricModel: 'speed-accuracy'
+      metricModel: 'speed-accuracy',
+      diffCurve: 'warmup-plateau-surge'
     }
   },
   {

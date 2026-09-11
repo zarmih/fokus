@@ -6,6 +6,7 @@ export const switchRuleManifest: ExerciseManifest = {
   domain: 'flexibility',
   skills: ['rule_switching', 'task_switching', 'cognitive_flexibility'],
   metricModel: 'speed-accuracy',
+  diffCurve: 'warmup-plateau-surge',
   instruction: 'Смотри на подпись. Да или нет. Правило меняется.',
   levels: {
     1: { switchEvery: 8, deadlineMs: 2000, targetMs: 1500 },

@@ -1,5 +1,6 @@
 import { GridMemoryEngine } from './engine';
-import { getGridMemoryParams } from './manifest';
+import { getGridMemoryParams, gridMemoryManifest } from './manifest';
+import { paramsAlongCurve } from '../diff-curves';
 import { mountStage } from '../stage';
 
 export function renderGridMemory(
@@ -23,7 +24,14 @@ export function renderGridMemory(
       finish();
       return;
     }
-    const params = getGridMemoryParams(level);
+    const anchor = getGridMemoryParams(level);
+    const { params } = paramsAlongCurve(getGridMemoryParams, {
+      target: level,
+      index: rounds,
+      count: Math.max(minRounds, 5),
+      kind: gridMemoryManifest.diffCurve,
+      hold: { grid: anchor.grid }
+    });
     const { cellsToRemember } = engine.start(params);
     const totalCells = params.grid * params.grid;
     stage.setStatus('Запомните клетки');

@@ -36,6 +36,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   const sessionStartedAt = new Date().toISOString();
   let timerInterval: any;
   const sessionBudget = params.durationSec ?? storage.getProfile().sessionLengthSec;
+  const plannedDuration = sessionBudget;
   let timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
   let sessionEndReason: SessionEndReason = 'completed';
   let blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;

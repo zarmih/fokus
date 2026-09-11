@@ -11,6 +11,7 @@
   - UI и планировщик сессий читают только \`catalog.ts\` (манифесты).
   - Движок загружается через \`loadExercise(id)\` в момент старта блока.
   - \`registry.ts\` остаётся eager-списком для тестов.
+  - Intra-block curves (warmup / plateau / surge): \`src/core/diff-curves.ts\`. Engines opt in. Adaptive Engine v2 still picks the block anchor (see \`DIFF_CURVES_G19.md\`).
 
 ## Правило "Engine без DOM"
 Логика каждого упражнения строго разделяется:

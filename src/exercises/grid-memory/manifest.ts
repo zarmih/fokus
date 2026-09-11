@@ -6,6 +6,7 @@ export const gridMemoryManifest: ExerciseManifest = {
   domain: 'memory',
   skills: ['visual_memory', 'spatial_memory', 'working_memory'],
   metricModel: 'memory-span',
+  diffCurve: 'warmup-plateau',
   instruction: 'Запомни подсвеченные клетки и отметь их. Порядок не важен.',
   levels: {
     1: { grid: 3, cells: 3, showMs: 1200, targetMs: 8000 },

@@ -44,3 +44,5 @@ export interface ExerciseModule {
 1. Создайте папку в \`src/exercises/\`
 2. Реализуйте логику и верните \`ExerciseModule\` в \`index.ts\` (не забудьте \`return cleanup\`, если есть интервалы или rAF).
 3. Добавьте ваш модуль в \`src/exercises/registry.ts\` и иконку \`icon-<id>.svg\` в \`public/art/\`.
+
+Optional: map the block level through \`paramsAlongCurve\` / \`sampleCurve\` (\`src/exercises/diff-curves.ts\`) so a block has warmup → plateau → surge. The Adaptive Engine still sees the block anchor, not the surge peak. See \`DIFF_CURVES_G19.md\`.
