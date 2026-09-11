@@ -12,14 +12,18 @@ import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { SessionItem } from '../../core/types';
 
-export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
-  const {items, mode = 'normal'} = params;
-  let currentIndex = 0;
-  const sessionResults: SessionItem[] = [];
-  const domainDeltas: Record<string, number> = {};
-  const sessionStartedAt = new Date().toISOString();
+export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[], isResume?: boolean}) {
+  let {items, mode = 'normal', isResume = false} = params;
+  let active = (mode === 'normal' && isResume) ? storage.getActiveSession() : null;
+  if (mode === 'normal' && !isResume) storage.clearActiveSession();
+
+  let currentIndex = active ? active.items.length : 0;
+  const sessionResults: SessionItem[] = active ? active.items : [];
+  const domainDeltas: Record<string, number> = active ? active.domainDeltas : {};
+  const sessionStartedAt = active ? active.startedAt : new Date().toISOString();
   let timerInterval: any;
-  let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+  let timeLeft = mode === 'calibration' ? items.length * 30 : (active ? active.timeLeft : storage.getProfile().sessionLengthSec);
+  if (active && active.planItems) items = active.planItems;
   let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
@@ -96,6 +100,15 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     document.getElementById('btn-back')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
       clearInterval(timerInterval);
+      if (mode === 'normal' && sessionResults.length > 0) {
+        storage.setActiveSession({
+          items: sessionResults,
+          planItems: items,
+          timeLeft: timeLeft,
+          startedAt: sessionStartedAt,
+          domainDeltas: domainDeltas
+        });
+      }
       navigateTo(mode === 'practice' ? 'trainers' : 'today');
     });
 
@@ -275,6 +288,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             fatigueCounter = 0;
           }
           
+          if (mode === 'normal') {
+            storage.setActiveSession({
+              items: sessionResults,
+              planItems: items,
+              timeLeft: timeLeft,
+              startedAt: sessionStartedAt,
+              domainDeltas: domainDeltas
+            });
+          }
+
           currentIndex++;
           renderCurrent();
         };
@@ -323,6 +346,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       };
       navigateTo('result', { session: s, calibration: true });
       return;
+    }
+
+    if (mode === 'normal') {
+      storage.clearActiveSession();
     }
 
     const finishedAt = new Date().toISOString();

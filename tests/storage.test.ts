@@ -18,7 +18,7 @@ beforeEach(() => {
 
 test('storage defaults', () => {
   const p = storage.getProfile();
-  expect(p.sessionLengthSec).toBe(300);
+  expect(p.sessionLengthSec).toBe(900);
 });
 
 test('storage update', () => {
@@ -35,7 +35,7 @@ test('storage export/import roundtrip', () => {
   
   backend.removeItem('fokus.v1');
   const s2 = new Storage(backend as any);
-  expect(s2.getProfile().sessionLengthSec).toBe(300); // defaults
+  expect(s2.getProfile().sessionLengthSec).toBe(900); // defaults
   
   s2.importJson(json);
   expect(s2.getProfile().sessionLengthSec).toBe(720); // restored

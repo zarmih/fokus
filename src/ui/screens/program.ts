@@ -7,6 +7,10 @@ import { buildTrainingPlan } from '../../core/session-builder';
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
   const profile = storage.getProfile();
+  const active = storage.getActiveSession();
+  const ds = storage.getDaySummaries();
+  const todayStr = new Date().toISOString().split('T')[0];
+  const playedToday = ds.some(d => d.date.startsWith(todayStr));
 
   shell.innerHTML = `
     <div class="screen program-screen" style="padding: 20px; animation: fade-in 0.3s ease-out;">
@@ -20,6 +24,29 @@ export function renderProgram(container: HTMLElement) {
             Пройдите серию коротких тестов для определения начального Fokus Index. Мы подберем индивидуальную программу.
           </p>
           <button id="btn-calibrate" class="btn primary" style="width: 100%; margin-top: 8px;">Начать калибровку (~5 мин)</button>
+        </div>
+      ` : playedToday ? `
+        <div class="card" style="margin-bottom: 24px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin: 0;">Сегодня закрыто</h3>
+          </div>
+          <p style="opacity: 0.8; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5;">
+            Ритуал выполнен. Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.
+          </p>
+          <button id="btn-program-start" class="btn secondary" style="width: 100%;">Ещё одна сессия</button>
+        </div>
+      ` : active ? `
+        <div class="card" style="margin-bottom: 24px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin: 0;">Дневной ритуал (в процессе)</h3>
+          </div>
+          <p style="opacity: 0.8; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5;">
+            Выполнено ${active.items.length} из ${active.planItems.length} блоков. Осталось ${Math.ceil(active.timeLeft / 60)} мин.
+          </p>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-resume" class="btn primary" style="flex: 1;">Продолжить</button>
+            <button id="btn-restart" class="btn secondary" style="flex: 1; background: rgba(255,255,255,0.1);">Заново</button>
+          </div>
         </div>
       ` : `
         <div class="card" style="margin-bottom: 24px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
@@ -56,7 +83,7 @@ export function renderProgram(container: HTMLElement) {
     ] });
   });
 
-  shell.querySelector('#btn-program-start')?.addEventListener('click', () => {
+  const startNormalSession = (isResume: boolean = false) => {
     const domains = storage.getDomains();
     const skills = storage.getSkills();
     const states = storage.getExerciseStates();
@@ -68,7 +95,21 @@ export function renderProgram(container: HTMLElement) {
       states,
       primaryGoal: profile.primaryGoal
     });
-    navigateTo('session', { mode: 'normal', items: plan.items });
+    navigateTo('session', { mode: 'normal', items: plan.items, isResume });
+  };
+
+  shell.querySelector('#btn-program-start')?.addEventListener('click', () => {
+    storage.clearActiveSession();
+    startNormalSession(false);
+  });
+
+  shell.querySelector('#btn-resume')?.addEventListener('click', () => {
+    startNormalSession(true);
+  });
+
+  shell.querySelector('#btn-restart')?.addEventListener('click', () => {
+    storage.clearActiveSession();
+    startNormalSession(false);
   });
 
   shell.querySelector('#btn-catalog')?.addEventListener('click', () => {

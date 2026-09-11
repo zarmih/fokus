@@ -97,4 +97,11 @@ export interface AppState {
   sessions: Session[];
   daySummaries: DaySummary[];
   history: HistoryItem[];
+  activeSession?: {
+    items: SessionItem[];
+    planItems: {exerciseId: string}[];
+    timeLeft: number;
+    startedAt: string;
+    domainDeltas: Record<string, number>;
+  };
 }

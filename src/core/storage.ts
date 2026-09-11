@@ -113,6 +113,10 @@ export class Storage {
     this.saveState(s);
   }
 
+  getActiveSession() { return this.getState().activeSession || null; }
+  setActiveSession(session: any) { const s = this.getState(); s.activeSession = session; this.saveState(s); }
+  clearActiveSession() { const s = this.getState(); delete s.activeSession; this.saveState(s); }
+
   getDaySummaries(limit = 28): DaySummary[] { 
     return this.getState().daySummaries.slice(-limit); 
   }

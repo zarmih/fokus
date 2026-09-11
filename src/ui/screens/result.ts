@@ -169,6 +169,20 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       </div>
     ` : ''}
 
+    ${isCalibration ? `
+      <div class="surface">
+        <h3>Стартовые показатели</h3>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+          ${storage.getDomains().map(d => `
+            <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); padding: 8px 12px; border-radius: 8px;">
+              <span style="font-weight: 500;">${domainLabel(d.domain)}</span>
+              <span style="color: var(--ok); font-weight: bold;">Ур. ${Math.max(1, Math.round(d.value / 100))} (${Math.round(d.value)})</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
     <div class="surface">
       <h3>Сдвиги навыков</h3>
       ${deltasHtml}

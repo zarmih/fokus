@@ -17,6 +17,7 @@ export function renderToday(container: HTMLElement) {
   const lvl = getLevelProgress(profile.xp || 0);
   const greetName = profile.displayName || (profile.name !== 'User' ? profile.name : '');
 
+  const active = storage.getActiveSession();
   const ds = storage.getDaySummaries();
   const todayStr = new Date().toISOString().split('T')[0];
   const playedToday = ds.some(d => d.date.startsWith(todayStr));
@@ -138,10 +139,22 @@ export function renderToday(container: HTMLElement) {
   } else if (playedToday) {
     actionHtml = `
       <div class="workout-card done">
-        <div class="workout-kicker">Сегодня</div>
-        <h3>План выполнен</h3>
+        <div class="workout-kicker">Сегодня закрыто</div>
+        <h3>Ритуал выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
         <button id="btn-start" class="btn-secondary">Ещё одна сессия</button>
+      </div>
+    `;
+  } else if (active) {
+    actionHtml = `
+      <div class="workout-card">
+        <div class="workout-kicker">Дневной ритуал (в процессе)</div>
+        <h3>Продолжить · Осталось ${Math.ceil(active.timeLeft / 60)} мин</h3>
+        <p>Выполнено ${active.items.length} из ${active.planItems.length} блоков.</p>
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button id="btn-resume" class="btn-primary" style="flex: 1;">Продолжить</button>
+          <button id="btn-restart" class="btn-secondary" style="flex: 1;">Заново</button>
+        </div>
       </div>
     `;
   } else {
@@ -169,7 +182,10 @@ export function renderToday(container: HTMLElement) {
       <div class="stat-row">
         <div class="stat-pill">
           <div class="stat-num">${streak}</div>
-          <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
+          <div class="stat-lbl">
+            ${streak === 0 ? 'начни серию' : 'дней подряд'}
+            ${skippedYesterday && streak > 0 ? '<br><span style="color:var(--ok); font-size: 0.8em; margin-top:4px; display:inline-block">🛡️ щит спас серию</span>' : ''}
+          </div>
         </div>
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
@@ -204,20 +220,23 @@ export function renderToday(container: HTMLElement) {
     </div>
   `;
 
-  content.querySelector('#btn-start')?.addEventListener('click', () => {
-    const startSession = () => {
-      if (!profile.calibrated) {
-        navigateTo('session', { mode: 'calibration', items: [
-          { exerciseId: 'grid-memory' }, 
-          { exerciseId: 'odd-one' }, 
-          { exerciseId: 'pattern-next' }, 
-          { exerciseId: 'reaction-strike' }, 
-          { exerciseId: 'switch-rule' }
-        ] });
-      } else {
-        navigateTo('session', { mode: 'normal', items: plan.items });
-      }
-    };
+  const setupStartButton = (btnId: string, isResume: boolean, shouldClearActive: boolean) => {
+    content.querySelector(btnId)?.addEventListener('click', () => {
+      if (shouldClearActive) storage.clearActiveSession();
+      
+      const startSession = () => {
+        if (!profile.calibrated) {
+          navigateTo('session', { mode: 'calibration', items: [
+            { exerciseId: 'grid-memory' }, 
+            { exerciseId: 'odd-one' }, 
+            { exerciseId: 'pattern-next' }, 
+            { exerciseId: 'reaction-strike' }, 
+            { exerciseId: 'switch-rule' }
+          ] });
+        } else {
+          navigateTo('session', { mode: 'normal', items: plan.items, isResume });
+        }
+      };
 
     if (!playedToday && profile.calibrated && !profile.skipLifestylePrompt) {
       const modal = document.createElement('div');
@@ -293,7 +312,15 @@ export function renderToday(container: HTMLElement) {
         startSession();
       });
     } else {
-      startSession();
-    }
-  });
+        startSession();
+      }
+    });
+  };
+
+  if (active) {
+    setupStartButton('#btn-resume', true, false);
+    setupStartButton('#btn-restart', false, true);
+  } else {
+    setupStartButton('#btn-start', false, false);
+  }
 }
