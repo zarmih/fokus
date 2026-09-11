@@ -2,7 +2,7 @@ import { storage } from '../core/storage';
 import { navigateTo } from './router';
 import { t } from '../core/i18n';
 
-export function renderShell(container: HTMLElement, params: {active: 'today' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
+export function renderShell(container: HTMLElement, params: {active: 'today' | 'program' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
   const summaries = storage.getDaySummaries();
   let streak = 0;
   if (summaries.length > 0) {
@@ -23,6 +23,10 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
       <div class="tab-item ${params.active === 'today' ? 'active' : ''}" id="tab-today">
         <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>
         <span>${t('today.title')}</span>
+      </div>
+      <div class="tab-item ${params.active === 'program' ? 'active' : ''}" id="tab-program">
+        <svg viewBox="0 0 24 24"><path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72l5 2.73 5-2.73v3.72z"/></svg>
+        <span>${t('program.title')}</span>
       </div>
       <div class="tab-item ${params.active === 'trainers' ? 'active' : ''}" id="tab-trainers">
         <svg viewBox="0 0 24 24"><path d="M20.57 14.86L22 13.43 20.57 12 17 15.57 8.43 7 12 3.43 10.57 2 9.14 3.43 7.71 2 5.57 4.14 4.14 2.71 2.71 4.14l1.43 1.43L2 7.71l1.43 1.43L2 10.57 3.43 12 7 8.43 15.57 17 12 20.57 13.43 22l1.43-1.43L16.29 22l2.14-2.14 1.43 1.43 1.43-1.43-1.43-1.43L22 16.29z"/></svg>
@@ -46,7 +50,7 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
   const headerHtml = params.hideNav ? '' : `
     <div class="top-bar">
       <div class="brand" style="display: flex; align-items: center; gap: 8px;"><img src="${import.meta.env.BASE_URL}art/logo-fokus.svg" width="24" height="24">Fokus</div>
-      <div class="streak-badge">
+      <div class="streak-badge${streak > 0 ? ' has-streak' : ''}">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
         ${streak}
       </div>
@@ -61,6 +65,7 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
 
   if (!params.hideNav) {
     container.querySelector('#tab-today')?.addEventListener('click', () => navigateTo('today'));
+    container.querySelector('#tab-program')?.addEventListener('click', () => navigateTo('program'));
     container.querySelector('#tab-trainers')?.addEventListener('click', () => navigateTo('trainers'));
     container.querySelector('#tab-progress')?.addEventListener('click', () => navigateTo('progress'));
     container.querySelector('#tab-duel')?.addEventListener('click', () => navigateTo('duel'));

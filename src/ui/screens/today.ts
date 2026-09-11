@@ -1,7 +1,8 @@
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
-import { buildTrainingPlan } from '../../core/session-builder';
 import { navigateTo } from '../router';
+import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
+import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
 import { generateInsights } from '../../core/insights';
@@ -11,6 +12,7 @@ import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fo
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { assessRetention, bandLabel } from '../../core/retention';
+import { enterStage } from '../../core/motion';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -44,14 +46,9 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
-  const plan = buildTrainingPlan({
-    durationSec: profile.sessionLengthSec,
-    catalog: registry as any,
-    domains,
-    skills,
-    states,
-    primaryGoal: profile.primaryGoal
-  });
+  const plan = planForNow({ durationSec: profile.sessionLengthSec });
+  const recal = plan.recalibration;
+  const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
   const prevFi = previousFokusIndex(ds, new Date().toISOString());
@@ -64,9 +61,11 @@ export function renderToday(container: HTMLElement) {
   const compositionHtml = plan.items.map((item, index) => {
     const r = registry.find(x => x.manifest.id === item.exerciseId);
     const isPrimary = index === 0;
+    const slot = item.slot ? SLOT_LABEL[item.slot] : '';
     return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}">
       <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="18" height="18" alt="">
       <span>${r?.manifest.name}</span>
+      ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
     </div>`;
   }).join('');
 
@@ -133,7 +132,7 @@ export function renderToday(container: HTMLElement) {
             </div>
             <div class="quest-count">${q.progress}/${q.target}</div>
           </div>
-          <div class="scale-track quest-track"><div class="scale-fill" style="width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
+          <div class="scale-track quest-track"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
         `;
       }).join('')}
     </div>
@@ -153,10 +152,22 @@ export function renderToday(container: HTMLElement) {
     `;
   }
 
+  const recalHtml = showRecal ? `
+    <div class="workout-card recal-card">
+      <div class="workout-kicker">Мягкая перекалибровка</div>
+      <h3>Обновить оценку</h3>
+      <p>${recal.summary || 'Короткая сверка, чтобы сложность снова попала в зону вызова. Серия не сбрасывается.'}</p>
+      <div class="recal-actions">
+        <button id="btn-recal" class="btn-primary" type="button">Пройти (~90 сек)</button>
+        <button id="btn-recal-later" class="btn-secondary" type="button">Позже</button>
+      </div>
+    </div>
+  ` : '';
+
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
         <p>Три коротких блока, около 90 секунд. После этого Fokus соберёт персональную сессию.</p>
@@ -165,7 +176,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done">
+      <div class="workout-card done fx-celebrate">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
@@ -174,7 +185,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card fx-enter">
         <div class="workout-kicker">Тренировка дня</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
@@ -191,11 +202,13 @@ export function renderToday(container: HTMLElement) {
 
     ${heroHtml}
 
+    ${recalHtml}
+
     ${actionHtml}
 
     <div class="dashboard-widgets">
       <div class="stat-row">
-        <div class="stat-pill">
+        <div class="stat-pill fx-enter ${streak > 0 ? 'has-streak' : ''}">
           <div class="stat-num">${streak}</div>
           <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
         </div>
@@ -232,6 +245,21 @@ export function renderToday(container: HTMLElement) {
       ${questsHtml}
     </div>
   `;
+
+  content.querySelector('#btn-recal')?.addEventListener('click', () => {
+    const items = (recal.probe.length ? recal.probe : [
+      { exerciseId: 'odd-one' },
+      { exerciseId: 'grid-memory' },
+      { exerciseId: 'stroop' }
+    ]).map((p) => ({ exerciseId: p.exerciseId }));
+    navigateTo('session', { mode: 'recalibration', items });
+  });
+  content.querySelector('#btn-recal-later')?.addEventListener('click', () => {
+    snoozeRecalibration();
+    renderToday(container);
+  });
+  const workout = content.querySelector('.workout-card') as HTMLElement | null;
+  if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {

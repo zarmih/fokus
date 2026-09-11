@@ -1,14 +1,42 @@
 import type { ExerciseManifest } from '../exercises/contract';
 import type { DomainIndex, SkillIndex, ExerciseState } from './types';
+import {
+  buildAdaptivePlan as engineBuildAdaptivePlan,
+  type AdaptivePlan,
+  type AdaptivePlanParams
+} from './engine/bridge';
 
 export interface TrainingPlanItem {
   exerciseId: string;
   reason: string;
+  slot?: 'overdue' | 'due' | 'fresh';
+  difficulty?: number;
+  pSuccess?: number;
+  domain?: string;
 }
 
 export interface TrainingPlan {
   focusDomains: string[];
   items: TrainingPlanItem[];
+  source?: 'engine' | 'legacy';
+}
+
+/**
+ * Engine v2 planner with a silent fallback to the heuristic builder.
+ * Phase 2 program screens can call this even if those PRs are not merged:
+ * Today / Session already consume the same shape.
+ */
+export function buildAdaptivePlan(params: AdaptivePlanParams): AdaptivePlan {
+  return engineBuildAdaptivePlan(params, (p) =>
+    buildTrainingPlan({
+      durationSec: p.durationSec,
+      catalog: p.catalog,
+      domains: p.domains,
+      skills: p.skills,
+      states: p.states,
+      primaryGoal: p.primaryGoal
+    })
+  );
 }
 
 export function buildTrainingPlan(params: {
