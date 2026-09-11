@@ -11,6 +11,8 @@ import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fo
 import { domainLabel } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
+import { precisionLabel } from '../../core/calibration';
+import { abilityCaption, pickTransferTip } from '../../core/onboarding';
 import { setScreenTitle } from '../a11y';
 import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 
@@ -119,6 +121,42 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   }).join('');
   if (!deltasHtml) deltasHtml = '<div class="muted">Нет изменений</div>';
 
+  const snapshot = profile.probeSnapshot;
+  const probeHtml = isCalibration && snapshot ? `
+    <div class="surface probe-summary">
+      <h3>Стартовая оценка</h3>
+      <p class="muted">${abilityCaption(snapshot)}</p>
+      ${snapshot.domains.filter((d) => d.probed).map((d) => `
+        <div class="delta-row">
+          <span>${domainLabel(d.domain)}</span>
+          <span>ур. ${d.startLevel.toFixed(1)} · ${precisionLabel(d.precision)}</span>
+        </div>
+      `).join('')}
+    </div>
+  ` : '';
+
+  const transfer = pickTransferTip({
+    primaryGoal: profile.primaryGoal,
+    snapshot,
+    cursor: profile.transferTipCursor
+  });
+  const transferHtml = isCalibration ? `
+    <div class="surface transfer-card">
+      <h3>${transfer.title}</h3>
+      <p class="muted">${transfer.body}</p>
+    </div>
+  ` : '';
+
+  const weekHtml = isCalibration && profile.firstWeekPlan ? `
+    <div class="surface">
+      <h3>Первая неделя</h3>
+      <p class="muted">Мягкий разгон. Один пропуск прощается. Навёрстывать дни не нужно.</p>
+      <div class="week-strip" aria-hidden="true">
+        ${profile.firstWeekPlan.days.map((d) => `<span class="week-pill ${d.day === 1 ? 'now' : 'next'}">${d.day}</span>`).join('')}
+      </div>
+    </div>
+  ` : '';
+
   const plan = planForNow({ durationSec: profile.sessionLengthSec || 300 });
 
   const nextItem = plan.items[0];
@@ -148,7 +186,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     <div class="result-hero fx-celebrate" id="result-hero">
       <div class="result-kicker">${isCalibration ? 'Профиль готов' : isRecalibration ? 'Оценка обновлена' : 'Тренировка завершена'}</div>
       <div class="result-big"><span class="xp-counter" id="xp-counter" data-xp="${Math.round(totalScore)}">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
-      <div class="muted">${isCalibration ? 'стартовая оценка' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
+      <div class="muted">${isCalibration ? 'стартовая оценка · не IQ' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
       ${compareHtml}
     </div>
@@ -167,10 +205,15 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       </div>
     ` : ''}
 
-    <div class="surface">
+    ${probeHtml}
+
+    ${isCalibration ? '' : `<div class="surface">
       <h3>Сдвиги навыков</h3>
       ${deltasHtml}
-    </div>
+    </div>`}
+
+    ${transferHtml}
+    ${weekHtml}
 
     <div class="surface">
       <h3>Результаты и прогресс</h3>

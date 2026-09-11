@@ -55,6 +55,43 @@ test('today shows a rhythm line after a gap, without churn-panic copy', () => {
   expect(app.textContent).not.toMatch(/churn|не пропусти|прокачай мозг/i);
 });
 
+test('today shows first-week strip and transfer framing after probe', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  p.primaryGoal = 'memory';
+  p.firstWeekPlan = {
+    startDate: new Date().toISOString().slice(0, 10),
+    targetSessionSec: 480,
+    primaryGoal: 'memory',
+    skipPolicy: 'one-forgiven',
+    days: Array.from({ length: 7 }, (_, i) => ({
+      day: i + 1,
+      durationSec: i < 2 ? 300 : 480,
+      focusDomains: ['memory'] as const,
+      intensity: i < 2 ? 'gentle' as const : 'full' as const,
+      label: 'Ритм'
+    }))
+  };
+  p.probeSnapshot = {
+    completedAt: new Date().toISOString(),
+    durationSec: 72,
+    blocks: [],
+    domains: [],
+    overallTheta: 0,
+    overallPrecision: 2,
+    disclaimer: 'not-iq'
+  };
+  storage.setProfile(p);
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  expect(app.textContent).toMatch(/Первая неделя/);
+  expect(app.textContent).toMatch(/Навёрстывать/);
+  expect(app.textContent).toMatch(/Перенос в жизнь/);
+  expect(app.textContent).not.toMatch(/IQ-тест|прокачать мозг/i);
+});
+
 test('today shows Fokus Index and workout after calibration', () => {
   const p = storage.getProfile();
   p.onboarded = true;

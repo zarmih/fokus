@@ -1,6 +1,10 @@
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
+import { navigateTo } from '../router';
+import { domainLabel } from '../../core/labels';
+import { precisionLabel } from '../../core/calibration';
+import { abilityCaption } from '../../core/onboarding';
 import { applyDocumentLang } from '../a11y';
 
 export function renderSettings(container: HTMLElement) {
@@ -83,6 +87,27 @@ export function renderSettings(container: HTMLElement) {
       </label>
     </div>
 
+    ${profile.probeSnapshot ? `
+    <div class="surface probe-summary">
+      <h3 style="margin-bottom: 8px;">Стартовая оценка</h3>
+      <p class="muted" style="margin-bottom: 12px;">${abilityCaption(profile.probeSnapshot)}</p>
+      ${profile.probeSnapshot.domains.filter((d) => d.probed).map((d) => `
+        <div class="delta-row">
+          <span>${domainLabel(d.domain)}</span>
+          <span>ур. ${d.startLevel.toFixed(1)} · ${precisionLabel(d.precision)}</span>
+        </div>
+      `).join('')}
+      <button id="btn-recalibrate" class="btn-secondary" type="button" style="width: 100%; margin-top: 16px;">Повторить калибровку (~90 сек)</button>
+    </div>
+    ` : profile.onboarded && !profile.calibrated ? `
+    <div class="surface">
+      <h3 style="margin-bottom: 8px;">Калибровка</h3>
+      <p class="muted" style="margin-bottom: 12px;">Короткий зонд ещё не пройден. Это не IQ — только стартовая сложность.</p>
+      <button id="btn-recalibrate" class="btn-primary" type="button" style="width: 100%;">Пройти калибровку</button>
+    </div>
+    ` : ''}
+
+    <div class="surface">
     <div class="surface" id="sync-health">
       <h3 style="margin-bottom: 16px;">Данные</h3>
       <div id="sync-health-meta" style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;"></div>
@@ -335,5 +360,13 @@ export function renderSettings(container: HTMLElement) {
       storage.reset();
       location.reload();
     }
+  });
+
+  document.getElementById('btn-recalibrate')?.addEventListener('click', () => {
+    const p = storage.getProfile();
+    p.calibrated = false;
+    p.probeSnapshot = undefined;
+    storage.setProfile(p);
+    navigateTo('today');
   });
 }
