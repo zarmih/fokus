@@ -12,6 +12,21 @@ export function renderProgress(container: HTMLElement) {
   const ds = storage.getDaySummaries();
   const history = storage.getHistory().slice().reverse();
   
+  const weekDs = ds.slice(-7);
+  const monthDs = ds.slice(-30);
+
+  const getDomainDeltas = (summaries: typeof ds) => {
+    const deltas: Record<string, number> = {};
+    summaries.forEach(s => {
+      Object.entries(s.domainDeltas || {}).forEach(([dom, val]) => {
+        deltas[dom] = (deltas[dom] || 0) + val;
+      });
+    });
+    return deltas;
+  };
+  const weekDeltas = getDomainDeltas(weekDs);
+  const monthDeltas = getDomainDeltas(monthDs);
+  
   // Weekly chart logic
   let weeklyScore = 0;
   const bars = [];
@@ -243,6 +258,41 @@ export function renderProgress(container: HTMLElement) {
     </div>
   ` : '';
 
+  const trendsHtml = `
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 16px;">Тренды по доменам</h3>
+      <div style="display: grid; gap: 12px;">
+        ${allDomains.map(d => {
+          const wDelta = Math.round(weekDeltas[d.id] || 0);
+          const mDelta = Math.round(monthDeltas[d.id] || 0);
+          const wColor = wDelta > 0 ? 'var(--ok)' : wDelta < 0 ? 'var(--danger)' : 'var(--muted)';
+          const mColor = mDelta > 0 ? 'var(--ok)' : mDelta < 0 ? 'var(--danger)' : 'var(--muted)';
+          const wStr = wDelta > 0 ? '+' + wDelta : String(wDelta);
+          const mStr = mDelta > 0 ? '+' + mDelta : String(mDelta);
+          
+          return `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--line);">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: var(--dom-${d.id});"></div>
+                <div style="font-weight: 600; font-size: 14px; opacity: 0.9;">${domainLabel(d.id)}</div>
+              </div>
+              <div style="display: flex; gap: 24px; font-size: 13px;">
+                <div style="text-align: right; width: 50px;">
+                  <div style="color: var(--muted); font-size: 11px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Неделя</div>
+                  <div style="color: ${wColor}; font-weight: 700;">${wStr}</div>
+                </div>
+                <div style="text-align: right; width: 50px;">
+                  <div style="color: var(--muted); font-size: 11px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Месяц</div>
+                  <div style="color: ${mColor}; font-weight: 700;">${mStr}</div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+
   content.innerHTML = `
     <div class="today-head">
       <h2>Статистика</h2>
@@ -251,6 +301,7 @@ export function renderProgress(container: HTMLElement) {
     ${fiHtml}
     ${insightHtml}
     ${nextStepHtml}
+    ${trendsHtml}
     
     <div class="surface" style="margin-bottom: 24px;">
       <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
