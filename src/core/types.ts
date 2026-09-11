@@ -95,6 +95,8 @@ export interface DaySummary {
   skipped: boolean;
   lifestyle?: { sleep: string | null; stress: string | null };
   fokusIndex?: number;
+  /** End-of-day domain snapshot. Optional for legacy summaries. */
+  domainValues?: Record<string, number>;
 }
 export interface AppState {
   profile: Profile;

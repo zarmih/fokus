@@ -11,6 +11,7 @@ import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { SessionItem } from '../../core/types';
 import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
+import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[]}) {
   const {items, mode = 'normal'} = params;
@@ -70,11 +71,12 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const last = sessionResults[sessionResults.length - 1];
     const lastEx = last ? registry.find(r => r.manifest.id === last.exerciseId) : null;
     const lastBanner = last && lastEx ? `
-      <div class="block-recap">
+      <div class="block-recap fx-enter ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}">
         ${lastEx.manifest.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
       </div>
     ` : '';
 
+    content.dataset.sessionPhase = 'intro';
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
@@ -86,7 +88,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
       ${lastBanner}
-      <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
+      <div class="instruction-card fx-enter" id="instruction-card">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
@@ -146,25 +148,32 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       
       const container = document.getElementById('game-container');
       if (!container) return;
+      content.dataset.sessionPhase = 'countdown';
       
       const countdown = document.createElement('div');
-      countdown.className = 'count-overlay';
+      countdown.className = 'count-overlay is-tick';
       container.appendChild(countdown);
       
       let count = 3;
       countdown.textContent = count.toString();
+      playSessionCue('tick');
       let iv: any = null;
       
       const startBlock = () => {
         countdown.remove();
+        content.dataset.sessionPhase = 'play';
+        enterStage(container);
+        playSessionCue('enter');
         const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
         let cleanupFn: any = null;
 
         const onBlockEnd = (res: any) => {
           if (cleanupFn) cleanupFn();
-          import('../../core/audio').then(a => {
-            a.playBeep(res.accuracy >= 0.8);
-          }).catch(() => {});
+          content.dataset.sessionPhase = 'feedback';
+          const ok = res.accuracy >= 0.8;
+          const stageEl = container.querySelector('.play-stage') as HTMLElement | null;
+          applyFeedback(stageEl || container, ok);
+          playSessionCue(ok ? 'hit' : 'miss');
 
           const targetMs = (manifest as any).levels ? ((manifest as any).levels[Math.floor(state!.difficulty)]?.targetMs || 1500) : 1500;
           
@@ -312,13 +321,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         count--;
         if (count > 0) {
           countdown.textContent = count.toString();
-          countdown.style.transform = 'scale(1.2)';
-          setTimeout(() => countdown.style.transform = 'scale(1)', 150);
-          import('../../core/audio').then(a => a.playTick()).catch(() => {});
+          replayClass(countdown, 'is-tick');
+          playSessionCue('tick');
         } else {
           clearInterval(iv);
           iv = null;
-          import('../../core/audio').then(a => a.playBeep(true)).catch(() => {});
           startBlock();
         }
       }, 700);
@@ -365,14 +372,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
     const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
-    const fiNow = computeFokusIndex(storage.getDomains());
+    const domainsNow = storage.getDomains();
+    const fiNow = computeFokusIndex(domainsNow);
+    const domainValues: Record<string, number> = {};
+    domainsNow.forEach((d) => {
+      if (d.value > 0) domainValues[d.domain] = d.value;
+    });
     const ds: any = {
       date: sessionStartedAt,
       totalScore,
       domainDeltas,
       streak: ns.streak,
       skipped: ns.skipped,
-      fokusIndex: fiNow.value
+      fokusIndex: fiNow.value,
+      domainValues
     };
     const prof = storage.getProfile();
     if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {

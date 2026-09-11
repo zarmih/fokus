@@ -131,8 +131,8 @@ export class Storage {
     this.saveState(s);
   }
 
-  getDaySummaries(limit = 28): DaySummary[] { 
-    return this.getState().daySummaries.slice(-limit); 
+  getDaySummaries(limit = 60): DaySummary[] {
+    return this.getState().daySummaries.slice(-limit);
   }
   addDaySummary(ds: DaySummary) { 
     const s = this.getState(); 

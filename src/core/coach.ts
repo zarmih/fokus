@@ -146,3 +146,5 @@ export function getDailySpark(params: {
     tone: 'science'
   };
 }
+
+export { getWeeklyDomainTips } from './coach-intel';
