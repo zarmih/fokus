@@ -86,25 +86,82 @@ export function renderTrainers(container: HTMLElement) {
   content.innerHTML = `
     <div class="today-head">
       <h2>Каталог тренажёров</h2>
-      <p class="today-date">18 упражнений. Практика без влияния на Fokus Index.</p>
+      <p class="today-date">${registry.length} упражнений. Практика без влияния на Fokus Index.</p>
     </div>
-    <div class="domain-filters">
-      ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button">${f.name}</button>`).join('')}
+    
+    <div class="catalog-controls">
+      <div class="search-container">
+        <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="trainers-search" class="search-input" placeholder="Найти тренажёр..." autocomplete="off" />
+      </div>
+      <div class="domain-filters">
+        ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button">${f.name}</button>`).join('')}
+      </div>
     </div>
-    <div class="trainers-grid">
+    
+    <div class="trainers-grid" id="trainers-grid">
       ${gridHtml}
+    </div>
+    
+    <div class="empty-state is-hidden" id="trainers-empty">
+      <div class="empty-icon">🔍</div>
+      <h3 class="empty-title">Ничего не найдено</h3>
+      <p class="empty-text">Попробуйте изменить поисковый запрос или выбрать другой домен.</p>
+      <button class="btn btn-secondary mt-16" id="reset-filters-btn">Сбросить фильтры</button>
     </div>
   `;
 
+  let currentDomain = 'all';
+  let searchQuery = '';
+
+  const grid = content.querySelector('#trainers-grid') as HTMLElement;
+  const emptyState = content.querySelector('#trainers-empty') as HTMLElement;
+  const searchInput = content.querySelector('#trainers-search') as HTMLInputElement;
+  const resetBtn = content.querySelector('#reset-filters-btn') as HTMLButtonElement;
+
+  function updateList() {
+    let visibleCount = 0;
+    content.querySelectorAll('.trainer-card').forEach(card => {
+      const el = card as HTMLElement;
+      const dom = el.dataset.domain;
+      const name = (el.querySelector('.trainer-name')?.textContent || '').toLowerCase();
+      
+      const matchDomain = currentDomain === 'all' || dom === currentDomain;
+      const matchSearch = name.includes(searchQuery.toLowerCase());
+      
+      const isVisible = matchDomain && matchSearch;
+      el.classList.toggle('is-hidden', !isVisible);
+      if (isVisible) visibleCount++;
+    });
+
+    if (visibleCount === 0) {
+      grid.classList.add('is-hidden');
+      emptyState.classList.remove('is-hidden');
+    } else {
+      grid.classList.remove('is-hidden');
+      emptyState.classList.add('is-hidden');
+    }
+  }
+
   content.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      const dom = (chip as HTMLElement).dataset.dom;
+      currentDomain = (chip as HTMLElement).dataset.dom || 'all';
       content.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === chip));
-      content.querySelectorAll('.trainer-card').forEach(card => {
-        const match = dom === 'all' || (card as HTMLElement).dataset.domain === dom;
-        card.classList.toggle('is-hidden', !match);
-      });
+      updateList();
     });
+  });
+
+  searchInput.addEventListener('input', (e) => {
+    searchQuery = (e.target as HTMLInputElement).value;
+    updateList();
+  });
+
+  resetBtn.addEventListener('click', () => {
+    searchQuery = '';
+    searchInput.value = '';
+    currentDomain = 'all';
+    content.querySelectorAll('.filter-chip').forEach((c, i) => c.classList.toggle('active', i === 0));
+    updateList();
   });
 
   content.querySelectorAll('.trainer-card').forEach(card => {
