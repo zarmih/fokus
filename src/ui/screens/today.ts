@@ -1,7 +1,10 @@
 import { storage } from '../../core/storage';
-import { registry } from '../../exercises/registry';
+import { catalog, getManifest } from '../../exercises/catalog';
+import { bindDialog } from '../a11y';
 import { planWithRecovery } from '../../core/recovery';
 import { navigateTo } from '../router';
+import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
+import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
 import { generateInsights } from '../../core/insights';
@@ -11,6 +14,10 @@ import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fo
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { renderQualityCard } from '../components/quality-card';
+import { calibrationSessionItems } from '../../core/calibration';
+import { getTodayRitual, pickTransferTip } from '../../core/onboarding';
+import { assessRetention, bandLabel } from '../../core/retention';
+import { enterStage } from '../../core/motion';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -44,19 +51,25 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
+  const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
+  const baseDuration = weekRitual.inFirstWeek && weekRitual.ritualDay
+    ? weekRitual.ritualDay.durationSec
+    : profile.sessionLengthSec;
   const ritual = planWithRecovery({
-    durationSec: profile.sessionLengthSec,
-    catalog: registry as any,
+    durationSec: baseDuration,
+    catalog,
     domains,
     skills,
     states,
-    primaryGoal: profile.primaryGoal,
+    primaryGoal: (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal,
     sessions,
     daySummaries: ds,
     recoveryHintsEnabled: profile.recoveryHints !== false
   });
   const plan = ritual.plan;
   const ritualDuration = ritual.snapshot.durationSec;
+  const recal = ritual.recalibration;
+  const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
   const prevFi = previousFokusIndex(ds, new Date().toISOString());
@@ -67,11 +80,13 @@ export function renderToday(container: HTMLElement) {
     : 'Сбалансированная тренировка';
 
   const compositionHtml = plan.items.map((item, index) => {
-    const r = registry.find(x => x.manifest.id === item.exerciseId);
+    const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
-    return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="18" height="18" alt="">
-      <span>${r?.manifest.name}</span>
+    const slot = item.slot ? SLOT_LABEL[item.slot] : '';
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}">
+      <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
+      <span>${r?.name}</span>
+      ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
     </div>`;
   }).join('');
 
@@ -79,6 +94,10 @@ export function renderToday(container: HTMLElement) {
   const hello = hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
   const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
   const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
+
+  const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
+    ? (profile as { shieldCharges?: number }).shieldCharges
+    : undefined;
 
   const spark = getDailySpark({
     domains,
@@ -91,11 +110,61 @@ export function renderToday(container: HTMLElement) {
     streak,
     skippedYesterday,
     primaryGoal: profile.primaryGoal,
-    focusDomains: plan.focusDomains
+    focusDomains: plan.focusDomains,
+    shieldCharges
   });
+
+  let retentionHtml = '';
+  try {
+    const snap = assessRetention({
+      daySummaries: ds,
+      sessions,
+      domains,
+      playedToday,
+      streak,
+      skippedYesterday,
+      sessionLengthSec: profile.sessionLengthSec,
+      shieldCharges
+    });
+    if (profile.calibrated && snap.confidence >= 20) {
+      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
+        ? ` · ${snap.primaryNudge.title.toLowerCase()}`
+        : '';
+      retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
+    }
+  } catch {
+    retentionHtml = '';
+  }
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
   const topInsight = insights[0];
+  const transfer = pickTransferTip({
+    primaryGoal: profile.primaryGoal,
+    snapshot: profile.probeSnapshot,
+    cursor: profile.transferTipCursor
+  });
+
+  const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
+    <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
+      <div class="week-kicker">Первая неделя · день ${weekRitual.day} из 7 · ${weekRitual.ritualDay.label}</div>
+      <div class="week-strip" role="list">
+        ${profile.firstWeekPlan!.days.map((d) => {
+          const state = d.day < (weekRitual.day || 0) ? 'past' : d.day === weekRitual.day ? 'now' : 'next';
+          return `<span class="week-pill ${state}" role="listitem" aria-current="${state === 'now' ? 'step' : 'false'}">${d.day}</span>`;
+        }).join('')}
+      </div>
+      <p class="week-note">${weekRitual.copy}</p>
+    </div>
+  ` : '';
+
+  const transferHtml = profile.calibrated ? `
+    <div class="transfer-card">
+      <button type="button" class="transfer-toggle" id="btn-transfer" aria-expanded="false" aria-controls="transfer-body">
+        Перенос в жизнь · ${transfer.title}
+      </button>
+      <p id="transfer-body" class="transfer-body" hidden>${transfer.body}</p>
+    </div>
+  ` : '';
 
   const quests = getDailyQuests();
   const questsHtml = `
@@ -111,7 +180,7 @@ export function renderToday(container: HTMLElement) {
             </div>
             <div class="quest-count">${q.progress}/${q.target}</div>
           </div>
-          <div class="scale-track quest-track"><div class="scale-fill" style="width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
+          <div class="scale-track quest-track"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
         `;
       }).join('')}
     </div>
@@ -131,33 +200,45 @@ export function renderToday(container: HTMLElement) {
     `;
   }
 
+  const recalHtml = showRecal ? `
+    <div class="workout-card recal-card">
+      <div class="workout-kicker">Мягкая перекалибровка</div>
+      <h3>Обновить оценку</h3>
+      <p>${recal.summary || 'Короткая сверка, чтобы сложность снова попала в зону вызова. Серия не сбрасывается.'}</p>
+      <div class="recal-actions">
+        <button id="btn-recal" class="btn-primary" type="button">Пройти (~90 сек)</button>
+        <button id="btn-recal-later" class="btn-secondary" type="button">Позже</button>
+      </div>
+    </div>
+  ` : '';
+
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
-        <p>Три коротких блока, около 90 секунд. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary">Пройти калибровку</button>
+        <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
+        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done">
+      <div class="workout-card done fx-celebrate">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
-        <button id="btn-start" class="btn-secondary">Ещё одна сессия</button>
+        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
-      <div class="workout-card ${rest ? 'rest-light' : ''}">
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
         <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
     `;
   }
@@ -171,12 +252,15 @@ export function renderToday(container: HTMLElement) {
     ${heroHtml}
 
     ${renderQualityCard(ritual.snapshot)}
+    ${recalHtml}
 
     ${actionHtml}
 
+    ${weekHtml}
+
     <div class="dashboard-widgets">
       <div class="stat-row">
-        <div class="stat-pill">
+        <div class="stat-pill fx-enter ${streak > 0 ? 'has-streak' : ''}">
           <div class="stat-num">${streak}</div>
           <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
         </div>
@@ -190,6 +274,7 @@ export function renderToday(container: HTMLElement) {
         </div>
       </div>
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
+      ${retentionHtml}
 
       <div class="insight-banner coach-${spark.tone}">
         <div class="insight-icon">💡</div>
@@ -210,13 +295,48 @@ export function renderToday(container: HTMLElement) {
       ` : ''}
 
       ${questsHtml}
+
+      ${transferHtml}
     </div>
   `;
+
+  content.querySelector('#btn-transfer')?.addEventListener('click', () => {
+    const btn = content.querySelector('#btn-transfer') as HTMLButtonElement | null;
+    const body = content.querySelector('#transfer-body') as HTMLElement | null;
+    if (!btn || !body) return;
+    const open = body.hasAttribute('hidden');
+    if (open) body.removeAttribute('hidden');
+    else body.setAttribute('hidden', '');
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const p = storage.getProfile();
+    p.transferTipCursor = (p.transferTipCursor || 0) + 1;
+    storage.setProfile(p);
+  });
+  content.querySelector('#btn-recal')?.addEventListener('click', () => {
+    const items = (recal.probe.length ? recal.probe : [
+      { exerciseId: 'odd-one' },
+      { exerciseId: 'grid-memory' },
+      { exerciseId: 'stroop' }
+    ]).map((p) => ({ exerciseId: p.exerciseId }));
+    navigateTo('session', { mode: 'recalibration', items });
+  });
+  content.querySelector('#btn-recal-later')?.addEventListener('click', () => {
+    snoozeRecalibration();
+    renderToday(container);
+  });
+  const workout = content.querySelector('.workout-card') as HTMLElement | null;
+  if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
       if (!profile.calibrated) {
-        navigateTo('session', { mode: 'calibration', items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'stroop' }] });
+        navigateTo('session', {
+          mode: 'calibration',
+          items: calibrationSessionItems({
+            primaryGoal: profile.primaryGoal,
+            catalog: catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain, skills: [...r.manifest.skills] }))
+          })
+        });
       } else {
         navigateTo('session', { mode: 'normal', items: plan.items, durationSec: ritualDuration });
       }
@@ -227,7 +347,7 @@ export function renderToday(container: HTMLElement) {
       modal.className = 'modal-root';
       modal.innerHTML = `
         <div class="surface modal-card">
-          <h3>Как вы сегодня?</h3>
+          <h3 id="ls-title">Как вы сегодня?</h3>
           <p class="modal-lead">Необязательно. Помогает увидеть связь сна и результата.</p>
           <div class="modal-field">
             <div class="modal-label">Сон</div>
@@ -250,6 +370,14 @@ export function renderToday(container: HTMLElement) {
         </div>
       `;
       document.body.appendChild(modal);
+      const unbindDialog = bindDialog(modal, {
+        labelledBy: 'ls-title',
+        onClose: () => {
+          unbindDialog();
+          modal.remove();
+          startSession();
+        }
+      });
 
       let sleepVal: string | null = null;
       let stressVal: string | null = null;
@@ -286,12 +414,14 @@ export function renderToday(container: HTMLElement) {
           p.lastLifestyle = { sleep: sleepVal, stress: stressVal, date: todayStr };
           storage.setProfile(p);
         }
+        unbindDialog();
         modal.remove();
         startSession();
       };
 
       modal.querySelector('#btn-ls-done')?.addEventListener('click', closeAndStart);
       modal.querySelector('#btn-ls-skip')?.addEventListener('click', () => {
+        unbindDialog();
         modal.remove();
         startSession();
       });

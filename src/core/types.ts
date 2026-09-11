@@ -1,3 +1,55 @@
+import type { AbilityModel } from './engine/types';
+
+export type CognitiveDomain = 'attention' | 'memory' | 'speed' | 'flexibility' | 'logic';
+
+/** Latent ability estimate from the first-session probe. Not an IQ score. */
+export interface DomainAbility {
+  domain: CognitiveDomain;
+  theta: number;
+  precision: number;
+  se: number;
+  startLevel: number;
+  observations: number;
+  probed: boolean;
+}
+
+export interface ProbeBlockRecord {
+  exerciseId: string;
+  domain: string;
+  accuracy: number;
+  avgRtMs: number;
+  thetaAfter: number;
+}
+
+export interface ProbeSnapshot {
+  completedAt: string;
+  durationSec: number;
+  blocks: ProbeBlockRecord[];
+  domains: DomainAbility[];
+  overallTheta: number;
+  overallPrecision: number;
+  /** Marker so exports never get mistaken for an IQ test. */
+  disclaimer: 'not-iq';
+}
+
+export type RitualIntensity = 'gentle' | 'steady' | 'full';
+
+export interface RitualDay {
+  day: number;
+  durationSec: number;
+  focusDomains: CognitiveDomain[];
+  intensity: RitualIntensity;
+  label: string;
+}
+
+export interface FirstWeekPlan {
+  startDate: string;
+  targetSessionSec: number;
+  primaryGoal: string;
+  skipPolicy: 'one-forgiven';
+  days: RitualDay[];
+}
+
 export interface Profile {
   name: string;
   createdAt: string;
@@ -20,6 +72,18 @@ export interface Profile {
   displayName?: string;
   /** When false, Today ignores the recovery gate. Default true. */
   recoveryHints?: boolean;
+  onboardingCompletedAt?: string;
+  probeSnapshot?: ProbeSnapshot;
+  firstWeekPlan?: FirstWeekPlan;
+  transferTipCursor?: number;
+  /** Present if a Phase 2 program PR is merged; G7 does not own this field. */
+  programPhase?: number;
+  programStartDate?: string;
+  /** ISO time of last (re)calibration. Used by the v2 engine stale trigger. */
+  lastCalibrationAt?: string;
+  needsRecalibration?: boolean;
+  recalibrationSnoozedUntil?: string | null;
+  engineVersion?: number;
 }
 
 export interface SkillIndex {
@@ -65,6 +129,8 @@ export interface SessionItem {
   difficultyAfter?: number;
   confidenceAfter?: number;
   progressionState?: string;
+  pSuccess?: number;
+  slot?: string;
 }
 export type SessionEndReason = 'completed' | 'fatigue' | 'timeout' | 'abandoned';
 
@@ -94,7 +160,16 @@ export interface DaySummary {
   skipped: boolean;
   lifestyle?: { sleep: string | null; stress: string | null };
   fokusIndex?: number;
+  /** End-of-day domain snapshot. Optional for legacy summaries. */
+  domainValues?: Record<string, number>;
 }
+export interface StorageMeta {
+  schemaVersion: number;
+  deviceId: string;
+  rev: number;
+  updatedAt: string;
+}
+
 export interface AppState {
   profile: Profile;
   domains: DomainIndex[];
@@ -103,4 +178,7 @@ export interface AppState {
   sessions: Session[];
   daySummaries: DaySummary[];
   history: HistoryItem[];
+  meta?: StorageMeta;
+  /** Adaptive Engine v2 latent-ability snapshot. Optional for pre-v4 saves. */
+  abilityModel?: AbilityModel;
 }

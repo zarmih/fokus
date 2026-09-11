@@ -15,11 +15,12 @@
   </head>
   <body>
     <div id="app">
-      <div class="boot-screen">
+      <div class="boot-screen" role="status" aria-live="polite">
         <div class="boot-mark">Fokus</div>
         <div class="boot-sub">внимание · память · ритм</div>
       </div>
     </div>
+    <div id="a11y-status" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

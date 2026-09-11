@@ -194,6 +194,73 @@ test('renderWeeklyReview - legacy data handling', () => {
   expect(html).toContain('Пока недостаточно подтверждённых изменений');
 });
 
+test('renderWeeklyReview - intel panel from 14-day model', () => {
+  const container = document.getElementById('app')!;
+  const p = storage.getProfile();
+  p.calibrated = true;
+  storage.setProfile(p);
+  storage.setDomains([
+    { domain: 'attention', value: 760, updatedAt: '2026-09-06' },
+    { domain: 'memory', value: 310, updatedAt: '2026-09-06' }
+  ]);
+
+  const dates = [
+    '2026-08-30',
+    '2026-08-31',
+    '2026-09-01',
+    '2026-09-02',
+    '2026-09-03',
+    '2026-09-04',
+    '2026-09-05',
+    '2026-09-06'
+  ];
+  dates.forEach((d, i) => {
+    storage.addDaySummary({
+      date: `${d}T10:00:00Z`,
+      totalScore: 80 + i,
+      domainDeltas: { memory: 3 },
+      streak: i + 1,
+      skipped: false,
+      fokusIndex: 400 + i * 4,
+      domainValues: { attention: 700, memory: 280 + i * 4 }
+    });
+    storage.addSession({
+      id: `s-${d}`,
+      startedAt: `${d}T10:00:00Z`,
+      finishedAt: `${d}T10:05:00Z`,
+      durationSec: 300,
+      items: [{
+        exerciseId: 'grid-memory',
+        level: 2,
+        accuracy: 0.9,
+        avgRtMs: 900,
+        score: 80,
+        masteryBefore: 20,
+        masteryAfter: 22,
+        difficultyBefore: 2,
+        difficultyAfter: 2,
+        confidenceAfter: 50
+      }]
+    });
+  });
+
+  renderWeeklyReview(container);
+  const html = container.innerHTML;
+  expect(html).toContain('Fokus Index');
+  expect(html).toContain('14 дней');
+  expect(html).toContain('30 дней');
+  expect(html).toContain('Коуч недели');
+  expect(html).toContain('Память');
+  expect(html).toContain('intel-miles');
+  expect(html).toContain('рекорд');
+  expect(html).toMatch(/Зона роста|Привычка|дней подряд|Ритм/);
+  expect(container.querySelector('#intel-win-30')).toBeTruthy();
+
+  (container.querySelector('#intel-win-30') as HTMLButtonElement).click();
+  expect(container.querySelector('[data-window="30"]')).toBeTruthy();
+  expect(container.innerHTML).toContain('30 дней');
+});
+
 test('renderWeeklyReview - plateau surfaced', () => {
   const container = document.getElementById('app')!;
   

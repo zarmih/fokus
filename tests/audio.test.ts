@@ -1,5 +1,5 @@
 import { expect, test, beforeEach } from 'vitest';
-import { nextCombo, playHit, playMiss, playCombo, playBeep, playTick, unlockAudio } from '../src/core/audio';
+import { nextCombo, playHit, playMiss, playCombo, playBeep, playTick, unlockAudio, playCue } from '../src/core/audio';
 import { storage } from '../src/core/storage';
 
 beforeEach(() => {
@@ -25,6 +25,12 @@ test('sound helpers do not throw when AudioContext is missing', () => {
     playBeep(true);
     playBeep(false);
     playTick();
+    playCue('enter');
+    playCue('celebrate');
+    playCue('press');
+    playCue('ritual');
+    playCue('hit', 2);
+    playCue('miss');
   }).not.toThrow();
 });
 

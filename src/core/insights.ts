@@ -1,5 +1,5 @@
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
-import { registry } from '../exercises/registry';
+import { catalog, getManifest } from '../exercises/catalog';
 import { domainLabel, skillLabel } from './labels';
 import { analyzeChronotype } from './coach';
 
@@ -40,7 +40,7 @@ export function generateInsights(
     
     // Check if confidence is established (proxy by looking at total attempts of underlying skills)
     const getDomainConfidence = (domainId: string) => {
-      const relatedSkills = registry.filter(r => r.manifest.domain === domainId).flatMap(r => r.manifest.skills);
+      const relatedSkills = catalog.filter(r => r.manifest.domain === domainId).flatMap(r => r.manifest.skills);
       const relevantSkills = skills.filter(s => (relatedSkills as string[]).includes(s.skill));
       const avgConfidence = relevantSkills.length > 0 
         ? relevantSkills.reduce((sum, s) => sum + s.confidence, 0) / relevantSkills.length
@@ -88,7 +88,7 @@ export function generateInsights(
   const plateauStates = states.filter(s => (s.consecutivePlateau || 0) >= 3);
   if (plateauStates.length > 0) {
     const plat = plateauStates[0];
-    const manifest = registry.find(r => r.manifest.id === plat.exerciseId)?.manifest;
+    const manifest = getManifest(plat.exerciseId);
     if (manifest) {
       insights.push({
         type: 'plateau',

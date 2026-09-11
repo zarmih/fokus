@@ -1,6 +1,7 @@
 import type { DaySummary, ExerciseState, Session } from './types';
 import { calculateEMA } from './domains';
-import { buildTrainingPlan, type TrainingPlan } from './session-builder';
+import { type TrainingPlan } from './session-builder';
+import { planForNow } from './adaptive-plan';
 import {
   clamp,
   mean,
@@ -360,7 +361,8 @@ export function planWithRecovery(params: {
   daySummaries?: DaySummary[];
   recoveryHintsEnabled?: boolean;
   nowIso?: string;
-}): { plan: TrainingPlan; snapshot: RecoverySnapshot } {
+  excludeIds?: string[];
+}): { plan: TrainingPlan; snapshot: RecoverySnapshot; recalibration: ReturnType<typeof planForNow>['recalibration'] } {
   const snapshot = estimateRecovery({
     sessions: params.sessions,
     daySummaries: params.daySummaries,
@@ -371,18 +373,20 @@ export function planWithRecovery(params: {
   });
 
   const durationSec = snapshot.durationSec;
-  const plan = buildTrainingPlan({
+  const adaptive = planForNow({
     durationSec,
-    catalog: params.catalog as any,
-    domains: params.domains as any,
-    skills: params.skills as any,
-    states: params.states,
-    primaryGoal: params.primaryGoal
+    excludeIds: (params as { excludeIds?: string[] }).excludeIds
   });
 
   return {
-    plan: applyRecoveryGate({ plan, catalog: params.catalog, states: params.states, gate: snapshot.gate }),
-    snapshot
+    plan: applyRecoveryGate({
+      plan: adaptive as TrainingPlan,
+      catalog: params.catalog,
+      states: params.states,
+      gate: snapshot.gate
+    }),
+    snapshot,
+    recalibration: adaptive.recalibration
   };
 }
 
