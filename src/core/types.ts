@@ -10,6 +10,7 @@ export interface Profile {
   soundOn: boolean;
   language?: string;
   achievements?: string[];
+  shieldCharges?: number;
   locale: 'ru';
   schemaVersion: number;
   xp?: number;

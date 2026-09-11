@@ -4,7 +4,7 @@ import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
 import { renderScatterPlot, renderRadarChart } from '../components/charts';
-import { computeFokusIndex } from '../../core/fokus-index';
+import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
 
 export function renderProgress(container: HTMLElement) {
@@ -100,6 +100,8 @@ export function renderProgress(container: HTMLElement) {
     const dVal = domains.find(x => x.domain === d.id);
     if (!dVal) return '';
     const dScore = Math.round(dVal.value);
+    const dTrendStr = (dVal.trend || 0) > 0 ? '↑' : (dVal.trend || 0) < 0 ? '↓' : '→';
+    const dTrendColor = (dVal.trend || 0) > 0 ? 'var(--ok)' : (dVal.trend || 0) < 0 ? 'var(--danger)' : 'var(--muted)';
     
     // Find skills for this domain
     const dSkillNames = Array.from(domainSkills.get(d.id) || []);
@@ -134,7 +136,7 @@ export function renderProgress(container: HTMLElement) {
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${dSkills.length > 0 ? '12px' : '0'};">
           <div style="font-weight: 700; font-size: 16px; color: var(--dom-${d.id});">${domainLabel(d.id)}</div>
-          <div style="font-size: 18px; font-weight: 800;">${dScore}</div>
+          <div style="font-size: 18px; font-weight: 800;"><span style="color: ${dTrendColor}; font-size: 14px; margin-right: 6px;">${dTrendStr}</span>${dScore}</div>
         </div>
         ${skillsListHtml}
       </div>
@@ -232,16 +234,54 @@ export function renderProgress(container: HTMLElement) {
   `;
 
   const fi = computeFokusIndex(domains);
+  const prevFi = previousFokusIndex(ds, new Date().toISOString());
+  const deltaInfo = indexDelta(fi.value, prevFi);
+
+  // sparkline for last 7 day fi
+  const last7Fi = ds.slice(-7).filter(d => typeof d.fokusIndex === 'number' && d.fokusIndex > 0).map(d => d.fokusIndex as number);
+  let sparklineHtml = '';
+  if (last7Fi.length > 1) {
+    const minFi = Math.min(...last7Fi);
+    const maxFi = Math.max(...last7Fi);
+    const sparkW = 80;
+    const sparkH = 20;
+    const points = last7Fi.map((v, i) => {
+      const x = (i / (last7Fi.length - 1)) * sparkW;
+      const y = maxFi === minFi ? sparkH/2 : sparkH - ((v - minFi) / (maxFi - minFi)) * sparkH;
+      return `${x},${y}`;
+    }).join(' ');
+    sparklineHtml = `<div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
+      <svg width="${sparkW}" height="${sparkH}" viewBox="0 -4 ${sparkW} ${sparkH+8}" style="overflow: visible;">
+        <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        ${last7Fi.map((v, i) => {
+          const x = (i / (last7Fi.length - 1)) * sparkW;
+          const y = maxFi === minFi ? sparkH/2 : sparkH - ((v - minFi) / (maxFi - minFi)) * sparkH;
+          return `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5" />`;
+        }).join('')}
+      </svg>
+      <span style="font-size: 11px; color: var(--muted);">${last7Fi.length} дней</span>
+    </div>`;
+  }
+
   const fiHtml = fi.coverage > 0 ? `
     <div class="fi-hero">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-value">${fi.value}</div>
+        <div class="fi-value">${fi.value} <span style="font-size: 16px; font-weight: normal; color: ${deltaInfo.delta > 0 ? 'var(--ok)' : deltaInfo.delta < 0 ? 'var(--danger)' : 'var(--muted)'};">${deltaInfo.delta > 0 ? '↑' : deltaInfo.delta < 0 ? '↓' : ''} ${Math.abs(deltaInfo.delta) > 0 ? Math.abs(deltaInfo.delta) : '='}</span></div>
         <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
+        ${sparklineHtml}
       </div>
       <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
-  ` : '';
+  ` : `
+    <div class="fi-hero empty">
+      <div class="fi-copy" style="text-align: center; width: 100%;">
+        <div class="fi-kicker">Fokus Index</div>
+        <div style="font-size: 24px; color: var(--muted); margin: 12px 0;">Пройдите калибровку</div>
+        <div class="fi-meta">Мы пока собираем данные</div>
+      </div>
+    </div>
+  `;
 
   content.innerHTML = `
     <div class="today-head">

@@ -370,7 +370,17 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastStreak = summaries.length > 0 ? summaries[summaries.length-1].streak : 0;
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
-    const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
+    const prof = storage.getProfile();
+    const ns = nextStreak(lastDate, lastStreak, sessionStartedAt, prof.shieldCharges || 0);
+    
+    if (ns.shieldsUsed > 0) {
+      prof.shieldCharges = Math.max(0, (prof.shieldCharges || 0) - ns.shieldsUsed);
+      storage.setProfile(prof);
+    } else if (ns.streak > 0 && ns.streak % 7 === 0 && !ns.skipped && lastStreak !== ns.streak) {
+      prof.shieldCharges = (prof.shieldCharges || 0) + 1;
+      storage.setProfile(prof);
+    }
+
     const fiNow = computeFokusIndex(storage.getDomains());
     const ds: any = {
       date: sessionStartedAt,
@@ -380,7 +390,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       skipped: ns.skipped,
       fokusIndex: fiNow.value
     };
-    const prof = storage.getProfile();
+    
     if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
       ds.lifestyle = { sleep: prof.lastLifestyle.sleep, stress: prof.lastLifestyle.stress };
     }

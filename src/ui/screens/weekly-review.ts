@@ -4,6 +4,7 @@ import { renderShell } from '../shell';
 import { navigateTo } from '../router';
 import { generateInsights } from '../../core/insights';
 import { buildTrainingPlan } from '../../core/session-builder';
+import { domainLabel } from '../../core/labels';
 
 export function renderWeeklyReview(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress', hideNav: true });
@@ -22,6 +23,23 @@ export function renderWeeklyReview(container: HTMLElement) {
   const exercisesPlayed = new Set<string>();
   sessions.forEach(s => s.items.forEach(i => exercisesPlayed.add(i.exerciseId)));
   const totalExercises = exercisesPlayed.size;
+  const totalMinutes = Math.round(sessions.reduce((sum, s) => sum + s.durationSec, 0) / 60);
+
+  const domains = storage.getDomains();
+
+  // Best day & Weak Domain
+  let bestDayHtml = '';
+  if (daySummaries.length > 0) {
+    const bestDay = [...daySummaries].sort((a, b) => b.totalScore - a.totalScore)[0];
+    const dObj = new Date(bestDay.date);
+    bestDayHtml = `<div style="font-size: 14px; margin-top: 16px; color: var(--text); padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">🏆 Лучший день: <strong>${dObj.toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'short'})}</strong> (${Math.round(bestDay.totalScore)} очков)</div>`;
+  }
+  
+  let weakDomainHtml = '';
+  const activeDomains = domains.filter(d => d.value > 0).sort((a, b) => a.value - b.value);
+  if (activeDomains.length > 0) {
+    weakDomainHtml = `<div style="font-size: 14px; margin-top: 8px; color: var(--text); padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px;">🎯 Зона фокуса: <strong>${domainLabel(activeDomains[0].domain)}</strong> (слабейший домен)</div>`;
+  }
 
   let atAGlanceHtml = '';
   if (totalSessions === 0) {
@@ -33,7 +51,7 @@ export function renderWeeklyReview(container: HTMLElement) {
     `;
   } else {
     atAGlanceHtml = `
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 12px;">
         <div class="surface" style="text-align: center; padding: 16px 8px;">
           <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${activeDays}</div>
           <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Дней</div>
@@ -43,9 +61,13 @@ export function renderWeeklyReview(container: HTMLElement) {
           <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Сессий</div>
         </div>
         <div class="surface" style="text-align: center; padding: 16px 8px;">
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalExercises}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Упражнений</div>
+          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalMinutes}</div>
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Минут</div>
         </div>
+      </div>
+      <div style="margin-bottom: 24px;">
+        ${bestDayHtml}
+        ${weakDomainHtml}
       </div>
     `;
   }
@@ -121,7 +143,6 @@ export function renderWeeklyReview(container: HTMLElement) {
   }
 
   // INSIGHTS
-  const domains = storage.getDomains();
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const insights = generateInsights(domains, skills, states, daySummaries, sessions);
@@ -131,7 +152,9 @@ export function renderWeeklyReview(container: HTMLElement) {
     insightHtml = `
       <div class="surface" style="margin-bottom: 24px; border-left: 4px solid var(--accent);">
         <h3 style="margin-bottom: 12px;">Что Fokus заметил</h3>
-        <p style="margin: 0; font-size: 14px; line-height: 1.4;">${insights[0].description}</p>
+        <ul style="padding-left: 16px; margin: 0; color: var(--text); font-size: 14px; line-height: 1.5;">
+          ${insights.slice(0, 2).map(ins => `<li style="margin-bottom: 8px;"><strong>${ins.title}:</strong> ${ins.description}</li>`).join('')}
+        </ul>
       </div>
     `;
   }
@@ -162,6 +185,7 @@ export function renderWeeklyReview(container: HTMLElement) {
             </div>
             <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" alt="" width="40" height="40" style="border-radius: 8px; opacity: 0.9;">
           </div>
+          <button id="btn-start-ritual" class="btn-primary" style="margin-top: 16px;">Начать дневной ритуал</button>
         </div>
       `;
     }
@@ -187,5 +211,19 @@ export function renderWeeklyReview(container: HTMLElement) {
 
   content.querySelector('#btn-back')?.addEventListener('click', () => {
     navigateTo('progress');
+  });
+
+  content.querySelector('#btn-start-ritual')?.addEventListener('click', () => {
+    if (!storage.getProfile().calibrated) {
+      navigateTo('session', { mode: 'calibration', items: [
+        { exerciseId: 'grid-memory' }, 
+        { exerciseId: 'odd-one' }, 
+        { exerciseId: 'pattern-next' }, 
+        { exerciseId: 'reaction-strike' }, 
+        { exerciseId: 'switch-rule' }
+      ] });
+    } else {
+      navigateTo('session', { mode: 'normal', items: plan.items, isResume: false });
+    }
   });
 }

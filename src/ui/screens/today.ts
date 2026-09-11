@@ -184,7 +184,7 @@ export function renderToday(container: HTMLElement) {
           <div class="stat-num">${streak}</div>
           <div class="stat-lbl">
             ${streak === 0 ? 'начни серию' : 'дней подряд'}
-            ${skippedYesterday && streak > 0 ? '<br><span style="color:var(--ok); font-size: 0.8em; margin-top:4px; display:inline-block">🛡️ щит спас серию</span>' : ''}
+            ${skippedYesterday && streak > 0 ? '<br><span style="color:var(--ok); font-size: 0.8em; margin-top:4px; display:inline-block">🛡️ щит спас серию</span>' : (profile.shieldCharges ? '<br><span style="color:var(--accent); font-size: 0.8em; margin-top:4px; display:inline-block">🛡️ щит доступен: ' + profile.shieldCharges + '</span>' : '')}
           </div>
         </div>
         <div class="stat-pill">
