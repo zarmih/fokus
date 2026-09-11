@@ -87,6 +87,13 @@ export interface DaySummary {
   lifestyle?: { sleep: string | null; stress: string | null };
   fokusIndex?: number;
 }
+export interface StorageMeta {
+  schemaVersion: number;
+  deviceId: string;
+  rev: number;
+  updatedAt: string;
+}
+
 export interface AppState {
   profile: Profile;
   domains: DomainIndex[];
@@ -95,4 +102,5 @@ export interface AppState {
   sessions: Session[];
   daySummaries: DaySummary[];
   history: HistoryItem[];
+  meta?: StorageMeta;
 }

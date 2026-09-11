@@ -82,13 +82,16 @@ export function renderSettings(container: HTMLElement) {
       </label>
     </div>
 
-    <div class="surface">
+    <div class="surface" id="sync-health">
       <h3 style="margin-bottom: 16px;">Данные</h3>
+      <div id="sync-health-meta" style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;"></div>
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <button id="btn-export" class="btn-primary" style="flex: 1;">Экспорт</button>
-        <button id="btn-import" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('file-input').click()">Импорт</button>
-        <input type="file" id="file-input" accept=".json" style="display: none;">
+        <button id="btn-import" class="btn-secondary" style="flex: 1;">Импорт</button>
+        <input type="file" id="file-input" accept=".json,application/json" style="display: none;">
       </div>
+      <div id="import-preview" style="display: none; margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.5;"></div>
+      <button id="btn-restore-snap" class="btn-secondary" style="width: 100%; margin-top: 12px; display: none;">Вернуть резервную копию</button>
       <button id="btn-reset" class="btn-secondary" style="width: 100%; margin-top: 12px; color: #f44336; border-color: #f44336;">Сбросить профиль</button>
     </div>
     
@@ -215,33 +218,111 @@ export function renderSettings(container: HTMLElement) {
     });
   }
 
+  const healthEl = document.getElementById('sync-health-meta');
+  const previewEl = document.getElementById('import-preview');
+  const restoreBtn = document.getElementById('btn-restore-snap') as HTMLButtonElement | null;
+  let pendingImport: string | null = null;
+
+  const errorLabel: Record<string, string> = {
+    invalid_json: 'Файл не является JSON.',
+    not_fokus: 'Это не резервная копия Fokus.',
+    checksum: 'Контрольная сумма не совпала — файл повреждён или изменён.',
+    future_format: 'Файл из более новой версии Fokus.',
+    future_schema: 'Схема данных новее, чем это приложение.',
+    write_failed: 'Не удалось записать данные (возможно, закончилось место).'
+  };
+
+  const paintHealth = () => {
+    const h = storage.getHealth();
+    if (healthEl) {
+      if (h.empty) {
+        healthEl.textContent = `Локально, без сервера. Схема ${h.schemaVersion}. Пока нет сохранённого профиля.`;
+      } else {
+        const shortId = h.deviceId ? h.deviceId.slice(0, 14) : '—';
+        const kb = Math.max(1, Math.round(h.bytes / 1024));
+        healthEl.textContent = `Офлайн-копия на этом устройстве. Схема ${h.schemaVersion}, ревизия ${h.rev}, устройство ${shortId}, ~${kb} КБ.`;
+      }
+    }
+    if (restoreBtn) restoreBtn.style.display = h.hasSnapshot ? 'block' : 'none';
+  };
+  paintHealth();
+
   document.getElementById('btn-export')?.addEventListener('click', () => {
     const json = storage.exportJson();
     const blob = new Blob([json], {type: 'application/json'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fokus-data-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `fokus-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   });
+
+  document.getElementById('btn-import')?.addEventListener('click', () => {
+    document.getElementById('file-input')?.click();
+  });
+
+  const showPreview = (json: string) => {
+    if (!previewEl) return;
+    const inspected = storage.inspectImport(json);
+    if (!inspected.ok) {
+      pendingImport = null;
+      previewEl.style.display = 'block';
+      previewEl.innerHTML = `<div style="color: var(--danger);">${errorLabel[inspected.error] || 'Ошибка формата данных'}</div>`;
+      return;
+    }
+    pendingImport = json;
+    const p = inspected.preview;
+    const warn = p.legacy ? 'Старый файл без конверта — импорт всё равно сработает.' : '';
+    const safeName = p.profileName.replace(/[&<>"']/g, (ch) => (
+      { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch] || ch
+    ));
+    previewEl.style.display = 'block';
+    previewEl.innerHTML = `
+      <div><strong>${safeName}</strong> · XP ${p.xp} · схема ${p.schemaVersion}${p.legacy ? ' · legacy' : ''}</div>
+      <div style="color: var(--muted); margin-top: 6px;">Сессий: ${p.sessions} (новых ${p.sessionsNew}) · дней: ${p.days} (новых ${p.daysNew})</div>
+      ${warn ? `<div style="color: var(--muted); margin-top: 6px;">${warn}</div>` : ''}
+      <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
+        <button id="btn-import-merge" class="btn-primary" style="flex: 1; margin-bottom: 0;">Объединить</button>
+        <button id="btn-import-replace" class="btn-secondary" style="flex: 1; margin-bottom: 0;">Заменить</button>
+      </div>
+    `;
+    const runImport = (mode: 'merge' | 'replace') => {
+      if (!pendingImport) return;
+      const confirmMsg = mode === 'replace'
+        ? 'Заменить все локальные данные файлом? Текущее состояние сохранится как резервная копия.'
+        : 'Объединить данные с этим устройством? Совпадения не дублируются, XP берётся максимум.';
+      if (!confirm(confirmMsg)) return;
+      const result = storage.importBackup(pendingImport, mode);
+      if (result.ok) {
+        alert(mode === 'merge' ? 'Данные объединены' : 'Данные заменены');
+        location.reload();
+      } else {
+        previewEl.innerHTML = `<div style="color: var(--danger);">${errorLabel[result.error || ''] || 'Ошибка импорта'}</div>`;
+      }
+    };
+    document.getElementById('btn-import-merge')?.addEventListener('click', () => runImport('merge'));
+    document.getElementById('btn-import-replace')?.addEventListener('click', () => runImport('replace'));
+  };
 
   document.getElementById('file-input')?.addEventListener('change', (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (re) => {
-      if (typeof re.target?.result === 'string') {
-        const ok = storage.importJson(re.target.result);
-        if (ok) {
-          alert('Данные успешно импортированы');
-          location.reload();
-        } else {
-          alert('Ошибка формата данных');
-        }
-      }
+      if (typeof re.target?.result === 'string') showPreview(re.target.result);
     };
     reader.readAsText(file);
+    (e.target as HTMLInputElement).value = '';
+  });
+
+  restoreBtn?.addEventListener('click', () => {
+    if (!confirm('Вернуть состояние, которое было до последнего импорта?')) return;
+    if (storage.restoreSnapshot()) {
+      location.reload();
+    } else {
+      alert('Резервной копии нет.');
+    }
   });
 
   document.getElementById('btn-reset')?.addEventListener('click', () => {
