@@ -34,20 +34,20 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
     const t = s.ready ? Math.max(0.08, Math.min(1, s.value / max)) : 0.08;
     const [x, y] = toPoint(i, radius * t);
     const color = DOMAIN_COLORS[s.id] || 'var(--accent)';
-    return `<circle cx="${x}" cy="${y}" r="4" fill="${s.ready ? color : 'var(--muted)'}" />`;
+    return `<circle cx="${x}" cy="${y}" r="3.5" fill="${s.ready ? color : 'var(--muted)'}" />`;
   }).join('');
 
   const labels = slices.map((s, i) => {
     const [x, y] = toPoint(i, radius + 26);
     const anchor = x < cx - 8 ? 'end' : x > cx + 8 ? 'start' : 'middle';
-    return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="var(--muted)" font-size="11" font-weight="600">${domainLabel(s.id)}</text>`;
+    return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="var(--text)" opacity="0.85" font-size="11" font-weight="500">${domainLabel(s.id)}</text>`;
   }).join('');
 
   return `
     <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Когнитивный профиль">
       ${rings}
       ${axes}
-      <polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2"/>
+      <polygon points="${valuePts}" fill="var(--accent)" opacity="0.15" stroke="var(--accent)" stroke-width="1.5" stroke-linejoin="round"/>
       ${dots}
       ${labels}
     </svg>
