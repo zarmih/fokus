@@ -3,13 +3,14 @@ import { buildTrainingPlan } from "../../core/session-builder";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
-import { renderScatterPlot, renderRadarChart } from '../components/charts';
+import { renderScatterPlot, renderRadarChart, renderIndexSparkline } from '../components/charts';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
+import { buildCoachIntel } from '../../core/coach-intel';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
-  const ds = storage.getDaySummaries();
+  const ds = storage.getDaySummaries(60);
   const history = storage.getHistory().slice().reverse();
   
   // Weekly chart logic
@@ -232,14 +233,56 @@ export function renderProgress(container: HTMLElement) {
   `;
 
   const fi = computeFokusIndex(domains);
+  const intel = buildCoachIntel({
+    summaries: ds,
+    domains,
+    window: 14,
+    asOf: new Date().toISOString()
+  });
+  const sparkCount = intel.sparkline.points.filter((p) => p.value != null).length;
+  const sparkHtml = sparkCount >= 2
+    ? `<div class="fi-spark">${renderIndexSparkline(intel.sparkline, { width: 220, height: 44 })}<span class="fi-spark-lbl">${intel.sparkline.deltaLabel}</span></div>`
+    : '';
+  const pbNote = intel.personalBest
+    ? `<div class="fi-pb">${intel.personalBest.isLatest ? 'личный рекорд' : 'рекорд'} · ${intel.personalBest.value}</div>`
+    : '';
+
   const fiHtml = fi.coverage > 0 ? `
     <div class="fi-hero">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value">${fi.value}</div>
         <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
+        ${pbNote}
+        ${sparkHtml}
       </div>
       <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
+    </div>
+  ` : fi.coverage === 0 && intel.ready ? `
+    <div class="fi-hero empty">
+      <div class="fi-copy">
+        <div class="fi-kicker">Fokus Index</div>
+        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+        ${sparkHtml}
+      </div>
+    </div>
+  ` : '';
+
+  const nextMile = intel.milestones.find((m) => !m.reached);
+  const milestonesHtml = intel.ready ? `
+    <div class="intel-card intel-card-compact" style="margin-bottom: 24px;">
+      <div class="intel-kicker">Вехи серии</div>
+      <div class="intel-miles">
+        ${intel.milestones.map((m) => {
+          const state = m.reached ? 'reached' : nextMile && m.days === nextMile.days ? 'next' : '';
+          return `<div class="intel-mile ${state}">
+            <div class="intel-mile-mark">${m.reached ? '●' : '○'}</div>
+            <div class="intel-mile-n">${m.days}</div>
+            <div class="intel-mile-l">дней</div>
+          </div>`;
+        }).join('')}
+      </div>
+      <p class="intel-rhythm">${intel.adherence.currentStreak > 0 ? `сейчас ${intel.adherence.currentStreak}` : 'серия начнётся с сегодняшней сессии'}${nextMile ? ` · дальше ${nextMile.days}` : ''}</p>
     </div>
   ` : '';
 
@@ -249,6 +292,7 @@ export function renderProgress(container: HTMLElement) {
       <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
     </div>
     ${fiHtml}
+    ${milestonesHtml}
     ${insightHtml}
     ${nextStepHtml}
     

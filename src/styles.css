@@ -1523,3 +1523,112 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
     animation: none !important;
   }
 }
+
+/* Coach intelligence G3 */
+.intel-block { margin-bottom: 24px; }
+.intel-windows {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.intel-win {
+  flex: 1;
+  background: var(--surface);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.intel-win.active {
+  color: var(--text);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.intel-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.intel-card-compact { padding: 14px 16px; }
+.intel-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.intel-kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.intel-delta { font-size: 13px; font-weight: 600; color: var(--text); }
+.intel-pb {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ok);
+  background: rgba(16, 185, 129, 0.12);
+  padding: 4px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.intel-spark-wrap { margin: 4px 0 12px; }
+.intel-spark { width: 100%; height: 56px; display: block; overflow: visible; }
+.intel-empty { color: var(--muted); font-size: 13px; margin: 8px 0 0; }
+.intel-domains {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+}
+.intel-domain {
+  background: var(--surface-2);
+  border-radius: 10px;
+  padding: 8px 6px;
+  text-align: center;
+  border: 1px solid transparent;
+}
+.intel-domain.dim { opacity: 0.45; }
+.intel-domain.weak { border-color: var(--accent); }
+.intel-domain-name { display: block; font-size: 10px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+.intel-domain-val { display: block; font-size: 13px; font-weight: 800; }
+.intel-domain-d { display: block; font-size: 10px; color: var(--muted); margin-top: 2px; }
+.intel-rhythm { font-size: 13px; color: var(--text); margin: 0 0 12px; }
+.intel-miles {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.intel-mile {
+  flex: 1;
+  text-align: center;
+  opacity: 0.4;
+}
+.intel-mile.reached { opacity: 1; color: var(--ok); }
+.intel-mile.next { opacity: 0.9; color: var(--accent); }
+.intel-mile-mark { font-size: 14px; line-height: 1; margin-bottom: 4px; }
+.intel-mile-n { font-size: 18px; font-weight: 800; line-height: 1.1; }
+.intel-mile-l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.intel-tips { list-style: none; padding: 0; margin: 8px 0 0; }
+.intel-tips li { margin-bottom: 12px; }
+.intel-tips li:last-child { margin-bottom: 0; }
+.intel-tip-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.intel-tip-body { font-size: 13px; line-height: 1.45; color: var(--text); opacity: 0.9; }
+.coach-card { border-left: 4px solid var(--accent); }
+.fi-spark { margin-top: 10px; }
+.fi-spark-lbl { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
+.fi-pb { font-size: 12px; color: var(--ok); font-weight: 600; margin-top: 4px; }
+.fi-hero.empty { justify-content: center; }
+
+@media (max-width: 420px) {
+  .intel-domains { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

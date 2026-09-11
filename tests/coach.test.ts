@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { getDailySpark, analyzeChronotype } from '../src/core/coach';
+import { getDailySpark, analyzeChronotype, getWeeklyDomainTips } from '../src/core/coach';
 import type { Session } from '../src/core/types';
 
 test('uncalibrated users get a calibration spark', () => {
@@ -57,4 +57,11 @@ test('chronotype needs at least two buckets with samples', () => {
   const c = analyzeChronotype(sessions);
   expect(c.bucket).toBe('morning');
   expect(c.label).toBe('утром');
+});
+
+test('weekly domain tips stay concrete and in product voice', () => {
+  const tips = getWeeklyDomainTips('attention');
+  expect(tips.length).toBe(2);
+  expect(tips[0]).toMatch(/телефон|вниман/i);
+  expect(getWeeklyDomainTips('unknown-domain')[0]).toMatch(/Регулярность/);
 });
