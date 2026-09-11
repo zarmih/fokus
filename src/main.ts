@@ -8,6 +8,7 @@ import { unlockAudio } from './core/audio';
 import { initInstallPrompt } from './pwa-install';
 import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
+import { safeError } from './core/log';
 
 initInstallPrompt();
 
@@ -30,7 +31,7 @@ function showFatal(app: HTMLElement, title: string, err: unknown) {
     <h3>${title}</h3>
     <p>${message}</p>
   </div>`;
-  console.error(err);
+  safeError('fatal', err);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -46,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (import.meta.env.PROD) {
         navigator.serviceWorker
           .register(`${import.meta.env.BASE_URL}sw.js`)
-          .catch((err) => console.error('SW reg failed', err));
+          .catch((err) => safeError('SW reg failed', err));
       } else {
         navigator.serviceWorker.getRegistrations().then((regs) => {
           regs.forEach((r) => r.unregister());
@@ -71,8 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       renderToday(app);
     }
-  } catch (e: any) {
-    showFatal(app, 'Ошибка инициализации', e);
+  } catch (e: unknown) {
+    app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
+      <h3>Ошибка инициализации</h3>
+      <p>Не удалось прочитать локальные данные. Они остаются на этом устройстве и никуда не отправлялись.</p>
+    </div>`;
+    safeError('init failed', e);
   }
 });
 
@@ -95,9 +100,17 @@ window.addEventListener('navigate', (e: any) => {
       })
       .catch((err) => {
         app.removeAttribute('aria-busy');
-        showFatal(app, 'Ошибка навигации', err);
+        app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
+          <h3>Ошибка навигации</h3>
+          <p>Экран не открылся. Данные на устройстве не менялись.</p>
+        </div>`;
+        safeError('navigate failed', err);
       });
-  } catch (err: any) {
-    showFatal(app, 'Ошибка навигации', err);
+  } catch (err: unknown) {
+    app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
+      <h3>Ошибка навигации</h3>
+      <p>Экран не открылся. Данные на устройстве не менялись.</p>
+    </div>`;
+    safeError('navigate failed', err);
   }
 });

@@ -7,6 +7,7 @@ class MockStorage {
   getItem(k: string) { return this.data[k] || null; }
   setItem(k: string, v: string) { this.data[k] = v; }
   removeItem(k: string) { delete this.data[k]; }
+  keys() { return Object.keys(this.data); }
 }
 
 beforeEach(() => {
@@ -18,9 +19,10 @@ beforeEach(() => {
 test('settings data panel shows offline health and export/import', () => {
   const app = document.getElementById('app')!;
   renderSettings(app);
-  expect(app.textContent).toMatch(/Данные/);
-  expect(app.textContent).toMatch(/Локально, без сервера/);
+  expect(app.textContent).toMatch(/Приватность и данные|Данные/);
+  expect(app.textContent).toMatch(/Локально, без сервера|Офлайн-копия на этом устройстве/);
   expect(app.textContent).toMatch(/Схема 4/);
+  expect(app.textContent).toMatch(/Нет аккаунта/);
   expect(document.getElementById('btn-export')).toBeTruthy();
   expect(document.getElementById('btn-import')).toBeTruthy();
   expect(document.getElementById('btn-restore-snap')?.style.display).toBe('none');

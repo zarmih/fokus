@@ -13,6 +13,86 @@ import { applyDocumentLang } from '../a11y';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { t } from '../../core/i18n';
 import { clampVolume } from '../../core/soundscape';
+import {
+  buildExportFile,
+  formatBytes,
+  isWipeConfirm,
+  wipeAppCaches,
+  type InventoryReport
+} from '../../core/privacy';
+
+function privacyPanelHtml(report: InventoryReport): string {
+  const rows = report.items.map((item) => {
+    const size = item.present ? formatBytes(item.bytes) : 'пусто';
+    const tag = item.piiPresent
+      ? 'есть персональные данные'
+      : item.mayContainPii
+        ? 'может содержать имя'
+        : 'без имени';
+    return `<li class="privacy-row" data-key="${item.key}">
+      <div>
+        <strong>${item.title}</strong>
+        <div class="privacy-key">${item.key} · ${size}</div>
+      </div>
+      <span class="privacy-tag${item.piiPresent ? ' pii' : ''}">${tag}</span>
+    </li>`;
+  }).join('');
+
+  const piiBits: string[] = [];
+  if (report.pii.name) piiBits.push('имя');
+  if (report.pii.lifestyle) piiBits.push('сон/стресс');
+  const piiLine = piiBits.length
+    ? `Сейчас на устройстве: ${piiBits.join(', ')}.`
+    : 'Имени и записей сна/стресса сейчас нет.';
+
+  return `
+    <div class="surface" id="privacy-panel" role="region" aria-label="Приватность и данные">
+      <h3 style="margin-bottom: 12px;">Приватность и данные</h3>
+      <p class="privacy-copy">Fokus хранит прогресс только в браузере на этом устройстве. Нет аккаунта, нет облака, нет рекламных SDK. Дуэль идёт peer-to-peer; сигнальный сервер не получает имя и не пишет тело сообщений.</p>
+      <p class="privacy-copy" id="privacy-pii-status">${piiLine} Всего ${formatBytes(report.totalBytes)}.</p>
+      <ul class="privacy-inventory" id="data-inventory">
+        ${rows}
+        <li class="privacy-row" data-key="cache">
+          <div>
+            <strong>Офлайн-кэш PWA</strong>
+            <div class="privacy-key">Cache Storage · оболочка приложения, не профиль</div>
+          </div>
+          <span class="privacy-tag">без имени</span>
+        </li>
+      </ul>
+      <label class="privacy-check">
+        <input type="checkbox" id="export-redact" checked />
+        Экспорт без имени и данных о сне/стрессе
+      </label>
+      <div id="sync-health-meta" style="font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5;"></div>
+      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <button type="button" id="btn-export" class="btn-primary" style="flex: 1;">Экспорт</button>
+        <button type="button" id="btn-import" class="btn-secondary" style="flex: 1;">Импорт</button>
+        <label class="sr-only" for="file-input">Файл импорта JSON</label>
+        <input type="file" id="file-input" accept=".json,application/json" style="display: none;">
+      </div>
+      <div id="import-preview" style="display: none; margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.5;"></div>
+      <button id="btn-restore-snap" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; display: none;">Вернуть резервную копию</button>
+      <div class="privacy-actions">
+        <button type="button" id="btn-clear-name" class="btn-secondary">Убрать имя</button>
+        <button type="button" id="btn-clear-lifestyle" class="btn-secondary">Удалить сон и стресс</button>
+        <button type="button" id="btn-reset-progress" class="btn-secondary">Сбросить прогресс</button>
+        <button type="button" id="btn-reset" class="btn-secondary" style="color: var(--danger);">Удалить все данные</button>
+      </div>
+      <div id="progress-confirm" class="wipe-box" hidden>
+        <p class="privacy-copy">Тема, язык, звук и длительность сессии сохранятся. Сессии, XP, имя, сон/стресс и калибровка будут удалены.</p>
+        <button type="button" id="btn-reset-progress-confirm" class="btn-secondary">Да, сбросить прогресс</button>
+      </div>
+      <div id="wipe-confirm" class="wipe-box" hidden>
+        <p class="privacy-copy">Это необратимо: профиль, прогресс, напоминания и офлайн-кэш Fokus. Напишите <strong>УДАЛИТЬ</strong>.</p>
+        <label class="privacy-copy" for="wipe-confirm-input">Подтверждение</label>
+        <input id="wipe-confirm-input" class="wipe-input" autocomplete="off" aria-describedby="wipe-confirm-hint" />
+        <p class="privacy-copy" id="wipe-confirm-hint" role="status"></p>
+        <button type="button" id="btn-wipe-confirm" class="btn-danger">Удалить навсегда</button>
+      </div>
+    </div>
+  `;
+}
 
 export function renderSettings(container: HTMLElement) {
   const content = renderShell(container, { active: 'settings' });
@@ -157,20 +237,7 @@ export function renderSettings(container: HTMLElement) {
     </div>
     ` : ''}
 
-    <div class="surface">
-    <div class="surface" id="sync-health">
-      <h3 style="margin-bottom: 16px;">Данные</h3>
-      <div id="sync-health-meta" style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;"></div>
-      <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <button id="btn-export" class="btn-primary" type="button" style="flex: 1;">Экспорт</button>
-        <button id="btn-import" class="btn-secondary" type="button" style="flex: 1;">Импорт</button>
-        <label class="sr-only" for="file-input">Файл импорта JSON</label>
-        <input type="file" id="file-input" accept=".json,application/json" style="display: none;">
-      </div>
-      <div id="import-preview" style="display: none; margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.5;"></div>
-      <button id="btn-restore-snap" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; display: none;">Вернуть резервную копию</button>
-      <button id="btn-reset" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; color: #f44336; border-color: #f44336;">Сбросить профиль</button>
-    </div>
+    ${privacyPanelHtml(storage.inventory())}
     
     ${transferCardFromStorage({ prefer: 'guide' })}
 
@@ -356,12 +423,13 @@ export function renderSettings(container: HTMLElement) {
   paintHealth();
 
   document.getElementById('btn-export')?.addEventListener('click', () => {
-    const json = storage.exportJson();
-    const blob = new Blob([json], {type: 'application/json'});
+    const redact = (document.getElementById('export-redact') as HTMLInputElement | null)?.checked !== false;
+    const file = buildExportFile(storage.exportJson(), redact);
+    const blob = new Blob([file.body], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fokus-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = file.filename;
     a.click();
     URL.revokeObjectURL(url);
   });
@@ -433,11 +501,48 @@ export function renderSettings(container: HTMLElement) {
     }
   });
 
+  const progressBox = document.getElementById('progress-confirm');
+  const wipeBox = document.getElementById('wipe-confirm');
+
+  document.getElementById('btn-clear-name')?.addEventListener('click', () => {
+    storage.clearPii(['name']);
+    renderSettings(container);
+  });
+
+  document.getElementById('btn-clear-lifestyle')?.addEventListener('click', () => {
+    storage.clearPii(['lifestyle']);
+    renderSettings(container);
+  });
+
+  document.getElementById('btn-reset-progress')?.addEventListener('click', () => {
+    if (wipeBox) wipeBox.hidden = true;
+    if (progressBox) progressBox.hidden = false;
+  });
+
+  document.getElementById('btn-reset-progress-confirm')?.addEventListener('click', () => {
+    storage.resetProgress();
+    renderSettings(container);
+  });
+
   document.getElementById('btn-reset')?.addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите удалить все данные? Это действие необратимо.')) {
-      storage.reset();
-      location.reload();
+    if (progressBox) progressBox.hidden = true;
+    if (wipeBox) wipeBox.hidden = false;
+    document.getElementById('wipe-confirm-input')?.focus();
+  });
+
+  document.getElementById('btn-wipe-confirm')?.addEventListener('click', () => {
+    const typed = (document.getElementById('wipe-confirm-input') as HTMLInputElement | null)?.value || '';
+    const hint = document.getElementById('wipe-confirm-hint');
+    if (!isWipeConfirm(typed)) {
+      if (hint) hint.textContent = 'Введите УДАЛИТЬ заглавными буквами.';
+      return;
     }
+    storage.reset();
+    void wipeAppCaches().finally(() => {
+      const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      if (/jsdom/i.test(ua)) return;
+      try { window.location.reload(); } catch { /* some hosts block navigation */ }
+    });
   });
 
   document.getElementById('btn-recalibrate')?.addEventListener('click', () => {

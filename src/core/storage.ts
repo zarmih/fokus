@@ -1,5 +1,6 @@
 import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem, StorageMeta } from './types';
 import type { AbilityModel } from './engine/types';
+import { safeError } from './log';
 import {
   applyImport,
   CURRENT_SCHEMA_VERSION,
@@ -12,6 +13,17 @@ import {
   type ImportPreview,
   type MergeReport
 } from './offline-sync';
+import {
+  APP_STATE_KEY,
+  inventoryLocalData,
+  listFokusKeys,
+  redactState,
+  resetProgressState,
+  stripPii,
+  wipeFokusKeys,
+  type InventoryReport,
+  type PiiKind
+} from './privacy';
 
 export { CURRENT_SCHEMA_VERSION } from './offline-sync';
 export {
@@ -29,7 +41,7 @@ export {
   type MergeReport
 } from './offline-sync';
 
-export const STORAGE_KEY = 'fokus.v1';
+export const STORAGE_KEY = APP_STATE_KEY;
 export const BACKUP_KEY = 'fokus.v1.bak';
 export const SNAPSHOT_KEY = 'fokus.v1.snap';
 
@@ -37,6 +49,7 @@ export interface StorageBackend {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+  keys?(): string[];
 }
 
 export interface StorageHealth {
@@ -166,7 +179,7 @@ export class Storage {
         this.writeRaw(JSON.stringify(migrated));
       }
     } catch (e) {
-      console.error('Storage migration failed', e);
+      safeError('Storage migration failed', e);
     }
   }
 
@@ -269,8 +282,25 @@ export class Storage {
     };
   }
 
-  exportJson(): string {
-    return serializeBackup(this.getState(), this.clock());
+  exportJson(options?: { redact?: boolean }): string {
+    const state = options?.redact ? redactState(this.getState()) : this.getState();
+    return serializeBackup(state, this.clock());
+  }
+
+  listFokusKeys(): string[] {
+    return listFokusKeys(this.backend);
+  }
+
+  inventory(): InventoryReport {
+    return inventoryLocalData(this.backend);
+  }
+
+  clearPii(kinds: PiiKind[]) {
+    this.saveState(stripPii(this.getState(), kinds));
+  }
+
+  resetProgress() {
+    this.saveState(resetProgressState(this.getState(), { schemaVersion: CURRENT_SCHEMA_VERSION }));
   }
 
   inspectImport(json: string): { ok: true; preview: ImportPreview } | { ok: false; error: string } {
@@ -328,9 +358,7 @@ export class Storage {
   }
 
   reset() {
-    this.backend.removeItem(STORAGE_KEY);
-    this.backend.removeItem(BACKUP_KEY);
-    this.backend.removeItem(SNAPSHOT_KEY);
+    wipeFokusKeys(this.backend);
   }
 }
 
@@ -352,5 +380,20 @@ function liveBackend(): StorageBackend {
 export const storage = new Storage({
   getItem: (key) => liveBackend().getItem(key),
   setItem: (key, value) => liveBackend().setItem(key, value),
-  removeItem: (key) => liveBackend().removeItem(key)
+  removeItem: (key) => liveBackend().removeItem(key),
+  keys: () => {
+    const b = liveBackend();
+    if (typeof b.keys === 'function') return b.keys();
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const out: string[] = [];
+        for (let i = 0; i < window.localStorage.length; i++) {
+          const k = window.localStorage.key(i);
+          if (k) out.push(k);
+        }
+        return out;
+      }
+    } catch { /* ignore */ }
+    return [];
+  }
 });

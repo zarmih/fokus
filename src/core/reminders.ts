@@ -1,6 +1,7 @@
+import { REMINDER_LAST_KEY } from './privacy';
 import { storage } from './storage';
 
-const LAST_KEY = 'fokus.reminder.last';
+export { REMINDER_LAST_KEY };
 
 export function preferredReminderHour(): number {
   const h = storage.getProfile().reminderHour;
@@ -35,7 +36,7 @@ export function maybeNotify(): void {
 
   const today = new Date().toISOString().slice(0, 10);
   try {
-    if (localStorage.getItem(LAST_KEY) === today) return;
+    if (localStorage.getItem(REMINDER_LAST_KEY) === today) return;
   } catch {
     return;
   }
@@ -48,7 +49,7 @@ export function maybeNotify(): void {
   if (new Date().getHours() < hour) return;
 
   try {
-    localStorage.setItem(LAST_KEY, today);
+    localStorage.setItem(REMINDER_LAST_KEY, today);
   } catch {
     /* ignore quota */
   }

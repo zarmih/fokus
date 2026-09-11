@@ -18,6 +18,7 @@ import {
 import { buildFirstWeekPlan } from '../../core/onboarding';
 import { planWithRecovery } from '../../core/recovery';
 import type { Session, SessionEndReason } from '../../core/types';
+import { safeError } from '../../core/log';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { ProbeOutcome } from '../../core/calibration';
@@ -76,7 +77,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const item = items[currentIndex];
     const preview = getManifest(item.exerciseId);
     if (!preview) {
-      console.error('Unknown exercise', item.exerciseId);
+      safeError('Unknown exercise', item.exerciseId);
       currentIndex++;
       renderCurrent();
       return;
