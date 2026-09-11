@@ -1,6 +1,7 @@
 import { storage } from '../../core/storage';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
+import { planWithRecovery } from '../../core/recovery';
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
@@ -12,6 +13,7 @@ import { getDailySpark } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
+import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual, pickTransferTip } from '../../core/onboarding';
 import { assessRetention, bandLabel } from '../../core/retention';
@@ -49,12 +51,24 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
-  const ritual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
-  const durationSec = ritual.inFirstWeek && ritual.ritualDay
-    ? ritual.ritualDay.durationSec
+  const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
+  const baseDuration = weekRitual.inFirstWeek && weekRitual.ritualDay
+    ? weekRitual.ritualDay.durationSec
     : profile.sessionLengthSec;
-  const plan = planForNow({ durationSec });
-  const recal = plan.recalibration;
+  const ritual = planWithRecovery({
+    durationSec: baseDuration,
+    catalog,
+    domains,
+    skills,
+    states,
+    primaryGoal: (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal,
+    sessions,
+    daySummaries: ds,
+    recoveryHintsEnabled: profile.recoveryHints !== false
+  });
+  const plan = ritual.plan;
+  const ritualDuration = ritual.snapshot.durationSec;
+  const recal = ritual.recalibration;
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
@@ -130,16 +144,16 @@ export function renderToday(container: HTMLElement) {
     cursor: profile.transferTipCursor
   });
 
-  const weekHtml = profile.calibrated && ritual.inFirstWeek && ritual.ritualDay ? `
-    <div class="week-card" aria-label="Первая неделя, день ${ritual.day} из 7">
-      <div class="week-kicker">Первая неделя · день ${ritual.day} из 7 · ${ritual.ritualDay.label}</div>
+  const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
+    <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
+      <div class="week-kicker">Первая неделя · день ${weekRitual.day} из 7 · ${weekRitual.ritualDay.label}</div>
       <div class="week-strip" role="list">
         ${profile.firstWeekPlan!.days.map((d) => {
-          const state = d.day < (ritual.day || 0) ? 'past' : d.day === ritual.day ? 'now' : 'next';
+          const state = d.day < (weekRitual.day || 0) ? 'past' : d.day === weekRitual.day ? 'now' : 'next';
           return `<span class="week-pill ${state}" role="listitem" aria-current="${state === 'now' ? 'step' : 'false'}">${d.day}</span>`;
         }).join('')}
       </div>
-      <p class="week-note">${ritual.copy}</p>
+      <p class="week-note">${weekRitual.copy}</p>
     </div>
   ` : '';
 
@@ -218,10 +232,11 @@ export function renderToday(container: HTMLElement) {
       </div>
     `;
   } else {
+    const rest = ritual.snapshot.gate.active;
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Тренировка дня</div>
-        <h3>${Math.floor(durationSec / 60)} минут · ${focusText}</h3>
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
+        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
+        <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
@@ -236,6 +251,7 @@ export function renderToday(container: HTMLElement) {
 
     ${heroHtml}
 
+    ${renderQualityCard(ritual.snapshot)}
     ${recalHtml}
 
     ${actionHtml}
@@ -322,7 +338,7 @@ export function renderToday(container: HTMLElement) {
           })
         });
       } else {
-        navigateTo('session', { mode: 'normal', items: plan.items, durationSec });
+        navigateTo('session', { mode: 'normal', items: plan.items, durationSec: ritualDuration });
       }
     };
 

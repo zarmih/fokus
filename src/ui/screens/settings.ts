@@ -87,6 +87,16 @@ export function renderSettings(container: HTMLElement) {
       </label>
     </div>
 
+    <div class="surface quality-explainer">
+      <h3 style="margin-bottom: 16px;">Качество сессии и восстановление</h3>
+      <p>Качество ритуала — не IQ и не «балл мозга». Fokus считает, насколько чисто прошёл подход: точность, стабильность времени реакции, уместность сложности, завершённость и обрывы.</p>
+      <p>После плотных дней или просадки качества экран «Сегодня» может предложить короче и другую область. Это подсказка нагрузки, не диагноз.</p>
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="recovery-toggle" ${profile.recoveryHints !== false ? 'checked' : ''} />
+        Подсказывать восстановление на экране «Сегодня»
+      </label>
+    </div>
+
     ${profile.probeSnapshot ? `
     <div class="surface probe-summary">
       <h3 style="margin-bottom: 8px;">Стартовая оценка</h3>
@@ -209,6 +219,12 @@ export function renderSettings(container: HTMLElement) {
   document.getElementById('lifestyle-toggle')?.addEventListener('change', (e) => {
     const p = storage.getProfile();
     p.skipLifestylePrompt = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+  });
+
+  document.getElementById('recovery-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.recoveryHints = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
   });
 

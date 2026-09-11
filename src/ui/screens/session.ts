@@ -16,6 +16,8 @@ import {
   mapAccuracyToStartLevel
 } from '../../core/calibration';
 import { buildFirstWeekPlan } from '../../core/onboarding';
+import { planWithRecovery } from '../../core/recovery';
+import type { Session, SessionEndReason } from '../../core/types';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { ProbeOutcome } from '../../core/calibration';
@@ -35,6 +37,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let timerInterval: any;
   const sessionBudget = params.durationSec ?? storage.getProfile().sessionLengthSec;
   let timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
+  let sessionEndReason: SessionEndReason = 'completed';
   let blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
@@ -50,11 +53,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
 
     if (mode === 'normal' && currentIndex > 0) {
-      const plan = planForNow({
+      const profile = storage.getProfile();
+      const ritual = planWithRecovery({
         durationSec: Math.max(180, timeLeft),
+        catalog,
+        domains: storage.getDomains(),
+        skills: storage.getSkills(),
+        states: storage.getExerciseStates(),
+        primaryGoal: profile.primaryGoal,
+        sessions: storage.getSessions(),
+        daySummaries: storage.getDaySummaries(),
+        recoveryHintsEnabled: profile.recoveryHints !== false,
         excludeIds: sessionResults.map((sr) => sr.exerciseId)
       });
-      const nextItem = plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
+      const nextItem = ritual.plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
       if (nextItem) {
         items[currentIndex].exerciseId = nextItem.exerciseId;
         items[currentIndex].difficulty = nextItem.difficulty;
@@ -117,6 +129,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     document.getElementById('btn-back')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
       clearInterval(timerInterval);
+      if (mode === 'normal' && sessionResults.length > 0) {
+        persistAbandonedSession();
+      }
       navigateTo(mode === 'practice' ? 'trainers' : 'today');
     });
 
@@ -433,13 +448,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
 
     const finishedAt = new Date().toISOString();
-    const duration = storage.getProfile().sessionLengthSec - timeLeft;
-    const s = {
+    const duration = Math.max(0, plannedDuration - timeLeft);
+    const s: Session = {
       id: Date.now().toString(),
       startedAt: sessionStartedAt,
       finishedAt,
       durationSec: duration,
-      items: sessionResults
+      items: sessionResults,
+      interrupted: false,
+      endReason: sessionEndReason,
+      plannedDurationSec: plannedDuration
     };
     storage.addSession(s);
 
@@ -499,6 +517,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     navigateTo('result', { session: s, unlocked });
   };
 
+  function persistAbandonedSession() {
+    const duration = Math.max(0, plannedDuration - timeLeft);
+    storage.addSession({
+      id: Date.now().toString(),
+      startedAt: sessionStartedAt,
+      finishedAt: null,
+      durationSec: duration,
+      items: sessionResults,
+      interrupted: true,
+      endReason: 'abandoned',
+      plannedDurationSec: plannedDuration
+    });
+  }
+
   function showFatiguePrompt() {
     const overlay = document.createElement('div');
     overlay.className = 'modal-root';
@@ -524,6 +556,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     overlay.querySelector('#btn-fatigue-end')?.addEventListener('click', () => {
       unbind();
       overlay.remove();
+      sessionEndReason = 'fatigue';
       finishSession();
     });
     overlay.querySelector('#btn-fatigue-go')?.addEventListener('click', () => {

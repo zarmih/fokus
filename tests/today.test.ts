@@ -110,4 +110,38 @@ test('today shows Fokus Index and workout after calibration', () => {
   expect(app.textContent).toMatch(/Fokus Index/);
   expect(app.textContent).toMatch(/Тренировка дня/);
   expect(app.textContent).toMatch(/Начать сессию/);
+  expect(app.textContent).not.toMatch(/Качество ритуала/);
+  expect(app.textContent).not.toMatch(/балл мозга/i);
+});
+
+test('today shows quality trend and a shorter recovery ritual after hard sessions', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  p.sessionLengthSec = 720;
+  storage.setProfile(p);
+
+  for (let i = 0; i < 4; i++) {
+    const day = String(7 + i).padStart(2, '0');
+    storage.addSession({
+      id: `hard-${i}`,
+      startedAt: `2026-09-${day}T18:00:00.000Z`,
+      finishedAt: `2026-09-${day}T18:12:00.000Z`,
+      durationSec: 700,
+      plannedDurationSec: 720,
+      items: [
+        { exerciseId: 'grid-memory', level: 14, accuracy: 0.44, avgRtMs: 1100, score: 20 },
+        { exerciseId: 'stroop', level: 13, accuracy: 0.4, avgRtMs: 1500, score: 18 },
+        { exerciseId: 'odd-one', level: 12, accuracy: 0.42, avgRtMs: 1700, score: 16 }
+      ]
+    });
+  }
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  expect(app.textContent).toMatch(/Качество ритуала/);
+  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
+  expect(app.textContent).toMatch(/5 минут/);
+  expect(app.textContent).not.toMatch(/IQ/);
+  expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
 });
