@@ -3,6 +3,8 @@ export interface Profile {
   createdAt: string;
   sessionLengthSec: number;
   calibrated?: boolean;
+  programPhase?: number; // Phase 2: current program level/phase
+  programStartDate?: string;
   onboarded?: boolean;
   theme?: 'dark' | 'light';
   soundOn: boolean;

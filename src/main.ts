@@ -5,6 +5,7 @@ import { renderResult } from './ui/screens/result';
 import { renderProgress } from './ui/screens/progress';
 import { renderSettings } from './ui/screens/settings';
 import { renderTrainers } from './ui/screens/trainers';
+import { renderProgram } from './ui/screens/program';
 import { renderOnboarding } from './ui/screens/onboarding';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
@@ -65,6 +66,7 @@ window.addEventListener('navigate', (e: any) => {
   const {screenId, params} = e.detail;
   try {
     if (screenId === 'today') renderToday(app);
+    else if (screenId === 'program') renderProgram(app);
     else if (screenId === 'session') renderSession(app, params);
     else if (screenId === 'result') renderResult(app, params);
     else if (screenId === 'progress') renderProgress(app);
