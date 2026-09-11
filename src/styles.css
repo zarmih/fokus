@@ -2507,3 +2507,34 @@ html[data-motion="reduce"] .trainer-card { transition-duration: 0ms; }
   color: var(--text);
   font-size: 16px;
 }
+
+/* Today Screen Enhancements */
+.empty-state {
+  opacity: 0.8;
+  border-style: dashed !important;
+  background: transparent !important;
+}
+.empty-state .fi-meta { color: var(--muted); }
+
+@keyframes ctaPulse {
+  0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+  70% { box-shadow: 0 0 0 12px rgba(139, 92, 246, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+}
+.pulse-cta {
+  animation: ctaPulse 2s infinite var(--ease-standard);
+}
+html[data-motion="reduce"] .pulse-cta {
+  animation: none;
+}
+
+.staggered-list > * {
+  animation: fxEnter var(--motion-slow) var(--ease-enter) backwards;
+}
+.staggered-list > *:nth-child(1) { animation-delay: 50ms; }
+.staggered-list > *:nth-child(2) { animation-delay: 100ms; }
+.staggered-list > *:nth-child(3) { animation-delay: 150ms; }
+.staggered-list > *:nth-child(4) { animation-delay: 200ms; }
+.staggered-list > *:nth-child(5) { animation-delay: 250ms; }
+.staggered-list > *:nth-child(6) { animation-delay: 300ms; }
+.staggered-list > *:nth-child(7) { animation-delay: 350ms; }
