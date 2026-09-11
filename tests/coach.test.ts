@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
-import { getDailySpark, analyzeChronotype, getWeeklyDomainTips } from '../src/core/coach';
+import { getDailySpark, getDailyRitualCopy, analyzeChronotype, getWeeklyDomainTips } from '../src/core/coach';
+import { FORBIDDEN_COPY_RE } from '../src/core/ritual-copy';
 import type { Session } from '../src/core/types';
 
 test('uncalibrated users get a calibration spark', () => {
@@ -90,4 +91,64 @@ test('weekly domain tips stay concrete and in product voice', () => {
   expect(tips.length).toBe(2);
   expect(tips[0]).toMatch(/телефон|вниман/i);
   expect(getWeeklyDomainTips('unknown-domain')[0]).toMatch(/Регулярность/);
+});
+
+test('loud fatigue after playing today prefers rest copy', () => {
+  const today = '2026-09-11T10:00:00';
+  const copy = getDailyRitualCopy({
+    domains: [],
+    skills: [],
+    states: [],
+    daySummaries: [{ date: today, totalScore: 70, domainDeltas: {}, streak: 3, skipped: false }],
+    sessions: [
+      {
+        id: 'a',
+        startedAt: today,
+        finishedAt: today,
+        durationSec: 700,
+        items: [
+          { exerciseId: 'a', level: 8, accuracy: 0.5, avgRtMs: 900, score: 20 },
+          { exerciseId: 'b', level: 8, accuracy: 0.42, avgRtMs: 1400, score: 16 },
+          { exerciseId: 'c', level: 8, accuracy: 0.4, avgRtMs: 1800, score: 14 }
+        ]
+      },
+      {
+        id: 'b',
+        startedAt: '2026-09-11T16:00:00',
+        finishedAt: '2026-09-11T16:12:00',
+        durationSec: 720,
+        items: [
+          { exerciseId: 'a', level: 8, accuracy: 0.38, avgRtMs: 1600, score: 12 },
+          { exerciseId: 'b', level: 8, accuracy: 0.4, avgRtMs: 1900, score: 10 },
+          { exerciseId: 'c', level: 8, accuracy: 0.35, avgRtMs: 2100, score: 8 }
+        ]
+      }
+    ],
+    calibrated: true,
+    playedToday: true,
+    streak: 3,
+    now: new Date(2026, 8, 11, 18, 0, 0),
+    sessionLengthSec: 300
+  });
+  expect(copy.situation).toBe('fatigue_rest');
+  expect(copy.body).toMatch(/завтра/i);
+  expect(copy.body).not.toMatch(FORBIDDEN_COPY_RE);
+});
+
+test('rest-light recovery reaches the daily spark', () => {
+  const spark = getDailySpark({
+    domains: [],
+    skills: [],
+    states: [],
+    daySummaries: [{ date: '2026-09-10', totalScore: 80, domainDeltas: {}, streak: 4, skipped: false }],
+    sessions: [],
+    calibrated: true,
+    playedToday: false,
+    streak: 4,
+    recovery: 'rest-light',
+    loadEwma: 80,
+    now: new Date(2026, 8, 11, 11, 0, 0)
+  });
+  expect(spark.tone).toBe('recovery');
+  expect(`${spark.title} ${spark.body}`).toMatch(/короче|лёгк|нагрузк/i);
 });

@@ -11,7 +11,7 @@ import { getDailyQuests } from '../../core/quests';
 import { generateInsights } from '../../core/insights';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
-import { getDailySpark } from '../../core/coach';
+import { getDailyRitualCopy } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
@@ -46,6 +46,11 @@ export function renderToday(container: HTMLElement) {
       yesterdayScore = Math.round(last.totalScore);
     } else {
       skippedYesterday = true;
+      const twoAgo = new Date();
+      twoAgo.setDate(twoAgo.getDate() - 2);
+      if (last.date.startsWith(twoAgo.toISOString().split('T')[0])) {
+        streak = last.streak;
+      }
     }
   }
 
@@ -102,7 +107,7 @@ export function renderToday(container: HTMLElement) {
     ? (profile as { shieldCharges?: number }).shieldCharges
     : undefined;
 
-  const spark = getDailySpark({
+  const copy = getDailyRitualCopy({
     domains,
     skills,
     states,
@@ -114,8 +119,14 @@ export function renderToday(container: HTMLElement) {
     skippedYesterday,
     primaryGoal: profile.primaryGoal,
     focusDomains: plan.focusDomains,
-    shieldCharges
+    shieldCharges,
+    sessionLengthSec: profile.sessionLengthSec,
+    recovery: ritual.snapshot.recommendation,
+    loadEwma: ritual.snapshot.loadEwma,
+    lastQuality: ritual.snapshot.lastQuality?.score ?? null,
+    minutes: Math.max(1, Math.floor(ritualDuration / 60))
   });
+  const spark = { title: copy.title, body: copy.body, tone: copy.tone };
 
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
   let retentionHtml = '';
@@ -204,8 +215,8 @@ export function renderToday(container: HTMLElement) {
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Первый шаг</div>
+      <div class="workout-card fx-enter" data-copy-situation="${copy.situation}">
+        <div class="workout-kicker">${copy.cardKicker || 'Первый шаг'}</div>
         <h3>Калибровка уровня</h3>
         <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
         <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
@@ -213,18 +224,19 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate">
-        <div class="workout-kicker">Сегодня</div>
-        <h3>План выполнен</h3>
-        <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
+      <div class="workout-card done fx-celebrate" data-copy-situation="${copy.situation}">
+        <div class="workout-kicker">${copy.cardKicker}</div>
+        <h3>${copy.cardTitle}</h3>
+        <p>${copy.cardBody}</p>
         <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
   } else {
     const rest = ritual.snapshot.gate.active;
+    const kicker = rest ? 'Сегодня легче' : copy.cardKicker;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}" data-copy-situation="${copy.situation}">
+        <div class="workout-kicker">${kicker}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
@@ -265,7 +277,7 @@ export function renderToday(container: HTMLElement) {
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
       ${retentionHtml}
 
-      <div class="insight-banner coach-${spark.tone}">
+      <div class="insight-banner coach-${spark.tone}" data-copy-situation="${copy.situation}" data-copy-template="${copy.templateId}">
         <div class="insight-icon">💡</div>
         <div>
           <div class="insight-kicker">Коуч Fokus · ${spark.title}</div>

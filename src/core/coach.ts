@@ -1,13 +1,46 @@
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
 import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
-import { assessRetention, sparkFromRetention } from './retention';
+import { assessRetention } from './retention';
+import {
+  composeRitualCopy,
+  toCoachSpark,
+  type RecoveryTone,
+  type RitualCopy,
+  type RitualCopyInput
+} from './ritual-copy';
 
 export interface CoachSpark {
   title: string;
   body: string;
   tone: 'start' | 'habit' | 'focus' | 'recovery' | 'science' | 'time';
 }
+
+export type DailyCoachParams = {
+  domains: DomainIndex[];
+  skills: SkillIndex[];
+  states: ExerciseState[];
+  daySummaries: DaySummary[];
+  sessions: Session[];
+  calibrated: boolean;
+  playedToday: boolean;
+  streak: number;
+  skippedYesterday?: boolean;
+  primaryGoal?: string;
+  focusDomains?: string[];
+  now?: Date;
+  /** Optional Phase 3 field — ignored when the program PR is not merged. */
+  shieldCharges?: number;
+  sessionLengthSec?: number;
+  fatigueScore?: number;
+  neglectScore?: number;
+  gapDays?: number;
+  recovery?: RecoveryTone | null;
+  loadEwma?: number;
+  lastQuality?: number | null;
+  minutes?: number;
+  lastTemplateId?: string;
+};
 
 function hourBucket(iso: string): 'morning' | 'afternoon' | 'evening' | 'night' {
   const h = new Date(iso).getHours();
@@ -51,130 +84,89 @@ export function analyzeChronotype(sessions: Session[]): {
   };
 }
 
-export function getDailySpark(params: {
-  domains: DomainIndex[];
-  skills: SkillIndex[];
-  states: ExerciseState[];
-  daySummaries: DaySummary[];
-  sessions: Session[];
-  calibrated: boolean;
-  playedToday: boolean;
-  streak: number;
-  skippedYesterday?: boolean;
-  primaryGoal?: string;
-  focusDomains?: string[];
-  now?: Date;
-  /** Optional Phase 3 field — ignored when the program PR is not merged. */
-  shieldCharges?: number;
-}): CoachSpark {
-  const {
-    domains,
-    daySummaries,
-    sessions,
-    calibrated,
-    playedToday,
-    streak,
-    skippedYesterday,
-    primaryGoal,
-    focusDomains,
-    now,
-    shieldCharges
-  } = params;
-
-  if (!calibrated) {
+function retentionBits(params: DailyCoachParams): {
+  fatigueScore?: number;
+  neglectScore?: number;
+  gapDays?: number;
+  neglectedDomain?: string | null;
+} {
+  try {
+    const snap = assessRetention({
+      daySummaries: params.daySummaries,
+      sessions: params.sessions,
+      domains: params.domains,
+      playedToday: params.playedToday,
+      streak: params.streak,
+      skippedYesterday: params.skippedYesterday,
+      shieldCharges: params.shieldCharges,
+      sessionLengthSec: params.sessionLengthSec,
+      now: params.now
+    });
+    const fatigue = snap.signals.find((s) => s.id === 'session_fatigue');
+    const neglect = snap.signals.find((s) => s.id === 'domain_neglect');
     return {
-      title: 'Сначала настройка',
-      body: '90 секунд калибровки — и Fokus подстроит сложность под вас, а не наоборот.',
-      tone: 'start'
+      fatigueScore: fatigue?.score,
+      neglectScore: neglect?.score,
+      gapDays: snap.gapDays,
+      neglectedDomain: snap.neglectedDomain
     };
+  } catch {
+    return {};
   }
+}
 
-  const retentionSpark = (): CoachSpark | null => {
-    try {
-      const snap = assessRetention({
-        daySummaries,
-        sessions,
-        domains,
-        playedToday,
-        streak,
-        skippedYesterday,
-        shieldCharges,
-        now
-      });
-      return sparkFromRetention(snap);
-    } catch {
-      return null;
-    }
-  };
+export function buildRitualCopyInput(params: DailyCoachParams): RitualCopyInput {
+  const now = params.now ?? new Date();
+  const bits = retentionBits(params);
+  const fatigueScore = params.fatigueScore ?? bits.fatigueScore;
+  const neglectScore = params.neglectScore ?? bits.neglectScore;
+  const gapDays = params.gapDays ?? bits.gapDays;
 
-  if (playedToday) {
-    const rest = retentionSpark();
-    if (rest && rest.tone === 'habit' && /завтра/i.test(rest.body)) {
-      return rest;
-    }
-    return {
-      title: 'План выполнен',
-      body: 'Когнитивные навыки растут от регулярности, не от марафонов. Завтра Fokus соберёт новую сессию.',
-      tone: 'habit'
-    };
-  }
+  const chrono = analyzeChronotype(params.sessions);
+  const nowBucket = hourBucket(now.toISOString());
+  const chronoMatch = !!(chrono.bucket && chrono.sample >= 3 && nowBucket === chrono.bucket);
 
-  if (skippedYesterday && streak > 0) {
-    return {
-      title: 'Серия на месте',
-      body: 'Один пропуск Fokus уже простил. Пять минут сегодня закрепят привычку сильнее, чем час раз в неделю.',
-      tone: 'recovery'
-    };
-  }
-
-  if (streak === 0 && daySummaries.length > 0) {
-    return {
-      title: 'Вернуться легче, чем начать',
-      body: 'Короткий блок внимания вернёт ритм. Не нужно навёрстывать пропущенные дни.',
-      tone: 'recovery'
-    };
-  }
-
-  const fromRetention = retentionSpark();
-  if (fromRetention) return fromRetention;
-
-  const chrono = analyzeChronotype(sessions);
-  if (chrono.bucket && chrono.sample >= 3) {
-    const nowBucket = hourBucket((now ?? new Date()).toISOString());
-    if (nowBucket === chrono.bucket) {
-      return {
-        title: 'Ваше сильное окно',
-        body: `По прошлым сессиям вы сильнее ${chrono.label}. Сегодня хорошее время для сложного блока.`,
-        tone: 'time'
-      };
-    }
-  }
-
-  const fi = computeFokusIndex(domains);
+  const fi = computeFokusIndex(params.domains);
   const weakest = [...fi.byDomain].filter((d) => d.ready).sort((a, b) => a.value - b.value)[0];
-  const focus = (focusDomains && focusDomains[0]) || (primaryGoal && primaryGoal !== 'balance' ? primaryGoal : weakest?.id);
+  const focusId =
+    (params.focusDomains && params.focusDomains[0]) ||
+    (params.primaryGoal && params.primaryGoal !== 'balance' ? params.primaryGoal : weakest?.id);
 
-  if (focus) {
-    return {
-      title: 'Фокус дня',
-      body: `Сегодня упор на «${domainLabel(focus)}». Сложность подстроится по точности — ошибаться нормально.`,
-      tone: 'focus'
-    };
-  }
-
-  if (streak >= 7) {
-    return {
-      title: `${streak} дней подряд`,
-      body: 'Регулярность важнее интенсивности: короткая сессия каждый день сильнее редких длинных.',
-      tone: 'habit'
-    };
-  }
+  const loudNeglect = (neglectScore ?? 0) >= 70 && bits.neglectedDomain;
+  const domain = loudNeglect
+    ? domainLabel(bits.neglectedDomain as string)
+    : focusId
+      ? domainLabel(focusId)
+      : undefined;
 
   return {
-    title: 'Короткий ритуал',
-    body: 'Тренируем конкретные задачи. Перенос в жизнь скромный — зато привычка внимания остаётся.',
-    tone: 'science'
+    calibrated: params.calibrated,
+    playedToday: params.playedToday,
+    streak: params.streak,
+    skippedYesterday: params.skippedYesterday,
+    historyDays: params.daySummaries.length,
+    gapDays,
+    fatigueScore,
+    neglectScore,
+    recovery: params.recovery,
+    loadEwma: params.loadEwma,
+    lastQuality: params.lastQuality,
+    hour: now.getHours(),
+    domain,
+    minutes: params.minutes,
+    chrono: chronoMatch ? chrono.label : undefined,
+    chronoMatch,
+    asOf: now,
+    lastTemplateId: params.lastTemplateId
   };
+}
+
+export function getDailyRitualCopy(params: DailyCoachParams): RitualCopy {
+  return composeRitualCopy(buildRitualCopyInput(params));
+}
+
+export function getDailySpark(params: DailyCoachParams): CoachSpark {
+  return toCoachSpark(getDailyRitualCopy(params));
 }
 
 export { getWeeklyDomainTips } from './coach-intel';

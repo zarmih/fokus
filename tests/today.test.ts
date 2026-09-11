@@ -114,6 +114,79 @@ test('today shows Fokus Index and workout after calibration', () => {
   expect(app.textContent).not.toMatch(/балл мозга/i);
 });
 
+test('today coach banner exposes the copy situation', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  const banner = app.querySelector('.insight-banner') as HTMLElement;
+  expect(banner).toBeTruthy();
+  expect(banner.getAttribute('data-copy-situation')).toBeTruthy();
+  expect(banner.getAttribute('data-copy-template')).toBeTruthy();
+  expect(app.querySelector('.workout-card')?.getAttribute('data-copy-situation')).toBeTruthy();
+});
+
+test('a two-day gap keeps the streak pending and uses post-miss tone', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+  const last = new Date();
+  last.setDate(last.getDate() - 2);
+  storage.addDaySummary({
+    date: last.toISOString(),
+    totalScore: 110,
+    domainDeltas: { attention: 4 },
+    streak: 6,
+    skipped: false
+  });
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  expect(app.querySelector('[data-copy-situation="post_miss_forgiven"]')).toBeTruthy();
+  expect(app.textContent).toMatch(/серия|пропуск|прост/i);
+  expect(app.textContent).not.toMatch(/отработай|штраф|не пропусти|прокачай мозг/i);
+  expect(app.textContent).toMatch(/6/);
+});
+
+test('after a heavy day the done card uses fatigue-aware copy', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  p.sessionLengthSec = 300;
+  storage.setProfile(p);
+  const today = new Date().toISOString();
+  storage.addDaySummary({
+    date: today,
+    totalScore: 40,
+    domainDeltas: { attention: 1 },
+    streak: 3,
+    skipped: false
+  });
+  for (let i = 0; i < 2; i++) {
+    storage.addSession({
+      id: `fat-${i}`,
+      startedAt: today,
+      finishedAt: today,
+      durationSec: 720,
+      items: [
+        { exerciseId: 'grid-memory', level: 12, accuracy: 0.4, avgRtMs: 1200, score: 12 },
+        { exerciseId: 'stroop', level: 12, accuracy: 0.38, avgRtMs: 1600, score: 10 },
+        { exerciseId: 'odd-one', level: 11, accuracy: 0.42, avgRtMs: 1800, score: 11 }
+      ]
+    });
+  }
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  expect(app.querySelector('[data-copy-situation="fatigue_rest"]')).toBeTruthy();
+  expect(app.textContent).toMatch(/завтра/i);
+  expect(app.textContent).not.toMatch(/прокачай мозг|не пропусти/i);
+});
+
 test('today shows quality trend and a shorter recovery ritual after hard sessions', () => {
   const p = storage.getProfile();
   p.onboarded = true;
