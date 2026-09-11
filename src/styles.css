@@ -1523,3 +1523,111 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
     animation: none !important;
   }
 }
+
+/* G9 transfer insights — no extra motion; global reduced-motion already covers transitions */
+.transfer-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.transfer-card h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  line-height: 1.3;
+}
+.transfer-kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.transfer-body {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.transfer-action {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1.4;
+}
+.transfer-focus-line {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.transfer-tip {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+.transfer-tip-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.transfer-tip-situation {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.transfer-tip-link {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.transfer-card--guide .transfer-list {
+  margin: 12px 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+}
+.transfer-card--guide .transfer-list li {
+  margin-bottom: 10px;
+}
+.transfer-not {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-weight: 400;
+}
+.transfer-focus {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+.transfer-muted {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 12px 0 0;
+}
+.transfer-card:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+@media (max-width: 480px) {
+  .transfer-card {
+    padding: 14px;
+  }
+  .transfer-card h3 {
+    font-size: 15px;
+  }
+}

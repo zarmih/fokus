@@ -4,8 +4,9 @@ import { buildTrainingPlan } from '../../core/session-builder';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
-import { generateInsights } from '../../core/insights';
 import { getDailyQuests } from '../../core/quests';
+import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
+import { transferCardFromStorage } from '../components/transfer-card';
 import { getDailySpark } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
@@ -43,13 +44,15 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
+  const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
   const plan = buildTrainingPlan({
     durationSec: profile.sessionLengthSec,
     catalog: registry as any,
     domains,
     skills,
     states,
-    primaryGoal: profile.primaryGoal
+    primaryGoal: profile.primaryGoal,
+    focusOfTheWeek: weeklyFocus?.domain
   });
 
   const fi = computeFokusIndex(domains);
@@ -88,8 +91,7 @@ export function renderToday(container: HTMLElement) {
     focusDomains: plan.focusDomains
   });
 
-  const insights = generateInsights(domains, skills, states, ds, sessions);
-  const topInsight = insights[0];
+  const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
 
   const quests = getDailyQuests();
   const questsHtml = `
@@ -190,15 +192,7 @@ export function renderToday(container: HTMLElement) {
         </div>
       </div>
 
-      ${topInsight && topInsight.title !== spark.title && topInsight.type !== 'milestone' ? `
-        <div class="insight-banner">
-          <div class="insight-icon">🧠</div>
-          <div>
-            <div class="insight-kicker">Инсайт · ${topInsight.confidence === 'high' ? 'уверенный' : topInsight.confidence === 'medium' ? 'подтверждается' : 'изучаем'}</div>
-            <div class="insight-body">${topInsight.description}</div>
-          </div>
-        </div>
-      ` : ''}
+      ${transferCardHtml}
 
       ${questsHtml}
     </div>

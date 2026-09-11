@@ -2,8 +2,9 @@ import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
 import { renderShell } from '../shell';
 import { navigateTo } from '../router';
-import { generateInsights } from '../../core/insights';
 import { buildTrainingPlan } from '../../core/session-builder';
+import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
+import { transferCardFromStorage } from '../components/transfer-card';
 
 export function renderWeeklyReview(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress', hideNav: true });
@@ -124,27 +125,19 @@ export function renderWeeklyReview(container: HTMLElement) {
   const domains = storage.getDomains();
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
-  const insights = generateInsights(domains, skills, states, daySummaries, sessions);
-  
-  let insightHtml = '';
-  if (insights.length > 0 && totalSessions > 0) {
-    insightHtml = `
-      <div class="surface" style="margin-bottom: 24px; border-left: 4px solid var(--accent);">
-        <h3 style="margin-bottom: 12px;">Что Fokus заметил</h3>
-        <p style="margin: 0; font-size: 14px; line-height: 1.4;">${insights[0].description}</p>
-      </div>
-    `;
-  }
+  const insightHtml = totalSessions > 0 ? transferCardFromStorage({ prefer: 'week' }) : '';
 
   // NEXT STEP (from recommendation engine)
   const profile = storage.getProfile();
+  const weeklyFocus = suggestFocusOfTheWeek(domains, daySummaries, sessions);
   const plan = buildTrainingPlan({
     durationSec: profile.sessionLengthSec,
     catalog: registry as any,
     domains,
     skills,
     states,
-    primaryGoal: profile.primaryGoal
+    primaryGoal: profile.primaryGoal,
+    focusOfTheWeek: weeklyFocus?.domain
   });
 
   let nextStepHtml = '';
