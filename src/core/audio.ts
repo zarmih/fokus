@@ -90,3 +90,8 @@ export function playTick() {
   if (!enabled()) return;
   beep({ freq: 620, type: 'square', dur: 0.045, gain: 0.035 });
 }
+
+export function playTap() {
+  if (!enabled()) return;
+  beep({ freq: 900, type: 'sine', dur: 0.04, gain: 0.02 });
+}

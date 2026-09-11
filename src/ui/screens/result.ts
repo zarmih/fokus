@@ -99,6 +99,11 @@ export function renderResult(container: HTMLElement, params: { session: Session;
             <div>${confDisplay}</div>
           </div>
         </div>
+        <div style="margin-top: 16px;">
+          <div class="scale-track" style="height: 6px; background: rgba(255,255,255,0.05); margin: 0;">
+            <div class="scale-fill" style="width: ${Math.min(100, mAfter)}%; background: ${mDelta > 0 ? 'var(--ok)' : mDelta < 0 ? 'var(--danger)' : 'var(--accent)'};"></div>
+          </div>
+        </div>
       </div>
     `;
   }).join('');
@@ -183,7 +188,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
     <div class="result-actions">
       <button id="btn-share" class="btn-secondary" style="display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right:8px; vertical-align: middle;"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>Поделиться</button>
-      <button id="btn-done" class="btn-primary">Готово</button>
+      <button id="btn-done" class="btn-primary" style="display:flex; align-items:center; justify-content:center;">Дальше <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left:8px;"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
     </div>
   `;
 
