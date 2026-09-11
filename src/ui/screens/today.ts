@@ -7,15 +7,17 @@ import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
-import { generateInsights } from '../../core/insights';
 import { getDailyQuests } from '../../core/quests';
+import { generateInsights } from '../../core/insights';
+import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
+import { transferCardFromStorage } from '../components/transfer-card';
 import { getDailySpark } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
-import { getTodayRitual, pickTransferTip } from '../../core/onboarding';
+import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, bandLabel } from '../../core/retention';
 import { enterStage } from '../../core/motion';
 
@@ -51,6 +53,7 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
+  const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
   const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
   const baseDuration = weekRitual.inFirstWeek && weekRitual.ritualDay
     ? weekRitual.ritualDay.durationSec
@@ -61,7 +64,7 @@ export function renderToday(container: HTMLElement) {
     domains,
     skills,
     states,
-    primaryGoal: (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal,
+    primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal,
     sessions,
     daySummaries: ds,
     recoveryHintsEnabled: profile.recoveryHints !== false
@@ -114,6 +117,7 @@ export function renderToday(container: HTMLElement) {
     shieldCharges
   });
 
+  const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
   let retentionHtml = '';
   try {
     const snap = assessRetention({
@@ -138,12 +142,6 @@ export function renderToday(container: HTMLElement) {
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
   const topInsight = insights[0];
-  const transfer = pickTransferTip({
-    primaryGoal: profile.primaryGoal,
-    snapshot: profile.probeSnapshot,
-    cursor: profile.transferTipCursor
-  });
-
   const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
     <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
       <div class="week-kicker">Первая неделя · день ${weekRitual.day} из 7 · ${weekRitual.ritualDay.label}</div>
@@ -154,15 +152,6 @@ export function renderToday(container: HTMLElement) {
         }).join('')}
       </div>
       <p class="week-note">${weekRitual.copy}</p>
-    </div>
-  ` : '';
-
-  const transferHtml = profile.calibrated ? `
-    <div class="transfer-card">
-      <button type="button" class="transfer-toggle" id="btn-transfer" aria-expanded="false" aria-controls="transfer-body">
-        Перенос в жизнь · ${transfer.title}
-      </button>
-      <p id="transfer-body" class="transfer-body" hidden>${transfer.body}</p>
     </div>
   ` : '';
 
@@ -284,34 +273,13 @@ export function renderToday(container: HTMLElement) {
         </div>
       </div>
 
-      ${topInsight && topInsight.title !== spark.title && topInsight.type !== 'milestone' ? `
-        <div class="insight-banner">
-          <div class="insight-icon">🧠</div>
-          <div>
-            <div class="insight-kicker">Инсайт · ${topInsight.confidence === 'high' ? 'уверенный' : topInsight.confidence === 'medium' ? 'подтверждается' : 'изучаем'}</div>
-            <div class="insight-body">${topInsight.description}</div>
-          </div>
-        </div>
-      ` : ''}
+      ${transferCardHtml}
 
       ${questsHtml}
 
-      ${transferHtml}
     </div>
   `;
 
-  content.querySelector('#btn-transfer')?.addEventListener('click', () => {
-    const btn = content.querySelector('#btn-transfer') as HTMLButtonElement | null;
-    const body = content.querySelector('#transfer-body') as HTMLElement | null;
-    if (!btn || !body) return;
-    const open = body.hasAttribute('hidden');
-    if (open) body.removeAttribute('hidden');
-    else body.setAttribute('hidden', '');
-    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    const p = storage.getProfile();
-    p.transferTipCursor = (p.transferTipCursor || 0) + 1;
-    storage.setProfile(p);
-  });
   content.querySelector('#btn-recal')?.addEventListener('click', () => {
     const items = (recal.probe.length ? recal.probe : [
       { exerciseId: 'odd-one' },

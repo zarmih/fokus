@@ -6,6 +6,8 @@ import { catalog, getManifest } from '../../exercises/catalog';
 import { renderScatterPlot, renderRadarChart, renderIndexSparkline } from '../components/charts';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
+import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
+import { transferCardFromStorage } from '../components/transfer-card';
 import { renderQualityCard } from '../components/quality-card';
 import { assessRetention, bandLabel, signalLabel } from '../../core/retention';
 import { buildCoachIntel } from '../../core/coach-intel';
@@ -147,28 +149,9 @@ export function renderProgress(container: HTMLElement) {
   if (!profileHtml) profileHtml = '<p style="color: var(--muted); font-size: 13px;">Данные собираются...</p>';
 
   const exStates = storage.getExerciseStates();
-  const insights = generateInsights(domains, skills, exStates, ds, storage.getSessions());
-  let insightHtml = '';
-  if (insights.length > 0) {
-    const topInsights = insights.slice(0, 3).map(ins => `<li style="margin-bottom: 8px;">${ins.description}</li>`).join('');
-    insightHtml = `
-      <div class="insight-banner">
-        <div style="flex: 1;">
-          <h3 style="margin-bottom: 8px;">Что Fokus заметил</h3>
-          <ul style="font-size: 14px; color: var(--text); line-height: 1.4; margin: 0; padding-left: 16px; opacity: 0.9;">
-            ${topInsights}
-          </ul>
-        </div>
-      </div>
-    `;
-  } else {
-    insightHtml = `
-      <div class="surface" style="margin-bottom: 24px; border-left: 4px solid var(--line);">
-        <h3 style="margin-bottom: 12px;">Что Fokus заметил</h3>
-        <p style="font-size: 14px; color: var(--muted); line-height: 1.4; margin: 0;">Fokus собирает данные, чтобы дать вам полезные наблюдения.</p>
-      </div>
-    `;
-  }
+  const sessions = storage.getSessions();
+  const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
+  const insightHtml = transferCardFromStorage({ prefer: 'week' });
 
   // Next Step Block
   

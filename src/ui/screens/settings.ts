@@ -1,6 +1,7 @@
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
+import { transferCardFromStorage } from '../components/transfer-card';
 import { navigateTo } from '../router';
 import { domainLabel } from '../../core/labels';
 import { precisionLabel } from '../../core/calibration';
@@ -132,6 +133,8 @@ export function renderSettings(container: HTMLElement) {
       <button id="btn-reset" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; color: #f44336; border-color: #f44336;">Сбросить профиль</button>
     </div>
     
+    ${transferCardFromStorage({ prefer: 'guide' })}
+
     <div class="disclaimer">
       Fokus — тренажёр для поддержания когнитивного тонуса. Не является медицинским изделием. Не предназначен для лечения или диагностики.
     </div>
