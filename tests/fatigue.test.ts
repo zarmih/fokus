@@ -6,7 +6,13 @@ vi.mock('../src/ui/router', () => ({
   navigateTo: vi.fn()
 }));
 vi.mock('../src/core/audio', () => ({
-  playBeep: vi.fn()
+  playBeep: vi.fn(),
+  playCue: vi.fn(),
+  playTick: vi.fn(),
+  playHit: vi.fn(),
+  playMiss: vi.fn(),
+  playCombo: vi.fn(),
+  unlockAudio: vi.fn()
 }));
 
 vi.mock('../src/exercises/load-exercise', () => ({

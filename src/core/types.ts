@@ -1,3 +1,5 @@
+import type { AbilityModel } from './engine/types';
+
 export interface Profile {
   name: string;
   createdAt: string;
@@ -18,6 +20,11 @@ export interface Profile {
   reminderHour?: number | null;
   skipLifestylePrompt?: boolean;
   displayName?: string;
+  /** ISO time of last (re)calibration. Used by the v2 engine stale trigger. */
+  lastCalibrationAt?: string;
+  needsRecalibration?: boolean;
+  recalibrationSnoozedUntil?: string | null;
+  engineVersion?: number;
 }
 
 export interface SkillIndex {
@@ -63,6 +70,8 @@ export interface SessionItem {
   difficultyAfter?: number;
   confidenceAfter?: number;
   progressionState?: string;
+  pSuccess?: number;
+  slot?: string;
 }
 export interface Session {
   id: string;
@@ -86,7 +95,16 @@ export interface DaySummary {
   skipped: boolean;
   lifestyle?: { sleep: string | null; stress: string | null };
   fokusIndex?: number;
+  /** End-of-day domain snapshot. Optional for legacy summaries. */
+  domainValues?: Record<string, number>;
 }
+export interface StorageMeta {
+  schemaVersion: number;
+  deviceId: string;
+  rev: number;
+  updatedAt: string;
+}
+
 export interface AppState {
   profile: Profile;
   domains: DomainIndex[];
@@ -95,4 +113,7 @@ export interface AppState {
   sessions: Session[];
   daySummaries: DaySummary[];
   history: HistoryItem[];
+  meta?: StorageMeta;
+  /** Adaptive Engine v2 latent-ability snapshot. Optional for pre-v4 saves. */
+  abilityModel?: AbilityModel;
 }

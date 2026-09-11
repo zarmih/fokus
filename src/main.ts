@@ -7,6 +7,7 @@ import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 import { unlockAudio } from './core/audio';
 import { initInstallPrompt } from './pwa-install';
 import { applyDocumentLang } from './ui/a11y';
+import { applyMotionPreference } from './core/motion';
 
 initInstallPrompt();
 
@@ -19,7 +20,8 @@ const screenLoaders: Record<string, () => Promise<ScreenFn>> = {
   duel: () => import('./ui/screens/duel').then((m) => m.renderDuel),
   settings: () => import('./ui/screens/settings').then((m) => m.renderSettings),
   trainers: () => import('./ui/screens/trainers').then((m) => m.renderTrainers),
-  'weekly-review': () => import('./ui/screens/weekly-review').then((m) => m.renderWeeklyReview)
+  'weekly-review': () => import('./ui/screens/weekly-review').then((m) => m.renderWeeklyReview),
+  program: () => import('./ui/screens/program').then((m) => m.renderProgram)
 };
 
 function showFatal(app: HTMLElement, title: string, err: unknown) {
@@ -58,6 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initI18n(p.language);
     applyDocumentLang(p.language);
     applyTheme(p.theme || 'dark');
+    applyMotionPreference();
+    try {
+      window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => applyMotionPreference());
+    } catch { /* ignore */ }
     scheduleLocalReminder();
     maybeNotify();
     if (!p.onboarded) {

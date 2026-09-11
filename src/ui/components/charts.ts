@@ -1,5 +1,6 @@
 import { DOMAIN_COLORS, domainLabel } from '../../core/labels';
 import type { DomainSlice } from '../../core/fokus-index';
+import type { SparklineModel, SparkPoint } from '../../core/coach-intel';
 
 export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; max?: number }): string {
   const size = opts?.size ?? 280;
@@ -50,6 +51,71 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
       <polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2"/>
       ${dots}
       ${labels}
+    </svg>
+  `;
+}
+
+function sparkSegments(points: SparkPoint[]): SparkPoint[][] {
+  const segs: SparkPoint[][] = [];
+  let cur: SparkPoint[] = [];
+  for (const p of points) {
+    if (p.value != null && p.y != null) cur.push(p);
+    else if (cur.length) {
+      segs.push(cur);
+      cur = [];
+    }
+  }
+  if (cur.length) segs.push(cur);
+  return segs;
+}
+
+export function renderIndexSparkline(
+  model: SparklineModel,
+  opts?: { width?: number; height?: number }
+): string {
+  const values = model.points.filter((p) => p.value != null);
+  if (values.length === 0) return '';
+
+  const width = opts?.width ?? 280;
+  const height = opts?.height ?? 56;
+  const padX = 6;
+  const padY = 8;
+  const innerW = width - padX * 2;
+  const innerH = height - padY * 2;
+  const xOf = (p: SparkPoint) => padX + p.t * innerW;
+  const yOf = (p: SparkPoint) => padY + (p.y ?? 0.5) * innerH;
+
+  const segs = sparkSegments(model.points);
+  const polylines = segs
+    .filter((s) => s.length >= 2)
+    .map((s) => {
+      const pts = s.map((p) => `${xOf(p).toFixed(1)},${yOf(p).toFixed(1)}`).join(' ');
+      return `<polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    })
+    .join('');
+
+  const dots = model.points
+    .map((p, i) => {
+      if (p.value == null) return '';
+      const cx = xOf(p);
+      const cy = yOf(p);
+      const isLast = i === model.points.length - 1;
+      if (p.personalBest) {
+        return `<circle class="spark-pb" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="var(--ok)" stroke="var(--surface)" stroke-width="1.5"><title>Личный рекорд · ${p.value}</title></circle>`;
+      }
+      if (isLast || values.length <= 8) {
+        return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2.4" fill="var(--accent)"/>`;
+      }
+      return '';
+    })
+    .join('');
+
+  const label = `Fokus Index за ${model.window} дней${model.deltaLabel ? ' · ' + model.deltaLabel : ''}`;
+
+  return `
+    <svg class="intel-spark" viewBox="0 0 ${width} ${height}" role="img" aria-label="${label}" preserveAspectRatio="none">
+      ${polylines}
+      ${dots}
     </svg>
   `;
 }

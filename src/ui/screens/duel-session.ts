@@ -4,6 +4,20 @@ import { loadExercise } from '../../exercises/load-exercise';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { setScreenTitle } from '../a11y';
+import { storage } from '../../core/storage';
+import {
+  BOUT_DURATION_SEC,
+  BOUT_TARGET_POINTS,
+  DUEL_LAST_SUMMARY_KEY,
+  POINT_ACCURACY_THRESHOLD,
+  awardsPoint,
+  closeOnTime,
+  createBout,
+  newBoutId,
+  serializeSpectatorSummary,
+  assignPoints,
+  spectatorSummary
+} from '../../core/duelIntel';
 
 export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConnection, isHost: boolean }) {
   const content = renderShell(container, { active: 'duel', hideNav: true });
@@ -61,12 +75,14 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
 
   let myPoints = 0;
   let oppPoints = 0;
-  const targetScore = 3;
+  const targetScore = BOUT_TARGET_POINTS;
+  const boutId = newBoutId();
+  let bout = createBout(['me', 'opp']);
 
   let cleanup: any;
   let sessionActive = false;
   let startTime = 0;
-  let duration = 60; // 60 seconds
+  const duration = BOUT_DURATION_SEC;
 
   const updateBars = () => {
     myScore.textContent = myPoints.toString();
@@ -75,13 +91,40 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     oppBar.style.width = Math.min(100, (oppPoints / targetScore) * 100) + '%';
   };
 
-  const endDuel = (didIWin: boolean) => {
+  const persistSummary = (finished: typeof bout) => {
+    try {
+      const alias = storage.getProfile().displayName || storage.getProfile().name || 'Вы';
+      const summary = spectatorSummary({
+        boutId,
+        domain: exManifest.domain,
+        durationSec: Math.min(duration, Math.round((Date.now() - startTime) / 1000) || duration),
+        state: finished,
+        aliases: { me: alias, opp: 'Соперник' },
+        fairMatch: null
+      });
+      localStorage.setItem(DUEL_LAST_SUMMARY_KEY, serializeSpectatorSummary(summary));
+    } catch {
+      /* private mode / quota */
+    }
+  };
+
+  const endDuel = (didIWin: boolean, reason: 'target' | 'time' | 'draw' = 'target') => {
     sessionActive = false;
     if (cleanup) cleanup();
+
+    bout = assignPoints(bout, { me: myPoints, opp: oppPoints });
+    if (reason === 'time' || reason === 'draw') {
+      bout = closeOnTime({ ...bout, startedAtMs: startTime || Date.now() - duration * 1000 }, Date.now());
+    }
+    persistSummary(bout);
+
+    const draw = reason === 'draw' || myPoints === oppPoints;
+    const title = draw ? 'Ничья' : didIWin ? 'Вы победили!' : 'Вы проиграли!';
+    const color = draw ? 'var(--accent)' : didIWin ? 'var(--ok)' : 'var(--danger)';
     
     exContainer.innerHTML = `
       <div style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
-        <h2 style="color: ${didIWin ? 'var(--ok)' : 'var(--danger)'}; margin-bottom: 16px;">${didIWin ? 'Вы победили!' : 'Вы проиграли!'}</h2>
+        <h2 style="color: ${color}; margin-bottom: 16px;">${title}</h2>
         <div style="font-size: 24px; font-weight: 700; margin-bottom: 32px;">Счет: ${myPoints} - ${oppPoints}</div>
         <button id="btn-back" class="btn-primary" type="button">Вернуться</button>
       </div>
@@ -102,7 +145,8 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
         endDuel(false);
       }
     } else if (msg.type === 'TIMEUP') {
-      endDuel(myPoints > oppPoints);
+      if (myPoints === oppPoints) endDuel(false, 'draw');
+      else endDuel(myPoints > oppPoints, 'time');
     }
   };
 
@@ -137,7 +181,7 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
       2, // level
       (res) => {
         if (!sessionActive) return;
-        if (res.accuracy >= 0.8) {
+        if (awardsPoint(res.accuracy, POINT_ACCURACY_THRESHOLD)) {
           myPoints++;
           updateBars();
           params.p2p.send({ type: 'UPDATE', points: myPoints });
@@ -175,7 +219,8 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
         clearInterval(timerIv);
         if (sessionActive) {
           params.p2p.send({ type: 'TIMEUP' });
-          endDuel(myPoints >= oppPoints);
+          if (myPoints === oppPoints) endDuel(false, 'draw');
+          else endDuel(myPoints > oppPoints, 'time');
         }
       }
     }, 1000);
