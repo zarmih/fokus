@@ -16,7 +16,9 @@ import {
   newBoutId,
   serializeSpectatorSummary,
   assignPoints,
-  spectatorSummary
+  spectatorSummary,
+  formatCooldown,
+  rematchStatus
 } from '../../core/duelIntel';
 
 export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConnection, isHost: boolean }) {
@@ -58,8 +60,18 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
 
       <!-- Exercise Area -->
       <div id="ex-container" style="flex: 1; position: relative; overflow: hidden;">
-        <div id="countdown-overlay" style="position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.8); z-index: 10; font-size: 64px; font-weight: 800; color: var(--accent);">
-          Ожидание...
+        <div id="countdown-overlay" style="position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.85); z-index: 10; backdrop-filter: blur(4px);">
+          <div style="font-size: 16px; color: var(--muted); margin-bottom: 32px; text-transform: uppercase; letter-spacing: 2px;">Честный старт</div>
+          <div style="display: flex; gap: 40px; align-items: center; margin-bottom: 48px;">
+            <div style="text-align: center; width: 80px;">
+              <div style="font-size: 20px; font-weight: 700; color: var(--accent); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Вы</div>
+            </div>
+            <div style="font-size: 16px; color: var(--muted); font-style: italic;">vs</div>
+            <div style="text-align: center; width: 80px;">
+              <div style="font-size: 20px; font-weight: 700; color: var(--danger); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Соперник</div>
+            </div>
+          </div>
+          <div id="countdown-number" style="font-size: 80px; font-weight: 800; color: var(--text); text-shadow: 0 4px 16px rgba(0,0,0,0.5);">...</div>
         </div>
       </div>
     </div>
@@ -108,6 +120,13 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     }
   };
 
+  const guessFinishedAt = (bId: string): string | null => {
+    const raw = bId.replace(/^bout-/, '');
+    const ms = parseInt(raw, 36);
+    if (!Number.isFinite(ms) || ms <= 0) return null;
+    return new Date(ms).toISOString();
+  };
+
   const endDuel = (didIWin: boolean, reason: 'target' | 'time' | 'draw' = 'target') => {
     sessionActive = false;
     if (cleanup) cleanup();
@@ -121,18 +140,57 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     const draw = reason === 'draw' || myPoints === oppPoints;
     const title = draw ? 'Ничья' : didIWin ? 'Вы победили!' : 'Вы проиграли!';
     const color = draw ? 'var(--accent)' : didIWin ? 'var(--ok)' : 'var(--danger)';
+    const oppAlias = 'Соперник';
+    const myAlias = storage.getProfile().displayName || storage.getProfile().name || 'Вы';
     
     exContainer.innerHTML = `
-      <div style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
-        <h2 style="color: ${color}; margin-bottom: 16px;">${title}</h2>
-        <div style="font-size: 24px; font-weight: 700; margin-bottom: 32px;">Счет: ${myPoints} - ${oppPoints}</div>
-        <button id="btn-back" class="btn-primary" type="button">Вернуться</button>
+      <div style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; background: var(--bg);">
+        <div style="font-size: 14px; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Итоги схватки</div>
+        <h2 style="color: ${color}; font-size: 32px; margin-bottom: 32px;">${title}</h2>
+        
+        <div style="display: flex; justify-content: center; gap: 24px; margin-bottom: 40px;">
+          <div style="background: var(--surface); padding: 16px 24px; border-radius: 12px; border: 2px solid ${didIWin ? 'var(--ok)' : 'transparent'};">
+            <div style="font-size: 14px; color: var(--muted); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px;">${myAlias}</div>
+            <div style="font-size: 36px; font-weight: 800;">${myPoints}</div>
+          </div>
+          <div style="display: flex; align-items: center; font-size: 24px; color: var(--muted); font-weight: 300;">:</div>
+          <div style="background: var(--surface); padding: 16px 24px; border-radius: 12px; border: 2px solid ${!didIWin && !draw ? 'var(--danger)' : 'transparent'};">
+            <div style="font-size: 14px; color: var(--muted); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px;">${oppAlias}</div>
+            <div style="font-size: 36px; font-weight: 800;">${oppPoints}</div>
+          </div>
+        </div>
+
+        <div id="rematch-container" style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+        </div>
       </div>
     `;
     
-    exContainer.querySelector('#btn-back')?.addEventListener('click', () => {
-      navigateTo('duel');
-    });
+    const rc = exContainer.querySelector('#rematch-container') as HTMLElement;
+    
+    const updateRematch = () => {
+      const lastBoutAt = guessFinishedAt(boutId);
+      const { allowed, remainingMs } = rematchStatus(lastBoutAt);
+      if (allowed) {
+        rc.innerHTML = `
+          <button id="btn-rematch" class="btn-primary" type="button" style="width: 100%; max-width: 300px;">Новый код для реванша</button>
+          <button id="btn-back" class="btn-secondary" type="button" style="width: 100%; max-width: 300px;">Вернуться</button>
+        `;
+        rc.querySelector('#btn-rematch')?.addEventListener('click', () => navigateTo('duel'));
+        rc.querySelector('#btn-back')?.addEventListener('click', () => navigateTo('home'));
+      } else {
+        rc.innerHTML = `
+          <button id="btn-rematch" class="btn-primary" type="button" style="width: 100%; max-width: 300px;" disabled>Реванш · ${formatCooldown(remainingMs)}</button>
+          <button id="btn-back" class="btn-secondary" type="button" style="width: 100%; max-width: 300px;">Вернуться</button>
+        `;
+        rc.querySelector('#btn-back')?.addEventListener('click', () => navigateTo('duel'));
+      }
+    };
+    
+    updateRematch();
+    const interval = setInterval(() => {
+      if (!document.body.contains(rc)) clearInterval(interval);
+      else updateRematch();
+    }, 1000);
   };
 
   params.p2p.onMessage = (msg: any) => {
@@ -151,13 +209,15 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
   };
 
   const startCountdown = () => {
+    const numEl = overlay.querySelector('#countdown-number') as HTMLElement;
+    if (!numEl) return;
     let count = 3;
-    overlay.textContent = count.toString();
+    numEl.textContent = count.toString();
     import('../../core/audio').then(a => a.playTick());
     const iv = setInterval(() => {
       count--;
       if (count > 0) {
-        overlay.textContent = count.toString();
+        numEl.textContent = count.toString();
         import('../../core/audio').then(a => a.playTick());
       } else {
         clearInterval(iv);
