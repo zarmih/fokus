@@ -66,6 +66,18 @@ test('settings preview rejects a broken file', () => {
   });
 });
 
+test('settings coach toggle persists hideLongitudinalCoach', () => {
+  const app = document.getElementById('app')!;
+  renderSettings(app);
+  const toggle = document.getElementById('long-coach-toggle') as HTMLInputElement;
+  expect(toggle).toBeTruthy();
+  expect(toggle.checked).toBe(false);
+  expect(app.textContent).toMatch(/Скрыть карточку за недели/);
+  toggle.checked = true;
+  toggle.dispatchEvent(new Event('change'));
+  expect(storage.getProfile().hideLongitudinalCoach).toBe(true);
+});
+
 test('settings health after a write mentions revision', () => {
   storage.setProfile({ ...storage.getProfile(), name: 'Ada', onboarded: true });
   const app = document.getElementById('app')!;

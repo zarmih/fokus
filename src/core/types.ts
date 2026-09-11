@@ -77,6 +77,8 @@ export interface Profile {
   /** Present if a Phase 2 program PR is merged; G7 does not own this field. */
   programPhase?: number;
   programStartDate?: string;
+  /** When true, Today hides the multi-week longitudinal coach card. */
+  hideLongitudinalCoach?: boolean;
   /** ISO time of last (re)calibration. Used by the v2 engine stale trigger. */
   lastCalibrationAt?: string;
   needsRecalibration?: boolean;

@@ -87,6 +87,14 @@ export function renderSettings(container: HTMLElement) {
       </label>
     </div>
 
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Коуч</h3>
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="long-coach-toggle" ${profile.hideLongitudinalCoach ? 'checked' : ''} />
+        Скрыть карточку за недели
+      </label>
+    </div>
+
     ${profile.probeSnapshot ? `
     <div class="surface probe-summary">
       <h3 style="margin-bottom: 8px;">Стартовая оценка</h3>
@@ -209,6 +217,12 @@ export function renderSettings(container: HTMLElement) {
   document.getElementById('lifestyle-toggle')?.addEventListener('change', (e) => {
     const p = storage.getProfile();
     p.skipLifestylePrompt = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+  });
+
+  document.getElementById('long-coach-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.hideLongitudinalCoach = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
   });
 

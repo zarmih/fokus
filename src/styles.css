@@ -2088,6 +2088,46 @@ input, textarea, .onboard-input {
 .intel-tip-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
 .intel-tip-body { font-size: 13px; line-height: 1.45; color: var(--text); opacity: 0.9; }
 .coach-card { border-left: 4px solid var(--accent); }
+.long-coach {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent-2);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.long-coach[data-confidence="low"] { border-left-color: var(--muted); }
+.long-coach[data-confidence="high"] { border-left-color: var(--ok); }
+.long-coach-primary {
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+.long-coach-body {
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0 0 10px;
+}
+.long-coach-support {
+  list-style: disc;
+  padding-left: 18px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text);
+  opacity: 0.9;
+}
+.long-coach-support li { margin-bottom: 6px; }
+.long-coach-support li:last-child { margin-bottom: 0; }
+.long-coach-meta {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin: 0;
+}
 .fi-spark { margin-top: 10px; }
 .fi-spark-lbl { display: block; font-size: 11px; color: var(--muted); margin-top: 4px; }
 .fi-pb { font-size: 12px; color: var(--ok); font-weight: 600; margin-top: 4px; }
@@ -2106,6 +2146,11 @@ html[data-motion="reduce"] {
   --motion-press-y: 0px;
   --motion-press-s: 1;
   scroll-behavior: auto;
+}
+html[data-motion="reduce"] .long-coach,
+html[data-motion="reduce"] .long-coach * {
+  animation: none !important;
+  transition: none !important;
 }
 html[data-motion="reduce"] .play-sky,
 html[data-motion="reduce"] .play-orbs i,

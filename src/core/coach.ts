@@ -178,3 +178,8 @@ export function getDailySpark(params: {
 }
 
 export { getWeeklyDomainTips } from './coach-intel';
+export {
+  buildLongitudinalCoach,
+  MIN_SESSIONS,
+  MIN_PLAYED_DAYS
+} from './coach-longitudinal';

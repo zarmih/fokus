@@ -9,6 +9,8 @@ import { getLevelProgress } from '../../core/xp';
 import { generateInsights } from '../../core/insights';
 import { getDailyQuests } from '../../core/quests';
 import { getDailySpark } from '../../core/coach';
+import { buildLongitudinalCoach } from '../../core/coach-longitudinal';
+import { renderLongitudinalCoachCard } from '../components/coach-card';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
@@ -124,6 +126,16 @@ export function renderToday(container: HTMLElement) {
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
   const topInsight = insights[0];
+  const longCoach = profile.hideLongitudinalCoach
+    ? null
+    : buildLongitudinalCoach({
+        sessions,
+        summaries: ds,
+        domains,
+        asOf: new Date().toISOString(),
+        primaryGoal: profile.primaryGoal
+      });
+  const longCoachHtml = longCoach ? renderLongitudinalCoachCard(longCoach) : '';
   const transfer = pickTransferTip({
     primaryGoal: profile.primaryGoal,
     snapshot: profile.probeSnapshot,
@@ -268,7 +280,9 @@ export function renderToday(container: HTMLElement) {
         </div>
       </div>
 
-      ${topInsight && topInsight.title !== spark.title && topInsight.type !== 'milestone' ? `
+      ${longCoachHtml}
+
+      ${!longCoachHtml && topInsight && topInsight.title !== spark.title && topInsight.type !== 'milestone' ? `
         <div class="insight-banner">
           <div class="insight-icon">🧠</div>
           <div>
