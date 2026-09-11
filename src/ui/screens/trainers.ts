@@ -4,6 +4,7 @@ import { renderShell } from '../shell';
 import { storage } from '../../core/storage';
 import { getExerciseIntelligence } from '../../core/selectors';
 import { domainLabel } from '../../core/labels';
+import { bindPressPhysics } from '../../core/motion';
 
 export function renderTrainers(container: HTMLElement) {
   const content = renderShell(container, { active: 'trainers' });
@@ -61,7 +62,7 @@ export function renderTrainers(container: HTMLElement) {
     }
 
     return `
-      <div class="trainer-card dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-domain="${ex.manifest.domain}">
+      <div class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-domain="${ex.manifest.domain}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
           <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="32" height="32" style="border-radius: 8px;">
@@ -108,8 +109,10 @@ export function renderTrainers(container: HTMLElement) {
   });
 
   content.querySelectorAll('.trainer-card').forEach(card => {
-    card.addEventListener('click', () => {
-      const id = (card as HTMLElement).dataset.id;
+    const el = card as HTMLElement;
+    bindPressPhysics(el);
+    el.addEventListener('click', () => {
+      const id = el.dataset.id;
       if (id) navigateTo('session', { mode: 'practice', items: [{exerciseId: id}] });
     });
   });

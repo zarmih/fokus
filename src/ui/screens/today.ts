@@ -10,6 +10,7 @@ import { getDailySpark } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
+import { enterStage } from '../../core/motion';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -105,7 +106,7 @@ export function renderToday(container: HTMLElement) {
             </div>
             <div class="quest-count">${q.progress}/${q.target}</div>
           </div>
-          <div class="scale-track quest-track"><div class="scale-fill" style="width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
+          <div class="scale-track quest-track"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
         `;
       }).join('')}
     </div>
@@ -128,7 +129,7 @@ export function renderToday(container: HTMLElement) {
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
         <p>Три коротких блока, около 90 секунд. После этого Fokus соберёт персональную сессию.</p>
@@ -137,7 +138,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done">
+      <div class="workout-card done fx-celebrate">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
@@ -146,7 +147,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card fx-enter">
         <div class="workout-kicker">Тренировка дня</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
@@ -167,7 +168,7 @@ export function renderToday(container: HTMLElement) {
 
     <div class="dashboard-widgets">
       <div class="stat-row">
-        <div class="stat-pill">
+        <div class="stat-pill fx-enter ${streak > 0 ? 'has-streak' : ''}">
           <div class="stat-num">${streak}</div>
           <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
         </div>
@@ -203,6 +204,9 @@ export function renderToday(container: HTMLElement) {
       ${questsHtml}
     </div>
   `;
+
+  const workout = content.querySelector('.workout-card') as HTMLElement | null;
+  if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
