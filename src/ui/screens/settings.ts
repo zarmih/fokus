@@ -98,6 +98,24 @@ export function renderSettings(container: HTMLElement) {
       </label>
     </div>
 
+    <div class="surface focus-explainer">
+      <h3 style="margin-bottom: 16px;">Режим фокуса</h3>
+      <p>На время ритуала Fokus прячет меню и серии, увеличивает кнопки и может показать кольцо таймера. Это не лечение внимания и не «режим гения» — просто меньше отвлечений на экране.</p>
+      <p>Если свернуть приложение или нажать «Выйти», подход можно продолжить с того же блока. Непродлённый снимок через несколько часов станет обычным обрывом в качестве сессии.</p>
+      <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <input type="checkbox" id="focus-toggle" ${profile.focusMode !== false ? 'checked' : ''} />
+        Режим фокуса в сессии
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <input type="checkbox" id="focus-ring-toggle" ${profile.focusTimerRing !== false ? 'checked' : ''} />
+        Кольцо таймера
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="focus-dnd-toggle" ${profile.focusDnd !== false ? 'checked' : ''} />
+        Не беспокоить во время сессии
+      </label>
+    </div>
+
     ${profile.probeSnapshot ? `
     <div class="surface probe-summary">
       <h3 style="margin-bottom: 8px;">Стартовая оценка</h3>
@@ -228,6 +246,22 @@ export function renderSettings(container: HTMLElement) {
   document.getElementById('recovery-toggle')?.addEventListener('change', (e) => {
     const p = storage.getProfile();
     p.recoveryHints = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+  });
+
+  document.getElementById('focus-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.focusMode = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+  });
+  document.getElementById('focus-ring-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.focusTimerRing = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+  });
+  document.getElementById('focus-dnd-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.focusDnd = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
   });
 

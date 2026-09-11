@@ -72,6 +72,14 @@ export interface Profile {
   displayName?: string;
   /** When false, Today ignores the recovery gate. Default true. */
   recoveryHints?: boolean;
+  /** When false, sessions keep the usual chrome. Default true. */
+  focusMode?: boolean;
+  /** Circular remaining-time ring in session. Default true when focus is on. */
+  focusTimerRing?: boolean;
+  /** Suppress in-session reminders and auto-pause on hide. Default true when focus is on. */
+  focusDnd?: boolean;
+  /** In-progress ritual snapshot so a hide/back can resume. Ephemeral, not a schema bump. */
+  focusCheckpoint?: FocusCheckpoint;
   onboardingCompletedAt?: string;
   probeSnapshot?: ProbeSnapshot;
   firstWeekPlan?: FirstWeekPlan;
@@ -133,6 +141,26 @@ export interface SessionItem {
   slot?: string;
 }
 export type SessionEndReason = 'completed' | 'fatigue' | 'timeout' | 'abandoned';
+
+/** Saved mid-ritual so focus mode can resume after a hide or back. Not a finished Session. */
+export interface FocusCheckpointItem {
+  exerciseId: string;
+  difficulty?: number;
+}
+
+export interface FocusCheckpoint {
+  version: 1;
+  sessionId: string;
+  startedAt: string;
+  savedAt: string;
+  mode: string;
+  items: FocusCheckpointItem[];
+  currentIndex: number;
+  timeLeft: number;
+  sessionBudget: number;
+  results: SessionItem[];
+  domainDeltas: Record<string, number>;
+}
 
 export interface Session {
   id: string;

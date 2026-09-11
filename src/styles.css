@@ -515,6 +515,12 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
+  gap: 8px;
+}
+.session-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .session-timer {
   background: rgba(125, 211, 192, 0.15);
@@ -523,6 +529,9 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   font-size: 16px;
   font-weight: 700;
   color: var(--accent-2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 .session-block-info {
   font-size: 14px;
@@ -2328,3 +2337,73 @@ html[data-motion="reduce"] .play-stage.fx-ok {
 }
 html[data-motion="reduce"] .press-physics,
 html[data-motion="reduce"] .trainer-card { transition-duration: 0ms; }
+
+/* G17 deep focus mode — chrome, targets, optional timer ring */
+html.focus-mode {
+  --focus-target: 48px;
+}
+html.focus-mode .shell-content.no-nav {
+  padding-top: 12px;
+  padding-bottom: 16px;
+}
+html.focus-mode .session-header.is-focus {
+  margin-bottom: 12px;
+}
+html.focus-mode .session-block-info,
+html.focus-mode .block-recap,
+html.focus-mode .instruction-glow {
+  display: none;
+}
+html.focus-mode .btn-tiny {
+  min-width: var(--focus-target);
+  min-height: var(--focus-target);
+  padding: 12px 16px;
+  font-size: 14px;
+  border-radius: 12px;
+}
+html.focus-mode .btn-primary {
+  min-height: 56px;
+  font-size: 18px;
+}
+html.focus-mode .play-arena button,
+html.focus-mode .play-stage button,
+html.focus-mode .play-board button,
+html.focus-mode .play-arena [role="button"] {
+  min-height: var(--focus-target);
+  min-width: var(--focus-target);
+}
+.session-timer.has-ring {
+  position: relative;
+  padding: 4px 12px 4px 4px;
+  background: transparent;
+  gap: 10px;
+}
+.timer-ring {
+  display: block;
+  flex-shrink: 0;
+}
+.timer-ring-track {
+  stroke: var(--line);
+}
+.timer-ring-fill {
+  stroke: var(--accent-2);
+  stroke-linecap: round;
+  transition: stroke-dashoffset var(--motion-base) var(--ease-standard);
+}
+.timer-digits {
+  font-variant-numeric: tabular-nums;
+}
+html[data-motion="reduce"] .timer-ring-fill { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .timer-ring-fill { transition: none; }
+}
+.focus-resume p {
+  margin-bottom: 16px;
+}
+.focus-explainer label {
+  font-size: 14px;
+  color: var(--text);
+}
+.focus-explainer p {
+  font-size: 14px;
+}

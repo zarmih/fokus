@@ -1,4 +1,5 @@
 import { storage } from './storage';
+import { shouldSuppressNotify } from './focus-mode';
 
 const LAST_KEY = 'fokus.reminder.last';
 
@@ -31,6 +32,7 @@ export function scheduleLocalReminder(): void {
 
 export function maybeNotify(): void {
   if (typeof window === 'undefined') return;
+  if (shouldSuppressNotify()) return;
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
   const today = new Date().toISOString().slice(0, 10);

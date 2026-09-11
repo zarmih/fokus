@@ -17,7 +17,7 @@ import {
 } from '../../core/calibration';
 import { buildFirstWeekPlan } from '../../core/onboarding';
 import { planWithRecovery } from '../../core/recovery';
-import type { Session, SessionEndReason } from '../../core/types';
+import type { FocusCheckpoint, Session, SessionEndReason } from '../../core/types';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { ProbeOutcome } from '../../core/calibration';
@@ -25,25 +25,199 @@ import type { SessionItem } from '../../core/types';
 import { announce, bindDialog, setScreenTitle } from '../a11y';
 import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
+import {
+  TIMER_RING_C,
+  buildCheckpoint,
+  formatSessionClock,
+  readFocusPrefs,
+  sessionFocusFlags,
+  setFocusDndLive,
+  shouldSaveCheckpoint,
+  timerRingOffset
+} from '../../core/focus-mode';
 
-export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
+export function renderSession(container: HTMLElement, params: {
+  mode?: string;
+  items: {exerciseId: string, difficulty?: number}[];
+  durationSec?: number;
+  resume?: FocusCheckpoint;
+}) {
   const {items, mode = 'normal'} = params;
   const isProbe = mode === 'calibration' || mode === 'recalibration';
-  let currentIndex = 0;
-  const sessionResults: SessionItem[] = [];
+  const resume = params.resume && params.resume.mode === mode ? params.resume : null;
+  let currentIndex = resume?.currentIndex ?? 0;
+  const sessionResults: SessionItem[] = resume?.results ? resume.results.map((r) => ({ ...r })) : [];
   const probeOutcomes: ProbeOutcome[] = [];
-  const domainDeltas: Record<string, number> = {};
-  const sessionStartedAt = new Date().toISOString();
+  const domainDeltas: Record<string, number> = resume?.domainDeltas ? { ...resume.domainDeltas } : {};
+  const sessionStartedAt = resume?.startedAt ?? new Date().toISOString();
+  const sessionId = resume?.sessionId ?? Date.now().toString();
   let timerInterval: any;
-  const sessionBudget = params.durationSec ?? storage.getProfile().sessionLengthSec;
-  let timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
+  const sessionBudget = resume?.sessionBudget ?? params.durationSec ?? storage.getProfile().sessionLengthSec;
+  let timeLeft = resume
+    ? resume.timeLeft
+    : mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
   let sessionEndReason: SessionEndReason = 'completed';
   let blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
   let fatigueCounter = 0;
+  let skipReplanOnce = !!resume;
+  let playing = false;
+  let wakeLock: { release: () => Promise<void> } | null = null;
+  let wakeGen = 0;
+
+  const prefs = readFocusPrefs(storage.getProfile());
+  const focus = sessionFocusFlags(prefs, mode);
+  applyFocusDom(focus.active);
+  setFocusDndLive(focus.dnd);
 
   const content = renderShell(container, { active: 'today', hideNav: true });
+  if (focus.active) content.classList.add('is-focus-session');
+
+  const snapshotCheckpoint = () =>
+    buildCheckpoint({
+      sessionId,
+      startedAt: sessionStartedAt,
+      mode,
+      items,
+      currentIndex,
+      timeLeft,
+      sessionBudget,
+      results: sessionResults,
+      domainDeltas
+    });
+
+  const saveCheckpointIfNeeded = () => {
+    if (!shouldSaveCheckpoint({
+      mode,
+      focusActive: focus.active,
+      currentIndex,
+      resultsCount: sessionResults.length,
+      playing
+    })) return;
+    const p = storage.getProfile();
+    p.focusCheckpoint = snapshotCheckpoint();
+    storage.setProfile(p);
+  };
+
+  const clearCheckpoint = () => {
+    const p = storage.getProfile();
+    if (!p.focusCheckpoint) return;
+    p.focusCheckpoint = undefined;
+    storage.setProfile(p);
+  };
+
+  const releaseWakeLock = () => {
+    wakeGen += 1;
+    const lock = wakeLock;
+    wakeLock = null;
+    lock?.release().catch(() => {});
+  };
+
+  const acquireWakeLock = () => {
+    if (!focus.dnd) return;
+    const gen = ++wakeGen;
+    const nav = navigator as Navigator & {
+      wakeLock?: { request: (type: 'screen') => Promise<{ release: () => Promise<void> }> };
+    };
+    nav.wakeLock?.request('screen').then((lock) => {
+      if (gen !== wakeGen) {
+        lock.release().catch(() => {});
+        return;
+      }
+      wakeLock = lock;
+    }).catch(() => {
+      if (gen === wakeGen) wakeLock = null;
+    });
+  };
+
+  const teardownFocus = () => {
+    setFocusDndLive(false);
+    applyFocusDom(false);
+    releaseWakeLock();
+    document.removeEventListener('visibilitychange', onVisibility);
+    window.removeEventListener('pagehide', onPageHide);
+  };
+
+  const paintTimer = () => {
+    const t = document.getElementById('session-timer');
+    if (!t) return;
+    const clock = formatSessionClock(timeLeft);
+    const digits = t.querySelector('.timer-digits');
+    if (digits) digits.textContent = clock;
+    else t.textContent = clock;
+    t.setAttribute('aria-label', `Осталось ${clock}`);
+    const fill = t.querySelector('.timer-ring-fill');
+    if (fill) fill.setAttribute('stroke-dashoffset', String(timerRingOffset(timeLeft, sessionBudget)));
+  };
+
+  const timerMarkup = () => {
+    const clock = formatSessionClock(timeLeft);
+    const ring = focus.timerRing
+      ? `<svg class="timer-ring" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false">
+          <circle class="timer-ring-track" cx="24" cy="24" r="18" fill="none" stroke-width="4"></circle>
+          <circle class="timer-ring-fill" cx="24" cy="24" r="18" fill="none" stroke-width="4"
+            stroke-dasharray="${TIMER_RING_C.toFixed(3)}" stroke-dashoffset="${timerRingOffset(timeLeft, sessionBudget).toFixed(3)}"
+            transform="rotate(-90 24 24)"></circle>
+        </svg>`
+      : '';
+    return `<div class="session-timer${focus.timerRing ? ' has-ring' : ''}" id="session-timer" role="timer" aria-live="off" aria-label="Осталось ${clock}">
+      ${ring}<span class="timer-digits">${clock}</span>
+    </div>`;
+  };
+
+  const setPaused = (next: boolean, source: 'user' | 'system') => {
+    if (isPaused === next) return;
+    isPaused = next;
+    const btn = document.getElementById('btn-pause');
+    if (btn) {
+      btn.textContent = isPaused ? 'Прод.' : 'Пауза';
+      btn.setAttribute('aria-pressed', isPaused ? 'true' : 'false');
+    }
+    let overlay = document.getElementById('pause-overlay');
+    if (isPaused) {
+      if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'pause-overlay';
+        overlay.className = 'pause-overlay';
+        overlay.setAttribute('role', 'status');
+        overlay.innerHTML = `<div class="pause-card">${source === 'system' ? 'Пауза — экран скрыт' : 'Пауза'}</div>`;
+        (document.getElementById('game-container') || content).appendChild(overlay);
+      }
+      announce(source === 'system' ? 'Пауза, экран скрыт' : 'Пауза');
+      if (source === 'system') saveCheckpointIfNeeded();
+      releaseWakeLock();
+    } else {
+      overlay?.remove();
+      announce('Продолжаем');
+      acquireWakeLock();
+    }
+  };
+
+  function onVisibility() {
+    if (!focus.dnd) return;
+    if (document.hidden) {
+      setPaused(true, 'system');
+      saveCheckpointIfNeeded();
+    }
+  }
+
+  function onPageHide() {
+    saveCheckpointIfNeeded();
+    releaseWakeLock();
+  }
+
+  const leaveSession = (dest: 'today' | 'trainers') => {
+    if (currentCleanup) currentCleanup();
+    clearInterval(timerInterval);
+    if (mode === 'normal' && focus.active) {
+      saveCheckpointIfNeeded();
+    } else if (mode === 'normal' && sessionResults.length > 0) {
+      persistAbandonedSession();
+    }
+    teardownFocus();
+    navigateTo(dest);
+  };
 
   const renderCurrent = () => {
     if (currentIndex >= items.length || timeLeft <= 0) {
@@ -51,8 +225,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       return;
     }
     blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
+    playing = false;
 
-    if (mode === 'normal' && currentIndex > 0) {
+    if (mode === 'normal' && currentIndex > 0 && !skipReplanOnce) {
       const profile = storage.getProfile();
       const ritual = planWithRecovery({
         durationSec: Math.max(180, timeLeft),
@@ -72,6 +247,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         items[currentIndex].difficulty = nextItem.difficulty;
       }
     }
+    skipReplanOnce = false;
 
     const item = items[currentIndex];
     const preview = getManifest(item.exerciseId);
@@ -97,22 +273,23 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     const last = sessionResults[sessionResults.length - 1];
     const lastEx = last ? getManifest(last.exerciseId) : null;
-    const lastBanner = last && lastEx ? `
+    const lastBanner = last && lastEx && !focus.hideChrome ? `
       <div class="block-recap fx-enter ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}" aria-live="polite">
         ${lastEx.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
       </div>
     ` : '';
 
     content.dataset.sessionPhase = 'intro';
+    content.dataset.focus = focus.active ? 'on' : 'off';
     content.innerHTML = `
-      <div class="session-header">
-        <div class="session-controls" style="display: flex; gap: 4px;">
-          <button id="btn-back" class="btn-tiny" type="button">Назад</button>
-          <button id="btn-pause" class="btn-tiny" type="button">Пауза</button>
-          <button id="btn-restart" class="btn-tiny" type="button">Заново</button>
+      <div class="session-header${focus.hideChrome ? ' is-focus' : ''}">
+        <div class="session-controls">
+          <button id="btn-back" class="btn-tiny" type="button">${focus.hideChrome ? 'Выйти' : 'Назад'}</button>
+          <button id="btn-pause" class="btn-tiny" type="button" aria-pressed="${isPaused ? 'true' : 'false'}">${isPaused ? 'Прод.' : 'Пауза'}</button>
+          ${focus.hideChrome ? '' : '<button id="btn-restart" class="btn-tiny" type="button">Заново</button>'}
         </div>
-        <div class="session-timer" id="session-timer" role="timer" aria-live="off">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
-        <div class="session-block-info">${mode === 'calibration' ? `Зонд · блок ${currentIndex + 1}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>
+        ${timerMarkup()}
+        ${focus.hideChrome ? '' : `<div class="session-block-info">${mode === 'calibration' ? `Зонд · блок ${currentIndex + 1}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>`}
       </div>
       ${lastBanner}
       <div class="instruction-card fx-enter" id="instruction-card">
@@ -122,58 +299,36 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <p>${manifest.instruction}</p>
         <div class="instruction-meta">Блок ${currentIndex + 1} · уровень ${Math.floor(state.difficulty)}</div>
       </div>
-      <button id="btn-next" class="btn-primary" type="button">Начать</button>
+      <button id="btn-next" class="btn-primary" type="button">${resume && currentIndex === (params.resume?.currentIndex ?? -1) && sessionResults.length > 0 ? 'Продолжить' : 'Начать'}</button>
       <div id="game-container" class="play-arena"></div>
     `;
 
     document.getElementById('btn-back')?.addEventListener('click', () => {
-      if (currentCleanup) currentCleanup();
-      clearInterval(timerInterval);
-      if (mode === 'normal' && sessionResults.length > 0) {
-        persistAbandonedSession();
-      }
-      navigateTo(mode === 'practice' ? 'trainers' : 'today');
+      leaveSession(mode === 'practice' ? 'trainers' : 'today');
     });
 
-    document.getElementById('btn-pause')?.addEventListener('click', (e) => {
-      const btn = e.target as HTMLButtonElement;
-      isPaused = !isPaused;
-      btn.textContent = isPaused ? 'Прод.' : 'Пауза';
-      btn.setAttribute('aria-pressed', isPaused ? 'true' : 'false');
-      let overlay = document.getElementById('pause-overlay');
-      if (isPaused) {
-        if (!overlay) {
-          overlay = document.createElement('div');
-          overlay.id = 'pause-overlay';
-          overlay.className = 'pause-overlay';
-          overlay.setAttribute('role', 'status');
-          overlay.innerHTML = '<div class="pause-card">Пауза</div>';
-          document.getElementById('game-container')?.appendChild(overlay);
-        }
-        announce('Пауза');
-      } else {
-        overlay?.remove();
-        announce('Продолжаем');
-      }
+    document.getElementById('btn-pause')?.addEventListener('click', () => {
+      setPaused(!isPaused, 'user');
     });
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
       timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
       probeOutcomes.length = 0;
-      const t = document.getElementById('session-timer');
-      if (t) {
-        t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
-      }
       isPaused = false;
+      playing = false;
       document.getElementById('pause-overlay')?.remove();
       const pBtn = document.getElementById('btn-pause');
-      if (pBtn) pBtn.textContent = 'Пауза';
+      if (pBtn) {
+        pBtn.textContent = 'Пауза';
+        pBtn.setAttribute('aria-pressed', 'false');
+      }
       
       currentIndex = 0;
       sessionResults.length = 0;
       for (const key in domainDeltas) delete domainDeltas[key];
-      
+      clearCheckpoint();
+      paintTimer();
       renderCurrent();
     });
 
@@ -203,6 +358,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         container.removeAttribute('aria-busy');
         countdown.remove();
         content.dataset.sessionPhase = 'play';
+        playing = true;
         enterStage(container);
         playSessionCue('enter');
         const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
@@ -210,6 +366,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
         const onBlockEnd = (res: any) => {
           if (cleanupFn) cleanupFn();
+          playing = false;
           content.dataset.sessionPhase = 'feedback';
           const ok = res.accuracy >= 0.8;
           const stageEl = container.querySelector('.play-stage') as HTMLElement | null;
@@ -322,6 +479,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           }
           
           sessionResults.push(sr);
+          saveCheckpointIfNeeded();
           
           if (mode === 'normal' && res.accuracy < 0.70 && (storage.getProfile().sessionLengthSec - timeLeft) > 300) {
             fatigueCounter++;
@@ -383,6 +541,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   const finishSession = () => {
     if (currentCleanup) currentCleanup();
     clearInterval(timerInterval);
+    playing = false;
+    clearCheckpoint();
+    teardownFocus();
     
     if (mode === 'calibration') {
       if (probeOutcomes.length === 0 && sessionResults.length === 0) {
@@ -448,16 +609,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
 
     const finishedAt = new Date().toISOString();
-    const duration = Math.max(0, plannedDuration - timeLeft);
+    const duration = Math.max(0, sessionBudget - timeLeft);
     const s: Session = {
-      id: Date.now().toString(),
+      id: sessionId,
       startedAt: sessionStartedAt,
       finishedAt,
       durationSec: duration,
       items: sessionResults,
       interrupted: false,
       endReason: sessionEndReason,
-      plannedDurationSec: plannedDuration
+      plannedDurationSec: sessionBudget
     };
     storage.addSession(s);
 
@@ -518,16 +679,17 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   };
 
   function persistAbandonedSession() {
-    const duration = Math.max(0, plannedDuration - timeLeft);
+    const duration = Math.max(0, sessionBudget - timeLeft);
+    if (storage.getSessions().some((s) => s.id === sessionId)) return;
     storage.addSession({
-      id: Date.now().toString(),
+      id: sessionId,
       startedAt: sessionStartedAt,
       finishedAt: null,
       durationSec: duration,
       items: sessionResults,
       interrupted: true,
       endReason: 'abandoned',
-      plannedDurationSec: plannedDuration
+      plannedDurationSec: sessionBudget
     });
   }
 
@@ -572,14 +734,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     if (isPaused) return;
     timeLeft--;
     blockTimeLeft--;
-    const t = document.getElementById('session-timer');
-    if (t) {
-      t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
-    }
+    paintTimer();
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
     }
   }, 1000);
 
+  document.addEventListener('visibilitychange', onVisibility);
+  window.addEventListener('pagehide', onPageHide);
+  acquireWakeLock();
   renderCurrent();
+}
+
+function applyFocusDom(active: boolean) {
+  document.documentElement.classList.toggle('focus-mode', active);
+  if (active) document.documentElement.dataset.focusMode = 'on';
+  else delete document.documentElement.dataset.focusMode;
 }

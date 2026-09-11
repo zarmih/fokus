@@ -20,10 +20,30 @@ import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, bandLabel } from '../../core/retention';
 import { enterStage } from '../../core/motion';
+import {
+  checkpointToAbandonedSession,
+  visitCheckpoint
+} from '../../core/focus-mode';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
-  const profile = storage.getProfile();
+  let profile = storage.getProfile();
+  const nowIso = new Date().toISOString();
+  const visit = visitCheckpoint(profile.focusCheckpoint, nowIso);
+  if (visit.kind === 'stale-abandon') {
+    if (!storage.getSessions().some((s) => s.id === visit.session.id)) {
+      storage.addSession(visit.session);
+    }
+    profile = storage.getProfile();
+    profile.focusCheckpoint = undefined;
+    storage.setProfile(profile);
+    profile = storage.getProfile();
+  } else if (visit.kind === 'stale-drop') {
+    profile.focusCheckpoint = undefined;
+    storage.setProfile(profile);
+    profile = storage.getProfile();
+  }
+  const resumable = visit.kind === 'resume' ? visit.checkpoint : null;
   const lvl = getLevelProgress(profile.xp || 0);
   const greetName = profile.displayName || (profile.name !== 'User' ? profile.name : '');
 
@@ -202,7 +222,19 @@ export function renderToday(container: HTMLElement) {
   ` : '';
 
   let actionHtml = '';
-  if (!profile.calibrated) {
+  if (resumable) {
+    const remainMin = Math.max(1, Math.ceil(resumable.timeLeft / 60));
+    const blockNo = resumable.currentIndex + 1;
+    actionHtml = `
+      <div class="workout-card focus-resume fx-enter" role="region" aria-label="Продолжить прерванную сессию">
+        <div class="workout-kicker">Сессия прервана</div>
+        <h3>Продолжить с блока ${blockNo}</h3>
+        <p>Осталось около ${remainMin} мин. Режим фокуса сохранил подход — можно вернуться к тому же ритуалу, не начиная заново.</p>
+        <button id="btn-resume" class="btn-primary" type="button">Продолжить</button>
+        <button id="btn-discard" class="btn-secondary" type="button">Начать заново</button>
+      </div>
+    `;
+  } else if (!profile.calibrated) {
     actionHtml = `
       <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
@@ -294,6 +326,32 @@ export function renderToday(container: HTMLElement) {
   });
   const workout = content.querySelector('.workout-card') as HTMLElement | null;
   if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
+
+  const discardResume = () => {
+    if (!resumable) return;
+    const abandoned = checkpointToAbandonedSession(resumable);
+    if (abandoned && !storage.getSessions().some((s) => s.id === abandoned.id)) {
+      storage.addSession(abandoned);
+    }
+    const p = storage.getProfile();
+    p.focusCheckpoint = undefined;
+    storage.setProfile(p);
+  };
+
+  content.querySelector('#btn-resume')?.addEventListener('click', () => {
+    if (!resumable) return;
+    navigateTo('session', {
+      mode: resumable.mode || 'normal',
+      items: resumable.items.map((it) => ({ exerciseId: it.exerciseId, difficulty: it.difficulty })),
+      durationSec: resumable.sessionBudget,
+      resume: resumable
+    });
+  });
+
+  content.querySelector('#btn-discard')?.addEventListener('click', () => {
+    discardResume();
+    renderToday(container);
+  });
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
