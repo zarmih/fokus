@@ -78,14 +78,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           <button id="btn-pause" class="btn-tiny">Пауза</button>
           <button id="btn-restart" class="btn-tiny">Заново</button>
         </div>
-        <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
+        <div class="session-timer" id="session-timer" aria-label="Осталось времени" aria-live="polite">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
       ${lastBanner}
-      <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
+      <div class="instruction-card" id="instruction-card" tabindex="0" aria-labelledby="instruction-title" style="animation: slideUpFade 0.4s ease-out both;">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
-        <h2>${manifest.name}</h2>
+        <h2 id="instruction-title">${manifest.name}</h2>
         <p>${manifest.instruction}</p>
         <div class="instruction-meta">Блок ${currentIndex + 1} · уровень ${Math.floor(state.difficulty)}</div>
       </div>

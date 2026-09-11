@@ -55,7 +55,7 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
 
   container.innerHTML = `
     ${headerHtml}
-    <div class="shell-content ${params.hideNav ? 'no-nav' : ''}"></div>
+    <div id="main-content" class="shell-content ${params.hideNav ? 'no-nav' : ''}" tabindex="-1"></div>
     ${navHtml}
   `;
 

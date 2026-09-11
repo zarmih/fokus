@@ -93,7 +93,7 @@ export function renderToday(container: HTMLElement) {
 
   const quests = getDailyQuests();
   const questsHtml = `
-    <div class="surface quests-card">
+    <div class="surface quests-card" aria-label="Квесты дня" tabindex="0">
       <h3>Квесты дня <span class="xp-pill">+50 XP</span></h3>
       ${quests.map(q => {
         const pct = Math.min(100, (q.progress / q.target) * 100);
@@ -120,7 +120,7 @@ export function renderToday(container: HTMLElement) {
           <div class="fi-value">${fi.value}</div>
           <div class="fi-meta">${fiDelta.label} · ${fi.coverage} из 5 областей</div>
         </div>
-        <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 180, max: 1200 })}</div>
+        <div class="fi-radar" aria-label="Радар Fokus Index" role="img">${renderRadarChart(fi.byDomain, { size: 180, max: 1200 })}</div>
       </div>
     `;
   }
@@ -128,7 +128,7 @@ export function renderToday(container: HTMLElement) {
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card" aria-label="Карточка тренировки" tabindex="0">
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
         <p>Три коротких блока, около 90 секунд. После этого Fokus соберёт персональную сессию.</p>
@@ -137,7 +137,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done">
+      <div class="workout-card done" aria-label="Карточка тренировки" tabindex="0">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
@@ -146,7 +146,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card" aria-label="Карточка тренировки" tabindex="0">
         <div class="workout-kicker">Тренировка дня</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
@@ -217,8 +217,8 @@ export function renderToday(container: HTMLElement) {
       const modal = document.createElement('div');
       modal.className = 'modal-root';
       modal.innerHTML = `
-        <div class="surface modal-card">
-          <h3>Как вы сегодня?</h3>
+        <div class="surface modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+          <h3 id="modal-title">Как вы сегодня?</h3>
           <p class="modal-lead">Необязательно. Помогает увидеть связь сна и результата.</p>
           <div class="modal-field">
             <div class="modal-label">Сон</div>
