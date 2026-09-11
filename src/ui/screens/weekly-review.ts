@@ -1,5 +1,5 @@
 import { storage } from '../../core/storage';
-import { registry } from '../../exercises/registry';
+import { catalog, getManifest } from '../../exercises/catalog';
 import { renderShell } from '../shell';
 import { navigateTo } from '../router';
 import { generateInsights } from '../../core/insights';
@@ -184,7 +184,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   let sortedDeltas = Array.from(exerciseDeltas.entries()).map(([id, data]) => {
     return {
       id,
-      name: registry.find(r => r.manifest.id === id)?.manifest.name || id,
+      name: getManifest(id)?.name || id,
       mDelta: data.mAfter - data.mBefore,
       dDelta: data.dAfter - data.dBefore,
       conf: data.conf,
@@ -251,7 +251,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   let nextStepHtml = '';
   if (plan.items.length > 0) {
     const nextItem = plan.items[0];
-    const nextEx = registry.find(r => r.manifest.id === nextItem.exerciseId)?.manifest;
+    const nextEx = getManifest(nextItem.exerciseId);
     if (nextEx) {
       nextStepHtml = `
         <div class="surface" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);">

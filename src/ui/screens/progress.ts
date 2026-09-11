@@ -2,7 +2,7 @@ import { generateInsights } from "../../core/insights";
 import { planForNow } from "../../core/adaptive-plan";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
-import { registry } from '../../exercises/registry';
+import { catalog, getManifest } from '../../exercises/catalog';
 import { renderScatterPlot, renderRadarChart, renderIndexSparkline } from '../components/charts';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
@@ -83,7 +83,7 @@ export function renderProgress(container: HTMLElement) {
   
   // Build domain -> skills map
   const domainSkills = new Map<string, Set<string>>();
-  registry.forEach(ex => {
+  catalog.forEach(ex => {
     if (!domainSkills.has(ex.manifest.domain)) {
       domainSkills.set(ex.manifest.domain, new Set());
     }
@@ -177,7 +177,7 @@ export function renderProgress(container: HTMLElement) {
   let nextStepHtml = '';
   if (plan.items.length > 0) {
     const nextItem = plan.items[0];
-    const nextEx = registry.find(r => r.manifest.id === nextItem.exerciseId)?.manifest;
+    const nextEx = getManifest(nextItem.exerciseId);
     if (nextEx) {
       nextStepHtml = `
         <div class="surface" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);">
@@ -187,7 +187,7 @@ export function renderProgress(container: HTMLElement) {
               <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${nextEx.name}</div>
               <div style="font-size: 13px; color: var(--text); opacity: 0.8;">${nextItem.reason}</div>
             </div>
-            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" width="40" height="40" style="border-radius: 8px; opacity: 0.9;">
+            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" width="40" height="40" alt="" decoding="async" style="border-radius: 8px; opacity: 0.9;">
           </div>
         </div>
       `;

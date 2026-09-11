@@ -92,7 +92,7 @@ export function renderDuel(container: HTMLElement) {
     <div class="surface" style="margin-bottom: 24px; text-align: center;">
       <h3 style="margin-bottom: 8px;">Комната с другом</h3>
       <p style="color: var(--muted); margin-bottom: 16px; font-size: 13px; line-height: 1.4;">Код — приглашение, не матчмейкинг. Подбор по индексу появится в Фазе 4, без живого видео.</p>
-      <button id="btn-host" class="btn-primary" style="width: 100%;">Получить код</button>
+      <button id="btn-host" class="btn-primary" type="button" style="width: 100%;">Получить код</button>
       <div id="host-code-container" style="margin-top: 16px; display: none;">
         <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Ваш код для друга:</div>
         <div id="host-code" style="font-size: 32px; font-weight: 800; letter-spacing: 4px; color: var(--accent);">----</div>
@@ -101,8 +101,9 @@ export function renderDuel(container: HTMLElement) {
 
     <div class="surface" style="text-align: center;">
       <h3 style="margin-bottom: 16px;">Присоединиться</h3>
-      <input type="text" id="input-code" class="input" placeholder="Введите 4 цифры" style="width: 100%; text-align: center; font-size: 24px; letter-spacing: 4px; margin-bottom: 16px;" maxlength="4" />
-      <button id="btn-join" class="btn-secondary" style="width: 100%;">Подключиться</button>
+      <label class="sr-only" for="input-code">Код комнаты</label>
+      <input type="text" id="input-code" class="input" placeholder="Введите 4 цифры" inputmode="numeric" autocomplete="one-time-code" aria-label="Код комнаты" style="width: 100%; text-align: center; font-size: 24px; letter-spacing: 4px; margin-bottom: 16px;" maxlength="4" />
+      <button id="btn-join" class="btn-secondary" type="button" style="width: 100%;">Подключиться</button>
     </div>
 
     <div id="status-msg" style="margin-top: 24px; text-align: center; font-weight: 600; color: var(--ok); display: none;"></div>

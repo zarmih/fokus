@@ -1,7 +1,7 @@
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import type { Session } from '../../core/types';
-import { registry } from '../../exercises/registry';
+import { catalog, getManifest } from '../../exercises/catalog';
 import { storage } from '../../core/storage';
 import { planForNow } from '../../core/adaptive-plan';
 import { SLOT_LABEL } from '../../core/engine';
@@ -11,10 +11,12 @@ import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fo
 import { domainLabel } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
+import { setScreenTitle } from '../a11y';
 import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'today', hideNav: true });
+  setScreenTitle(params.calibration ? 'Калибровка' : 'Результат');
   const session = params.session;
   const isCalibration = !!params.calibration;
   const isRecalibration = !!params.recalibration;
@@ -48,7 +50,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const leveledUp = lvl.currentLevel > lvlBefore.currentLevel;
 
   const itemsHtml = session.items.map(item => {
-    const ex = registry.find(r => r.manifest.id === item.exerciseId);
+    const ex = getManifest(item.exerciseId);
     const p = Math.round(item.performance || item.score * 10);
     const mBefore = item.masteryBefore || 0;
     const mAfter = item.masteryAfter || 0;
@@ -80,7 +82,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     return `
       <div class="result-block staggered-block">
         <div class="result-block-head">
-          <div class="result-ex">${ex?.manifest.name}</div>
+          <div class="result-ex">${ex?.name}</div>
           <div class="result-score">+${Math.round(item.score)}</div>
         </div>
         <div class="result-sub">Точность ${accPct}% · Форма ${p}</div>
@@ -120,11 +122,11 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const plan = planForNow({ durationSec: profile.sessionLengthSec || 300 });
 
   const nextItem = plan.items[0];
-  const nextEx = nextItem ? registry.find(r => r.manifest.id === nextItem.exerciseId) : null;
+  const nextEx = nextItem ? getManifest(nextItem.exerciseId) : null;
   const nextHtml = nextEx ? `
     <div class="surface next-card">
       <h3>Следующий шаг</h3>
-      <p class="next-name">${nextEx.manifest.name}</p>
+      <p class="next-name">${nextEx.name}</p>
       <p class="muted">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
     </div>
   ` : '';

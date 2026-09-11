@@ -1,7 +1,9 @@
 import { P2PConnection } from '../../core/webrtc';
-import { registry } from '../../exercises/registry';
+import { getManifest } from '../../exercises/catalog';
+import { loadExercise } from '../../exercises/load-exercise';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
+import { setScreenTitle } from '../a11y';
 import { storage } from '../../core/storage';
 import {
   BOUT_DURATION_SEC,
@@ -19,15 +21,15 @@ import {
 
 export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConnection, isHost: boolean }) {
   const content = renderShell(container, { active: 'duel', hideNav: true });
-  
-  // We choose Math Sprint for duels for now
-  const exManifest = registry.find(r => r.manifest.id === 'math-sprint')?.manifest;
-  const exRender = registry.find(r => r.manifest.id === 'math-sprint')?.render;
-  
-  if (!exManifest || !exRender) {
+  setScreenTitle('Дуэль');
+
+  const exManifest = getManifest('math-sprint');
+  if (!exManifest) {
     content.innerHTML = '<div style="padding: 24px; text-align: center;">Тренажер не найден</div>';
     return;
   }
+  let exRender: ((el: HTMLElement, level: number, onEnd: (r: {accuracy: number, avgRtMs: number, rounds: number}) => void, isTimeUp: () => boolean) => void | (() => void)) | undefined;
+  loadExercise('math-sprint').then((mod) => { exRender = mod.render; }).catch(() => {});
 
   content.innerHTML = `
     <div style="display: flex; flex-direction: column; height: 100vh;">
@@ -124,7 +126,7 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
       <div style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
         <h2 style="color: ${color}; margin-bottom: 16px;">${title}</h2>
         <div style="font-size: 24px; font-weight: 700; margin-bottom: 32px;">Счет: ${myPoints} - ${oppPoints}</div>
-        <button id="btn-back" class="btn-primary">Вернуться</button>
+        <button id="btn-back" class="btn-primary" type="button">Вернуться</button>
       </div>
     `;
     
@@ -167,6 +169,13 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
   };
 
   const mountExercise = () => {
+    if (!exRender) {
+      loadExercise('math-sprint').then((mod) => {
+        exRender = mod.render;
+        mountExercise();
+      });
+      return;
+    }
     cleanup = exRender(
       exContainer,
       2, // level
