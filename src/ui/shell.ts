@@ -46,7 +46,7 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
   const headerHtml = params.hideNav ? '' : `
     <div class="top-bar">
       <div class="brand" style="display: flex; align-items: center; gap: 8px;"><img src="${import.meta.env.BASE_URL}art/logo-fokus.svg" width="24" height="24">Fokus</div>
-      <div class="streak-badge">
+      <div class="streak-badge${streak > 0 ? ' has-streak' : ''}">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
         ${streak}
       </div>
