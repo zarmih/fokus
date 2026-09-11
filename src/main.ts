@@ -6,11 +6,13 @@ import { renderProgress } from './ui/screens/progress';
 import { renderSettings } from './ui/screens/settings';
 import { renderTrainers } from './ui/screens/trainers';
 import { renderOnboarding } from './ui/screens/onboarding';
+import { renderProgram } from './ui/screens/program';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
 import { initI18n } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 import { unlockAudio } from './core/audio';
+import { applyMotionPreference } from './core/motion';
 
 export let deferredPrompt: any = null;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -44,6 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const p = storage.getProfile(); // ensures initialization
     initI18n(p.language);
     applyTheme(p.theme || 'dark');
+    applyMotionPreference();
+    try {
+      window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', () => applyMotionPreference());
+    } catch { /* ignore */ }
     scheduleLocalReminder();
     maybeNotify();
     if (!p.onboarded) {
@@ -65,6 +71,7 @@ window.addEventListener('navigate', (e: any) => {
   const {screenId, params} = e.detail;
   try {
     if (screenId === 'today') renderToday(app);
+    else if (screenId === 'program') renderProgram(app);
     else if (screenId === 'session') renderSession(app, params);
     else if (screenId === 'result') renderResult(app, params);
     else if (screenId === 'progress') renderProgress(app);

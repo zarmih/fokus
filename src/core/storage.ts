@@ -1,4 +1,5 @@
 import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem, StorageMeta } from './types';
+import type { AbilityModel } from './engine/types';
 import {
   applyImport,
   CURRENT_SCHEMA_VERSION,
@@ -206,6 +207,15 @@ export class Storage {
   getExerciseStates(): ExerciseState[] { return this.getState().exerciseStates || []; }
   setExerciseStates(st: ExerciseState[]) { const s = this.getState(); s.exerciseStates = st; this.saveState(s); }
 
+  getAbilityModel(): AbilityModel | null {
+    return this.getState().abilityModel || null;
+  }
+  setAbilityModel(model: AbilityModel) {
+    const s = this.getState();
+    s.abilityModel = model;
+    this.saveState(s);
+  }
+
   getSessions(): Session[] { return this.getState().sessions; }
   addSession(session: Session) { const s = this.getState(); s.sessions.push(session); this.saveState(s); }
 
@@ -217,7 +227,7 @@ export class Storage {
     this.saveState(s);
   }
 
-  getDaySummaries(limit = 28): DaySummary[] {
+  getDaySummaries(limit = 60): DaySummary[] {
     return this.getState().daySummaries.slice(-limit);
   }
   addDaySummary(ds: DaySummary) {

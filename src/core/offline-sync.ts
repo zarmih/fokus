@@ -1,3 +1,4 @@
+import { ENGINE_VERSION } from './engine/constants';
 import type {
   AppState,
   DaySummary,
@@ -221,7 +222,12 @@ function migrate3to4(state: Record<string, unknown>, opts: { now: string; device
     updatedAt: typeof prevMeta.updatedAt === 'string' && prevMeta.updatedAt ? prevMeta.updatedAt : opts.now
   };
   state.meta = meta;
-  (state.profile as Record<string, unknown>).schemaVersion = 4;
+  const profile = state.profile as Record<string, unknown>;
+  if (profile.calibrated && !profile.lastCalibrationAt) {
+    profile.lastCalibrationAt = (profile.createdAt as string) || opts.now;
+  }
+  profile.engineVersion = ENGINE_VERSION;
+  profile.schemaVersion = 4;
 }
 
 function healV4(state: Record<string, unknown>, opts: { now: string; deviceId: string }) {

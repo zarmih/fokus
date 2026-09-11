@@ -1,4 +1,5 @@
-import { nextCombo, playCombo, playHit, playMiss } from '../core/audio';
+import { nextCombo, playCue } from '../core/audio';
+import { prefersReducedMotion } from '../core/motion';
 
 export interface PlayStage {
   root: HTMLElement;
@@ -10,8 +11,7 @@ export interface PlayStage {
   cleanup(): void;
 }
 
-const reduced = () =>
-  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+const reduced = prefersReducedMotion;
 
 export function mountStage(container: HTMLElement, domain = 'attention'): PlayStage {
   container.innerHTML = '';
@@ -115,10 +115,10 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
   const pulse = (ok: boolean) => {
     combo = nextCombo(combo, ok);
     if (ok) {
-      playHit(combo);
-      if (combo === 3 || combo === 5 || combo === 8 || combo === 12) playCombo(combo);
+      playCue('hit', combo);
+      if (combo === 3 || combo === 5 || combo === 8 || combo === 12) playCue('combo', combo);
     } else {
-      playMiss();
+      playCue('miss');
     }
     showCombo(combo);
     root.classList.remove('pulse-ok', 'pulse-bad');

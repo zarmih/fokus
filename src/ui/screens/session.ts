@@ -7,19 +7,21 @@ import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
 import { mapAccuracyToStartLevel } from '../../core/calibration';
-import { buildTrainingPlan } from '../../core/session-builder';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { SessionItem } from '../../core/types';
+import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
+import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 
-export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
+export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[]}) {
   const {items, mode = 'normal'} = params;
+  const isProbe = mode === 'calibration' || mode === 'recalibration';
   let currentIndex = 0;
   const sessionResults: SessionItem[] = [];
   const domainDeltas: Record<string, number> = {};
   const sessionStartedAt = new Date().toISOString();
   let timerInterval: any;
-  let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+  let timeLeft = isProbe ? items.length * 30 : storage.getProfile().sessionLengthSec;
   let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
@@ -32,21 +34,17 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       finishSession();
       return;
     }
-    blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
+    blockTimeLeft = isProbe ? 30 : timeLeft;
 
     if (mode === 'normal' && currentIndex > 0) {
-      // Adaptive Session: re-evaluate the next item based on fresh results
-      const plan = buildTrainingPlan({
-        durationSec: timeLeft,
-        catalog: registry as any,
-        domains: storage.getDomains(),
-        skills: storage.getSkills(),
-        states: storage.getExerciseStates(),
-        primaryGoal: storage.getProfile().primaryGoal
+      const plan = planForNow({
+        durationSec: Math.max(180, timeLeft),
+        excludeIds: sessionResults.map((sr) => sr.exerciseId)
       });
       const nextItem = plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
       if (nextItem) {
         items[currentIndex].exerciseId = nextItem.exerciseId;
+        items[currentIndex].difficulty = nextItem.difficulty;
       }
     }
 
@@ -61,16 +59,24 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     
     const manifest = exDispatch.manifest;
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
-    if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, difficulty: mode === 'calibration' ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
+    if (!state) state = { exerciseId: item.exerciseId, level: isProbe ? 3 : 1, difficulty: isProbe ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
+
+    const irtPick = !isProbe
+      ? difficultyFor(item.exerciseId, item.difficulty ?? state.difficulty)
+      : null;
+    if (irtPick) {
+      state = { ...state, difficulty: irtPick.difficulty, level: Math.floor(irtPick.difficulty) };
+    }
 
     const last = sessionResults[sessionResults.length - 1];
     const lastEx = last ? registry.find(r => r.manifest.id === last.exerciseId) : null;
     const lastBanner = last && lastEx ? `
-      <div class="block-recap">
+      <div class="block-recap fx-enter ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}">
         ${lastEx.manifest.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
       </div>
     ` : '';
 
+    content.dataset.sessionPhase = 'intro';
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
@@ -82,7 +88,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
       ${lastBanner}
-      <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
+      <div class="instruction-card fx-enter" id="instruction-card">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
@@ -119,7 +125,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
-      timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+      timeLeft = isProbe ? items.length * 30 : storage.getProfile().sessionLengthSec;
       const t = document.getElementById('session-timer');
       if (t) {
         t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
@@ -142,25 +148,32 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       
       const container = document.getElementById('game-container');
       if (!container) return;
+      content.dataset.sessionPhase = 'countdown';
       
       const countdown = document.createElement('div');
-      countdown.className = 'count-overlay';
+      countdown.className = 'count-overlay is-tick';
       container.appendChild(countdown);
       
       let count = 3;
       countdown.textContent = count.toString();
+      playSessionCue('tick');
       let iv: any = null;
       
       const startBlock = () => {
         countdown.remove();
+        content.dataset.sessionPhase = 'play';
+        enterStage(container);
+        playSessionCue('enter');
         const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
         let cleanupFn: any = null;
 
         const onBlockEnd = (res: any) => {
           if (cleanupFn) cleanupFn();
-          import('../../core/audio').then(a => {
-            a.playBeep(res.accuracy >= 0.8);
-          }).catch(() => {});
+          content.dataset.sessionPhase = 'feedback';
+          const ok = res.accuracy >= 0.8;
+          const stageEl = container.querySelector('.play-stage') as HTMLElement | null;
+          applyFeedback(stageEl || container, ok);
+          playSessionCue(ok ? 'hit' : 'miss');
 
           const targetMs = (manifest as any).levels ? ((manifest as any).levels[Math.floor(state!.difficulty)]?.targetMs || 1500) : 1500;
           
@@ -175,7 +188,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             score,
             performance: perf,
             masteryBefore: state?.mastery || 0,
-            difficultyBefore: state?.difficulty || 1.0
+            difficultyBefore: state?.difficulty || 1.0,
+            pSuccess: irtPick?.pSuccess
           };
           
           if (mode === 'normal') {
@@ -184,6 +198,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
               q.updateQuestProgress('accuracy', Math.round(res.accuracy * 100));
             }).catch(() => {});
           }
+
+          recordEngineObservation({
+            exerciseId: item.exerciseId,
+            domain: manifest.domain,
+            skills: [...(manifest.skills || [])],
+            metricModel: manifest.metricModel || 'speed-accuracy',
+            difficulty: state!.difficulty,
+            accuracy: res.accuracy,
+            avgRtMs: res.avgRtMs,
+            targetMs,
+            performance: perf,
+            rounds: res.rounds,
+            probe: isProbe
+          });
 
           if (mode === 'calibration') {
             const newLevel = mapAccuracyToStartLevel(res.accuracy);
@@ -293,13 +321,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         count--;
         if (count > 0) {
           countdown.textContent = count.toString();
-          countdown.style.transform = 'scale(1.2)';
-          setTimeout(() => countdown.style.transform = 'scale(1)', 150);
-          import('../../core/audio').then(a => a.playTick()).catch(() => {});
+          replayClass(countdown, 'is-tick');
+          playSessionCue('tick');
         } else {
           clearInterval(iv);
           iv = null;
-          import('../../core/audio').then(a => a.playBeep(true)).catch(() => {});
           startBlock();
         }
       }, 700);
@@ -310,10 +336,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     if (currentCleanup) currentCleanup();
     clearInterval(timerInterval);
     
-    if (mode === 'calibration') {
-      const p = storage.getProfile();
-      p.calibrated = true;
-      storage.setProfile(p);
+    if (isProbe) {
+      markEngineCalibrated();
       const s = {
         id: Date.now().toString(),
         startedAt: sessionStartedAt,
@@ -321,7 +345,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         durationSec: items.length * 30 - timeLeft,
         items: sessionResults
       };
-      navigateTo('result', { session: s, calibration: true });
+      navigateTo('result', {
+        session: s,
+        calibration: mode === 'calibration',
+        recalibration: mode === 'recalibration'
+      });
       return;
     }
 
@@ -344,14 +372,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
     const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
-    const fiNow = computeFokusIndex(storage.getDomains());
+    const domainsNow = storage.getDomains();
+    const fiNow = computeFokusIndex(domainsNow);
+    const domainValues: Record<string, number> = {};
+    domainsNow.forEach((d) => {
+      if (d.value > 0) domainValues[d.domain] = d.value;
+    });
     const ds: any = {
       date: sessionStartedAt,
       totalScore,
       domainDeltas,
       streak: ns.streak,
       skipped: ns.skipped,
-      fokusIndex: fiNow.value
+      fokusIndex: fiNow.value,
+      domainValues
     };
     const prof = storage.getProfile();
     if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
