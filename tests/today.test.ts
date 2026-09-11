@@ -1,6 +1,7 @@
 import { expect, test, beforeEach } from 'vitest';
 import { renderToday } from '../src/ui/screens/today';
 import { storage } from '../src/core/storage';
+import { setLocale } from '../src/core/i18n';
 
 class MockStorage {
   data: Record<string, string> = {};
@@ -46,4 +47,18 @@ test('today shows Fokus Index and workout after calibration', () => {
   expect(app.textContent).toMatch(/Fokus Index/);
   expect(app.textContent).toMatch(/Тренировка дня/);
   expect(app.textContent).toMatch(/Начать сессию/);
+});
+
+test('today English locale uses English chrome', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = false;
+  storage.setProfile(p);
+  setLocale('en');
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  expect(app.textContent).toMatch(/calibration/i);
+  expect(app.textContent).toMatch(/Coach|coach/);
+  expect(app.textContent).not.toMatch(/Пройти калибровку/);
 });

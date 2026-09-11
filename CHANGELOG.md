@@ -1,4 +1,8 @@
 # Changelog
+## [0.4.2] - i18n G13
+- RU/EN parity for shell, Today, session program, Settings, Result
+- Central dictionary + exercise name overlay without registry edits
+- Locale stored on the profile; tests lock key parity
 ## [0.4.1] - Feel + offline
 - Удары, промахи и комбо через Web Audio, с учётом настройки звука
 - Service Worker кэширует собранные ассеты, офлайн-оболочка и корректный base `/fokus/`

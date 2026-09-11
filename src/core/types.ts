@@ -8,7 +8,7 @@ export interface Profile {
   soundOn: boolean;
   language?: string;
   achievements?: string[];
-  locale: 'ru';
+  locale: 'ru' | 'en';
   schemaVersion: number;
   xp?: number;
   primaryGoal?: string; // e.g. 'memory', 'attention', 'speed', 'flexibility', 'logic' or 'balance'

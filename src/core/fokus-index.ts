@@ -1,5 +1,6 @@
 import type { DomainIndex, DaySummary } from './types';
 import { DOMAIN_ORDER } from './labels';
+import { t } from './i18n';
 
 export interface DomainSlice {
   id: string;
@@ -56,10 +57,11 @@ export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: st
 
 export function indexDelta(current: number, previous: number | null): { delta: number; label: string } {
   if (previous === null || previous === 0) {
-    return { delta: 0, label: 'базовая оценка' };
+    return { delta: 0, label: t('fi.delta.base') };
   }
   const delta = current - previous;
-  if (delta > 8) return { delta, label: `+${delta} к вчера` };
-  if (delta < -8) return { delta, label: `${delta} к вчера` };
-  return { delta, label: 'на уровне вчера' };
+  const n = delta > 0 ? `+${delta}` : String(delta);
+  if (delta > 8) return { delta, label: t('fi.delta.up', { n }) };
+  if (delta < -8) return { delta, label: t('fi.delta.down', { n }) };
+  return { delta, label: t('fi.delta.flat') };
 }

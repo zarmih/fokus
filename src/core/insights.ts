@@ -1,7 +1,8 @@
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
 import { registry } from '../exercises/registry';
-import { domainLabel, skillLabel } from './labels';
+import { domainLabel, skillLabel, exerciseName } from './labels';
 import { analyzeChronotype } from './coach';
+import { t } from './i18n';
 
 export interface CognitiveInsight {
   type: 'improvement' | 'plateau' | 'consistency' | 'strength' | 'area_to_focus' | 'milestone' | 'recovery';
@@ -25,8 +26,8 @@ export function generateInsights(
   if (totalDays < 2) {
     return [{
       type: 'milestone',
-      title: 'Начало пути',
-      description: 'Мы всё ещё изучаем ваш профиль. Продолжайте тренироваться, чтобы получить персональные инсайты.',
+      title: t('insight.start.title'),
+      description: t('insight.start.body'),
       confidence: 'low',
       priority: 100
     }];
@@ -52,8 +53,8 @@ export function generateInsights(
     if (strongest.value > 600) {
       insights.push({
         type: 'strength',
-        title: 'Сильная сторона',
-        description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus будет поддерживать её и подтягивать остальные.`,
+        title: t('insight.strength.title'),
+        description: t('insight.strength.body', { domain: domainLabel(strongest.domain) }),
         confidence: strongConf > 70 ? 'high' : (strongConf > 40 ? 'medium' : 'low'),
         priority: 50 + (strongest.value / 100)
       });
@@ -63,8 +64,8 @@ export function generateInsights(
     if (weakest.value < 500 && weakest.value > 0) {
       insights.push({
         type: 'area_to_focus',
-        title: 'Зона роста',
-        description: `«${domainLabel(weakest.domain)}» пока слабее остальных. Короткие повторы здесь дают самый быстрый прирост.`,
+        title: t('insight.growth.title'),
+        description: t('insight.growth.body', { domain: domainLabel(weakest.domain) }),
         confidence: weakConf > 70 ? 'high' : (weakConf > 40 ? 'medium' : 'low'),
         priority: 60 + ((500 - weakest.value) / 10)
       });
@@ -77,8 +78,8 @@ export function generateInsights(
     const best = improvingSkills[0];
     insights.push({
       type: 'improvement',
-      title: 'Заметный прогресс',
-      description: `Навык «${skillLabel(best.skill)}» уверенно растёт. Так держать!`,
+      title: t('insight.progress.title'),
+      description: t('insight.progress.body', { skill: skillLabel(best.skill) }),
       confidence: best.confidence > 70 ? 'high' : 'medium',
       priority: 80 + best.trend
     });
@@ -92,8 +93,8 @@ export function generateInsights(
     if (manifest) {
       insights.push({
         type: 'plateau',
-        title: 'Стабилизация',
-        description: `Ваш результат в игре «${manifest.name}» стабилизировался. Возможно, стоит переключиться на другие задачи для развития связанных навыков.`,
+        title: t('insight.plateau.title'),
+        description: t('insight.plateau.body', { name: exerciseName(manifest.id, manifest.name) }),
         confidence: 'high',
         priority: 70 + (plat.consecutivePlateau || 0) * 5
       });
@@ -106,8 +107,8 @@ export function generateInsights(
   if (totalDays >= 5 && activeDays >= 5) {
     insights.push({
       type: 'consistency',
-      title: 'Привычка держится',
-      description: `${activeDays} тренировок за последние 7 дней. Регулярность важнее длины сессии.`,
+      title: t('insight.habit.title'),
+      description: t('insight.habit.body', { n: activeDays }),
       confidence: 'high',
       priority: 75
     });
@@ -122,8 +123,8 @@ export function generateInsights(
     if (minIdx < scores.length - 1 && min > 0 && last > min * 1.25) {
       insights.push({
         type: 'recovery',
-        title: 'Отскок после спада',
-        description: 'После более слабого дня результат вернулся. Это нормальная вариативность, не откат навыка.',
+        title: t('insight.recovery.title'),
+        description: t('insight.recovery.body'),
         confidence: 'medium',
         priority: 72
       });
@@ -139,8 +140,8 @@ export function generateInsights(
     if (low.length >= 2 && rest.length >= 2 && avg(rest) > avg(low) * 1.12) {
       insights.push({
         type: 'consistency',
-        title: 'Сон и результат',
-        description: 'В дни с меньшим сном очки заметно ниже. Это корреляция, не диагноз — но короткий сон стоит учитывать.',
+        title: t('insight.sleep.title'),
+        description: t('insight.sleep.body'),
         confidence: withSleep.length >= 8 ? 'high' : 'medium',
         priority: 78
       });
@@ -152,8 +153,8 @@ export function generateInsights(
   if (chrono.bucket && chrono.sample >= 4) {
     insights.push({
       type: 'milestone',
-      title: 'Удачное время',
-      description: `Лучшие сессии у вас проходят ${chrono.label}. Сложные блоки лучше ставить на это окно.`,
+      title: t('insight.time.title'),
+      description: t('insight.time.body', { when: chrono.label }),
       confidence: chrono.sample >= 8 ? 'high' : 'medium',
       priority: 55
     });

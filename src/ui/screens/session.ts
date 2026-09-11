@@ -11,6 +11,8 @@ import { buildTrainingPlan } from '../../core/session-builder';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { SessionItem } from '../../core/types';
+import { t } from '../../core/i18n';
+import { exerciseName, exerciseInstruction } from '../../core/labels';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
   const {items, mode = 'normal'} = params;
@@ -67,29 +69,29 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastEx = last ? registry.find(r => r.manifest.id === last.exerciseId) : null;
     const lastBanner = last && lastEx ? `
       <div class="block-recap">
-        ${lastEx.manifest.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
+        ${t('session.recap', { name: exerciseName(lastEx.manifest.id, lastEx.manifest.name), acc: Math.round(last.accuracy * 100), score: Math.round(last.score) })}
       </div>
     ` : '';
 
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
-          <button id="btn-back" class="btn-tiny">Назад</button>
-          <button id="btn-pause" class="btn-tiny">Пауза</button>
-          <button id="btn-restart" class="btn-tiny">Заново</button>
+          <button id="btn-back" class="btn-tiny">${t('session.back')}</button>
+          <button id="btn-pause" class="btn-tiny">${t('session.pause')}</button>
+          <button id="btn-restart" class="btn-tiny">${t('session.restart')}</button>
         </div>
         <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
-        <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
+        <div class="session-block-info">${t('session.block_of', { n: currentIndex + 1, m: items.length })}</div>
       </div>
       ${lastBanner}
       <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
-        <h2>${manifest.name}</h2>
-        <p>${manifest.instruction}</p>
-        <div class="instruction-meta">Блок ${currentIndex + 1} · уровень ${Math.floor(state.difficulty)}</div>
+        <h2>${exerciseName(manifest.id, manifest.name)}</h2>
+        <p>${exerciseInstruction(manifest.id, manifest.instruction)}</p>
+        <div class="instruction-meta">${t('session.block_level', { n: currentIndex + 1, level: Math.floor(state.difficulty) })}</div>
       </div>
-      <button id="btn-next" class="btn-primary">Начать</button>
+      <button id="btn-next" class="btn-primary">${t('session.start')}</button>
       <div id="game-container" class="play-arena"></div>
     `;
 
@@ -102,14 +104,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     document.getElementById('btn-pause')?.addEventListener('click', (e) => {
       const btn = e.target as HTMLButtonElement;
       isPaused = !isPaused;
-      btn.textContent = isPaused ? 'Прод.' : 'Пауза';
+      btn.textContent = isPaused ? t('session.resume') : t('session.pause');
       let overlay = document.getElementById('pause-overlay');
       if (isPaused) {
         if (!overlay) {
           overlay = document.createElement('div');
           overlay.id = 'pause-overlay';
           overlay.className = 'pause-overlay';
-          overlay.innerHTML = '<div class="pause-card">Пауза</div>';
+          overlay.innerHTML = `<div class="pause-card">${t('session.pause_overlay')}</div>`;
           document.getElementById('game-container')?.appendChild(overlay);
         }
       } else {
@@ -120,14 +122,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     document.getElementById('btn-restart')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
       timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
-      const t = document.getElementById('session-timer');
-      if (t) {
-        t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
+      const timerEl = document.getElementById('session-timer');
+      if (timerEl) {
+        timerEl.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
       }
       isPaused = false;
       document.getElementById('pause-overlay')?.remove();
       const pBtn = document.getElementById('btn-pause');
-      if (pBtn) pBtn.textContent = 'Пауза';
+      if (pBtn) pBtn.textContent = t('session.pause');
       
       currentIndex = 0;
       sessionResults.length = 0;
@@ -391,10 +393,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     overlay.className = 'modal-root';
     overlay.innerHTML = `
       <div class="surface modal-card">
-        <h3>Похоже, внимание падает</h3>
-        <p class="modal-lead">Два слабых блока подряд — это маркер усталости, не провала. Можно сохранить результат и остановиться.</p>
-        <button id="btn-fatigue-end" class="btn-primary" type="button">Завершить сессию</button>
-        <button id="btn-fatigue-go" class="btn-secondary" type="button">Продолжить</button>
+        <h3>${t('session.fatigue_title')}</h3>
+        <p class="modal-lead">${t('session.fatigue_lead')}</p>
+        <button id="btn-fatigue-end" class="btn-primary" type="button">${t('session.fatigue_end')}</button>
+        <button id="btn-fatigue-go" class="btn-secondary" type="button">${t('session.fatigue_go')}</button>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -414,9 +416,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     if (isPaused) return;
     timeLeft--;
     blockTimeLeft--;
-    const t = document.getElementById('session-timer');
-    if (t) {
-      t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
+    const timerEl = document.getElementById('session-timer');
+    if (timerEl) {
+      timerEl.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
     }
     if (timeLeft <= 0) {
       clearInterval(timerInterval);

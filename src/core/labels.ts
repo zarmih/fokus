@@ -1,3 +1,5 @@
+import { hasKey, t } from './i18n';
+
 export const DOMAIN_ORDER = ['attention', 'memory', 'speed', 'flexibility', 'logic'] as const;
 
 export type DomainId = (typeof DOMAIN_ORDER)[number];
@@ -53,18 +55,43 @@ export const GOAL_COPY: { id: string; title: string; desc: string }[] = [
   { id: 'logic', title: 'Логика', desc: 'Видеть закономерности и решать задачи' }
 ];
 
+export function getGoalCopy(): { id: string; title: string; desc: string }[] {
+  return GOAL_COPY.map((g) => ({
+    id: g.id,
+    title: t(`goal.${g.id}.title`),
+    desc: t(`goal.${g.id}.desc`)
+  }));
+}
+
 export function domainLabel(id: string): string {
-  return DOMAIN_LABELS[id] || id;
+  const key = `domain.${id}`;
+  return hasKey(key) ? t(key) : (DOMAIN_LABELS[id] || id);
 }
 
 export function skillLabel(id: string): string {
-  return SKILL_LABELS[id] || id.replace(/_/g, ' ');
+  const key = `skill.${id}`;
+  return hasKey(key) ? t(key) : (SKILL_LABELS[id] || id.replace(/_/g, ' '));
 }
 
 export function leagueName(level: number): string {
-  if (level < 10) return 'Бронза';
-  if (level < 20) return 'Серебро';
-  if (level < 30) return 'Золото';
-  if (level < 40) return 'Платина';
-  return 'Алмаз';
+  if (level < 10) return t('league.bronze');
+  if (level < 20) return t('league.silver');
+  if (level < 30) return t('league.gold');
+  if (level < 40) return t('league.platinum');
+  return t('league.diamond');
+}
+
+export function exerciseName(id: string, fallback?: string): string {
+  const key = `ex.${id}.name`;
+  return hasKey(key) ? t(key) : (fallback || id);
+}
+
+export function exerciseInstruction(id: string, fallback?: string): string {
+  const key = `ex.${id}.instruction`;
+  return hasKey(key) ? t(key) : (fallback || '');
+}
+
+export function achievementName(id: string, fallback?: string): string {
+  const key = `ach.${id}.name`;
+  return hasKey(key) ? t(key) : (fallback || id);
 }

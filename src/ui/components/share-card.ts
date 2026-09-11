@@ -1,3 +1,5 @@
+import { t } from '../../core/i18n';
+
 export async function shareSessionCard(params: {
   score: number;
   accuracy: number;
@@ -35,7 +37,7 @@ export async function shareSessionCard(params: {
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '500 32px Inter, system-ui, sans-serif';
-  ctx.fillText('Тренировка внимания и памяти', 80, 190);
+  ctx.fillText(t('share.tagline'), 80, 190);
 
   ctx.fillStyle = '#f59e0b';
   ctx.font = '800 180px Inter, system-ui, sans-serif';
@@ -43,12 +45,12 @@ export async function shareSessionCard(params: {
 
   ctx.fillStyle = '#94a3b8';
   ctx.font = '600 36px Inter, system-ui, sans-serif';
-  ctx.fillText('очков за сессию', 80, 520);
+  ctx.fillText(t('share.points'), 80, 520);
 
   const stats = [
-    ['Точность', `${accuracy}%`],
-    ['Fokus Index', String(fokusIndex || '—')],
-    ['Серия', `${streak} дн.`]
+    [t('share.accuracy'), `${accuracy}%`],
+    [t('fi.kicker'), String(fokusIndex || '—')],
+    [t('share.streak'), t('share.streak_n', { n: streak })]
   ];
   stats.forEach((row, i) => {
     const x = 80 + i * 320;
@@ -65,7 +67,7 @@ export async function shareSessionCard(params: {
 
   ctx.fillStyle = '#64748b';
   ctx.font = '500 28px Inter, system-ui, sans-serif';
-  ctx.fillText(focus ? `Фокус: ${focus}` : 'Короткие тренировки каждый день', 80, 860);
+  ctx.fillText(focus ? t('share.focus', { focus }) : t('share.fallback_focus'), 80, 860);
   ctx.fillText('fokus', 80, 980);
 
   const blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
@@ -73,7 +75,7 @@ export async function shareSessionCard(params: {
     const file = new File([blob], 'fokus.png', { type: 'image/png' });
     const payload = {
       title: 'Fokus',
-      text: `Я набрал ${Math.round(score)} очков в Fokus (точность ${accuracy}%).`,
+      text: t('share.text', { score: Math.round(score), acc: accuracy }),
       files: [file]
     };
     if (navigator.canShare(payload)) {
@@ -96,12 +98,12 @@ export async function shareSessionCard(params: {
 }
 
 function fallbackShare(params: { score: number; accuracy: number }) {
-  const text = `Я набрал ${Math.round(params.score)} очков с точностью ${params.accuracy}% в Fokus.`;
+  const text = t('share.text_plain', { score: Math.round(params.score), acc: params.accuracy });
   if (navigator.share) {
     navigator.share({ title: 'Fokus', text, url: window.location.origin }).catch(() => {});
   } else if (navigator.clipboard) {
     navigator.clipboard.writeText(text).catch(() => {});
-    alert('Результат скопирован в буфер обмена');
+    alert(t('share.copied'));
   }
 }
 

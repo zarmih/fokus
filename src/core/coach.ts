@@ -1,6 +1,7 @@
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
 import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
+import { t } from './i18n';
 
 export interface CoachSpark {
   title: string;
@@ -42,7 +43,11 @@ export function analyzeChronotype(sessions: Session[]): {
 
   if (ranked.length < 2) return { bucket: null, label: '', sample: 0 };
 
-  const labels = { morning: 'утром', afternoon: 'днём', evening: 'вечером' };
+  const labels = {
+    morning: t('chrono.morning'),
+    afternoon: t('chrono.afternoon'),
+    evening: t('chrono.evening')
+  };
   return {
     bucket: ranked[0].bucket,
     label: labels[ranked[0].bucket],
@@ -77,32 +82,32 @@ export function getDailySpark(params: {
 
   if (!calibrated) {
     return {
-      title: 'Сначала настройка',
-      body: '90 секунд калибровки — и Fokus подстроит сложность под вас, а не наоборот.',
+      title: t('coach.calibrate.title'),
+      body: t('coach.calibrate.body'),
       tone: 'start'
     };
   }
 
   if (playedToday) {
     return {
-      title: 'План выполнен',
-      body: 'Когнитивные навыки растут от регулярности, не от марафонов. Завтра Fokus соберёт новую сессию.',
+      title: t('coach.done.title'),
+      body: t('coach.done.body'),
       tone: 'habit'
     };
   }
 
   if (skippedYesterday && streak > 0) {
     return {
-      title: 'Серия на месте',
-      body: 'Один пропуск Fokus уже простил. Пять минут сегодня закрепят привычку сильнее, чем час раз в неделю.',
+      title: t('coach.streak_ok.title'),
+      body: t('coach.streak_ok.body'),
       tone: 'recovery'
     };
   }
 
   if (streak === 0 && daySummaries.length > 0) {
     return {
-      title: 'Вернуться легче, чем начать',
-      body: 'Короткий блок внимания вернёт ритм. Не нужно навёрстывать пропущенные дни.',
+      title: t('coach.return.title'),
+      body: t('coach.return.body'),
       tone: 'recovery'
     };
   }
@@ -113,8 +118,8 @@ export function getDailySpark(params: {
     const nowBucket = hourBucket(new Date().toISOString());
     if (nowBucket === chrono.bucket) {
       return {
-        title: 'Ваше сильное окно',
-        body: `По прошлым сессиям вы сильнее ${chrono.label}. Сегодня хорошее время для сложного блока.`,
+        title: t('coach.window.title'),
+        body: t('coach.window.body', { when: chrono.label }),
         tone: 'time'
       };
     }
@@ -126,23 +131,23 @@ export function getDailySpark(params: {
 
   if (focus) {
     return {
-      title: 'Фокус дня',
-      body: `Сегодня упор на «${domainLabel(focus)}». Сложность подстроится по точности — ошибаться нормально.`,
+      title: t('coach.focus.title'),
+      body: t('coach.focus.body', { domain: domainLabel(focus) }),
       tone: 'focus'
     };
   }
 
   if (streak >= 7) {
     return {
-      title: `${streak} дней подряд`,
-      body: 'Регулярность важнее интенсивности: короткая сессия каждый день сильнее редких длинных.',
+      title: t('coach.streak_n.title', { n: streak }),
+      body: t('coach.streak_n.body'),
       tone: 'habit'
     };
   }
 
   return {
-    title: 'Короткий ритуал',
-    body: 'Тренируем конкретные задачи. Перенос в жизнь скромный — зато привычка внимания остаётся.',
+    title: t('coach.ritual.title'),
+    body: t('coach.ritual.body'),
     tone: 'science'
   };
 }

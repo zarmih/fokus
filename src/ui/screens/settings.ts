@@ -1,99 +1,103 @@
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
+import { setLocale, t, type Locale } from '../../core/i18n';
+import { getGoalCopy } from '../../core/labels';
 
 export function renderSettings(container: HTMLElement) {
   const content = renderShell(container, { active: 'settings' });
   const profile = storage.getProfile();
   
+  const currentLang = profile.language || profile.locale || 'ru';
+  const goals = getGoalCopy();
+  const goalHtml = goals.map((g) => {
+    const active = (!profile.primaryGoal && g.id === 'balance') || profile.primaryGoal === g.id;
+    return `<button data-val="${g.id}" class="${active ? 'active' : ''}">${g.title}</button>`;
+  }).join('');
+
   content.innerHTML = `
-    <h2>Настройки</h2>
+    <h2>${t('settings.title')}</h2>
     
     <div class="surface" style="margin-top: 24px;">
-      <h3 style="margin-bottom: 16px;">Длительность сессии</h3>
+      <h3 style="margin-bottom: 16px;">${t('settings.duration')}</h3>
       <div class="segmented" id="duration-segmented">
-        <button data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}">5 мин</button>
-        <button data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}">8 мин</button>
-        <button data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}">12 мин</button>
+        <button data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}">${t('settings.min5')}</button>
+        <button data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}">${t('settings.min8')}</button>
+        <button data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}">${t('settings.min12')}</button>
       </div>
     </div>
     
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Главная цель</h3>
+      <h3 style="margin-bottom: 16px;">${t('settings.goal')}</h3>
       <div class="segmented" id="goal-segmented" style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <button data-val="balance" class="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'active' : ''}">Баланс</button>
-        <button data-val="memory" class="${profile.primaryGoal === 'memory' ? 'active' : ''}">Память</button>
-        <button data-val="attention" class="${profile.primaryGoal === 'attention' ? 'active' : ''}">Внимание</button>
-        <button data-val="speed" class="${profile.primaryGoal === 'speed' ? 'active' : ''}">Скорость</button>
-        <button data-val="flexibility" class="${profile.primaryGoal === 'flexibility' ? 'active' : ''}">Гибкость</button>
-        <button data-val="logic" class="${profile.primaryGoal === 'logic' ? 'active' : ''}">Логика</button>
+        ${goalHtml}
       </div>
     </div>
     
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Тема</h3>
+      <h3 style="margin-bottom: 16px;">${t('settings.theme')}</h3>
       <div class="segmented" id="theme-segmented">
-        <button data-val="light" class="${profile.theme === 'light' ? 'active' : ''}">Светлая</button>
-        <button data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}">Тёмная</button>
+        <button data-val="light" class="${profile.theme === 'light' ? 'active' : ''}">${t('settings.theme.light')}</button>
+        <button data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}">${t('settings.theme.dark')}</button>
       </div>
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Язык / Language</h3>
+      <h3 style="margin-bottom: 16px;">${t('settings.lang')}</h3>
       <div class="segmented" id="lang-segmented">
-        <button data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}">Русский</button>
-        <button data-val="en" class="${profile.language === 'en' ? 'active' : ''}">English</button>
+        <button data-val="ru" class="${currentLang === 'ru' ? 'active' : ''}">${t('settings.lang_ru')}</button>
+        <button data-val="en" class="${currentLang === 'en' ? 'active' : ''}">${t('settings.lang_en')}</button>
       </div>
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Звук</h3>
+      <h3 style="margin-bottom: 16px;">${t('settings.sound_section')}</h3>
       <label style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
-        Включить звуковые сигналы
+        ${t('settings.sound')}
       </label>
     </div>
 
     <div class="surface" id="install-container" style="display: none;">
-      <h3 style="margin-bottom: 16px;">Установка</h3>
-      <button id="btn-install" class="btn-primary" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
-      <div style="font-size: 11px; color: var(--muted); text-align: center;">Для быстрого доступа без браузера</div>
+      <h3 style="margin-bottom: 16px;">${t('settings.install_section')}</h3>
+      <button id="btn-install" class="btn-primary" style="width: 100%; margin-bottom: 8px;">${t('settings.install_cta')}</button>
+      <div style="font-size: 11px; color: var(--muted); text-align: center;">${t('settings.install_hint')}</div>
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Уведомления</h3>
-      <button id="btn-notifications" class="btn-secondary" style="width: 100%;">Разрешить уведомления</button>
-      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
+      <h3 style="margin-bottom: 16px;">${t('settings.notifications')}</h3>
+      <button id="btn-notifications" class="btn-secondary" style="width: 100%;">${t('settings.notifications_cta')}</button>
+      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">${t('settings.reminder_at')}</div>
       <div class="segmented" id="reminder-segmented">
         <button data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}">08:00</button>
         <button data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}">09:00</button>
         <button data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}">12:00</button>
         <button data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}">19:00</button>
-        <button data-val="off" class="${profile.reminderHour === null ? 'active' : ''}">Выкл</button>
+        <button data-val="off" class="${profile.reminderHour === null ? 'active' : ''}">${t('settings.reminder_off')}</button>
       </div>
-      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">${t('settings.reminder_hint')}</div>
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Перед сессией</h3>
+      <h3 style="margin-bottom: 16px;">${t('settings.pre_session')}</h3>
       <label style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="lifestyle-toggle" ${profile.skipLifestylePrompt ? 'checked' : ''} />
-        Не спрашивать про сон и стресс
+        ${t('settings.skip_lifestyle')}
       </label>
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Данные</h3>
+      <h3 style="margin-bottom: 16px;">${t('settings.data')}</h3>
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <button id="btn-export" class="btn-primary" style="flex: 1;">Экспорт</button>
-        <button id="btn-import" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('file-input').click()">Импорт</button>
+        <button id="btn-export" class="btn-primary" style="flex: 1;">${t('settings.export')}</button>
+        <button id="btn-import" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('file-input').click()">${t('settings.import')}</button>
         <input type="file" id="file-input" accept=".json" style="display: none;">
       </div>
-      <button id="btn-reset" class="btn-secondary" style="width: 100%; margin-top: 12px; color: #f44336; border-color: #f44336;">Сбросить профиль</button>
+      <button id="btn-reset" class="btn-secondary" style="width: 100%; margin-top: 12px; color: #f44336; border-color: #f44336;">${t('settings.reset')}</button>
     </div>
     
     <div class="disclaimer">
-      Fokus — тренажёр для поддержания когнитивного тонуса. Не является медицинским изделием. Не предназначен для лечения или диагностики.
+      ${t('settings.disclaimer')}
     </div>
   `;
 
@@ -146,14 +150,13 @@ export function renderSettings(container: HTMLElement) {
     btn.addEventListener('click', () => {
       lbtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      const val = (btn as HTMLElement).dataset.val;
+      const val = (btn as HTMLElement).dataset.val as Locale;
       const p = storage.getProfile();
       p.language = val;
+      p.locale = val;
       storage.setProfile(p);
-      import('../../core/i18n').then(({setLocale}) => {
-        setLocale(val as 'ru' | 'en');
-        location.reload(); // Quick way to apply translations everywhere
-      });
+      setLocale(val);
+      location.reload();
     });
   });
 
@@ -194,23 +197,23 @@ export function renderSettings(container: HTMLElement) {
   const btnNotif = document.getElementById('btn-notifications');
   if (btnNotif) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      btnNotif.textContent = 'Уведомления включены';
+      btnNotif.textContent = t('settings.notifications_on');
       (btnNotif as HTMLButtonElement).disabled = true;
     }
     btnNotif.addEventListener('click', () => {
       if ('Notification' in window) {
         Notification.requestPermission().then(perm => {
           if (perm === 'granted') {
-            btnNotif.textContent = 'Уведомления включены';
+            btnNotif.textContent = t('settings.notifications_on');
             (btnNotif as HTMLButtonElement).disabled = true;
-            new Notification('Fokus', { body: 'Отлично! Теперь вы не пропустите тренировку.' });
+            new Notification('Fokus', { body: t('settings.notify_ok_body') });
             import('../../core/reminders').then(m => m.scheduleLocalReminder());
           } else {
-            alert('Разрешение не получено.');
+            alert(t('settings.notify_denied'));
           }
         });
       } else {
-        alert('Ваш браузер не поддерживает уведомления.');
+        alert(t('settings.notify_unsupported'));
       }
     });
   }
@@ -234,10 +237,10 @@ export function renderSettings(container: HTMLElement) {
       if (typeof re.target?.result === 'string') {
         const ok = storage.importJson(re.target.result);
         if (ok) {
-          alert('Данные успешно импортированы');
+          alert(t('settings.import_ok'));
           location.reload();
         } else {
-          alert('Ошибка формата данных');
+          alert(t('settings.import_err'));
         }
       }
     };
@@ -245,7 +248,7 @@ export function renderSettings(container: HTMLElement) {
   });
 
   document.getElementById('btn-reset')?.addEventListener('click', () => {
-    if (confirm('Вы уверены, что хотите удалить все данные? Это действие необратимо.')) {
+    if (confirm(t('settings.reset_confirm'))) {
       storage.reset();
       location.reload();
     }

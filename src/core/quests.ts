@@ -1,4 +1,5 @@
 import { storage } from './storage';
+import { t } from './i18n';
 
 export interface Quest {
   id: string;
@@ -38,7 +39,11 @@ export function getDailyQuests(): Quest[] {
     p.questsDate = getTodayStr();
     storage.setProfile(p);
   }
-  return p.quests as Quest[];
+  return (p.quests as Quest[]).map((q) => ({
+    ...q,
+    title: t(`quest.${q.id}.title`),
+    description: t(`quest.${q.id}.desc`)
+  }));
 }
 
 export function updateQuestProgress(type: 'blocks' | 'accuracy' | 'score', value: number) {

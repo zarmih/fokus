@@ -1,5 +1,6 @@
 import type { ExerciseManifest } from '../exercises/contract';
 import type { DomainIndex, SkillIndex, ExerciseState } from './types';
+import { t } from './i18n';
 
 export interface TrainingPlanItem {
   exerciseId: string;
@@ -108,23 +109,23 @@ export function buildTrainingPlan(params: {
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
       
-      let reason = 'Сбалансированная тренировка';
+      let reason = t('plan.reason.balanced');
       if (maintenance > 0 && skillNeed < 5) {
-        reason = `Поддержание освоенного навыка`;
+        reason = t('plan.reason.maintain');
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {
-        reason = `Смена контекста для прорыва`;
+        reason = t('plan.reason.context');
       } else if (neglected > 0) {
-        reason = `Забытый навык`;
+        reason = t('plan.reason.neglected');
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Ваша цель и зона роста`;
+        reason = t('plan.reason.goal_and_growth');
       } else if (goalAlignment > 0) {
-        reason = `Работа над вашей целью`;
+        reason = t('plan.reason.goal');
       } else if (weaknessPriority > 0) {
-        reason = `Укрепление слабой области`;
+        reason = t('plan.reason.weak');
       } else if (skillNeed > 10) {
-        reason = `Развитие отстающего навыка`;
+        reason = t('plan.reason.skill');
       } else if (novelty > 0) {
-        reason = `Новое испытание`;
+        reason = t('plan.reason.novel');
       }
 
       return {

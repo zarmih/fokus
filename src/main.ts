@@ -8,7 +8,7 @@ import { renderTrainers } from './ui/screens/trainers';
 import { renderOnboarding } from './ui/screens/onboarding';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
-import { initI18n } from './core/i18n';
+import { initI18n, t } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 import { unlockAudio } from './core/audio';
 
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   try {
     const p = storage.getProfile(); // ensures initialization
-    initI18n(p.language);
+    initI18n(p.language || p.locale);
     applyTheme(p.theme || 'dark');
     scheduleLocalReminder();
     maybeNotify();
@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   } catch (e: any) {
     app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
-      <h3>Ошибка инициализации</h3>
+      <h3>${t('common.error_init')}</h3>
       <p>${e?.message || e}</p>
     </div>`;
     console.error(e);
@@ -78,7 +78,7 @@ window.addEventListener('navigate', (e: any) => {
     }
   } catch (err: any) {
     app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
-      <h3>Ошибка навигации</h3>
+      <h3>${t('common.error_nav')}</h3>
       <p>${err?.message || err}</p>
     </div>`;
     console.error(err);
