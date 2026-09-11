@@ -80,7 +80,9 @@ import vowelConsonantModule from './vowel-consonant';
 import arrowSwipeModule from './arrow-swipe';
 import shapeNameModule from './shape-name';
 import numberSeriesModule from './number-series';
-
+import beaconSnapModule from './beacon-snap';
+import slotSpanModule from './slot-span';
+import prismFlipModule from './prism-flip';
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
   oddOneModule,
@@ -162,5 +164,8 @@ export const registry: ExerciseModule[] = [
   vowelConsonantModule,
   arrowSwipeModule,
   shapeNameModule,
-  numberSeriesModule
+  numberSeriesModule,
+  beaconSnapModule,
+  slotSpanModule,
+  prismFlipModule
 ];
