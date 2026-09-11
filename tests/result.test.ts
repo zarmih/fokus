@@ -48,9 +48,9 @@ test('renderResult Mastery Progression UI v1 - basic provenance', () => {
   expect(html).toContain('80%'); // confidence
   expect(html).toContain('📈 Растёт'); // progression boundaries up
   
-  // Next-step provenance
+  // Next-step provenance (engine v2 reasons, with legacy-heuristic fallback)
   expect(html).toContain('Следующий шаг');
-  expect(html).toContain('Развитие отстающего навыка'); // Or another reason
+  expect(html).toMatch(/Интервал вышел|Слот дня|Новый стимул|слабой области|цели|Сбалансированная|отстающего навыка|Забытый навык/);
 });
 
 test('renderResult - mastery delta zero / plateau / low confidence', () => {

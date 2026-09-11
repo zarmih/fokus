@@ -3,7 +3,8 @@ import { renderShell } from '../shell';
 import type { Session } from '../../core/types';
 import { registry } from '../../exercises/registry';
 import { storage } from '../../core/storage';
-import { buildTrainingPlan } from '../../core/session-builder';
+import { planForNow } from '../../core/adaptive-plan';
+import { SLOT_LABEL } from '../../core/engine';
 import { getLevelProgress } from '../../core/xp';
 import { ACHIEVEMENTS_DEF } from '../../core/achievements';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
@@ -11,10 +12,11 @@ import { domainLabel } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
 
-export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; unlocked?: string[] }) {
+export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'today', hideNav: true });
   const session = params.session;
   const isCalibration = !!params.calibration;
+  const isRecalibration = !!params.recalibration;
 
   let totalScore = 0;
   let totalAcc = 0;
@@ -114,14 +116,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   }).join('');
   if (!deltasHtml) deltasHtml = '<div class="muted">Нет изменений</div>';
 
-  const plan = buildTrainingPlan({
-    durationSec: 300,
-    catalog: registry as any,
-    domains: storage.getDomains(),
-    skills: storage.getSkills(),
-    states: storage.getExerciseStates(),
-    primaryGoal: storage.getProfile().primaryGoal
-  });
+  const plan = planForNow({ durationSec: profile.sessionLengthSec || 300 });
 
   const nextItem = plan.items[0];
   const nextEx = nextItem ? registry.find(r => r.manifest.id === nextItem.exerciseId) : null;
@@ -129,7 +124,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     <div class="surface next-card">
       <h3>Следующий шаг</h3>
       <p class="next-name">${nextEx.manifest.name}</p>
-      <p class="muted">${nextItem.reason}</p>
+      <p class="muted">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
     </div>
   ` : '';
 
@@ -148,9 +143,9 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
   content.innerHTML = `
     <div class="result-hero" style="animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;">
-      <div class="result-kicker">${isCalibration ? 'Профиль готов' : 'Тренировка завершена'}</div>
+      <div class="result-kicker">${isCalibration ? 'Профиль готов' : isRecalibration ? 'Оценка обновлена' : 'Тренировка завершена'}</div>
       <div class="result-big"><span class="xp-counter">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
-      <div class="muted">${isCalibration ? 'стартовая оценка' : 'всего очков'}</div>
+      <div class="muted">${isCalibration ? 'стартовая оценка' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
       ${compareHtml}
     </div>
