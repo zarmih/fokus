@@ -47,6 +47,32 @@ test('missed day with remaining streak is recovery, not reset panic', () => {
   expect(spark.tone).toBe('recovery');
 });
 
+test('evening fragility surfaces a soft streak nudge, not FOMO copy', () => {
+  const evening = new Date(2026, 8, 11, 21, 0, 0);
+  const spark = getDailySpark({
+    domains: [
+      { domain: 'attention', value: 700, trend: 0, updatedAt: '2026-09-10T10:00:00Z' },
+      { domain: 'memory', value: 680, trend: 0, updatedAt: '2026-09-10T10:00:00Z' }
+    ],
+    skills: [],
+    states: [],
+    daySummaries: [{ date: '2026-09-10T10:00:00Z', totalScore: 110, domainDeltas: { attention: 4 }, streak: 12, skipped: false }],
+    sessions: [{
+      id: 's1',
+      startedAt: '2026-09-10T10:00:00Z',
+      finishedAt: '2026-09-10T10:05:00Z',
+      durationSec: 300,
+      items: [{ exerciseId: 'a', level: 1, accuracy: 0.9, avgRtMs: 400, score: 90 }]
+    }],
+    calibrated: true,
+    playedToday: false,
+    streak: 12,
+    now: evening
+  });
+  expect(spark.title).toMatch(/серия|возврат|короче/i);
+  expect(spark.body).not.toMatch(/не пропусти|прокачай|нейрофитнес|last chance/i);
+});
+
 test('chronotype needs at least two buckets with samples', () => {
   const sessions: Session[] = [
     { id: '1', startedAt: '2026-09-01T08:00:00', finishedAt: null, durationSec: 300, items: [{ exerciseId: 'a', level: 1, accuracy: 1, avgRtMs: 400, score: 80 }] },
