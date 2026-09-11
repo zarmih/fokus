@@ -19,7 +19,12 @@ const dictionary: Record<string, Record<Locale, string>> = {
   'a11y.nav': { ru: 'Основное меню', en: 'Main menu' },
   'a11y.streak': { ru: 'Серия: {n} дн.', en: 'Streak: {n} days' },
   'session.pause': { ru: 'Пауза', en: 'Pause' },
-  'session.resume': { ru: 'Прод.', en: 'Resume' }
+  'session.resume': { ru: 'Прод.', en: 'Resume' },
+  'session.handoff': { ru: 'Следующий блок', en: 'Next block' },
+  'session.closing': { ru: 'Завершаем сессию', en: 'Closing the session' },
+  'today.halo_ready': { ru: 'Ритуал дня', en: 'Today’s ritual' },
+  'today.halo_progress': { ru: 'Ритуал дня, {pct}%', en: 'Today’s ritual, {pct}%' },
+  'today.halo_done': { ru: 'Ритуал дня выполнен', en: 'Today’s ritual is done' }
 };
 
 let currentLocale: Locale = 'ru';
