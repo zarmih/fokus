@@ -46,7 +46,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         domains: storage.getDomains(),
         skills: storage.getSkills(),
         states: storage.getExerciseStates(),
-        primaryGoal: storage.getProfile().primaryGoal
+        primaryGoal: storage.getProfile().primaryGoal,
+        programDay: storage.getProfile().programDay || 1
       });
       const nextItem = plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
       if (nextItem) {
@@ -336,6 +337,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     if (mode === 'calibration') {
       const p = storage.getProfile();
       p.calibrated = true;
+      p.needsRecalibration = false;
+      p.recalibrationPostponed = false;
       storage.setProfile(p);
       const s = {
         id: Date.now().toString(),
@@ -370,6 +373,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastStreak = summaries.length > 0 ? summaries[summaries.length-1].streak : 0;
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
+    const todayStr = sessionStartedAt.split('T')[0];
+    const playedToday = summaries.some(d => d.date.startsWith(todayStr));
+    
+    if (mode === 'normal' && !playedToday) {
+      const prof = storage.getProfile();
+      prof.programDay = (prof.programDay || 0) + 1;
+      if (prof.programDay > 7) {
+        prof.programDay = 1;
+        prof.programWeek = (prof.programWeek || 1) + 1;
+        prof.needsRecalibration = true;
+      }
+      storage.setProfile(prof);
+    }
+
     const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
     const fiNow = computeFokusIndex(storage.getDomains());
     const ds: any = {

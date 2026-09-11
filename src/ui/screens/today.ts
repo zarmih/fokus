@@ -50,7 +50,8 @@ export function renderToday(container: HTMLElement) {
     domains,
     skills,
     states,
-    primaryGoal: profile.primaryGoal
+    primaryGoal: profile.primaryGoal,
+    programDay: profile.programDay || 1
   });
 
   const fi = computeFokusIndex(domains);
@@ -127,7 +128,19 @@ export function renderToday(container: HTMLElement) {
   }
 
   let actionHtml = '';
-  if (!profile.calibrated) {
+  if (profile.needsRecalibration && !profile.recalibrationPostponed) {
+    actionHtml = `
+      <div class="workout-card" style="border: 1px solid var(--accent);">
+        <div class="workout-kicker" style="color: var(--accent);">Неделя ${profile.programWeek || 1} завершена</div>
+        <h3>Мягкая перекалибровка</h3>
+        <p>Вы завершили 7 дней тренировок. Давайте обновим базовые показатели для точной настройки сложности.</p>
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <button id="btn-recalibrate" class="btn-primary" style="flex: 2;">Пройти (90 сек)</button>
+          <button id="btn-recalibrate-postpone" class="btn-secondary" style="flex: 1;">Позже</button>
+        </div>
+      </div>
+    `;
+  } else if (!profile.calibrated) {
     actionHtml = `
       <div class="workout-card">
         <div class="workout-kicker">Первый шаг</div>
@@ -160,7 +173,7 @@ export function renderToday(container: HTMLElement) {
   } else {
     actionHtml = `
       <div class="workout-card">
-        <div class="workout-kicker">Дневной ритуал</div>
+        <div class="workout-kicker">Дневной ритуал · День ${profile.programDay || 1} из 7</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary">Начать ритуал</button>
@@ -323,4 +336,21 @@ export function renderToday(container: HTMLElement) {
   } else {
     setupStartButton('#btn-start', false, false);
   }
+
+  content.querySelector('#btn-recalibrate')?.addEventListener('click', () => {
+    navigateTo('session', { mode: 'calibration', items: [
+      { exerciseId: 'grid-memory' }, 
+      { exerciseId: 'odd-one' }, 
+      { exerciseId: 'pattern-next' }, 
+      { exerciseId: 'reaction-strike' }, 
+      { exerciseId: 'switch-rule' }
+    ] });
+  });
+
+  content.querySelector('#btn-recalibrate-postpone')?.addEventListener('click', () => {
+    const p = storage.getProfile();
+    p.recalibrationPostponed = true;
+    storage.setProfile(p);
+    renderToday(container);
+  });
 }

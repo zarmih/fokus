@@ -18,8 +18,9 @@ export function buildTrainingPlan(params: {
   skills: SkillIndex[];
   states: ExerciseState[];
   primaryGoal?: string;
+  programDay?: number;
 }): TrainingPlan {
-  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance' } = params;
+  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', programDay } = params;
   
   let targetBlocks = 3;
   if (durationSec >= 480) targetBlocks = 4;
@@ -30,7 +31,18 @@ export function buildTrainingPlan(params: {
 
   const focusDomains = new Set<string>();
   if (primaryGoal && primaryGoal !== 'balance') focusDomains.add(primaryGoal);
-  if (weakestDomain) focusDomains.add(weakestDomain);
+  
+  const arcDomains = ['memory', 'attention', 'logic', 'speed', 'flexibility', 'weak', 'balance'];
+  const dayIndex = programDay ? Math.max(1, Math.min(7, programDay)) - 1 : -1;
+  const arcFocus = dayIndex >= 0 ? arcDomains[dayIndex] : undefined;
+  
+  if (arcFocus === 'weak' || arcFocus === 'balance') {
+    if (weakestDomain) focusDomains.add(weakestDomain);
+  } else if (arcFocus && arcFocus !== 'balance') {
+    focusDomains.add(arcFocus);
+  } else if (weakestDomain) {
+    focusDomains.add(weakestDomain);
+  }
 
   const items: TrainingPlanItem[] = [];
   const selectedExerciseIds = new Set<string>();
@@ -45,10 +57,14 @@ export function buildTrainingPlan(params: {
       if (primaryGoal !== 'balance' && manifest.domain === primaryGoal) {
         goalAlignment = 30;
       }
+      if (arcFocus && arcFocus !== 'weak' && arcFocus !== 'balance' && manifest.domain === arcFocus) {
+        goalAlignment += 25; // Week arc explicit domain focus
+      }
 
       let weaknessPriority = 0;
       if (weakestDomain === manifest.domain) {
-        weaknessPriority = 25; 
+        weaknessPriority = 25;
+        if (arcFocus === 'weak') weaknessPriority += 20; // Extra boost on day 6 for lagging domain
       }
 
       let skillNeed = 0;
@@ -118,9 +134,11 @@ export function buildTrainingPlan(params: {
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
         reason = `Ваша цель и зона роста`;
       } else if (goalAlignment > 0) {
-        reason = `Работа над вашей целью`;
+        if (arcFocus && manifest.domain === arcFocus) reason = `Фокус дня: ${arcFocus}`;
+        else reason = `Работа над вашей целью`;
       } else if (weaknessPriority > 0) {
-        reason = `Укрепление слабой области`;
+        if (arcFocus === 'weak') reason = `Фокус дня: Усиление слабой зоны`;
+        else reason = `Укрепление слабой области`;
       } else if (skillNeed > 10) {
         reason = `Развитие отстающего навыка`;
       } else if (novelty > 0) {

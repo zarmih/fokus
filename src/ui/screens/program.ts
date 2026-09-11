@@ -25,6 +25,19 @@ export function renderProgram(container: HTMLElement) {
           </p>
           <button id="btn-calibrate" class="btn primary" style="width: 100%; margin-top: 8px;">Начать калибровку (~5 мин)</button>
         </div>
+      ` : profile.needsRecalibration && !profile.recalibrationPostponed ? `
+        <div class="card" style="margin-bottom: 24px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(99,102,241,0.5);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="margin: 0;">Мягкая перекалибровка</h3>
+          </div>
+          <p style="opacity: 0.8; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5;">
+            Вы завершили 7 дней тренировок. Давайте обновим базовые показатели для точной настройки сложности.
+          </p>
+          <div style="display: flex; gap: 8px;">
+            <button id="btn-recalibrate-prog" class="btn primary" style="flex: 2;">Пройти (90 сек)</button>
+            <button id="btn-recalibrate-postpone-prog" class="btn secondary" style="flex: 1;">Позже</button>
+          </div>
+        </div>
       ` : playedToday ? `
         <div class="card" style="margin-bottom: 24px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
@@ -53,7 +66,7 @@ export function renderProgram(container: HTMLElement) {
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
             <h3 style="margin: 0;">Дневной ритуал</h3>
             <span style="background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
-              Фаза ${profile.programPhase || 1}
+              Неделя ${profile.programWeek || 1} · День ${profile.programDay || 1}/7
             </span>
           </div>
           <p style="opacity: 0.8; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5;">
@@ -83,6 +96,23 @@ export function renderProgram(container: HTMLElement) {
     ] });
   });
 
+  shell.querySelector('#btn-recalibrate-prog')?.addEventListener('click', () => {
+    navigateTo('session', { mode: 'calibration', items: [
+      { exerciseId: 'grid-memory' }, 
+      { exerciseId: 'odd-one' }, 
+      { exerciseId: 'pattern-next' }, 
+      { exerciseId: 'reaction-strike' }, 
+      { exerciseId: 'switch-rule' }
+    ] });
+  });
+
+  shell.querySelector('#btn-recalibrate-postpone-prog')?.addEventListener('click', () => {
+    const p = storage.getProfile();
+    p.recalibrationPostponed = true;
+    storage.setProfile(p);
+    renderProgram(container);
+  });
+
   const startNormalSession = (isResume: boolean = false) => {
     const domains = storage.getDomains();
     const skills = storage.getSkills();
@@ -93,7 +123,8 @@ export function renderProgram(container: HTMLElement) {
       domains,
       skills,
       states,
-      primaryGoal: profile.primaryGoal
+      primaryGoal: profile.primaryGoal,
+      programDay: profile.programDay || 1
     });
     navigateTo('session', { mode: 'normal', items: plan.items, isResume });
   };
