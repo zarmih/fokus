@@ -811,6 +811,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'fractal-symmetry',
+      name: 'Симметрия',
+      domain: 'logic',
+      skills: ['spatial_reasoning', 'logical_reasoning'] as ExerciseManifest['skills'],
+      metricModel: 'logic-correctness',
+      instruction: 'Восстанови симметрию узора относительно центральной оси.'
+    }
+  },
+  {
+    manifest: {
+      id: 'cyber-swarm',
+      name: 'Кибер Рой',
+      domain: 'speed',
+      skills: ['processing_speed', 'visual_scanning', 'reaction_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Кликай по числам в порядке возрастания (от меньшего к большему).'
+    }
+  },
+  {
+    manifest: {
+      id: 'paradox-engine',
+      name: 'Двигатель парадоксов',
+      domain: 'flexibility',
+      skills: ['inhibition', 'rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Оцени, подходит ли свойство к объекту (Верно/Неверно). Если фон красный — отвечай наоборот!'
+    }
+  }
 ];
 
 export function getManifest(id: string): ExerciseManifest | undefined {

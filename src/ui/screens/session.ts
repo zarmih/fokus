@@ -38,6 +38,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let timerInterval: any;
   const sessionBudget = params.durationSec ?? storage.getProfile().sessionLengthSec;
   let timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
+  const plannedDuration = timeLeft;
   let sessionEndReason: SessionEndReason = 'completed';
   let blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
   let isPaused = false;
