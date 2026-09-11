@@ -1,6 +1,7 @@
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
 import { buildTrainingPlan } from '../../core/session-builder';
+import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -43,7 +44,16 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
-  const plan = buildTrainingPlan({
+  const depth = describeAdaptiveDepth({
+    sessions,
+    domains,
+    skills,
+    states,
+    catalog: registry,
+    durationSec: profile.sessionLengthSec,
+    primaryGoal: profile.primaryGoal
+  });
+  const plan = depth.ritual ?? buildTrainingPlan({
     durationSec: profile.sessionLengthSec,
     catalog: registry as any,
     domains,
@@ -51,6 +61,7 @@ export function renderToday(container: HTMLElement) {
     states,
     primaryGoal: profile.primaryGoal
   });
+  const planItems = plan.items.map((item) => ({ exerciseId: item.exerciseId }));
 
   const fi = computeFokusIndex(domains);
   const prevFi = previousFokusIndex(ds, new Date().toISOString());
@@ -60,7 +71,7 @@ export function renderToday(container: HTMLElement) {
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
     : 'Сбалансированная тренировка';
 
-  const compositionHtml = plan.items.map((item, index) => {
+  const compositionHtml = planItems.map((item, index) => {
     const r = registry.find(x => x.manifest.id === item.exerciseId);
     const isPrimary = index === 0;
     return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}">
@@ -68,6 +79,13 @@ export function renderToday(container: HTMLElement) {
       <span>${r?.manifest.name}</span>
     </div>`;
   }).join('');
+
+  const trendChipHtml = depth.chip
+    ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
+    : '';
+  const ritualWhyHtml = depth.why
+    ? `<p class="ritual-why">${depth.why}</p>`
+    : '';
 
   const hour = new Date().getHours();
   const hello = hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
@@ -140,6 +158,7 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card done">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
+        ${trendChipHtml}
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
         <button id="btn-start" class="btn-secondary">Ещё одна сессия</button>
       </div>
@@ -149,7 +168,9 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card">
         <div class="workout-kicker">Тренировка дня</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
+        ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
+        ${ritualWhyHtml}
         <button id="btn-start" class="btn-primary">Начать сессию</button>
       </div>
     `;
@@ -209,7 +230,7 @@ export function renderToday(container: HTMLElement) {
       if (!profile.calibrated) {
         navigateTo('session', { mode: 'calibration', items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'stroop' }] });
       } else {
-        navigateTo('session', { mode: 'normal', items: plan.items });
+        navigateTo('session', { mode: 'normal', items: planItems });
       }
     };
 

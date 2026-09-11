@@ -1116,6 +1116,23 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .workout-chip { margin: 0; padding: 8px 12px; gap: 8px; }
 .workout-chip.primary { outline: 1px solid var(--accent); }
 .workout-chip img { border-radius: 4px; }
+.ability-trend-chip {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.ritual-why {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0 0 14px;
+}
+.adaptive-note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
 .stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
 .stat-pill {
   background: var(--surface);
@@ -1519,7 +1536,9 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .staggered-block:nth-child(4) { animation-delay: 0.4s; }
 
 @media (prefers-reduced-motion: reduce) {
-  .instruction-card, .result-hero, .staggered-block, .level-up {
+  .instruction-card, .result-hero, .staggered-block, .level-up,
+  .ability-trend-chip, .ritual-why {
     animation: none !important;
+    transition: none !important;
   }
 }

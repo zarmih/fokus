@@ -1,4 +1,16 @@
 import type { ExerciseState, SkillIndex, DomainIndex } from './types';
+import { applySpacedDifficulty, type SpacingHistoryItem } from './spaced-difficulty';
+
+export interface SpacingUpdateContext {
+  recentItems?: Array<{
+    exerciseId?: string;
+    accuracy: number;
+    difficulty?: number;
+    difficultyAfter?: number;
+    difficultyBefore?: number;
+    level?: number;
+  }>;
+}
 
 // PERFORMANCE MODEL
 
@@ -54,7 +66,8 @@ export function updateExerciseState(
   accuracy: number, 
   avgRtMs: number, 
   targetMs: number,
-  perf: number
+  perf: number,
+  spacing?: SpacingUpdateContext
 ): ExerciseState {
   // 1. Difficulty Controlled Progression
   let delta = 0;
@@ -77,7 +90,25 @@ export function updateExerciseState(
     delta = stabilityFactor > 0.8 ? -0.3 : -0.8;
   }
   
-  const newDiff = Math.max(1.0, Math.min(30.0, state.difficulty + delta));
+  let newDiff = Math.max(1.0, Math.min(30.0, state.difficulty + delta));
+
+  // Optional spaced-difficulty cap (G10). No-op when caller omits context so
+  // existing staircase tests and unmerged program PRs keep current behaviour.
+  if (spacing) {
+    const history: SpacingHistoryItem[] = (spacing.recentItems || [])
+      .filter((item) => !item.exerciseId || item.exerciseId === state.exerciseId)
+      .map((item) => ({
+        accuracy: item.accuracy,
+        difficulty:
+          item.difficultyAfter ?? item.difficulty ?? item.difficultyBefore ?? item.level ?? 1
+      }));
+    newDiff = applySpacedDifficulty({
+      currentDifficulty: state.difficulty,
+      proposedDifficulty: newDiff,
+      accuracy,
+      history
+    }).target;
+  }
   
   // 2. Stability Calculation
   const oldPerf = state.performance;
