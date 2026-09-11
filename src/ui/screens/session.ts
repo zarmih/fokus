@@ -278,7 +278,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
               items.push({ exerciseId: next.exerciseId });
             }
           } else {
-            const newState = updateExerciseState(state!, res.accuracy, res.avgRtMs, targetMs, perf);
+            const newState = updateExerciseState(state!, res.accuracy, res.avgRtMs, targetMs, perf, {
+              recentItems: sessionResults.map((sr) => ({
+                exerciseId: sr.exerciseId,
+                accuracy: sr.accuracy,
+                difficulty: sr.difficultyBefore,
+                difficultyAfter: sr.difficultyAfter,
+                difficultyBefore: sr.difficultyBefore,
+                level: sr.level
+              }))
+            });
             state = newState;
             
             const st = storage.getExerciseStates();

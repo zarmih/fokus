@@ -11,6 +11,14 @@ test('adaptive difficulty drop on fail', () => {
   const next = updateExerciseState(state, 0.5, 1000, 1500, 200);
   expect(next.difficulty).toBeLessThan(3.0);
 });
+test('optional spacing context holds a peak hard-success', () => {
+  const state = { exerciseId: 'stroop', level: 8, difficulty: 8.0, performance: 900, lastPlayedAt: '', lastAccuracy: 0.92 };
+  const plain = updateExerciseState(state, 0.96, 800, 1500, 900);
+  expect(plain.difficulty).toBeGreaterThan(8.0);
+  const spaced = updateExerciseState(state, 0.96, 800, 1500, 900, { recentItems: [] });
+  expect(spaced.difficulty).toBeLessThan(plain.difficulty);
+  expect(spaced.difficulty).toBeLessThan(8.0);
+});
 test('performance calculation', () => {
   const perfGood = calculateNormalizedPerformance(1.0, 1000, 1500, 5);
   const perfBad = calculateNormalizedPerformance(0.5, 2000, 1500, 5);

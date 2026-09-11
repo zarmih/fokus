@@ -1229,6 +1229,23 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .workout-chip { margin: 0; padding: 8px 12px; gap: 8px; }
 .workout-chip.primary { outline: 1px solid var(--accent); }
 .workout-chip img { border-radius: 4px; }
+.ability-trend-chip {
+  margin: 4px 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.ritual-why {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0 0 14px;
+}
+.adaptive-note {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+  margin: 0;
+}
 .stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
 .stat-pill {
   background: var(--surface);
@@ -1855,15 +1872,18 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   .play-sky, .play-orbs i, .mic-orb.live, .rot-piece { animation: none !important; }
   .play-board { transform: none; }
   .fx-enter, .instruction-card, .result-hero, .staggered-block, .shell-content,
-  .workout-card.fx-enter, .stat-pill.fx-enter {
+  .workout-card.fx-enter, .stat-pill.fx-enter,
+  .ability-trend-chip, .ritual-why {
     animation-name: fxFade !important;
   }
-  .fx-celebrate, .level-up, .workout-card.done.fx-celebrate {
+  .fx-celebrate, .level-up, .workout-card.done.fx-celebrate,
+  .ability-trend-chip, .ritual-why {
     animation-name: fxFade !important;
   }
   .fx-celebrate::after, .ritual-fill, .quest-title.done, .streak-badge.has-streak,
   .stat-pill.has-streak, .count-overlay.is-tick, .play-combo.on {
     animation: none !important;
+    transition: none !important;
   }
   .ritual-fill { transform: none; }
   .fx-bad, .play-stage.pulse-bad, .play-stage.fx-bad {

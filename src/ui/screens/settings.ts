@@ -1,6 +1,8 @@
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
+import { ADAPTIVE_SETTINGS_COPY, describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { registry } from '../../exercises/registry';
 import { transferCardFromStorage } from '../components/transfer-card';
 import { navigateTo } from '../router';
 import { domainLabel } from '../../core/labels';
@@ -11,6 +13,18 @@ import { applyDocumentLang } from '../a11y';
 export function renderSettings(container: HTMLElement) {
   const content = renderShell(container, { active: 'settings' });
   const profile = storage.getProfile();
+  const depth = describeAdaptiveDepth({
+    sessions: storage.getSessions(),
+    domains: storage.getDomains(),
+    skills: storage.getSkills(),
+    states: storage.getExerciseStates(),
+    catalog: registry,
+    durationSec: profile.sessionLengthSec,
+    primaryGoal: profile.primaryGoal
+  });
+  const settingsChip = depth.chip
+    ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
+    : '';
   
   content.innerHTML = `
     <h2>Настройки</h2>
@@ -36,6 +50,12 @@ export function renderSettings(container: HTMLElement) {
       </div>
     </div>
     
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">${ADAPTIVE_SETTINGS_COPY.title}</h3>
+      ${settingsChip}
+      <p class="adaptive-note">${ADAPTIVE_SETTINGS_COPY.body}</p>
+    </div>
+
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Тема</h3>
       <div class="segmented" id="theme-segmented" role="radiogroup" aria-label="Тема">

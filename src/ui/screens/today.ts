@@ -2,6 +2,7 @@ import { storage } from '../../core/storage';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
 import { planWithRecovery } from '../../core/recovery';
+import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
@@ -72,6 +73,28 @@ export function renderToday(container: HTMLElement) {
   const plan = ritual.plan;
   const ritualDuration = ritual.snapshot.durationSec;
   const recal = ritual.recalibration;
+  const depth = describeAdaptiveDepth({
+    sessions,
+    domains,
+    skills,
+    states,
+    catalog,
+    durationSec: ritualDuration,
+    primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal
+  });
+  const trendChipHtml = depth.chip
+    ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
+    : '';
+  const ritualWhyHtml = depth.why
+    ? `<p class="ritual-why">${depth.why}</p>`
+    : '';
+  if (!ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
+    (plan as { items: { exerciseId: string; reason?: string }[]; focusDomains: string[] }).items = depth.ritual.items.map((s) => ({
+      exerciseId: s.exerciseId,
+      reason: s.reasonLabel
+    }));
+    (plan as { focusDomains: string[] }).focusDomains = depth.ritual.focusDomains;
+  }
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
@@ -216,6 +239,7 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card done fx-celebrate">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
+        ${trendChipHtml}
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
         <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
@@ -226,7 +250,9 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
         <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
+        ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
+        ${ritualWhyHtml}
         <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
     `;
