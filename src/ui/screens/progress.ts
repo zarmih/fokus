@@ -68,7 +68,7 @@ export function renderProgress(container: HTMLElement) {
 
   let historyHtml = '';
   if (history.length === 0) {
-    historyHtml = '<p style="color: var(--muted); text-align: center; margin: 24px 0;">Нет истории тренировок</p>';
+    historyHtml = '<div style="padding: 24px; text-align: center; color: var(--muted); background: var(--surface); border-radius: 12px; border: 1px dashed var(--line); margin-top: 16px;">Нет истории тренировок.<br><span style="font-size: 13px; opacity: 0.8; margin-top: 8px; display: inline-block;">Пройдите первую сессию, чтобы увидеть результаты здесь.</span></div>';
   } else {
     historyHtml = history.map(h => {
       const d = new Date(h.date);
@@ -123,11 +123,11 @@ export function renderProgress(container: HTMLElement) {
       const displayVal = Math.round(s.value);
       const isReliable = s.confidence >= 10;
       const pct = isReliable ? Math.min(100, Math.max(0, displayVal / 15)) : 0;
-      const trendStr = s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '→';
+      const trendStr = s.trend > 0 ? '↗' : s.trend < 0 ? '↘' : '→';
       const trendColor = s.trend > 0 ? 'var(--ok)' : s.trend < 0 ? 'var(--danger)' : 'var(--muted)';
       const skillName = skillLabel(s.skill);
       
-      const valueText = isReliable ? `<span style="color: ${trendColor}; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
+      const valueText = isReliable ? `<span style="color: ${trendColor}; font-size: 12px; margin-right: 6px; font-weight: 600;" title="Изменение: ${Math.round(s.trend)}">${trendStr} ${Math.abs(Math.round(s.trend)) || ''}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
       
       return `
         <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid var(--line);">
@@ -135,7 +135,7 @@ export function renderProgress(container: HTMLElement) {
             <span style="text-transform: capitalize; color: var(--text); opacity: 0.9;">${skillName}</span>
             <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div></div>
+          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id});"></div></div>
           ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
@@ -155,7 +155,7 @@ export function renderProgress(container: HTMLElement) {
     `;
   }).join('');
 
-  if (!profileHtml) profileHtml = '<p style="color: var(--muted); font-size: 13px;">Данные собираются...</p>';
+  if (!profileHtml) profileHtml = '<div style="padding: 24px; text-align: center; color: var(--muted); background: var(--surface); border-radius: 12px; border: 1px dashed var(--line); margin-bottom: 24px;">Данные профиля формируются.<br><span style="font-size: 13px; opacity: 0.8; margin-top: 8px; display: inline-block;">Они появятся здесь после прохождения первых тренировок.</span></div>';
 
   const exStates = storage.getExerciseStates();
   const sessions = storage.getSessions();
@@ -299,7 +299,7 @@ export function renderProgress(container: HTMLElement) {
   const fiHtml = fi.coverage > 0 ? `
     <div class="fi-hero">
       <div class="fi-copy">
-        <div class="fi-kicker">Fokus Index</div>
+        <div class="fi-kicker">Fokus Index <span class="fi-help" style="cursor:help;opacity:0.6;" title="Комплексная оценка ваших когнитивных функций на основе истории тренировок.">ⓘ</span></div>
         <div class="fi-value">${fi.value}</div>
         <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
         ${pbNote}
@@ -308,14 +308,21 @@ export function renderProgress(container: HTMLElement) {
       <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
   ` : fi.coverage === 0 && intel.ready ? `
-    <div class="fi-hero empty">
+    <div class="fi-hero empty" style="padding: 24px; background: var(--surface); border-radius: 16px; border: 1px dashed var(--line);">
       <div class="fi-copy">
-        <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+        <div class="fi-kicker">Fokus Index <span class="fi-help" style="cursor:help;opacity:0.6;" title="Комплексная оценка ваших когнитивных функций на основе истории тренировок.">ⓘ</span></div>
+        <div class="fi-meta" style="margin-top: 8px; line-height: 1.4;">Индекс формируется. Пройдите ещё несколько тренировок из разных областей, чтобы мы могли рассчитать ваш Fokus Index.</div>
         ${sparkHtml}
       </div>
     </div>
-  ` : '';
+  ` : `
+    <div class="fi-hero empty" style="padding: 24px; background: var(--surface); border-radius: 16px; border: 1px dashed var(--line);">
+      <div class="fi-copy">
+        <div class="fi-kicker">Fokus Index <span class="fi-help" style="cursor:help;opacity:0.6;" title="Комплексная оценка ваших когнитивных функций на основе истории тренировок.">ⓘ</span></div>
+        <div class="fi-meta" style="margin-top: 8px; line-height: 1.4;">Недостаточно данных. Тренируйтесь регулярно, чтобы когнитивный профиль был точным.</div>
+      </div>
+    </div>
+  `;
 
   const nextMile = intel.milestones.find((m) => !m.reached);
   const milestonesHtml = intel.ready ? `
