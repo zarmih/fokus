@@ -330,12 +330,12 @@ export function renderSettings(container: HTMLElement) {
     });
   });
 
+  const installContainer = typeof document !== 'undefined' ? document.getElementById('install-container') : null;
+  const btnInstall = typeof document !== 'undefined' ? document.getElementById('btn-install') : null;
   import('../../pwa-install').then(({ deferredPrompt, onInstallPrompt }) => {
-    const installContainer = document.getElementById('install-container');
-    const btnInstall = document.getElementById('btn-install');
     if (installContainer && btnInstall) {
       const check = async () => {
-        if (document.getElementById('install-container')) {
+        if (typeof document !== 'undefined' && document.getElementById('install-container')) {
           const { deferredPrompt: currentPrompt } = await import('../../pwa-install');
           if (currentPrompt || window.matchMedia?.('(display-mode: browser)').matches) {
              installContainer.style.display = 'block';
