@@ -90,3 +90,58 @@ export function playTick() {
   if (!enabled()) return;
   beep({ freq: 620, type: 'square', dur: 0.045, gain: 0.035 });
 }
+
+export type AudioCue = 'hit' | 'miss' | 'combo' | 'tick' | 'enter' | 'celebrate' | 'press' | 'ritual';
+
+function playEnter() {
+  if (!enabled()) return;
+  beep({ freq: 392, freqEnd: 523, type: 'sine', dur: 0.12, gain: 0.045 });
+  beep({ freq: 523, type: 'triangle', dur: 0.08, gain: 0.03, delay: 0.08 });
+}
+
+function playCelebrate() {
+  if (!enabled()) return;
+  const root = 523;
+  [0, 4, 7, 12].forEach((semi, i) => {
+    beep({
+      freq: root * Math.pow(2, semi / 12),
+      type: 'sine',
+      dur: 0.16,
+      gain: 0.05,
+      delay: i * 0.07
+    });
+  });
+}
+
+function playPress() {
+  if (!enabled()) return;
+  beep({ freq: 210, type: 'triangle', dur: 0.032, gain: 0.02 });
+}
+
+function playRitual() {
+  if (!enabled()) return;
+  beep({ freq: 660, type: 'sine', dur: 0.14, gain: 0.04 });
+  beep({ freq: 880, type: 'sine', dur: 0.18, gain: 0.028, delay: 0.09 });
+}
+
+/** Unified cue hook. Existing helpers stay; this is the session/UI entry point. */
+export function playCue(kind: AudioCue, extra = 1) {
+  switch (kind) {
+    case 'hit':
+      return playHit(extra);
+    case 'miss':
+      return playMiss();
+    case 'combo':
+      return playCombo(extra);
+    case 'tick':
+      return playTick();
+    case 'enter':
+      return playEnter();
+    case 'celebrate':
+      return playCelebrate();
+    case 'press':
+      return playPress();
+    case 'ritual':
+      return playRitual();
+  }
+}

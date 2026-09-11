@@ -10,6 +10,7 @@ import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fo
 import { domainLabel } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
+import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'today', hideNav: true });
@@ -147,15 +148,15 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     : '';
 
   content.innerHTML = `
-    <div class="result-hero" style="animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;">
+    <div class="result-hero fx-celebrate" id="result-hero">
       <div class="result-kicker">${isCalibration ? 'Профиль готов' : 'Тренировка завершена'}</div>
-      <div class="result-big"><span class="xp-counter">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
+      <div class="result-big"><span class="xp-counter" id="xp-counter" data-xp="${Math.round(totalScore)}">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
       <div class="muted">${isCalibration ? 'стартовая оценка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
       ${compareHtml}
     </div>
 
-    ${leveledUp ? `<div class="level-up">Новый уровень ${lvl.currentLevel}</div>` : ''}
+    ${leveledUp ? `<div class="level-up fx-celebrate">Новый уровень ${lvl.currentLevel}</div>` : ''}
     ${unlockedHtml}
 
     ${fi.coverage > 0 ? `
@@ -186,6 +187,12 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       <button id="btn-done" class="btn-primary">Готово</button>
     </div>
   `;
+
+  const hero = content.querySelector('#result-hero') as HTMLElement | null;
+  if (hero) celebrate(hero);
+  const xpEl = content.querySelector('#xp-counter') as HTMLElement | null;
+  if (xpEl) animateCount(xpEl, totalScore);
+  playSessionCue(leveledUp || unlocked.length > 0 ? 'celebrate' : 'ritual');
 
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
   content.querySelector('#btn-share')?.addEventListener('click', async () => {

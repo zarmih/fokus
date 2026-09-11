@@ -26,6 +26,8 @@ test('today shows calibration CTA before first session', () => {
   expect(app.textContent).toMatch(/Калибровка/);
   expect(app.textContent).toMatch(/Коуч/);
   expect(app.querySelector('#btn-start')).toBeTruthy();
+  expect(app.querySelector('.workout-card.fx-enter')).toBeTruthy();
+  expect(app.querySelectorAll('.ritual-fill').length).toBeGreaterThan(0);
 });
 
 test('today shows Fokus Index and workout after calibration', () => {
