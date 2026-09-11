@@ -11,6 +11,7 @@ import { transferCardFromStorage } from '../components/transfer-card';
 import { renderQualityCard } from '../components/quality-card';
 import { assessRetention, bandLabel, signalLabel } from '../../core/retention';
 import { buildCoachIntel } from '../../core/coach-intel';
+import { t } from '../../core/i18n';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -40,7 +41,7 @@ export function renderProgress(container: HTMLElement) {
     <div class="surface" style="padding: 24px;">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
         <h3 style="margin: 0;">Активность (Неделя)</h3>
-        <button id="btn-weekly-review" class="btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 12px; border-radius: 12px; width: auto;">Итоги</button>
+        <button id="btn-weekly-review" class="btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 12px; border-radius: 12px; width: auto;">${t('weekly.cta')}</button>
       </div>
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
       <div class="bar-chart">

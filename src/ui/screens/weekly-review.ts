@@ -2,13 +2,16 @@ import { storage } from '../../core/storage';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { renderShell } from '../shell';
 import { navigateTo } from '../router';
-import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
-import { generateInsights } from '../../core/insights';
 import { planForNow } from '../../core/adaptive-plan';
 import { buildCoachIntel, type CoachIntel, type HistoryWindow } from '../../core/coach-intel';
 import { renderIndexSparkline } from '../components/charts';
 import { domainLabel } from '../../core/labels';
+import { getLocale, t } from '../../core/i18n';
+import { buildWeeklyReport } from '../../core/weekly-report';
+import { renderWeeklyG18 } from '../components/weekly-report-view';
+import { shareWeeklyCard } from '../components/weekly-share-card';
+import { setScreenTitle } from '../a11y';
 
 function ruDay(iso: string): string {
   const d = new Date(iso.slice(0, 10) + 'T12:00:00Z');
@@ -113,32 +116,46 @@ export function renderIntelPanel(intel: CoachIntel): string {
   `;
 }
 
+function catalogDomainMap(): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const entry of catalog) {
+    map[entry.manifest.id] = entry.manifest.domain;
+  }
+  return map;
+}
+
 export function renderWeeklyReview(container: HTMLElement, opts?: { window?: HistoryWindow }) {
   const content = renderShell(container, { active: 'progress', hideNav: true });
   const historyWindow: HistoryWindow = opts?.window === 30 ? 30 : 14;
+  const locale = getLocale();
+  setScreenTitle(t('weekly.title', undefined, locale));
 
   const now = new Date();
-  const weekAgo = new Date();
-  weekAgo.setDate(now.getDate() - 7);
-  const weekAgoStr = weekAgo.toISOString();
-
   const allSummaries = storage.getDaySummaries(60);
-  const sessions = storage.getSessions().filter(s => s.startedAt >= weekAgoStr);
-  const daySummaries = allSummaries.filter(ds => ds.date >= weekAgoStr);
-  
-  const totalSessions = sessions.length;
-  const activeDays = daySummaries.length;
-  
-  const exercisesPlayed = new Set<string>();
-  sessions.forEach(s => s.items.forEach(i => exercisesPlayed.add(i.exerciseId)));
-  const totalExercises = exercisesPlayed.size;
+  const allSessions = storage.getSessions();
+  const report = buildWeeklyReport({
+    sessions: allSessions,
+    daySummaries: allSummaries,
+    domains: storage.getDomains(),
+    now,
+    domainByExercise: catalogDomainMap(),
+    locale
+  });
+
+  const weekAgoStr = `${report.from}T00:00:00.000Z`;
+  const sessions = allSessions.filter(s => s.startedAt >= weekAgoStr);
+
+  const totalSessions = report.glance.sessions;
+  const activeDays = report.glance.activeDays;
+  const totalExercises = report.glance.exercises;
+  const g18 = renderWeeklyG18(report);
 
   let atAGlanceHtml = '';
   if (totalSessions === 0) {
     atAGlanceHtml = `
       <div class="surface" style="text-align: center; padding: 32px 16px;">
-        <h3 style="margin-bottom: 8px;">Недостаточно данных</h3>
-        <p style="color: var(--muted); margin: 0;">На этой неделе не было тренировок. Fokus собирает данные, чтобы сформировать отчёт.</p>
+        <h3 style="margin-bottom: 8px;">${t('weekly.empty_title', undefined, locale)}</h3>
+        <p style="color: var(--muted); margin: 0;">${t('weekly.empty_body', undefined, locale)}</p>
       </div>
     `;
   } else {
@@ -146,15 +163,15 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
         <div class="surface" style="text-align: center; padding: 16px 8px;">
           <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${activeDays}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Дней</div>
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">${t('weekly.days', undefined, locale)}</div>
         </div>
         <div class="surface" style="text-align: center; padding: 16px 8px;">
           <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalSessions}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Сессий</div>
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">${t('weekly.sessions', undefined, locale)}</div>
         </div>
         <div class="surface" style="text-align: center; padding: 16px 8px;">
           <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalExercises}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Упражнений</div>
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">${t('weekly.exercises', undefined, locale)}</div>
         </div>
       </div>
     `;
@@ -215,7 +232,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   if (changedFacts.length > 0) {
     whatChangedHtml = `
       <div class="surface" style="margin-bottom: 24px;">
-        <h3 style="margin-bottom: 16px;">Что изменилось</h3>
+        <h3 style="margin-bottom: 16px;">${t('weekly.changed_title', undefined, locale)}</h3>
         <ul style="padding-left: 16px; margin: 0; color: var(--text); font-size: 14px; line-height: 1.5;">
           ${changedFacts.map(f => `<li style="margin-bottom: 8px;">${f}</li>`).join('')}
         </ul>
@@ -224,21 +241,16 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   } else if (totalSessions > 0) {
     whatChangedHtml = `
       <div class="surface" style="margin-bottom: 24px;">
-        <h3 style="margin-bottom: 12px;">Что изменилось</h3>
-        <p style="color: var(--muted); margin: 0; font-size: 14px;">Пока недостаточно подтверждённых изменений. Fokus продолжает калибровку ваших навыков.</p>
+        <h3 style="margin-bottom: 12px;">${t('weekly.changed_title', undefined, locale)}</h3>
+        <p style="color: var(--muted); margin: 0; font-size: 14px;">${t('weekly.changed_empty', undefined, locale)}</p>
       </div>
     `;
   }
 
-  // INSIGHTS
   const domains = storage.getDomains();
-  const skills = storage.getSkills();
-  const states = storage.getExerciseStates();
   const insightHtml = totalSessions > 0 ? transferCardFromStorage({ prefer: 'week' }) : '';
 
-  // NEXT STEP (from recommendation engine)
   const profile = storage.getProfile();
-  const weeklyFocus = suggestFocusOfTheWeek(domains, daySummaries, sessions);
   const plan = planForNow({ durationSec: profile.sessionLengthSec });
 
   let nextStepHtml = '';
@@ -248,7 +260,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     if (nextEx) {
       nextStepHtml = `
         <div class="surface" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);">
-          <h3 style="margin-bottom: 16px;">Следующий шаг</h3>
+          <h3 style="margin-bottom: 16px;">${t('weekly.next_step', undefined, locale)}</h3>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <div>
               <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${nextEx.name}</div>
@@ -261,9 +273,6 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     }
   }
   
-  const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
-  const periodStr = `${dateFormatter.format(weekAgo)} — ${dateFormatter.format(now)}`;
-
   const intel = buildCoachIntel({
     summaries: allSummaries,
     domains,
@@ -273,19 +282,23 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   const intelHtml = renderIntelPanel(intel);
 
   content.innerHTML = `
+    <div class="week-report" role="region" aria-label="${t('weekly.a11y_report', undefined, locale)}">
     <div style="display: flex; align-items: center; margin-bottom: 24px;">
       <button id="btn-back" class="btn-tiny" style="margin-right: 16px; margin-bottom: 0;">← Назад</button>
       <div>
-        <h2 style="margin: 0; font-size: 20px;">Итоги недели</h2>
-        <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">${periodStr}</div>
+        <h2 style="margin: 0; font-size: 20px;">${t('weekly.title', undefined, locale)}</h2>
+        <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">${report.periodLabel}</div>
       </div>
     </div>
     
     ${atAGlanceHtml}
+    ${g18.head}
     ${intelHtml}
     ${whatChangedHtml}
     ${insightHtml}
     ${nextStepHtml}
+    ${g18.share}
+    </div>
   `;
 
   content.querySelector('#btn-back')?.addEventListener('click', () => {
@@ -297,5 +310,8 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   });
   content.querySelector('#intel-win-30')?.addEventListener('click', () => {
     renderWeeklyReview(container, { window: 30 });
+  });
+  content.querySelector('#btn-week-share')?.addEventListener('click', () => {
+    void shareWeeklyCard(report);
   });
 }

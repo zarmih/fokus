@@ -205,6 +205,7 @@ export function renderSettings(container: HTMLElement) {
   });
 
   import('../../pwa-install').then(({ deferredPrompt }) => {
+    if (typeof document === 'undefined') return;
     const installContainer = document.getElementById('install-container');
     const btnInstall = document.getElementById('btn-install');
     if (deferredPrompt && installContainer && btnInstall) {
