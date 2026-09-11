@@ -1,16 +1,25 @@
 import { generateInsights } from "../../core/insights";
 import { buildTrainingPlan } from "../../core/session-builder";
+import { loadContinuitySnapshot } from '../../core/continuity';
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
 import { renderScatterPlot, renderRadarChart } from '../components/charts';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
+import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
   const ds = storage.getDaySummaries();
   const history = storage.getHistory().slice().reverse();
+  const snap = loadContinuitySnapshot(storage);
+  const habitHtml = `
+    <div class="habit-stats-row">
+      ${renderStreakChip(snap, 'pill')}
+      ${renderContinuityHint(snap, 'stats')}
+    </div>
+  `;
   
   // Weekly chart logic
   let weeklyScore = 0;
@@ -248,6 +257,7 @@ export function renderProgress(container: HTMLElement) {
       <h2>Статистика</h2>
       <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
     </div>
+    ${habitHtml}
     ${fiHtml}
     ${insightHtml}
     ${nextStepHtml}

@@ -1,22 +1,13 @@
 import { storage } from '../core/storage';
+import { loadContinuitySnapshot } from '../core/continuity';
 import { navigateTo } from './router';
 import { t } from '../core/i18n';
+import { streakAriaLabel } from './components/habit-continuity';
 
 export function renderShell(container: HTMLElement, params: {active: 'today' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
-  const summaries = storage.getDaySummaries();
-  let streak = 0;
-  if (summaries.length > 0) {
-    const last = summaries[summaries.length - 1];
-    const todayStr = new Date().toISOString().split('T')[0];
-    if (last.date.startsWith(todayStr)) {
-      streak = last.streak;
-    } else {
-      const yesterdayDate = new Date();
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
-      if (last.date.startsWith(yesterdayStr)) streak = last.streak;
-    }
-  }
+  const snap = loadContinuitySnapshot(storage);
+  const streak = snap.streak.current;
+  const streakLabel = streakAriaLabel(snap.streak);
 
   const navHtml = params.hideNav ? '' : `
     <div class="tab-bar">
@@ -46,8 +37,8 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
   const headerHtml = params.hideNav ? '' : `
     <div class="top-bar">
       <div class="brand" style="display: flex; align-items: center; gap: 8px;"><img src="${import.meta.env.BASE_URL}art/logo-fokus.svg" width="24" height="24">Fokus</div>
-      <div class="streak-badge">
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
+      <div class="streak-badge habit-chip" data-status="${snap.streak.status}" aria-label="${streakLabel}" title="${streakLabel}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
         ${streak}
       </div>
     </div>

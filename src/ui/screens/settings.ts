@@ -1,13 +1,21 @@
 import { storage } from '../../core/storage';
+import { loadContinuitySnapshot } from '../../core/continuity';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
+import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
 export function renderSettings(container: HTMLElement) {
   const content = renderShell(container, { active: 'settings' });
   const profile = storage.getProfile();
+  const snap = loadContinuitySnapshot(storage);
   
   content.innerHTML = `
     <h2>Настройки</h2>
+
+    <div class="surface habit-settings" style="margin-top: 24px;">
+      ${renderStreakChip(snap, 'pill')}
+      ${renderContinuityHint(snap, 'settings')}
+    </div>
     
     <div class="surface" style="margin-top: 24px;">
       <h3 style="margin-bottom: 16px;">Длительность сессии</h3>

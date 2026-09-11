@@ -1,6 +1,7 @@
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
 import { buildTrainingPlan } from '../../core/session-builder';
+import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from '../../core/continuity';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -10,6 +11,7 @@ import { getDailySpark } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
+import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -18,39 +20,30 @@ export function renderToday(container: HTMLElement) {
   const greetName = profile.displayName || (profile.name !== 'User' ? profile.name : '');
 
   const ds = storage.getDaySummaries();
-  const todayStr = new Date().toISOString().split('T')[0];
-  const playedToday = ds.some(d => d.date.startsWith(todayStr));
-
-  let streak = 0;
-  let skippedYesterday = false;
+  const snap = loadContinuitySnapshot(storage);
+  const playedToday = snap.streak.playedToday;
+  const streak = snap.streak.current;
+  const skippedYesterday = snap.streak.openMisses === 1;
   let yesterdayScore = 0;
-  if (ds.length > 0) {
-    const last = ds[ds.length - 1];
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    if (playedToday) {
-      streak = last.streak;
-      skippedYesterday = !!last.skipped;
-    } else if (last.date.startsWith(yesterdayDate.toISOString().split('T')[0])) {
-      streak = last.streak;
-      yesterdayScore = Math.round(last.totalScore);
-    } else {
-      skippedYesterday = true;
-    }
+  if (snap.streak.status === 'open' && ds.length > 0) {
+    yesterdayScore = Math.round(ds[ds.length - 1].totalScore);
   }
 
   const domains = storage.getDomains();
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
-  const plan = buildTrainingPlan({
-    durationSec: profile.sessionLengthSec,
+  const durationSec = ritualDurationSec(profile.sessionLengthSec, snap.ritual);
+  const plan0 = buildTrainingPlan({
+    durationSec,
     catalog: registry as any,
     domains,
     skills,
     states,
     primaryGoal: profile.primaryGoal
   });
+  const catalogHints = registry.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain }));
+  const plan = applyGentleReturnBias(plan0, snap.ritual, catalogHints);
 
   const fi = computeFokusIndex(domains);
   const prevFi = previousFokusIndex(ds, new Date().toISOString());
@@ -144,11 +137,23 @@ export function renderToday(container: HTMLElement) {
         <button id="btn-start" class="btn-secondary">Ещё одна сессия</button>
       </div>
     `;
+  } else if (snap.ritual.active) {
+    const returnFocus = plan.focusDomains.length > 0
+      ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
+      : 'знакомые области';
+    actionHtml = `
+      <div class="workout-card">
+        <div class="workout-kicker">Мягкий возврат</div>
+        <h3>${Math.floor(durationSec / 60)} минут · ${returnFocus}</h3>
+        <div class="workout-chips">${compositionHtml}</div>
+        <button id="btn-start" class="btn-primary">Начать сессию</button>
+      </div>
+    `;
   } else {
     actionHtml = `
       <div class="workout-card">
         <div class="workout-kicker">Тренировка дня</div>
-        <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
+        <h3>${Math.floor(durationSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary">Начать сессию</button>
       </div>
@@ -167,10 +172,7 @@ export function renderToday(container: HTMLElement) {
 
     <div class="dashboard-widgets">
       <div class="stat-row">
-        <div class="stat-pill">
-          <div class="stat-num">${streak}</div>
-          <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
-        </div>
+        ${renderStreakChip(snap, 'pill')}
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
           <div class="stat-lbl">${leagueName(lvl.currentLevel)}</div>
@@ -180,6 +182,7 @@ export function renderToday(container: HTMLElement) {
           <div class="stat-lbl">до ур. ${lvl.currentLevel + 1}</div>
         </div>
       </div>
+      ${renderContinuityHint(snap, 'today')}
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
 
       <div class="insight-banner coach-${spark.tone}">
@@ -274,7 +277,7 @@ export function renderToday(container: HTMLElement) {
       const closeAndStart = () => {
         if (sleepVal || stressVal) {
           const p = storage.getProfile();
-          p.lastLifestyle = { sleep: sleepVal, stress: stressVal, date: todayStr };
+          p.lastLifestyle = { sleep: sleepVal, stress: stressVal, date: new Date().toISOString().split('T')[0] };
           storage.setProfile(p);
         }
         modal.remove();

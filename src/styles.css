@@ -1126,6 +1126,64 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 }
 .stat-num { font-size: 22px; font-weight: 800; line-height: 1.1; }
 .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+.habit-chip[data-status="active"],
+.habit-chip[data-status="open"] { border-color: var(--accent-glow); }
+.habit-chip[data-status="soft_return"] { border-color: var(--accent-2-glow); }
+.habit-chip[data-status="returned"] { border-color: color-mix(in srgb, var(--ok) 35%, transparent); }
+.habit-chip[data-status="empty"],
+.habit-chip[data-status="fresh_start"] { opacity: 0.9; }
+.streak-badge.habit-chip { gap: 6px; }
+.continuity-hint {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  margin-bottom: 12px;
+}
+.continuity-hint-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.continuity-hint-body { margin: 0 0 8px; color: var(--text); font-weight: 500; }
+.continuity-hint-body:last-child { margin-bottom: 0; }
+.continuity-hint-meta { margin: 8px 0 0; font-size: 12px; color: var(--muted); }
+.continuity-meter {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--line);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.continuity-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  max-width: 100%;
+}
+.habit-stats-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.habit-stats-row > .habit-chip { align-self: flex-start; min-width: 120px; }
+.habit-settings .habit-chip { margin-bottom: 12px; width: fit-content; min-width: 108px; }
+.habit-settings .continuity-hint {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+@media (prefers-reduced-motion: reduce) {
+  .continuity-meter-fill { transition: none; }
+}
 .yesterday-hint { text-align: center; font-size: 13px; color: var(--muted); margin-top: -8px; margin-bottom: 16px; }
 .insight-kicker { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px; }
 .insight-body { color: var(--text); font-weight: 500; line-height: 1.35; }
