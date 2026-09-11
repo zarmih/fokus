@@ -26,6 +26,14 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('pointerdown', unlock, { once: true });
   window.addEventListener('keydown', unlock, { once: true });
 
+  document.body.addEventListener('pointerdown', (e) => {
+    const target = e.target as HTMLElement;
+    const isClickable = target.closest('button') || target.closest('.trainer-card') || target.closest('.ritual-slot') || target.closest('.workout-chip');
+    if (isClickable) {
+      import('./core/audio').then(a => a.playTap()).catch(() => {});
+    }
+  });
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       if (import.meta.env.PROD) {

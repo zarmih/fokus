@@ -60,14 +60,23 @@ export function renderToday(container: HTMLElement) {
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
     : 'Сбалансированная тренировка';
 
-  const compositionHtml = plan.items.map((item, index) => {
-    const r = registry.find(x => x.manifest.id === item.exerciseId);
-    const isPrimary = index === 0;
-    return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="18" height="18" alt="">
-      <span>${r?.manifest.name}</span>
-    </div>`;
-  }).join('');
+  const compositionHtml = `
+    <div class="ritual-timeline">
+      ${plan.items.map((item, index) => {
+        const r = registry.find(x => x.manifest.id === item.exerciseId);
+        const isPrimary = index === 0;
+        return `
+          <div class="ritual-slot dom-${r?.manifest.domain} ${isPrimary ? 'primary' : ''}" style="animation-delay: ${index * 0.05}s">
+            <div class="ritual-icon"><img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="24" height="24" alt=""></div>
+            <div class="ritual-info">
+              <div class="ritual-name">${r?.manifest.name}</div>
+              <div class="ritual-domain">${r ? domainLabel(r.manifest.domain) : ''}</div>
+            </div>
+          </div>
+        `;
+      }).join('')}
+    </div>
+  `;
 
   const hour = new Date().getHours();
   const hello = hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
@@ -137,9 +146,12 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done">
+      <div class="workout-card done" style="animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);">
         <div class="workout-kicker">Сегодня</div>
-        <h3>План выполнен</h3>
+        <h3 style="display:flex; align-items:center; gap:8px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--ok)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          План выполнен
+        </h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
         <button id="btn-start" class="btn-secondary">Ещё одна сессия</button>
       </div>
