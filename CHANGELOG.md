@@ -1,4 +1,9 @@
 # Changelog
+## [G12] - Soundscape + haptics
+- Именованный Web Audio cue graph: tap / hit / miss / combo / ritual / celebrate
+- Громкость и mute через master GainNode; слайдер в настройках
+- Синхронизация flourish-сигналов с `prefers-reduced-motion`
+- Опциональные vibrate-хуки (`hapticsOn`), без зависимости от mute
 ## [0.4.1] - Feel + offline
 - Удары, промахи и комбо через Web Audio, с учётом настройки звука
 - Service Worker кэширует собранные ассеты, офлайн-оболочка и корректный base `/fokus/`

@@ -116,7 +116,7 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
       } else {
         clearInterval(iv);
         overlay.style.display = 'none';
-        import('../../core/audio').then(a => a.playBeep(true));
+        import('../../core/audio').then(a => a.playRitual());
         startGame();
       }
     }, 1000);

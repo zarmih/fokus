@@ -6,6 +6,10 @@ export interface Profile {
   onboarded?: boolean;
   theme?: 'dark' | 'light';
   soundOn: boolean;
+  /** Master volume 0..1. Ignored when soundOn is false. */
+  soundVolume?: number;
+  /** Optional Vibration API hooks. Default true when omitted. */
+  hapticsOn?: boolean;
   language?: string;
   achievements?: string[];
   locale: 'ru';

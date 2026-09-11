@@ -1,6 +1,8 @@
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
+import { t } from '../../core/i18n';
+import { clampVolume } from '../../core/soundscape';
 
 export function renderSettings(container: HTMLElement) {
   const content = renderShell(container, { active: 'settings' });
@@ -50,7 +52,16 @@ export function renderSettings(container: HTMLElement) {
       <h3 style="margin-bottom: 16px;">Звук</h3>
       <label style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
-        Включить звуковые сигналы
+        ${t('settings.sound')}
+      </label>
+      <label class="sound-volume-row" for="sound-volume">
+        <span>${t('settings.volume')}</span>
+        <input type="range" id="sound-volume" min="0" max="100" step="1" value="${Math.round(clampVolume(profile.soundVolume) * 100)}" ${profile.soundOn ? '' : 'disabled'} />
+        <span id="sound-volume-value">${Math.round(clampVolume(profile.soundVolume) * 100)}%</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+        <input type="checkbox" id="haptics-toggle" ${profile.hapticsOn !== false ? 'checked' : ''} />
+        ${t('settings.haptics')}
       </label>
     </div>
 
@@ -134,11 +145,34 @@ export function renderSettings(container: HTMLElement) {
     });
   });
 
+  const volumeInput = document.getElementById('sound-volume') as HTMLInputElement | null;
+  const volumeValue = document.getElementById('sound-volume-value');
+
   document.getElementById('sound-toggle')?.addEventListener('change', (e) => {
     const p = storage.getProfile();
     p.soundOn = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
-    if (p.soundOn) import('../../core/audio').then((a) => a.unlockAudio());
+    if (volumeInput) volumeInput.disabled = !p.soundOn;
+    import('../../core/audio').then((a) => {
+      if (p.soundOn) a.unlockAudio();
+      a.applyMasterGain();
+    });
+  });
+
+  volumeInput?.addEventListener('input', (e) => {
+    const raw = parseInt((e.target as HTMLInputElement).value, 10);
+    const volume = clampVolume((Number.isFinite(raw) ? raw : 100) / 100);
+    const p = storage.getProfile();
+    p.soundVolume = volume;
+    storage.setProfile(p);
+    if (volumeValue) volumeValue.textContent = `${Math.round(volume * 100)}%`;
+    import('../../core/audio').then((a) => a.applyMasterGain());
+  });
+
+  document.getElementById('haptics-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.hapticsOn = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
   });
 
   const lbtns = content.querySelectorAll('#lang-segmented button');

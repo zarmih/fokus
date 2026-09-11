@@ -19,6 +19,9 @@ beforeEach(() => {
 test('storage defaults', () => {
   const p = storage.getProfile();
   expect(p.sessionLengthSec).toBe(300);
+  expect(p.soundOn).toBe(true);
+  expect(p.soundVolume).toBe(1);
+  expect(p.hapticsOn).toBe(true);
 });
 
 test('storage update', () => {
@@ -46,6 +49,15 @@ test('storage migrate (mock)', () => {
   const s2 = new Storage(backend as any);
   expect(s2.getProfile().schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   expect(s2.getProfile().onboarded).toBe(true);
+});
+
+test('old profiles pick up soundVolume and hapticsOn defaults', () => {
+  backend.setItem('fokus.v1', JSON.stringify({
+    profile: { schemaVersion: 3, soundOn: true, sessionLengthSec: 300, name: 'User', createdAt: 'x', locale: 'ru' }
+  }));
+  const s2 = new Storage(backend as any);
+  expect(s2.getProfile().soundVolume).toBe(1);
+  expect(s2.getProfile().hapticsOn).toBe(true);
 });
 
 test('storage migrate v2 to v3 (sources and mastery)', () => {

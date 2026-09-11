@@ -187,6 +187,8 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     </div>
   `;
 
+  import('../../core/audio').then((a) => a.playCelebrate()).catch(() => {});
+
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
   content.querySelector('#btn-share')?.addEventListener('click', async () => {
     try {

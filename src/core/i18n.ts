@@ -11,6 +11,8 @@ const dictionary: Record<string, Record<Locale, string>> = {
   'settings.title': { ru: 'Настройки', en: 'Settings' },
   'settings.lang': { ru: 'Язык / Language', en: 'Language / Язык' },
   'settings.sound': { ru: 'Включить звуковые сигналы', en: 'Enable Sound' },
+  'settings.volume': { ru: 'Громкость', en: 'Volume' },
+  'settings.haptics': { ru: 'Вибрация (если устройство умеет)', en: 'Vibration (if the device supports it)' },
   'settings.install': { ru: 'Установить Fokus', en: 'Install Fokus' }
 };
 

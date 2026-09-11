@@ -299,7 +299,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         } else {
           clearInterval(iv);
           iv = null;
-          import('../../core/audio').then(a => a.playBeep(true)).catch(() => {});
+          import('../../core/audio').then(a => a.playRitual()).catch(() => {});
           startBlock();
         }
       }, 700);
