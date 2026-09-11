@@ -33,7 +33,7 @@ test('shell exposes landmarks, skip link and keyboard tabs', () => {
   expect(app.querySelector('nav.tab-bar')?.getAttribute('aria-label')).toBe(t('a11y.nav'));
   expect(app.querySelector('#tab-today')?.tagName).toBe('BUTTON');
   expect(app.querySelector('#tab-today')?.getAttribute('aria-current')).toBe('page');
-  expect(app.querySelector('.streak-badge')?.getAttribute('aria-label')).toMatch(/Серия/);
+  expect(app.querySelector('.streak-badge')?.getAttribute('aria-label')).toMatch(/Сери/);
 });
 
 test('trainer cards are buttons and filters expose pressed state', () => {

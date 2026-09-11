@@ -1,23 +1,14 @@
 import { storage } from '../core/storage';
+import { loadContinuitySnapshot } from '../core/continuity';
 import { navigateTo } from './router';
 import { t } from '../core/i18n';
 import { focusMain, setScreenTitle } from './a11y';
+import { streakAriaLabel } from './components/habit-continuity';
 
 export function renderShell(container: HTMLElement, params: {active: 'today' | 'program' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
-  const summaries = storage.getDaySummaries();
-  let streak = 0;
-  if (summaries.length > 0) {
-    const last = summaries[summaries.length - 1];
-    const todayStr = new Date().toISOString().split('T')[0];
-    if (last.date.startsWith(todayStr)) {
-      streak = last.streak;
-    } else {
-      const yesterdayDate = new Date();
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
-      if (last.date.startsWith(yesterdayStr)) streak = last.streak;
-    }
-  }
+  const snap = loadContinuitySnapshot(storage);
+  const streak = snap.streak.current;
+  const streakLabel = streakAriaLabel(snap.streak);
 
   const titles: Record<typeof params.active, string> = {
     today: t('today.title'),
@@ -56,7 +47,7 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
         <img src="${import.meta.env.BASE_URL}art/logo-fokus.svg" width="24" height="24" alt="">
         Fokus
       </div>
-      <div class="streak-badge${streak > 0 ? ' has-streak' : ''}" aria-label="${t('a11y.streak', { n: streak })}">
+      <div class="streak-badge habit-chip${streak > 0 ? ' has-streak' : ''}" data-status="${snap.streak.status}" aria-label="${streakLabel}" title="${streakLabel}">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
         ${streak}
       </div>

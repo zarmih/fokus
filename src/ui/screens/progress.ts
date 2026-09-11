@@ -1,5 +1,6 @@
 import { generateInsights } from "../../core/insights";
 import { planWithRecovery } from "../../core/recovery";
+import { loadContinuitySnapshot } from '../../core/continuity';
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { catalog, getManifest } from '../../exercises/catalog';
@@ -11,11 +12,19 @@ import { transferCardFromStorage } from '../components/transfer-card';
 import { renderQualityCard } from '../components/quality-card';
 import { assessRetention, bandLabel, signalLabel } from '../../core/retention';
 import { buildCoachIntel } from '../../core/coach-intel';
+import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
   const ds = storage.getDaySummaries(60);
   const history = storage.getHistory().slice().reverse();
+  const snap = loadContinuitySnapshot(storage);
+  const habitHtml = `
+    <div class="habit-stats-row">
+      ${renderStreakChip(snap, 'pill')}
+      ${renderContinuityHint(snap, 'stats')}
+    </div>
+  `;
   
   // Weekly chart logic
   let weeklyScore = 0;
@@ -331,6 +340,7 @@ export function renderProgress(container: HTMLElement) {
       <h2>Статистика</h2>
       <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
     </div>
+    ${habitHtml}
     ${fiHtml}
     ${renderQualityCard(ritual.snapshot, { detailed: true })}
     ${rhythmHtml}

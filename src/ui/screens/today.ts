@@ -3,6 +3,7 @@ import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
 import { planWithRecovery } from '../../core/recovery';
 import { describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from '../../core/continuity';
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
@@ -21,6 +22,7 @@ import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, bandLabel } from '../../core/retention';
 import { enterStage } from '../../core/motion';
+import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -29,25 +31,14 @@ export function renderToday(container: HTMLElement) {
   const greetName = profile.displayName || (profile.name !== 'User' ? profile.name : '');
 
   const ds = storage.getDaySummaries();
-  const todayStr = new Date().toISOString().split('T')[0];
-  const playedToday = ds.some(d => d.date.startsWith(todayStr));
-
-  let streak = 0;
-  let skippedYesterday = false;
+  const snap = loadContinuitySnapshot(storage);
+  const todayStr = snap.today;
+  const playedToday = snap.streak.playedToday;
+  const streak = snap.streak.current;
+  const skippedYesterday = snap.streak.openMisses === 1;
   let yesterdayScore = 0;
-  if (ds.length > 0) {
-    const last = ds[ds.length - 1];
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    if (playedToday) {
-      streak = last.streak;
-      skippedYesterday = !!last.skipped;
-    } else if (last.date.startsWith(yesterdayDate.toISOString().split('T')[0])) {
-      streak = last.streak;
-      yesterdayScore = Math.round(last.totalScore);
-    } else {
-      skippedYesterday = true;
-    }
+  if (snap.streak.status === 'open' && ds.length > 0) {
+    yesterdayScore = Math.round(ds[ds.length - 1].totalScore);
   }
 
   const domains = storage.getDomains();
@@ -59,8 +50,9 @@ export function renderToday(container: HTMLElement) {
   const baseDuration = weekRitual.inFirstWeek && weekRitual.ritualDay
     ? weekRitual.ritualDay.durationSec
     : profile.sessionLengthSec;
+  const durationSec = ritualDurationSec(baseDuration, snap.ritual);
   const ritual = planWithRecovery({
-    durationSec: baseDuration,
+    durationSec,
     catalog,
     domains,
     skills,
@@ -70,8 +62,11 @@ export function renderToday(container: HTMLElement) {
     daySummaries: ds,
     recoveryHintsEnabled: profile.recoveryHints !== false
   });
-  const plan = ritual.plan;
-  const ritualDuration = ritual.snapshot.durationSec;
+  let plan = ritual.plan;
+  const catalogHints = catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain }));
+  const biased = applyGentleReturnBias(plan, snap.ritual, catalogHints);
+  plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
+  const ritualDuration = Math.min(ritual.snapshot.durationSec, durationSec);
   const recal = ritual.recalibration;
   const depth = describeAdaptiveDepth({
     sessions,
@@ -88,7 +83,7 @@ export function renderToday(container: HTMLElement) {
   const ritualWhyHtml = depth.why
     ? `<p class="ritual-why">${depth.why}</p>`
     : '';
-  if (!ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
+  if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
     (plan as { items: { exerciseId: string; reason?: string }[]; focusDomains: string[] }).items = depth.ritual.items.map((s) => ({
       exerciseId: s.exerciseId,
       reason: s.reasonLabel
@@ -244,6 +239,18 @@ export function renderToday(container: HTMLElement) {
         <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
+  } else if (snap.ritual.active) {
+    const returnFocus = plan.focusDomains.length > 0
+      ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
+      : 'знакомые области';
+    actionHtml = `
+      <div class="workout-card fx-enter">
+        <div class="workout-kicker">Мягкий возврат</div>
+        <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
+        <div class="workout-chips">${compositionHtml}</div>
+        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+      </div>
+    `;
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
@@ -275,10 +282,7 @@ export function renderToday(container: HTMLElement) {
 
     <div class="dashboard-widgets">
       <div class="stat-row">
-        <div class="stat-pill fx-enter ${streak > 0 ? 'has-streak' : ''}">
-          <div class="stat-num">${streak}</div>
-          <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
-        </div>
+        ${renderStreakChip(snap, 'pill')}
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
           <div class="stat-lbl">${leagueName(lvl.currentLevel)}</div>
@@ -288,6 +292,7 @@ export function renderToday(container: HTMLElement) {
           <div class="stat-lbl">до ур. ${lvl.currentLevel + 1}</div>
         </div>
       </div>
+      ${renderContinuityHint(snap, 'today')}
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
       ${retentionHtml}
 

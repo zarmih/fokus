@@ -1,4 +1,5 @@
 import { storage } from '../../core/storage';
+import { loadContinuitySnapshot } from '../../core/continuity';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
 import { ADAPTIVE_SETTINGS_COPY, describeAdaptiveDepth } from '../../core/adaptive-depth';
@@ -9,10 +10,12 @@ import { domainLabel } from '../../core/labels';
 import { precisionLabel } from '../../core/calibration';
 import { abilityCaption } from '../../core/onboarding';
 import { applyDocumentLang } from '../a11y';
+import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
 export function renderSettings(container: HTMLElement) {
   const content = renderShell(container, { active: 'settings' });
   const profile = storage.getProfile();
+  const snap = loadContinuitySnapshot(storage);
   const depth = describeAdaptiveDepth({
     sessions: storage.getSessions(),
     domains: storage.getDomains(),
@@ -28,6 +31,11 @@ export function renderSettings(container: HTMLElement) {
   
   content.innerHTML = `
     <h2>Настройки</h2>
+
+    <div class="surface habit-settings" style="margin-top: 24px;">
+      ${renderStreakChip(snap, 'pill')}
+      ${renderContinuityHint(snap, 'settings')}
+    </div>
     
     <div class="surface" style="margin-top: 24px;">
       <h3 style="margin-bottom: 16px;">Длительность сессии</h3>
