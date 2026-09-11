@@ -96,6 +96,9 @@ export function renderProgress(container: HTMLElement) {
     {id: 'logic', name: 'Логика'}
   ];
 
+  const sortedDomains = [...domains].sort((a, b) => a.value - b.value);
+  const weakestDomainId = sortedDomains.length > 0 ? sortedDomains[0].domain : null;
+
   let profileHtml = allDomains.map(d => {
     const dVal = domains.find(x => x.domain === d.id);
     if (!dVal) return '';
@@ -130,8 +133,10 @@ export function renderProgress(container: HTMLElement) {
       `;
     }).join('');
 
+    const isWeakest = d.id === weakestDomainId && dScore > 0;
     return `
-      <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line);">
+      <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); position: relative;">
+        ${isWeakest ? `<div style="position: absolute; top: -10px; right: 16px; background: var(--dom-${d.id}); color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Фокус внимания</div>` : ''}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${dSkills.length > 0 ? '12px' : '0'};">
           <div style="font-weight: 700; font-size: 16px; color: var(--dom-${d.id});">${domainLabel(d.id)}</div>
           <div style="font-size: 18px; font-weight: 800;">${dScore}</div>

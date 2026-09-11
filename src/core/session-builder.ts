@@ -27,10 +27,12 @@ export function buildTrainingPlan(params: {
 
   const sortedDomains = [...domains].sort((a, b) => a.value - b.value);
   const weakestDomain = sortedDomains.length > 0 ? sortedDomains[0].domain : null;
+  const secondWeakestDomain = sortedDomains.length > 1 ? sortedDomains[1].domain : null;
 
   const focusDomains = new Set<string>();
   if (primaryGoal && primaryGoal !== 'balance') focusDomains.add(primaryGoal);
   if (weakestDomain) focusDomains.add(weakestDomain);
+  if (secondWeakestDomain) focusDomains.add(secondWeakestDomain);
 
   const items: TrainingPlanItem[] = [];
   const selectedExerciseIds = new Set<string>();
@@ -43,12 +45,14 @@ export function buildTrainingPlan(params: {
       
       let goalAlignment = 0;
       if (primaryGoal !== 'balance' && manifest.domain === primaryGoal) {
-        goalAlignment = 30;
+        goalAlignment = 40;
       }
 
       let weaknessPriority = 0;
       if (weakestDomain === manifest.domain) {
-        weaknessPriority = 25; 
+        weaknessPriority = 35; 
+      } else if (secondWeakestDomain === manifest.domain) {
+        weaknessPriority = 15;
       }
 
       let skillNeed = 0;

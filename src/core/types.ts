@@ -18,6 +18,8 @@ export interface Profile {
   reminderHour?: number | null;
   skipLifestylePrompt?: boolean;
   displayName?: string;
+  seriesGoalDays?: number;
+  seriesGoalStartedAt?: string;
 }
 
 export interface SkillIndex {

@@ -63,9 +63,12 @@ export function renderToday(container: HTMLElement) {
   const compositionHtml = plan.items.map((item, index) => {
     const r = registry.find(x => x.manifest.id === item.exerciseId);
     const isPrimary = index === 0;
-    return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="18" height="18" alt="">
-      <span>${r?.manifest.name}</span>
+    return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 4px; height: auto; border-radius: 12px;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="18" height="18" alt="">
+        <span style="font-weight: 600;">${r?.manifest.name}</span>
+      </div>
+      <div style="font-size: 11px; opacity: 0.85; line-height: 1.2;">${item.reason}</div>
     </div>`;
   }).join('');
 
@@ -168,8 +171,8 @@ export function renderToday(container: HTMLElement) {
     <div class="dashboard-widgets">
       <div class="stat-row">
         <div class="stat-pill">
-          <div class="stat-num">${streak}</div>
-          <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
+          <div class="stat-num">${streak}${profile.seriesGoalDays ? ` <span style="font-size: 16px; opacity: 0.5;">/ ${profile.seriesGoalDays}</span>` : ''}</div>
+          <div class="stat-lbl">${profile.seriesGoalDays ? 'цель серии' : (streak === 0 ? 'начни серию' : 'дней подряд')}</div>
         </div>
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
