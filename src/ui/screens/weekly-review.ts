@@ -3,7 +3,7 @@ import { registry } from '../../exercises/registry';
 import { renderShell } from '../shell';
 import { navigateTo } from '../router';
 import { generateInsights } from '../../core/insights';
-import { buildTrainingPlan } from '../../core/session-builder';
+import { planForNow } from '../../core/adaptive-plan';
 import { buildCoachIntel, type CoachIntel, type HistoryWindow } from '../../core/coach-intel';
 import { renderIndexSparkline } from '../components/charts';
 import { domainLabel } from '../../core/labels';
@@ -246,14 +246,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
 
   // NEXT STEP (from recommendation engine)
   const profile = storage.getProfile();
-  const plan = buildTrainingPlan({
-    durationSec: profile.sessionLengthSec,
-    catalog: registry as any,
-    domains,
-    skills,
-    states,
-    primaryGoal: profile.primaryGoal
-  });
+  const plan = planForNow({ durationSec: profile.sessionLengthSec });
 
   let nextStepHtml = '';
   if (plan.items.length > 0) {

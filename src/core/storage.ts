@@ -1,6 +1,8 @@
 import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem } from './types';
+import type { AbilityModel } from './engine/types';
+import { ENGINE_VERSION } from './engine/constants';
 
-export const CURRENT_SCHEMA_VERSION = 3;
+export const CURRENT_SCHEMA_VERSION = 4;
 export const STORAGE_KEY = 'fokus.v1';
 
 export interface StorageBackend {
@@ -63,6 +65,13 @@ export class Storage {
           }
           parsed.profile.schemaVersion = 3;
         }
+        if (parsed.profile.schemaVersion === 3) {
+          if (parsed.profile.calibrated && !parsed.profile.lastCalibrationAt) {
+            parsed.profile.lastCalibrationAt = parsed.profile.createdAt || new Date().toISOString();
+          }
+          parsed.profile.engineVersion = ENGINE_VERSION;
+          parsed.profile.schemaVersion = 4;
+        }
         this.backend.setItem(STORAGE_KEY, JSON.stringify(parsed));
       }
     } catch (e) {
@@ -98,6 +107,15 @@ export class Storage {
 
   getExerciseStates(): ExerciseState[] { return this.getState().exerciseStates || []; }
   setExerciseStates(st: ExerciseState[]) { const s = this.getState(); s.exerciseStates = st; this.saveState(s); }
+
+  getAbilityModel(): AbilityModel | null {
+    return this.getState().abilityModel || null;
+  }
+  setAbilityModel(model: AbilityModel) {
+    const s = this.getState();
+    s.abilityModel = model;
+    this.saveState(s);
+  }
 
   getSessions(): Session[] { return this.getState().sessions; }
   addSession(session: Session) { const s = this.getState(); s.sessions.push(session); this.saveState(s); }

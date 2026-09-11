@@ -1,5 +1,5 @@
 import { generateInsights } from "../../core/insights";
-import { buildTrainingPlan } from "../../core/session-builder";
+import { planForNow } from "../../core/adaptive-plan";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
@@ -171,14 +171,7 @@ export function renderProgress(container: HTMLElement) {
   // Next Step Block
   
   const profile = storage.getProfile();
-  const plan = buildTrainingPlan({
-    durationSec: profile.sessionLengthSec || 300,
-    catalog: registry as any,
-    domains,
-    skills,
-    states: exStates,
-    primaryGoal: profile.primaryGoal
-  });
+  const plan = planForNow({ durationSec: profile.sessionLengthSec || 300 });
 
   let nextStepHtml = '';
   if (plan.items.length > 0) {

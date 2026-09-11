@@ -1709,6 +1709,60 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   .stroop-word, .eq-3d, .tile-3d, .grid-cell, .oo-btn { animation: none !important; }
 }
 
+.slot-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 2px 7px;
+  margin-left: 2px;
+}
+.recal-card {
+  border-color: rgba(129, 140, 248, 0.45);
+}
+.recal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.recal-actions .btn-primary,
+.recal-actions .btn-secondary {
+  flex: 1;
+}
+.ability-row { margin-bottom: 10px; }
+.ability-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+.ritual-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.ritual-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.ritual-idx {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ritual-copy { flex: 1; min-width: 0; }
+.ritual-name { font-weight: 600; }
+.program-screen { padding-bottom: 12px; }
+.tab-item { font-size: 9px; }
+.tab-item svg { width: 20px; height: 20px; }
 /* Coach intelligence G3 */
 .intel-block { margin-bottom: 24px; }
 .intel-windows {
