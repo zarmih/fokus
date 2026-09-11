@@ -131,7 +131,7 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card">
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
-        <p>Три коротких блока, около 90 секунд. После этого Fokus соберёт персональную сессию.</p>
+        <p>Пять коротких блоков. После этого Fokus соберёт персональную сессию.</p>
         <button id="btn-start" class="btn-primary">Пройти калибровку</button>
       </div>
     `;
@@ -171,6 +171,17 @@ export function renderToday(container: HTMLElement) {
           <div class="stat-num">${streak}</div>
           <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
         </div>
+        ${(() => {
+          if (profile.shieldLastUsed) {
+            const diffDays = Math.floor((new Date().getTime() - new Date(profile.shieldLastUsed).getTime()) / (1000 * 3600 * 24));
+            if (diffDays >= 7) {
+              return `<div class="stat-pill"><div class="stat-num">🛡️</div><div class="stat-lbl">Щит готов</div></div>`;
+            } else {
+              return `<div class="stat-pill"><div class="stat-num">⏳</div><div class="stat-lbl">Щит: ${7 - diffDays} дн.</div></div>`;
+            }
+          }
+          return `<div class="stat-pill"><div class="stat-num">🛡️</div><div class="stat-lbl">Щит готов</div></div>`;
+        })()}
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
           <div class="stat-lbl">${leagueName(lvl.currentLevel)}</div>
@@ -207,7 +218,7 @@ export function renderToday(container: HTMLElement) {
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
       if (!profile.calibrated) {
-        navigateTo('session', { mode: 'calibration', items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'stroop' }] });
+        navigateTo('session', { mode: 'calibration', items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'swings' }, { exerciseId: 'switch-rule' }, { exerciseId: 'pattern-next' }] });
       } else {
         navigateTo('session', { mode: 'normal', items: plan.items });
       }

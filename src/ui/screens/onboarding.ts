@@ -4,7 +4,7 @@ import { GOAL_COPY } from '../../core/labels';
 
 export function renderOnboarding(container: HTMLElement) {
   let step = 1;
-  let selectedMin = 5;
+  let selectedMin = 15;
   let selectedGoal = 'balance';
   let displayName = '';
   const totalSteps = 5;
@@ -42,8 +42,8 @@ export function renderOnboarding(container: HTMLElement) {
           <p class="onboard-lead">Лучше короткий ритуал каждый день, чем длинная сессия раз в неделю.</p>
           <div class="time-stack">
             <button class="btn-time ${selectedMin === 5 ? 'btn-primary' : 'btn-secondary'}" data-m="5" type="button">5 минут · ежедневный минимум</button>
-            <button class="btn-time ${selectedMin === 8 ? 'btn-primary' : 'btn-secondary'}" data-m="8" type="button">8 минут · полный цикл</button>
-            <button class="btn-time ${selectedMin === 12 ? 'btn-primary' : 'btn-secondary'}" data-m="12" type="button">12 минут · глубокая сессия</button>
+            <button class="btn-time ${selectedMin === 10 ? 'btn-primary' : 'btn-secondary'}" data-m="10" type="button">10 минут · средняя сессия</button>
+            <button class="btn-time ${selectedMin === 15 ? 'btn-primary' : 'btn-secondary'}" data-m="15" type="button">15 минут · полный ритуал</button>
           </div>
         ` : ''}
         ${step === 4 ? `
@@ -54,7 +54,7 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 5 ? `
           <h1>Как это работает</h1>
           <ol class="onboard-steps">
-            <li><strong>Калибровка ~90 сек.</strong> Три коротких блока зададут стартовый уровень.</li>
+            <li><strong>Калибровка.</strong> Пять коротких блоков зададут стартовый уровень.</li>
             <li><strong>Ежедневная сессия.</strong> Fokus сам соберёт упражнения под цель и слабые области.</li>
             <li><strong>Fokus Index.</strong> Один показатель по пяти доменам — внимание, память, скорость, гибкость, логика.</li>
           </ol>
@@ -111,7 +111,7 @@ export function renderOnboarding(container: HTMLElement) {
       if (!p.calibrated && storage.getHistory().length === 0) {
         navigateTo('session', {
           mode: 'calibration',
-          items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'stroop' }]
+          items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'swings' }, { exerciseId: 'switch-rule' }, { exerciseId: 'pattern-next' }]
         });
       } else {
         navigateTo('today');

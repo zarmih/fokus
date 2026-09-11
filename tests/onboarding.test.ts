@@ -26,8 +26,8 @@ test('onboarding collects goal, duration and starts calibration', () => {
   memory.click();
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
-  const eight = app.querySelector('[data-m="8"]') as HTMLButtonElement;
-  eight.click();
+  const ten = app.querySelector('[data-m="10"]') as HTMLButtonElement;
+  ten.click();
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const name = app.querySelector('#onboard-name') as HTMLInputElement;
@@ -41,6 +41,6 @@ test('onboarding collects goal, duration and starts calibration', () => {
   const p = storage.getProfile();
   expect(p.onboarded).toBe(true);
   expect(p.primaryGoal).toBe('memory');
-  expect(p.sessionLengthSec).toBe(480);
+  expect(p.sessionLengthSec).toBe(600);
   expect(p.displayName).toBe('Михаил');
 });

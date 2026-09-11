@@ -11,6 +11,7 @@ import { buildTrainingPlan } from '../../core/session-builder';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { SessionItem } from '../../core/types';
+import { domainLabel } from '../../core/labels';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
   const {items, mode = 'normal'} = params;
@@ -79,7 +80,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           <button id="btn-restart" class="btn-tiny">Заново</button>
         </div>
         <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
-        <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
+        <div class="session-block-info">${mode === 'calibration' ? `Калибровка: ${domainLabel(manifest.domain)} из ${items.length}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>
       </div>
       ${lastBanner}
       <div class="instruction-card" id="instruction-card" style="animation: slideUpFade 0.4s ease-out both;">
@@ -343,7 +344,12 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const lastStreak = summaries.length > 0 ? summaries[summaries.length-1].streak : 0;
     const lastDate = summaries.length > 0 ? summaries[summaries.length-1].date : null;
     
-    const ns = nextStreak(lastDate, lastStreak, sessionStartedAt);
+    const prof = storage.getProfile();
+    const ns = nextStreak(lastDate, lastStreak, sessionStartedAt, prof.shieldLastUsed);
+    if (ns.shieldUsed) {
+      prof.shieldLastUsed = sessionStartedAt;
+      storage.setProfile(prof);
+    }
     const fiNow = computeFokusIndex(storage.getDomains());
     const ds: any = {
       date: sessionStartedAt,
@@ -353,7 +359,6 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       skipped: ns.skipped,
       fokusIndex: fiNow.value
     };
-    const prof = storage.getProfile();
     if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
       ds.lifestyle = { sleep: prof.lastLifestyle.sleep, stress: prof.lastLifestyle.stress };
     }

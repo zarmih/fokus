@@ -12,7 +12,7 @@ export interface StorageBackend {
 const defaultProfile: Profile = {
   name: 'User',
   createdAt: new Date().toISOString(),
-  sessionLengthSec: 300,
+  sessionLengthSec: 900,
   soundOn: true,
   onboarded: false,
   theme: typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark',
