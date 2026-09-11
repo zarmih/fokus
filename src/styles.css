@@ -1518,8 +1518,34 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .staggered-block:nth-child(3) { animation-delay: 0.3s; }
 .staggered-block:nth-child(4) { animation-delay: 0.4s; }
 
+/* UX Polish - microfeedback */
+@keyframes ux-pop-correct {
+  0% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(1.03); filter: brightness(1.2); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+@keyframes ux-shake-wrong {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px) rotate(-1deg); }
+  40%, 80% { transform: translateX(6px) rotate(1deg); }
+}
+@keyframes ux-delight-pulse {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { transform: scale(1.02); box-shadow: 0 0 20px 5px var(--accent-glow); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 transparent; }
+}
+.ux-anim-correct {
+  animation: ux-pop-correct 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.ux-anim-wrong {
+  animation: ux-shake-wrong 0.4s ease-in-out;
+}
+.ux-anim-delight {
+  animation: ux-delight-pulse 1.2s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .instruction-card, .result-hero, .staggered-block, .level-up {
+  .instruction-card, .result-hero, .staggered-block, .level-up, .ux-anim-correct, .ux-anim-wrong, .ux-anim-delight {
     animation: none !important;
   }
 }

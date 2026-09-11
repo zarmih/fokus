@@ -4,6 +4,9 @@ import { renderShell } from '../shell';
 import { navigateTo } from '../router';
 import { generateInsights } from '../../core/insights';
 import { buildTrainingPlan } from '../../core/session-builder';
+import { computeFokusIndex } from '../../core/fokus-index';
+import { getWeeklyDomainTips } from '../../core/coach';
+import { domainLabel } from '../../core/labels';
 
 export function renderWeeklyReview(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress', hideNav: true });
@@ -170,6 +173,26 @@ export function renderWeeklyReview(container: HTMLElement) {
   const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
   const periodStr = `${dateFormatter.format(weekAgo)} — ${dateFormatter.format(now)}`;
 
+  // COACH TIPS (Soft)
+  const fi = computeFokusIndex(domains);
+  const weakest = [...fi.byDomain].filter((d) => d.ready).sort((a, b) => a.value - b.value)[0];
+  let coachHtml = '';
+  
+  if (weakest && totalSessions > 0) {
+    const tips = getWeeklyDomainTips(weakest.id);
+    coachHtml = `
+      <div class="surface" style="margin-bottom: 24px; border-left: 4px solid var(--accent);">
+        <h3 style="margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <span>Совет от тренера</span>
+          <span style="font-size: 12px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; font-weight: normal; color: var(--muted);">${domainLabel(weakest.id)}</span>
+        </h3>
+        <ul style="padding-left: 16px; margin: 0; color: var(--text); font-size: 14px; line-height: 1.5; opacity: 0.9;">
+          ${tips.map(t => `<li style="margin-bottom: 8px;">${t}</li>`).join('')}
+        </ul>
+      </div>
+    `;
+  }
+
   content.innerHTML = `
     <div style="display: flex; align-items: center; margin-bottom: 24px;">
       <button id="btn-back" class="btn-tiny" style="margin-right: 16px; margin-bottom: 0;">← Назад</button>
@@ -182,6 +205,7 @@ export function renderWeeklyReview(container: HTMLElement) {
     ${atAGlanceHtml}
     ${whatChangedHtml}
     ${insightHtml}
+    ${coachHtml}
     ${nextStepHtml}
   `;
 
