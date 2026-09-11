@@ -2,7 +2,7 @@ import { storage } from '../../core/storage';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
 import { planWithRecovery } from '../../core/recovery';
-import { describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { applyReprobeBias, describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from '../../core/continuity';
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
@@ -83,13 +83,22 @@ export function renderToday(container: HTMLElement) {
   const ritualWhyHtml = depth.why
     ? `<p class="ritual-why">${depth.why}</p>`
     : '';
-  if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
+  const allowReprobe = !snap.ritual.active && !ritual.snapshot.gate.active;
+  if (allowReprobe && depth.ritual && depth.ritual.items.length) {
     (plan as { items: { exerciseId: string; reason?: string }[]; focusDomains: string[] }).items = depth.ritual.items.map((s) => ({
       exerciseId: s.exerciseId,
       reason: s.reasonLabel
     }));
     (plan as { focusDomains: string[] }).focusDomains = depth.ritual.focusDomains;
   }
+  if (allowReprobe) {
+    const biased = applyReprobeBias(plan, depth.reprobe, { allow: true });
+    plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
+  }
+  const showReprobeHint = profile.calibrated && !playedToday && !snap.ritual.active && depth.reprobeHint;
+  const reprobeHintHtml = showReprobeHint && depth.reprobeHint
+    ? `<p class="reprobe-hint" role="status" data-reprobe="due" aria-label="${depth.reprobeHint.aria}">${depth.reprobeHint.line}</p>`
+    : '';
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
@@ -132,7 +141,8 @@ export function renderToday(container: HTMLElement) {
     skippedYesterday,
     primaryGoal: profile.primaryGoal,
     focusDomains: plan.focusDomains,
-    shieldCharges
+    shieldCharges,
+    reprobe: depth.reprobe
   });
 
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
@@ -260,6 +270,7 @@ export function renderToday(container: HTMLElement) {
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
+        ${reprobeHintHtml}
         <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
     `;

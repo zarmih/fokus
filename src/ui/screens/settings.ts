@@ -2,7 +2,7 @@ import { storage } from '../../core/storage';
 import { loadContinuitySnapshot } from '../../core/continuity';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
-import { ADAPTIVE_SETTINGS_COPY, describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { ADAPTIVE_SETTINGS_COPY, describeAdaptiveDepth, MASTERY_SETTINGS_COPY } from '../../core/adaptive-depth';
 import { registry } from '../../exercises/registry';
 import { transferCardFromStorage } from '../components/transfer-card';
 import { navigateTo } from '../router';
@@ -11,7 +11,7 @@ import { precisionLabel } from '../../core/calibration';
 import { abilityCaption } from '../../core/onboarding';
 import { applyDocumentLang } from '../a11y';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
-import { t } from '../../core/i18n';
+import { getLocale, t } from '../../core/i18n';
 import { clampVolume } from '../../core/soundscape';
 import {
   buildExportFile,
@@ -144,6 +144,7 @@ export function renderSettings(container: HTMLElement) {
       <h3 style="margin-bottom: 16px;">${ADAPTIVE_SETTINGS_COPY.title}</h3>
       ${settingsChip}
       <p class="adaptive-note">${ADAPTIVE_SETTINGS_COPY.body}</p>
+      <p class="adaptive-note mastery-note">${MASTERY_SETTINGS_COPY[getLocale()].body}</p>
     </div>
 
     <div class="surface">
