@@ -194,6 +194,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           if (mode === 'normal') {
             import('../../core/quests').then(q => {
               q.updateQuestProgress('blocks', 1);
+              if (manifest.domain) {
+                q.updateWeeklyGoalProgress(manifest.domain, 1);
+              }
               q.updateQuestProgress('accuracy', Math.round(res.accuracy * 100));
             }).catch(() => {});
           }

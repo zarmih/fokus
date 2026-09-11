@@ -21,6 +21,7 @@ export interface Profile {
   reminderHour?: number | null;
   skipLifestylePrompt?: boolean;
   displayName?: string;
+  weeklyGoal?: { domain: string; startIso: string; target: number; progress: number };
 }
 
 export interface SkillIndex {

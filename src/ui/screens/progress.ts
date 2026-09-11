@@ -1,4 +1,5 @@
 import { generateInsights } from "../../core/insights";
+import { getWeeklyGoal } from "../../core/quests";
 import { buildTrainingPlan } from "../../core/session-builder";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
@@ -234,32 +235,32 @@ export function renderProgress(container: HTMLElement) {
   `;
 
   const fi = computeFokusIndex(domains);
-  const prevFi = previousFokusIndex(ds, new Date().toISOString());
-  const deltaInfo = indexDelta(fi.value, prevFi);
+  const prevFi = previousFokusIndex(ds, new Date().toISOString(), 7);
+  const deltaInfo = indexDelta(fi.value, prevFi, 7);
 
-  // sparkline for last 7 day fi
-  const last7Fi = ds.slice(-7).filter(d => typeof d.fokusIndex === 'number' && d.fokusIndex > 0).map(d => d.fokusIndex as number);
+  // sparkline for last 14 day fi
+  const last14Fi = ds.slice(-14).filter(d => typeof d.fokusIndex === 'number' && d.fokusIndex > 0).map(d => d.fokusIndex as number);
   let sparklineHtml = '';
-  if (last7Fi.length > 1) {
-    const minFi = Math.min(...last7Fi);
-    const maxFi = Math.max(...last7Fi);
+  if (last14Fi.length > 1) {
+    const minFi = Math.min(...last14Fi);
+    const maxFi = Math.max(...last14Fi);
     const sparkW = 80;
     const sparkH = 20;
-    const points = last7Fi.map((v, i) => {
-      const x = (i / (last7Fi.length - 1)) * sparkW;
+    const points = last14Fi.map((v, i) => {
+      const x = (i / (last14Fi.length - 1)) * sparkW;
       const y = maxFi === minFi ? sparkH/2 : sparkH - ((v - minFi) / (maxFi - minFi)) * sparkH;
       return `${x},${y}`;
     }).join(' ');
     sparklineHtml = `<div style="margin-top: 12px; display: flex; align-items: center; gap: 8px;">
       <svg width="${sparkW}" height="${sparkH}" viewBox="0 -4 ${sparkW} ${sparkH+8}" style="overflow: visible;">
         <polyline points="${points}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        ${last7Fi.map((v, i) => {
-          const x = (i / (last7Fi.length - 1)) * sparkW;
+        ${last14Fi.map((v, i) => {
+          const x = (i / (last14Fi.length - 1)) * sparkW;
           const y = maxFi === minFi ? sparkH/2 : sparkH - ((v - minFi) / (maxFi - minFi)) * sparkH;
           return `<circle cx="${x}" cy="${y}" r="2.5" fill="var(--surface)" stroke="var(--accent)" stroke-width="1.5" />`;
         }).join('')}
       </svg>
-      <span style="font-size: 11px; color: var(--muted);">${last7Fi.length} дней</span>
+      <span style="font-size: 11px; color: var(--muted);">${last14Fi.length} дней</span>
     </div>`;
   }
 
@@ -277,9 +278,57 @@ export function renderProgress(container: HTMLElement) {
     <div class="fi-hero empty">
       <div class="fi-copy" style="text-align: center; width: 100%;">
         <div class="fi-kicker">Fokus Index</div>
-        <div style="font-size: 24px; color: var(--muted); margin: 12px 0;">Пройдите калибровку</div>
-        <div class="fi-meta">Мы пока собираем данные</div>
+        <div style="font-size: 20px; color: var(--muted); margin: 12px 0;">Недостаточно данных</div>
+        <div class="fi-meta" style="opacity: 0.7;">Пройдите калибровку и продолжайте тренировки для оценки</div>
       </div>
+    </div>
+  `;
+
+  let currentStreak = 0;
+  if (ds.length > 0) {
+    const last = ds[ds.length - 1];
+    const todayStr = new Date().toISOString().split('T')[0];
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
+    if (last.date.startsWith(todayStr) || last.date.startsWith(yesterdayStr)) {
+      currentStreak = last.streak;
+    }
+  }
+
+  const milestones = [7, 14, 30];
+  let milestonesHtml = '';
+  const nextMilestone = milestones.find(m => m > currentStreak);
+  if (currentStreak >= 7 || nextMilestone) {
+    milestonesHtml = `
+      <div class="surface" style="margin-bottom: 24px; padding: 16px;">
+        <h3 style="margin-bottom: 12px; font-size: 14px; color: var(--muted); text-align: center;">Вехи серии</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          ${milestones.map(m => {
+            const achieved = currentStreak >= m;
+            return `
+              <div style="text-align: center; flex: 1; opacity: ${achieved ? '1' : '0.4'};">
+                <div style="font-size: 24px; margin-bottom: 4px;">${achieved ? '🔥' : '⏳'}</div>
+                <div style="font-size: 11px; font-weight: 600;">${m} дней</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  const goal = getWeeklyGoal();
+  const goalProgressPct = Math.min(100, Math.max(0, (goal.progress / goal.target) * 100));
+  const weeklyGoalHtml = `
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 8px;">Цель недели: ${domainLabel(goal.domain)}</h3>
+      <p style="font-size: 13px; color: var(--text); opacity: 0.8; margin-bottom: 12px;">Выполните ${goal.target} упражнений для этой области (сейчас это ваше слабое звено).</p>
+      <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; margin-bottom: 4px; font-weight: 600;">
+        <span>Прогресс</span>
+        <span>${goal.progress} / ${goal.target}</span>
+      </div>
+      <div class="scale-track" style="height: 6px; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${goalProgressPct}%; background: var(--dom-${goal.domain}); box-shadow: 0 0 8px var(--dom-${goal.domain});"></div></div>
     </div>
   `;
 
@@ -289,7 +338,9 @@ export function renderProgress(container: HTMLElement) {
       <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
     </div>
     ${fiHtml}
+    ${milestonesHtml}
     ${insightHtml}
+    ${weeklyGoalHtml}
     ${nextStepHtml}
     
     <div class="surface" style="margin-bottom: 24px;">

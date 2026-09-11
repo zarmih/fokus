@@ -25,10 +25,16 @@ export function renderToday(container: HTMLElement) {
   let streak = 0;
   let skippedYesterday = false;
   let yesterdayScore = 0;
+  let gapDays = 0;
   if (ds.length > 0) {
     const last = ds[ds.length - 1];
     const yesterdayDate = new Date();
     yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+    
+    const lastDate = new Date(last.date);
+    const todayDate = new Date(todayStr);
+    gapDays = Math.round((todayDate.getTime() - lastDate.getTime()) / (1000 * 3600 * 24));
+
     if (playedToday) {
       streak = last.streak;
       skippedYesterday = !!last.skipped;
@@ -54,8 +60,8 @@ export function renderToday(container: HTMLElement) {
   });
 
   const fi = computeFokusIndex(domains);
-  const prevFi = previousFokusIndex(ds, new Date().toISOString());
-  const fiDelta = indexDelta(fi.value, prevFi);
+  const prevFi = previousFokusIndex(ds, new Date().toISOString(), 7);
+  const fiDelta = indexDelta(fi.value, prevFi, 7);
 
   const focusText = plan.focusDomains.length > 0
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
@@ -90,6 +96,15 @@ export function renderToday(container: HTMLElement) {
   });
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
+  if (gapDays >= 2 && !playedToday) {
+    insights.unshift({
+      title: 'С возвращением',
+      description: 'Исследования показывают, что восстановление после паузы укрепляет нейронные связи. Fokus подобрал мягкий старт для сегодняшней сессии.',
+      confidence: 'high',
+      type: 'milestone',
+      priority: 1
+    });
+  }
   const topInsight = insights[0];
 
   const quests = getDailyQuests();
