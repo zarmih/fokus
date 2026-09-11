@@ -14,6 +14,12 @@ function enabled(): boolean {
   }
 }
 
+function vibrate(ms: number | number[]) {
+  if (typeof window !== 'undefined' && navigator.vibrate && enabled()) {
+    try { navigator.vibrate(ms); } catch {}
+  }
+}
+
 function getCtx(): AudioContext | null {
   if (typeof window === 'undefined') return null;
   const AC = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -65,11 +71,13 @@ export function playHit(combo = 1) {
   const freq = 480 + n * 42;
   beep({ freq, freqEnd: freq * 1.55, type: 'triangle', dur: 0.09, gain: 0.07 });
   beep({ freq: freq * 2, type: 'sine', dur: 0.05, gain: 0.025, delay: 0.02 });
+  vibrate(20);
 }
 
 export function playMiss() {
   if (!enabled()) return;
   beep({ freq: 240, freqEnd: 90, type: 'square', dur: 0.16, gain: 0.045 });
+  vibrate([30, 50, 30]);
 }
 
 export function playCombo(combo: number) {
@@ -79,6 +87,7 @@ export function playCombo(combo: number) {
     const freq = root * Math.pow(2, semi / 12);
     beep({ freq, type: 'sine', dur: 0.14, gain: 0.055, delay: i * 0.055 });
   });
+  vibrate([15, 30, 20]);
 }
 
 export function playBeep(success: boolean) {
@@ -89,4 +98,5 @@ export function playBeep(success: boolean) {
 export function playTick() {
   if (!enabled()) return;
   beep({ freq: 620, type: 'square', dur: 0.045, gain: 0.035 });
+  vibrate(10);
 }
