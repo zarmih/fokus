@@ -1,6 +1,7 @@
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
 import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
+import { assessRetention, sparkFromRetention } from './retention';
 
 export interface CoachSpark {
   title: string;
@@ -62,6 +63,9 @@ export function getDailySpark(params: {
   skippedYesterday?: boolean;
   primaryGoal?: string;
   focusDomains?: string[];
+  now?: Date;
+  /** Optional Phase 3 field — ignored when the program PR is not merged. */
+  shieldCharges?: number;
 }): CoachSpark {
   const {
     domains,
@@ -72,7 +76,9 @@ export function getDailySpark(params: {
     streak,
     skippedYesterday,
     primaryGoal,
-    focusDomains
+    focusDomains,
+    now,
+    shieldCharges
   } = params;
 
   if (!calibrated) {
@@ -83,7 +89,29 @@ export function getDailySpark(params: {
     };
   }
 
+  const retentionSpark = (): CoachSpark | null => {
+    try {
+      const snap = assessRetention({
+        daySummaries,
+        sessions,
+        domains,
+        playedToday,
+        streak,
+        skippedYesterday,
+        shieldCharges,
+        now
+      });
+      return sparkFromRetention(snap);
+    } catch {
+      return null;
+    }
+  };
+
   if (playedToday) {
+    const rest = retentionSpark();
+    if (rest && rest.tone === 'habit' && /завтра/i.test(rest.body)) {
+      return rest;
+    }
     return {
       title: 'План выполнен',
       body: 'Когнитивные навыки растут от регулярности, не от марафонов. Завтра Fokus соберёт новую сессию.',
@@ -107,10 +135,12 @@ export function getDailySpark(params: {
     };
   }
 
+  const fromRetention = retentionSpark();
+  if (fromRetention) return fromRetention;
+
   const chrono = analyzeChronotype(sessions);
-  const hour = new Date().getHours();
   if (chrono.bucket && chrono.sample >= 3) {
-    const nowBucket = hourBucket(new Date().toISOString());
+    const nowBucket = hourBucket((now ?? new Date()).toISOString());
     if (nowBucket === chrono.bucket) {
       return {
         title: 'Ваше сильное окно',

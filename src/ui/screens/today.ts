@@ -11,6 +11,7 @@ import { getDailySpark } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
+import { assessRetention, bandLabel } from '../../core/retention';
 import { enterStage } from '../../core/motion';
 
 export function renderToday(container: HTMLElement) {
@@ -73,6 +74,10 @@ export function renderToday(container: HTMLElement) {
   const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
   const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
 
+  const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
+    ? (profile as { shieldCharges?: number }).shieldCharges
+    : undefined;
+
   const spark = getDailySpark({
     domains,
     skills,
@@ -84,8 +89,31 @@ export function renderToday(container: HTMLElement) {
     streak,
     skippedYesterday,
     primaryGoal: profile.primaryGoal,
-    focusDomains: plan.focusDomains
+    focusDomains: plan.focusDomains,
+    shieldCharges
   });
+
+  let retentionHtml = '';
+  try {
+    const snap = assessRetention({
+      daySummaries: ds,
+      sessions,
+      domains,
+      playedToday,
+      streak,
+      skippedYesterday,
+      sessionLengthSec: profile.sessionLengthSec,
+      shieldCharges
+    });
+    if (profile.calibrated && snap.confidence >= 20) {
+      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
+        ? ` · ${snap.primaryNudge.title.toLowerCase()}`
+        : '';
+      retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
+    }
+  } catch {
+    retentionHtml = '';
+  }
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
   const topInsight = insights[0];
@@ -194,6 +222,7 @@ export function renderToday(container: HTMLElement) {
         </div>
       </div>
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
+      ${retentionHtml}
 
       <div class="insight-banner coach-${spark.tone}">
         <div class="insight-icon">💡</div>

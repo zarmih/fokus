@@ -1709,6 +1709,58 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   .stroop-word, .eq-3d, .tile-3d, .grid-cell, .oo-btn { animation: none !important; }
 }
 
+/* Retention rhythm + duel intelligence (G4) */
+.rhythm-line {
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+  margin: -4px 0 14px;
+  font-weight: 600;
+}
+.rhythm-line.band-stable { color: var(--ok); }
+.rhythm-line.band-watch { color: var(--accent-2); }
+.rhythm-line.band-at_risk { color: var(--accent); }
+.rhythm-line.band-critical { color: var(--danger); }
+.rhythm-card { margin-bottom: 24px; }
+.rhythm-value { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
+.rhythm-nudge { font-size: 14px; line-height: 1.4; color: var(--text); margin: 10px 0 16px; }
+.rhythm-signal { margin-bottom: 10px; }
+.rhythm-signal-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+.rhythm-track { height: 6px; }
+.insight-banner.coach-start { border-left-color: var(--accent); }
+.insight-banner.coach-habit { border-left-color: var(--ok); }
+.insight-banner.coach-focus { border-left-color: var(--accent-2); }
+.insight-banner.coach-recovery { border-left-color: var(--accent); }
+.insight-banner.coach-science { border-left-color: var(--muted); }
+.insight-banner.coach-time { border-left-color: var(--dom-speed); }
+.duel-intel { margin-bottom: 16px; }
+.duel-ticket { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; margin: 4px 0; }
+.duel-fairness { font-size: 14px; line-height: 1.4; margin: 8px 0 12px; }
+.duel-rules {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.duel-rules li { margin-bottom: 4px; }
+.cooldown-note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent);
+}
+.duel-empty { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0 0 16px; }
+.spectator-card { text-align: center; margin-bottom: 16px; }
+.spectator-score { font-size: 28px; font-weight: 800; letter-spacing: 0.04em; margin: 8px 0 4px; }
+.spectator-meta { font-size: 13px; color: var(--muted); margin: 0 0 4px; }
 .slot-tag {
   font-size: 10px;
   font-weight: 700;

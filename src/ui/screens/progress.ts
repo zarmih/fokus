@@ -6,6 +6,7 @@ import { registry } from '../../exercises/registry';
 import { renderScatterPlot, renderRadarChart, renderIndexSparkline } from '../components/charts';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
+import { assessRetention, bandLabel, signalLabel } from '../../core/retention';
 import { buildCoachIntel } from '../../core/coach-intel';
 
 export function renderProgress(container: HTMLElement) {
@@ -225,6 +226,57 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const playedToday = ds.some(d => d.date.startsWith(todayStr));
+  let lastStreak = 0;
+  if (ds.length > 0) {
+    const last = ds[ds.length - 1];
+    if (playedToday || last.date.startsWith(todayStr)) lastStreak = last.streak;
+    else {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      if (last.date.startsWith(yesterday.toISOString().split('T')[0])) lastStreak = last.streak;
+    }
+  }
+
+  let rhythmHtml = '';
+  try {
+    const snap = assessRetention({
+      daySummaries: ds,
+      sessions: storage.getSessions(),
+      domains,
+      playedToday,
+      streak: lastStreak,
+      sessionLengthSec: profile.sessionLengthSec
+    });
+    if (snap.confidence >= 15) {
+      const rows = snap.signals.map(s => {
+        const pct = Math.max(4, s.score);
+        return `<div class="rhythm-signal">
+          <div class="rhythm-signal-head"><span>${signalLabel(s.id)}</span><span>${s.score}</span></div>
+          <div class="scale-track rhythm-track"><div class="scale-fill" style="width:${pct}%;"></div></div>
+        </div>`;
+      }).join('');
+      const nudge = snap.primaryNudge
+        ? `<p class="rhythm-nudge">${snap.primaryNudge.body}</p>`
+        : `<p class="rhythm-nudge">Ритм держится. Регулярность важнее длины сессии.</p>`;
+      rhythmHtml = `
+        <div class="surface rhythm-card band-${snap.band}" data-rhythm="${snap.rhythm}">
+          <div class="rhythm-head">
+            <div>
+              <div class="fi-kicker">Ритм тренировок</div>
+              <div class="rhythm-value">${snap.rhythm}</div>
+              <div class="fi-meta">${bandLabel(snap.band)} · уверенность ${snap.confidence}%</div>
+            </div>
+          </div>
+          ${nudge}
+          ${rows}
+        </div>`;
+    }
+  } catch {
+    rhythmHtml = '';
+  }
+
   const fi = computeFokusIndex(domains);
   const intel = buildCoachIntel({
     summaries: ds,
@@ -285,6 +337,7 @@ export function renderProgress(container: HTMLElement) {
       <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
     </div>
     ${fiHtml}
+    ${rhythmHtml}
     ${milestonesHtml}
     ${insightHtml}
     ${nextStepHtml}
