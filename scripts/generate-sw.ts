@@ -1,3 +1,13 @@
+/** Shell + core assets only. Exercise chunks and per-game icons are runtime-cached. */
+export function shouldPrecache(relPath: string): boolean {
+  if (relPath.endsWith('.map')) return false;
+  if (relPath.startsWith('assets/ex-')) return false;
+  if (relPath.startsWith('art/icon-')) return false;
+  if (relPath.startsWith('art/tiles/')) return false;
+  if (relPath === 'art/screenshot.jpg') return false;
+  return true;
+}
+
 export function generateServiceWorker(assets: string[], version: string): string {
   const list = JSON.stringify(assets);
   return `/* Fokus precache ${version} */

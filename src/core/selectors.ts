@@ -1,12 +1,12 @@
 import { storage } from './storage';
-import { registry } from '../exercises/registry';
+import { getManifest } from '../exercises/catalog';
 import { ExerciseState, SkillIndex, DomainIndex } from './types';
 
 export type ProgressionState = 'CALIBRATING' | 'DEVELOPING' | 'STABLE' | 'CHALLENGE' | 'PLATEAU';
 
 export function getExerciseIntelligence(exerciseId: string) {
   const state = storage.getExerciseStates().find(s => s.exerciseId === exerciseId);
-  const manifest = registry.find(r => r.manifest.id === exerciseId)?.manifest;
+  const manifest = getManifest(exerciseId);
   
   if (!state || !manifest) {
     return { isCalibrating: true, state: 'CALIBRATING' as ProgressionState, mastery: 0, difficulty: 1, attempts: 0, skills: [] };

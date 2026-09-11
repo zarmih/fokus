@@ -6,23 +6,24 @@ vi.mock('../src/ui/router', () => ({
   navigateTo: vi.fn()
 }));
 vi.mock('../src/core/audio', () => ({
-  playBeep: vi.fn()
+  playBeep: vi.fn(),
+  playCue: vi.fn(),
+  playTick: vi.fn(),
+  playHit: vi.fn(),
+  playMiss: vi.fn(),
+  playCombo: vi.fn(),
+  unlockAudio: vi.fn()
 }));
 
-vi.mock('../src/exercises/dispatch', () => ({
-  dispatch: {
-    'grid-memory': {
-      manifest: { id: 'grid-memory', name: 'Grid Memory', domain: 'memory', skills: ['visual_memory'] },
-      render: vi.fn((container, diff, onEnd, isTimeUp) => {
-        // Mock immediately finishing a block
-        setTimeout(() => onEnd({ accuracy: 0.5, avgRtMs: 1500 }), 10);
-        return () => {};
-      })
-    }
-  }
+vi.mock('../src/exercises/load-exercise', () => ({
+  loadExercise: vi.fn(async () => ({
+    manifest: { id: 'grid-memory', name: 'Grid Memory', domain: 'memory', skills: ['visual_memory'] },
+    render: vi.fn((_container: HTMLElement, _diff: number, onEnd: (r: { accuracy: number; avgRtMs: number }) => void) => {
+      setTimeout(() => onEnd({ accuracy: 0.5, avgRtMs: 1500 }), 10);
+      return () => {};
+    })
+  }))
 }));
-
-import { dispatch } from '../src/exercises/dispatch';
 
 describe('Session Fatigue Duration', () => {
   beforeEach(() => {

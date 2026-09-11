@@ -1,14 +1,43 @@
 import type { ExerciseManifest } from '../exercises/contract';
 import type { DomainIndex, SkillIndex, ExerciseState } from './types';
+import { weeklyFocusBias } from './transfer';
+import {
+  buildAdaptivePlan as engineBuildAdaptivePlan,
+  type AdaptivePlan,
+  type AdaptivePlanParams
+} from './engine/bridge';
 
 export interface TrainingPlanItem {
   exerciseId: string;
   reason: string;
+  slot?: 'overdue' | 'due' | 'fresh';
+  difficulty?: number;
+  pSuccess?: number;
+  domain?: string;
 }
 
 export interface TrainingPlan {
   focusDomains: string[];
   items: TrainingPlanItem[];
+  source?: 'engine' | 'legacy';
+}
+
+/**
+ * Engine v2 planner with a silent fallback to the heuristic builder.
+ * Phase 2 program screens can call this even if those PRs are not merged:
+ * Today / Session already consume the same shape.
+ */
+export function buildAdaptivePlan(params: AdaptivePlanParams): AdaptivePlan {
+  return engineBuildAdaptivePlan(params, (p) =>
+    buildTrainingPlan({
+      durationSec: p.durationSec,
+      catalog: p.catalog,
+      domains: p.domains,
+      skills: p.skills,
+      states: p.states,
+      primaryGoal: p.primaryGoal
+    })
+  );
 }
 
 export function buildTrainingPlan(params: {
@@ -18,8 +47,10 @@ export function buildTrainingPlan(params: {
   skills: SkillIndex[];
   states: ExerciseState[];
   primaryGoal?: string;
+  /** Optional weekly focus domain. Omitted or null is a no-op. */
+  focusOfTheWeek?: string | null;
 }): TrainingPlan {
-  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance' } = params;
+  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek } = params;
   
   let targetBlocks = 3;
   if (durationSec >= 480) targetBlocks = 4;
@@ -31,6 +62,7 @@ export function buildTrainingPlan(params: {
   const focusDomains = new Set<string>();
   if (primaryGoal && primaryGoal !== 'balance') focusDomains.add(primaryGoal);
   if (weakestDomain) focusDomains.add(weakestDomain);
+  if (focusOfTheWeek) focusDomains.add(focusOfTheWeek);
 
   const items: TrainingPlanItem[] = [];
   const selectedExerciseIds = new Set<string>();
@@ -50,6 +82,7 @@ export function buildTrainingPlan(params: {
       if (weakestDomain === manifest.domain) {
         weaknessPriority = 25; 
       }
+      const weeklyFocus = weeklyFocusBias(manifest.domain, focusOfTheWeek);
 
       let skillNeed = 0;
       let maintenance = 0;
@@ -104,7 +137,7 @@ export function buildTrainingPlan(params: {
       }
 
       // Calculate score and generate trace
-      const score = goalAlignment + weaknessPriority + skillNeed + neglected + novelty + maintenance - repetitionPenalty - plateauPenalty + sessionBalance;
+      const score = goalAlignment + weaknessPriority + weeklyFocus + skillNeed + neglected + novelty + maintenance - repetitionPenalty - plateauPenalty + sessionBalance;
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
       
@@ -121,6 +154,8 @@ export function buildTrainingPlan(params: {
         reason = `Работа над вашей целью`;
       } else if (weaknessPriority > 0) {
         reason = `Укрепление слабой области`;
+      } else if (weeklyFocus > 0) {
+        reason = `Фокус недели`;
       } else if (skillNeed > 10) {
         reason = `Развитие отстающего навыка`;
       } else if (novelty > 0) {
