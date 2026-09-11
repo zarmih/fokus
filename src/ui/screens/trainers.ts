@@ -87,8 +87,13 @@ export function renderTrainers(container: HTMLElement) {
 
   content.innerHTML = `
     <div class="today-head">
-      <h2>Каталог тренажёров</h2>
+      <h2>Каталог</h2>
       <p class="today-date">${catalog.length} упражнений. Практика без влияния на Fokus Index.</p>
+    </div>
+    <div class="segmented" style="margin-bottom: 24px;" role="tablist">
+      <button type="button" role="tab" id="nav-program" aria-selected="false">План</button>
+      <button type="button" role="tab" id="nav-trainers" aria-selected="true" class="active">Упражнения</button>
+      <button type="button" role="tab" id="nav-duel" aria-selected="false">Дуэли</button>
     </div>
     <div class="domain-filters">
       ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button" aria-pressed="${i === 0 ? 'true' : 'false'}">${f.name}</button>`).join('')}
@@ -123,4 +128,7 @@ export function renderTrainers(container: HTMLElement) {
       if (id) navigateTo('session', { mode: 'practice', items: [{exerciseId: id}] });
     });
   });
+
+  content.querySelector('#nav-program')?.addEventListener('click', () => navigateTo('program'));
+  content.querySelector('#nav-duel')?.addEventListener('click', () => navigateTo('duel'));
 }
