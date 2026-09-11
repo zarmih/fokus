@@ -12,7 +12,7 @@ import { domainLabel } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
 import { precisionLabel } from '../../core/calibration';
-import { abilityCaption, pickTransferTip } from '../../core/onboarding';
+import { pickTransferTip } from '../../core/onboarding';
 import { setScreenTitle } from '../a11y';
 import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 
@@ -125,7 +125,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const probeHtml = isCalibration && snapshot ? `
     <div class="surface probe-summary">
       <h3>Стартовая оценка</h3>
-      <p class="muted">${abilityCaption(snapshot)}</p>
+      <p class="muted">${snapshot.domains.filter(d => d.probed).length} из 5 областей · ${precisionLabel(snapshot.overallPrecision)}</p>
       ${snapshot.domains.filter((d) => d.probed).map((d) => `
         <div class="delta-row">
           <span>${domainLabel(d.domain)}</span>
@@ -186,7 +186,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     <div class="result-hero fx-celebrate" id="result-hero">
       <div class="result-kicker">${isCalibration ? 'Профиль готов' : isRecalibration ? 'Оценка обновлена' : 'Тренировка завершена'}</div>
       <div class="result-big"><span class="xp-counter" id="xp-counter" data-xp="${Math.round(totalScore)}">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
-      <div class="muted">${isCalibration ? 'стартовая оценка · не IQ' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
+      <div class="muted">${isCalibration ? 'стартовая оценка' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
       ${compareHtml}
     </div>
