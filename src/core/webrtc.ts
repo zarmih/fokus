@@ -1,4 +1,6 @@
 // Simple WebRTC + WebSocket Signaling wrapper
+// Data-channel payloads must stay spectator-safe (aliases, points, domain).
+// Never send emails, account ids, RT arrays, or ICE dumps to the UI summary.
 
 export class P2PConnection {
   pc: RTCPeerConnection;

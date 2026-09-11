@@ -1,4 +1,9 @@
 # Changelog
+## Duel & retention G15
+- Прозрачные P(skip) / P(churn) из качества сессий, серии и интервалов — без IQ
+- План мягкого возврата на 1–3 дня и difficulty floor после паузы
+- Готовность к дуэли по доменам + недавним RT/accuracy; spectator chip без PII
+- На «Сегодня» — один rhythm-chip; на дуэли — badge формы
 ## Offline sync G6
 - Версионированный экспорт (`fokus-backup`, схема 4, checksum) и импорт merge/replace
 - Миграции 1→4, снимок до импорта, восстановление из `.bak` при битой записи

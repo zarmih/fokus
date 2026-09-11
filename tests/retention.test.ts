@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, test } from 'vitest';
 import {
+  applyDifficultyFloor,
   assessRetention,
   bandFromRisk,
   bandLabel,
   daysBetween,
   isoDay,
+  retentionChipText,
   rhythmScore,
+  SKIP_LOGIT,
   sparkFromRetention,
   type RetentionInput
 } from '../src/core/retention';
@@ -247,5 +250,128 @@ describe('sparkFromRetention', () => {
     }));
     expect(snap.band).toBe('stable');
     expect(sparkFromRetention(snap)).toBeNull();
+  });
+});
+
+describe('G15 skip / churn probabilities', () => {
+  test('skip logit coefficients are explicit and sum-stable', () => {
+    expect(SKIP_LOGIT.intercept).toBe(-1.35);
+    expect(SKIP_LOGIT.quality).toBeGreaterThan(SKIP_LOGIT.gap);
+    expect(SKIP_LOGIT.playedToday).toBeLessThan(0);
+  });
+
+  test('cold start does not invent a dropout crisis', () => {
+    const snap = assessRetention(base());
+    expect(snap.riskModel.skipProbability).toBeLessThanOrEqual(0.16);
+    expect(snap.riskModel.churnProbability).toBeLessThanOrEqual(0.12);
+    expect(snap.riskModel.quality.sample).toBe(0);
+    expect(snap.reengagement.floor.multiplier).toBe(1);
+    expect(snap.reengagement.steps.length).toBeLessThanOrEqual(3);
+  });
+
+  test('seven regular days keep skip and churn low', () => {
+    const summaries = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = `2026-09-${String(11 - i).padStart(2, '0')}`;
+      summaries.push(day(`${d}T10:00:00Z`, 120, { streak: 7 - i }));
+    }
+    const snap = assessRetention(base({
+      daySummaries: summaries,
+      sessions: summaries.map((s) => session(s.date, [item({ accuracy: 0.88, avgRtMs: 520 })])),
+      domains: domains('2026-09-11T10:00:00Z'),
+      playedToday: true,
+      streak: 7
+    }));
+    expect(snap.riskModel.skipProbability).toBeLessThan(0.22);
+    expect(snap.riskModel.churnProbability).toBeLessThan(0.28);
+    expect(snap.riskModel.quality.score).toBeGreaterThan(70);
+    expect(snap.riskModel.continuity.continuity).toBe(1);
+    expect(snap.reengagement.floor.delta).toBe(0);
+  });
+
+  test('four-day gap raises skip; churn is higher still', () => {
+    const snap = assessRetention(base({
+      daySummaries: [day('2026-09-07T10:00:00Z', 90, { streak: 5 })],
+      sessions: [session('2026-09-07T10:00:00Z')],
+      domains: domains('2026-09-07T10:00:00Z'),
+      playedToday: false,
+      streak: 0
+    }));
+    expect(snap.gapDays).toBe(4);
+    expect(snap.riskModel.skipProbability).toBeGreaterThanOrEqual(0.35);
+    expect(snap.riskModel.churnProbability).toBeGreaterThan(snap.riskModel.skipProbability);
+    expect(snap.reengagement.steps.length).toBeGreaterThanOrEqual(1);
+    expect(snap.reengagement.steps.length).toBeLessThanOrEqual(3);
+    expect(snap.reengagement.steps[0].kind).toBe('ease_in');
+    expect(snap.reengagement.floor.multiplier).toBeLessThan(1);
+    expect(snap.reengagement.floor.durationSec).toBeLessThanOrEqual(300);
+    snap.reengagement.steps.forEach((step) => {
+      expect(step.body).not.toMatch(SPAM);
+      expect(step.title).not.toMatch(SPAM);
+    });
+    expect(retentionChipText(snap)).toMatch(/Ритм/);
+    expect(retentionChipText(snap)).not.toMatch(SPAM);
+  });
+
+  test('poor recent form raises skip versus clean form, same calendar', () => {
+    const history = [
+      day('2026-09-09T10:00:00Z', 80, { streak: 2 }),
+      day('2026-09-10T10:00:00Z', 70, { streak: 3 })
+    ];
+    const weakItems = [
+      item({ accuracy: 0.38, avgRtMs: 1600 }),
+      item({ accuracy: 0.34, avgRtMs: 1700 }),
+      item({ accuracy: 0.4, avgRtMs: 1550 })
+    ];
+    const strongItems = [
+      item({ accuracy: 0.92, avgRtMs: 480 }),
+      item({ accuracy: 0.9, avgRtMs: 500 }),
+      item({ accuracy: 0.88, avgRtMs: 520 })
+    ];
+    const weak = assessRetention(base({
+      daySummaries: history,
+      sessions: [
+        session('2026-09-09T10:00:00Z', weakItems),
+        session('2026-09-10T10:00:00Z', weakItems)
+      ],
+      domains: domains('2026-09-10T10:00:00Z'),
+      playedToday: false,
+      streak: 3
+    }));
+    const strong = assessRetention(base({
+      daySummaries: history,
+      sessions: [
+        session('2026-09-09T10:00:00Z', strongItems),
+        session('2026-09-10T10:00:00Z', strongItems)
+      ],
+      domains: domains('2026-09-10T10:00:00Z'),
+      playedToday: false,
+      streak: 3
+    }));
+    expect(weak.riskModel.quality.score).toBeLessThan(strong.riskModel.quality.score);
+    expect(weak.riskModel.skipProbability).toBeGreaterThan(strong.riskModel.skipProbability);
+  });
+});
+
+describe('G15 difficulty floor', () => {
+  test('applyDifficultyFloor never raises stored difficulty', () => {
+    const snap = assessRetention(base({
+      daySummaries: [day('2026-09-04T10:00:00Z', 90, { streak: 4 })],
+      sessions: [session('2026-09-04T10:00:00Z')],
+      playedToday: false,
+      streak: 0
+    }));
+    expect(snap.gapDays).toBe(7);
+    expect(snap.reengagement.floor.multiplier).toBeLessThan(0.85);
+    expect(applyDifficultyFloor(12, snap.reengagement.floor)).toBeLessThan(12);
+    expect(applyDifficultyFloor(12, snap.reengagement.floor)).toBeGreaterThanOrEqual(1);
+    expect(applyDifficultyFloor(2, snap.reengagement.floor)).toBeGreaterThanOrEqual(1);
+    const fresh = assessRetention(base({
+      daySummaries: [day('2026-09-11T10:00:00Z')],
+      sessions: [session('2026-09-11T10:00:00Z')],
+      playedToday: true,
+      streak: 3
+    }));
+    expect(applyDifficultyFloor(12, fresh.reengagement.floor)).toBe(12);
   });
 });

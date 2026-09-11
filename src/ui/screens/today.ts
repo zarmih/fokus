@@ -14,7 +14,7 @@ import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual, pickTransferTip } from '../../core/onboarding';
-import { assessRetention, bandLabel } from '../../core/retention';
+import { assessRetention, retentionChipText, type RetentionSnapshot } from '../../core/retention';
 import { enterStage } from '../../core/motion';
 
 export function renderToday(container: HTMLElement) {
@@ -50,9 +50,32 @@ export function renderToday(container: HTMLElement) {
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
   const ritual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
-  const durationSec = ritual.inFirstWeek && ritual.ritualDay
+  let durationSec = ritual.inFirstWeek && ritual.ritualDay
     ? ritual.ritualDay.durationSec
     : profile.sessionLengthSec;
+
+  const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
+    ? (profile as { shieldCharges?: number }).shieldCharges
+    : undefined;
+
+  let retentionSnap: RetentionSnapshot | null = null;
+  try {
+    retentionSnap = assessRetention({
+      daySummaries: ds,
+      sessions,
+      domains,
+      playedToday,
+      streak,
+      skippedYesterday,
+      sessionLengthSec: profile.sessionLengthSec,
+      shieldCharges
+    });
+    if (!playedToday && retentionSnap.gapDays >= 2) {
+      durationSec = Math.min(durationSec, retentionSnap.reengagement.floor.durationSec);
+    }
+  } catch {
+    retentionSnap = null;
+  }
   const plan = planForNow({ durationSec });
   const recal = plan.recalibration;
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
@@ -81,10 +104,6 @@ export function renderToday(container: HTMLElement) {
   const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
   const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
 
-  const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
-    ? (profile as { shieldCharges?: number }).shieldCharges
-    : undefined;
-
   const spark = getDailySpark({
     domains,
     skills,
@@ -102,21 +121,10 @@ export function renderToday(container: HTMLElement) {
 
   let retentionHtml = '';
   try {
-    const snap = assessRetention({
-      daySummaries: ds,
-      sessions,
-      domains,
-      playedToday,
-      streak,
-      skippedYesterday,
-      sessionLengthSec: profile.sessionLengthSec,
-      shieldCharges
-    });
-    if (profile.calibrated && snap.confidence >= 20) {
-      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
-        ? ` · ${snap.primaryNudge.title.toLowerCase()}`
-        : '';
-      retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
+    const snap = retentionSnap;
+    if (snap && profile.calibrated && snap.confidence >= 20) {
+      const skip = snap.riskModel.skipProbability;
+      retentionHtml = `<p class="rhythm-line rhythm-chip band-${snap.band}" data-rhythm="${snap.rhythm}" data-skip="${skip}" role="status">${retentionChipText(snap)}</p>`;
     }
   } catch {
     retentionHtml = '';

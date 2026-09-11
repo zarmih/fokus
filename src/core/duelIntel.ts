@@ -1,4 +1,4 @@
-import type { DomainIndex, Profile } from './types';
+import type { DomainIndex, Profile, Session } from './types';
 import { DOMAIN_ORDER, domainLabel } from './labels';
 
 /** First to this many points wins the bout. */
@@ -23,6 +23,42 @@ export interface Duelant {
   fokusIndex: number;
   domainAbility: Record<string, number>;
   lastBoutAt?: string | null;
+  /** Recent mean accuracy 0–1. Internal — never copied into spectator structs. */
+  recentAccuracy?: number;
+  recentRtMs?: number;
+  formSample?: number;
+}
+
+export type DuelReadinessBand = 'not_ready' | 'warming' | 'ready' | 'sharp';
+
+export interface DuelForm {
+  accuracy: number | null;
+  rtMs: number | null;
+  sample: number;
+  domainAbility: number;
+}
+
+/**
+ * Matchmaking-agnostic fairness of *this* player today.
+ * Built from domain ability + recent RT/accuracy. Not Elo, not IQ.
+ */
+export interface DuelReadiness {
+  /** 0–100 fairness / readiness score. */
+  fairness: number;
+  band: DuelReadinessBand;
+  form: DuelForm;
+  preferredDomain: string | null;
+  /** Mirror match against own ticket would be a fair fight. */
+  fairForSelf: boolean;
+  evidence: string;
+}
+
+/** Spectator-safe ready chip: alias + band, no RT, no ids, no email. */
+export interface SpectatorReadyChip {
+  alias: string;
+  ready: boolean;
+  band: DuelReadinessBand;
+  domain: string | null;
 }
 
 export interface MatchQuality {
@@ -84,6 +120,8 @@ export interface SpectatorSummary {
   closeFinish: boolean;
   /** null = unknown (friend-code room, not matchmade). */
   fairMatch: boolean | null;
+  /** Optional G15 band. Never includes RT or account ids. */
+  readinessBand?: DuelReadinessBand | null;
 }
 
 export function clamp(n: number, lo: number, hi: number): number {
@@ -114,18 +152,39 @@ export function duelantFromLocal(params: {
   fokusIndex: number;
   domains: DomainIndex[];
   lastBoutAt?: string | null;
+  sessions?: Session[];
 }): Duelant {
   const alias = safeAlias(params.profile.displayName || params.profile.name || 'Вы', 'Вы');
   const domainAbility: Record<string, number> = {};
   params.domains.forEach((d) => {
     if (d.value > 0) domainAbility[d.domain] = d.value;
   });
+  const form = recentFormFromSessions(params.sessions || []);
   return {
     id: 'local',
     alias,
     fokusIndex: params.fokusIndex,
     domainAbility,
-    lastBoutAt: params.lastBoutAt ?? null
+    lastBoutAt: params.lastBoutAt ?? null,
+    recentAccuracy: form.accuracy ?? undefined,
+    recentRtMs: form.rtMs ?? undefined,
+    formSample: form.sample || undefined
+  };
+}
+
+export function recentFormFromSessions(sessions: Session[], lookback = 4): DuelForm {
+  const recent = [...sessions].sort((a, b) => a.startedAt.localeCompare(b.startedAt)).slice(-lookback);
+  if (recent.length === 0) {
+    return { accuracy: null, rtMs: null, sample: 0, domainAbility: 0 };
+  }
+  const items = recent.flatMap((s) => s.items);
+  const accs = items.map((i) => i.accuracy).filter((n) => Number.isFinite(n));
+  const rts = items.map((i) => i.avgRtMs).filter((n) => n > 0);
+  return {
+    accuracy: accs.length ? accs.reduce((s, n) => s + n, 0) / accs.length : null,
+    rtMs: rts.length ? Math.round(rts.reduce((s, n) => s + n, 0) / rts.length) : null,
+    sample: recent.length,
+    domainAbility: 0
   };
 }
 
@@ -152,7 +211,16 @@ export function matchQuality(a: Duelant, b: Duelant, domain?: string): MatchQual
   const domainGap = Math.abs((a.domainAbility[preferredDomain] ?? 0) - (b.domainAbility[preferredDomain] ?? 0));
   const indexScore = clamp(1 - indexGap / 200, 0, 1);
   const domainScore = clamp(1 - domainGap / 300, 0, 1);
-  const score = 0.65 * indexScore + 0.35 * domainScore;
+  const hasForm = (a.formSample ?? 0) >= 2 && (b.formSample ?? 0) >= 2
+    && typeof a.recentAccuracy === 'number' && typeof b.recentAccuracy === 'number';
+  let score = 0.65 * indexScore + 0.35 * domainScore;
+  if (hasForm) {
+    const accGap = Math.abs((a.recentAccuracy ?? 0) - (b.recentAccuracy ?? 0));
+    const rtGap = Math.abs((a.recentRtMs ?? 700) - (b.recentRtMs ?? 700));
+    const accScore = clamp(1 - accGap / 0.35, 0, 1);
+    const rtScore = clamp(1 - rtGap / 800, 0, 1);
+    score = 0.5 * indexScore + 0.25 * domainScore + 0.15 * accScore + 0.1 * rtScore;
+  }
   const fair = score >= MATCH_QUALITY_FAIR && indexGap <= FAIR_INDEX_GAP + 40 && domainGap <= FAIR_DOMAIN_GAP + 80;
   const playable = indexGap <= MAX_PLAYABLE_INDEX_GAP;
   const weakerId = a.fokusIndex <= b.fokusIndex ? a.id : b.id;
@@ -290,6 +358,7 @@ export function spectatorSummary(params: {
   state: BoutState;
   aliases: Record<string, string>;
   fairMatch: boolean | null;
+  readinessBand?: DuelReadinessBand | null;
 }): SpectatorSummary {
   const [idA, idB] = params.state.playerIds;
   const fighters: [SpectatorFighter, SpectatorFighter] = [
@@ -308,7 +377,8 @@ export function spectatorSummary(params: {
     winnerAlias: params.state.reason === 'draw' ? null : winnerAlias,
     fighters,
     closeFinish: gap <= 1,
-    fairMatch: params.fairMatch
+    fairMatch: params.fairMatch,
+    readinessBand: params.readinessBand ?? null
   };
 }
 
@@ -321,7 +391,8 @@ export function serializeSpectatorSummary(summary: SpectatorSummary): string {
     winnerAlias: summary.winnerAlias,
     fighters: summary.fighters,
     closeFinish: summary.closeFinish,
-    fairMatch: summary.fairMatch
+    fairMatch: summary.fairMatch,
+    readinessBand: parseReadinessBand(summary.readinessBand)
   });
 }
 
@@ -344,11 +415,17 @@ export function parseSpectatorSummary(raw: string | null | undefined): Spectator
         { alias: safeAlias(b.alias), points: Number(b.points) || 0 }
       ],
       closeFinish: !!data.closeFinish,
-      fairMatch: typeof data.fairMatch === 'boolean' ? data.fairMatch : null
+      fairMatch: typeof data.fairMatch === 'boolean' ? data.fairMatch : null,
+      readinessBand: parseReadinessBand(data.readinessBand)
     };
   } catch {
     return null;
   }
+}
+
+function parseReadinessBand(raw: unknown): DuelReadinessBand | null {
+  if (raw === 'not_ready' || raw === 'warming' || raw === 'ready' || raw === 'sharp') return raw;
+  return null;
 }
 
 export function describeMatch(quality: MatchQuality): string {
@@ -363,6 +440,89 @@ export function describeMatch(quality: MatchQuality): string {
     return `Неравный уровень · «${domain}». Слабейший начинает с ${quality.handicap} очка — без бонусов-ускорителей.`;
   }
   return `Схватка возможна в «${domain}», но это не зеркальный уровень.`;
+}
+
+export function assessDuelReadiness(params: {
+  domains: DomainIndex[];
+  sessions: Session[];
+  fokusIndex: number;
+}): DuelReadiness {
+  const form = recentFormFromSessions(params.sessions);
+  const readyDomains = params.domains.filter((d) => d.value > 0);
+  const abilityMean = readyDomains.length
+    ? readyDomains.reduce((sum, d) => sum + d.value, 0) / readyDomains.length
+    : 0;
+  form.domainAbility = Math.round(abilityMean);
+
+  const abilityNorm = clamp(abilityMean / 900, 0, 1);
+  const acc = form.accuracy ?? 0.5;
+  const rtScore = form.rtMs == null ? 0.5 : clamp(1 - (form.rtMs - 400) / 1500, 0, 1);
+  const items = params.sessions.slice(-4).flatMap((s) => s.items);
+  const accs = items.map((i) => i.accuracy).filter((n) => Number.isFinite(n));
+  const stability = accs.length >= 3 ? 1 - Math.min(1, coeffVar(accs)) : 0.5;
+
+  let fairness = 100 * (0.4 * abilityNorm + 0.3 * acc + 0.2 * rtScore + 0.1 * stability);
+  if (form.sample < 2) fairness *= 0.55;
+  if (readyDomains.length < 2) fairness *= 0.85;
+  fairness = clamp(Math.round(fairness), 0, 100);
+
+  const band = readinessBandFrom(fairness, form.sample);
+  const preferred = strongestDomain(params.domains);
+  const fairForSelf = fairness >= 55 && form.sample >= 2 && readyDomains.length >= 2;
+
+  return {
+    fairness,
+    band,
+    form,
+    preferredDomain: preferred,
+    fairForSelf,
+    evidence: `fi=${params.fokusIndex} acc=${form.accuracy?.toFixed(2) ?? 'n/a'} rt=${form.rtMs ?? 'n/a'} n=${form.sample}`
+  };
+}
+
+export function spectatorReadyChip(alias: string, readiness: DuelReadiness): SpectatorReadyChip {
+  return {
+    alias: safeAlias(alias),
+    ready: readiness.band === 'ready' || readiness.band === 'sharp',
+    band: readiness.band,
+    domain: readiness.preferredDomain
+  };
+}
+
+export function readinessLabel(band: DuelReadinessBand): string {
+  switch (band) {
+    case 'not_ready':
+      return 'Пока рано';
+    case 'warming':
+      return 'Форма греется';
+    case 'ready':
+      return 'К схватке';
+    case 'sharp':
+      return 'Форма собрана';
+  }
+}
+
+function readinessBandFrom(fairness: number, sample: number): DuelReadinessBand {
+  if (sample < 1 || fairness < 35) return 'not_ready';
+  if (fairness < 55) return 'warming';
+  if (fairness < 80) return 'ready';
+  return 'sharp';
+}
+
+function strongestDomain(domains: DomainIndex[]): string | null {
+  const ready = domains.filter((d) => d.value > 0);
+  if (!ready.length) return null;
+  const sorted = [...ready].sort((a, b) => b.value - a.value);
+  const id = sorted[0].domain;
+  return DOMAIN_ORDER.includes(id as (typeof DOMAIN_ORDER)[number]) ? id : sorted[0].domain;
+}
+
+function coeffVar(values: number[]): number {
+  if (values.length < 2) return 0;
+  const mean = values.reduce((s, n) => s + n, 0) / values.length;
+  if (mean <= 0) return 0;
+  const variance = values.reduce((s, n) => s + (n - mean) ** 2, 0) / values.length;
+  return Math.sqrt(variance) / mean;
 }
 
 export function formatCooldown(remainingMs: number): string {

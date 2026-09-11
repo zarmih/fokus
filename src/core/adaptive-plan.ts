@@ -12,6 +12,7 @@ import {
 import type { AdaptivePlan } from './engine';
 import type { Observation } from './engine/types';
 import type { DifficultyPick } from './engine';
+import { applyDifficultyFloor, assessRetention, type DifficultyFloor } from './retention';
 
 export function planForNow(opts?: {
   durationSec?: number;
@@ -19,8 +20,13 @@ export function planForNow(opts?: {
   nowMs?: number;
 }): AdaptivePlan {
   const profile = storage.getProfile();
+  const requested = opts?.durationSec ?? profile.sessionLengthSec;
+  const floor = tryCurrentFloor(requested, opts?.nowMs);
+  const durationSec = floor && floor.gapDays >= 2
+    ? Math.min(requested, floor.durationSec)
+    : requested;
   return buildAdaptivePlan({
-    durationSec: opts?.durationSec ?? profile.sessionLengthSec,
+    durationSec,
     catalog: registry as any,
     domains: storage.getDomains(),
     skills: storage.getSkills(),
@@ -54,12 +60,39 @@ export function currentModel(nowMs = Date.now()) {
 }
 
 export function difficultyFor(exerciseId: string, storedDifficulty: number): DifficultyPick {
-  return pickPlayDifficulty({
+  const pick = pickPlayDifficulty({
     model: currentModel(),
     catalog: currentCatalog(),
     exerciseId,
     storedDifficulty
   });
+  const floor = tryCurrentFloor(storage.getProfile().sessionLengthSec);
+  if (!floor || (floor.multiplier >= 1 && floor.delta <= 0)) return pick;
+  return { ...pick, difficulty: applyDifficultyFloor(pick.difficulty, floor) };
+}
+
+function tryCurrentFloor(sessionLengthSec: number, nowMs?: number): DifficultyFloor | null {
+  try {
+    const now = nowMs ? new Date(nowMs) : new Date();
+    const today = now.toISOString().slice(0, 10);
+    const ds = storage.getDaySummaries();
+    const sessions = storage.getSessions();
+    const playedToday = ds.some((d) => d.date.startsWith(today))
+      || sessions.some((s) => s.startedAt.startsWith(today));
+    const last = ds[ds.length - 1];
+    const snap = assessRetention({
+      daySummaries: ds,
+      sessions,
+      domains: storage.getDomains(),
+      playedToday,
+      streak: last?.streak ?? 0,
+      sessionLengthSec,
+      now
+    });
+    return snap.reengagement.floor;
+  } catch {
+    return null;
+  }
 }
 
 export function recordEngineObservation(obs: Observation, nowMs = Date.now()) {

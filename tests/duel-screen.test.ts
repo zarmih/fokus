@@ -27,6 +27,7 @@ test('duel screen shows matchmaking ticket without opening WebRTC', () => {
   expect(document.body.textContent).toMatch(/Билет подбора/);
   expect(document.body.textContent).toMatch(/Ничья при равном счёте/);
   expect(document.body.textContent).toMatch(/Реванш через 15 мин/);
+  expect(document.querySelector('[data-duel-ready]')).toBeTruthy();
   expect(document.body.textContent).not.toMatch(/нейрофитнес|лига чемпионов|прокачай/i);
   expect(document.querySelector('#btn-host')).toBeTruthy();
 });

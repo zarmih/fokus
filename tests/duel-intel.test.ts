@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   applyTick,
+  assessDuelReadiness,
   assignPoints,
   awardsPoint,
   BOUT_DURATION_SEC,
@@ -19,14 +20,17 @@ import {
   POINT_ACCURACY_THRESHOLD,
   preferredDuelDomain,
   rankOpponents,
+  readinessLabel,
   REMATCH_COOLDOWN_MS,
   rematchStatus,
   safeAlias,
   serializeSpectatorSummary,
   setPoints,
+  spectatorReadyChip,
   spectatorSummary,
   type Duelant
 } from '../src/core/duelIntel';
+import type { Session } from '../src/core/types';
 
 function duelant(over: Partial<Duelant> & Pick<Duelant, 'id' | 'fokusIndex'>): Duelant {
   return {
@@ -248,5 +252,99 @@ describe('spectator-safe summary', () => {
     const fair = describeMatch(matchQuality(duelant({ id: 'a', fokusIndex: 500 }), duelant({ id: 'b', fokusIndex: 505 })));
     expect(fair).toMatch(/Близкий уровень/);
     expect(fair).not.toMatch(/нейрофитнес|прокачай|brain|лига чемпионов/i);
+  });
+
+  test('optional readinessBand round-trips without PII', () => {
+    const raw = serializeSpectatorSummary({
+      boutId: 'bout-2',
+      domain: 'attention',
+      durationSec: 60,
+      outcome: 'win',
+      winnerAlias: 'Михаил',
+      fighters: [{ alias: 'Михаил', points: 3 }, { alias: 'Соперник', points: 1 }],
+      closeFinish: false,
+      fairMatch: true,
+      readinessBand: 'ready'
+    });
+    expect(raw).not.toMatch(/avgRt|userId|@|webrtc/i);
+    expect(parseSpectatorSummary(raw)?.readinessBand).toBe('ready');
+    expect(parseSpectatorSummary(serializeSpectatorSummary({
+      boutId: 'bout-3',
+      domain: 'memory',
+      durationSec: 60,
+      outcome: 'draw',
+      winnerAlias: null,
+      fighters: [{ alias: 'А', points: 1 }, { alias: 'Б', points: 1 }],
+      closeFinish: true,
+      fairMatch: null
+    }))?.readinessBand).toBeNull();
+  });
+});
+
+describe('G15 duel readiness', () => {
+  function boutSession(startedAt: string, accuracy: number, avgRtMs: number): Session {
+    return {
+      id: startedAt,
+      startedAt,
+      finishedAt: startedAt,
+      durationSec: 300,
+      items: [
+        { exerciseId: 'grid-memory', level: 3, accuracy, avgRtMs, score: 80 },
+        { exerciseId: 'stroop', level: 3, accuracy, avgRtMs, score: 80 }
+      ]
+    };
+  }
+
+  test('cold start is not ready for a fair fight', () => {
+    const ready = assessDuelReadiness({
+      domains: [],
+      sessions: [],
+      fokusIndex: 0
+    });
+    expect(ready.band).toBe('not_ready');
+    expect(ready.fairness).toBeLessThan(55);
+    expect(ready.fairForSelf).toBe(false);
+    expect(readinessLabel(ready.band)).not.toMatch(/нейрофитнес|прокачай|iq/i);
+  });
+
+  test('domain ability plus clean recent RT/accuracy is ready', () => {
+    const ready = assessDuelReadiness({
+      domains: [
+        { domain: 'attention', value: 780, updatedAt: '2026-09-11T10:00:00Z' },
+        { domain: 'memory', value: 740, updatedAt: '2026-09-11T10:00:00Z' },
+        { domain: 'speed', value: 720, updatedAt: '2026-09-11T10:00:00Z' }
+      ],
+      sessions: [
+        boutSession('2026-09-09T10:00:00Z', 0.9, 480),
+        boutSession('2026-09-10T10:00:00Z', 0.88, 500),
+        boutSession('2026-09-11T10:00:00Z', 0.91, 460)
+      ],
+      fokusIndex: 620
+    });
+    expect(['ready', 'sharp']).toContain(ready.band);
+    expect(ready.fairness).toBeGreaterThanOrEqual(55);
+    expect(ready.fairForSelf).toBe(true);
+    expect(ready.form.sample).toBe(3);
+    expect(ready.form.accuracy).toBeGreaterThan(0.8);
+  });
+
+  test('spectator chip never carries RT, ids or emails', () => {
+    const ready = assessDuelReadiness({
+      domains: [{ domain: 'attention', value: 700, updatedAt: 'x' }],
+      sessions: [boutSession('2026-09-11T10:00:00Z', 0.8, 600)],
+      fokusIndex: 500
+    });
+    const chip = spectatorReadyChip('ada@hidden.test', ready);
+    const blob = JSON.stringify(chip);
+    expect(chip.alias).toBe('ada');
+    expect(blob).not.toMatch(/avgRt|ada@|hidden\.test|userId|webrtc/i);
+    expect(chip).not.toHaveProperty('rtMs');
+    expect(chip).not.toHaveProperty('accuracy');
+  });
+
+  test('pairwise matchQuality stays on G4 weights without form samples', () => {
+    const q = matchQuality(duelant({ id: 'a', fokusIndex: 500 }), duelant({ id: 'b', fokusIndex: 505 }));
+    expect(q.fair).toBe(true);
+    expect(q.score).toBeGreaterThan(0.8);
   });
 });

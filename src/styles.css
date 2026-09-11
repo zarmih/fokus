@@ -1804,6 +1804,10 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
     transition-duration: 0ms;
   }
   .stroop-word, .eq-3d, .tile-3d, .grid-cell, .oo-btn { animation: none !important; }
+  .rhythm-chip, .duel-ready-badge {
+    animation: none !important;
+    transition: none;
+  }
 }
 
 /* G5 a11y + perf */
@@ -1894,6 +1898,35 @@ input, textarea, .onboard-input {
 .rhythm-line.band-watch { color: var(--accent-2); }
 .rhythm-line.band-at_risk { color: var(--accent); }
 .rhythm-line.band-critical { color: var(--danger); }
+.rhythm-chip {
+  display: block;
+  margin: -4px auto 14px;
+  padding: 8px 14px;
+  max-width: 28rem;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  line-height: 1.35;
+}
+.rhythm-chip.band-stable { border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+.rhythm-chip.band-watch { border-color: color-mix(in srgb, var(--accent-2) 40%, var(--line)); }
+.rhythm-chip.band-at_risk { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.rhythm-chip.band-critical { border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
+.duel-ready-badge {
+  display: inline-block;
+  margin: 4px 0 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+.duel-ready-badge.band-not_ready { color: var(--muted); }
+.duel-ready-badge.band-warming { color: var(--accent-2); }
+.duel-ready-badge.band-ready { color: var(--ok); }
+.duel-ready-badge.band-sharp { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
 .rhythm-card { margin-bottom: 24px; }
 .rhythm-value { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; }
 .rhythm-nudge { font-size: 14px; line-height: 1.4; color: var(--text); margin: 10px 0 16px; }

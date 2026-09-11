@@ -43,7 +43,84 @@ export interface RetentionSnapshot {
   primaryNudge: RetentionNudge | null;
   neglectedDomain: string | null;
   gapDays: number;
+  /** G15: explicit skip/churn probabilities + form. Does not replace `risk`. */
+  riskModel: RetentionRiskModel;
+  /** G15: 1–3 ritual steps + difficulty floor after a gap. */
+  reengagement: ReengagementPlan;
 }
+
+/** Recent session form. Higher score = cleaner last blocks, not an IQ proxy. */
+export interface SessionQuality {
+  /** 0–100. */
+  score: number;
+  accuracy: number | null;
+  rtMs: number | null;
+  sample: number;
+  evidence: string;
+}
+
+export interface SpacingGap {
+  lastGapDays: number;
+  meanGapDays: number;
+  /** Coefficient of variation of inter-session gaps (0 = metronome). */
+  irregularity: number;
+  activeDays: number;
+  evidence: string;
+}
+
+export interface StreakContinuity {
+  streak: number;
+  playedToday: boolean;
+  /** 0–1. 1 = series is intact today. */
+  continuity: number;
+  evidence: string;
+}
+
+export interface RetentionRiskModel {
+  /** P(miss the next ritual day), 0–1. */
+  skipProbability: number;
+  /** P(no session in the next 7 calendar days), 0–1. */
+  churnProbability: number;
+  quality: SessionQuality;
+  spacing: SpacingGap;
+  continuity: StreakContinuity;
+}
+
+export type RitualStepKind = NudgeKind | 'ease_in';
+
+export interface RitualStep {
+  dayOffset: 0 | 1 | 2;
+  kind: RitualStepKind;
+  title: string;
+  body: string;
+  durationSec: number;
+}
+
+export interface DifficultyFloor {
+  /** Multiply stored/engine difficulty. 1 = unchanged. */
+  multiplier: number;
+  /** Subtract from the 1–30 engine scale after the multiplier. */
+  delta: number;
+  durationSec: number;
+  gapDays: number;
+  reason: string;
+}
+
+export interface ReengagementPlan {
+  steps: RitualStep[];
+  floor: DifficultyFloor;
+}
+
+/** Transparent skip-logit coefficients. z = intercept + Σ coeff · feature. */
+export const SKIP_LOGIT = {
+  intercept: -1.35,
+  gap: 0.55,
+  quality: 0.9,
+  continuity: 0.4,
+  irregularity: 0.25,
+  playedToday: -0.55,
+  fatigue: 0.35
+} as const;
 
 export interface RetentionInput {
   daySummaries: DaySummary[];
@@ -168,6 +245,31 @@ export function assessRetention(input: RetentionInput): RetentionSnapshot {
 
   const band = bandFromRisk(risk);
   const neglectedDomain = neglect.domain;
+  const plannedSec = input.sessionLengthSec ?? 300;
+  const quality = scoreSessionQuality(sessions, plannedSec);
+  const spacing = scoreSpacing(summaries, sessions, today, gapDays);
+  const continuity = scoreContinuity(input.streak, input.playedToday, gapDays);
+  const skipProbability = skipChance({
+    gapDays,
+    quality: quality.score,
+    continuity: continuity.continuity,
+    irregularity: spacing.irregularity,
+    playedToday: input.playedToday,
+    fatigue: fatigue.score,
+    sampleDays
+  });
+  const churnProbability = churnChance({
+    skip: skipProbability,
+    gapDays,
+    quality: quality.score,
+    playedToday: input.playedToday,
+    sampleDays
+  });
+  const floor = difficultyFloorAfterGap({
+    gapDays,
+    quality: quality.score,
+    plannedSec
+  });
   const nudges = pickNudges({
     band,
     gapDays,
@@ -179,6 +281,16 @@ export function assessRetention(input: RetentionInput): RetentionSnapshot {
     fatigue: fatigue.score,
     neglectedDomain
   });
+  const reengagement = buildReengagementPlan({
+    band,
+    gapDays,
+    playedToday: input.playedToday,
+    fatigue: fatigue.score,
+    neglectedDomain,
+    quality: quality.score,
+    floor,
+    plannedSec
+  });
 
   return {
     risk,
@@ -189,7 +301,15 @@ export function assessRetention(input: RetentionInput): RetentionSnapshot {
     nudges,
     primaryNudge: nudges[0] ?? null,
     neglectedDomain,
-    gapDays
+    gapDays,
+    riskModel: {
+      skipProbability,
+      churnProbability,
+      quality,
+      spacing,
+      continuity
+    },
+    reengagement
   };
 }
 
@@ -218,6 +338,27 @@ export function sparkFromRetention(snap: RetentionSnapshot): SoftSpark | null {
     body: nudge.body,
     tone: NUDGE_TONE[nudge.kind]
   };
+}
+
+/**
+ * Lower stored/engine difficulty after a gap. Never raises it.
+ * Safe no-op when multiplier is 1 and delta is 0 (related PRs unmerged).
+ */
+export function applyDifficultyFloor(stored: number, floor: DifficultyFloor): number {
+  if (!Number.isFinite(stored)) return stored;
+  if (floor.multiplier >= 1 && floor.delta <= 0) return stored;
+  const next = stored * floor.multiplier - floor.delta;
+  return clamp(Math.round(next * 10) / 10, 1, stored);
+}
+
+/** One-liner for Today / Settings. No churn %, no IQ, no FOMO. */
+export function retentionChipText(snap: RetentionSnapshot): string {
+  const band = bandLabel(snap.band);
+  const step = snap.reengagement.steps[0];
+  if (step && snap.band !== 'stable') {
+    return `Ритм ${snap.rhythm} · ${band} · ${step.title.toLowerCase()}`;
+  }
+  return `Ритм ${snap.rhythm} · ${band}`;
 }
 
 function lastActiveDay(summaries: DaySummary[], sessions: Session[], playedToday: string | null): string | null {
@@ -435,6 +576,248 @@ function pickNudges(params: {
   return out.sort((a, b) => b.priority - a.priority).slice(0, 2);
 }
 
+function scoreSessionQuality(sessions: Session[], plannedSec: number): SessionQuality {
+  const recent = [...sessions].sort((a, b) => a.startedAt.localeCompare(b.startedAt)).slice(-4);
+  if (recent.length === 0) {
+    return { score: 55, accuracy: null, rtMs: null, sample: 0, evidence: 'no-sessions' };
+  }
+
+  let wSum = 0;
+  let qSum = 0;
+  let accSum = 0;
+  let accN = 0;
+  let rtSum = 0;
+  let rtN = 0;
+
+  recent.forEach((s, i) => {
+    const w = i + 1;
+    const acc = meanAccuracy(s.items);
+    const rt = meanRt(s.items);
+    const accPart = acc ?? 0.55;
+    const rtPart = rt == null ? 0.55 : rtComfort(rt);
+    const half = Math.max(60, plannedSec * 0.5);
+    const load = s.durationSec > 0 ? clamp(s.durationSec / half, 0.35, 1) : 0.45;
+    const q = 100 * (0.6 * accPart + 0.25 * rtPart + 0.15 * load);
+    qSum += q * w;
+    wSum += w;
+    if (acc !== null) {
+      accSum += acc;
+      accN += 1;
+    }
+    if (rt !== null) {
+      rtSum += rt;
+      rtN += 1;
+    }
+  });
+
+  return {
+    score: clamp(Math.round(qSum / Math.max(1, wSum)), 0, 100),
+    accuracy: accN ? accSum / accN : null,
+    rtMs: rtN ? Math.round(rtSum / rtN) : null,
+    sample: recent.length,
+    evidence: `n=${recent.length} acc=${accN ? (accSum / accN).toFixed(2) : 'n/a'} rt=${rtN ? Math.round(rtSum / rtN) : 'n/a'}`
+  };
+}
+
+function scoreSpacing(
+  summaries: DaySummary[],
+  sessions: Session[],
+  today: string,
+  gapDays: number
+): SpacingGap {
+  const days = uniqueActiveDays(summaries, sessions).filter((d) => d <= today).sort();
+  if (days.length === 0) {
+    return { lastGapDays: gapDays, meanGapDays: 0, irregularity: 0, activeDays: 0, evidence: 'none' };
+  }
+  const windowStart = addDays(today, -20);
+  const window = days.filter((d) => d >= windowStart);
+  const gaps: number[] = [];
+  for (let i = 1; i < window.length; i++) {
+    gaps.push(Math.max(1, daysBetween(window[i - 1], window[i])));
+  }
+  const meanGap = gaps.length ? gaps.reduce((a, b) => a + b, 0) / gaps.length : Math.max(gapDays, 1);
+  const variance = gaps.length > 1
+    ? gaps.reduce((sum, g) => sum + (g - meanGap) ** 2, 0) / gaps.length
+    : 0;
+  const cv = meanGap > 0 ? Math.sqrt(variance) / meanGap : 0;
+  return {
+    lastGapDays: gapDays,
+    meanGapDays: Math.round(meanGap * 10) / 10,
+    irregularity: clamp(Math.round(cv * 100) / 100, 0, 2),
+    activeDays: window.length,
+    evidence: `last=${gapDays} mean=${meanGap.toFixed(1)} cv=${cv.toFixed(2)} n=${window.length}`
+  };
+}
+
+function scoreContinuity(streak: number, playedToday: boolean, gapDays: number): StreakContinuity {
+  let continuity = 0;
+  if (streak <= 0) continuity = 0;
+  else if (playedToday) continuity = 1;
+  else if (gapDays <= 1) continuity = clamp(0.55 + Math.min(streak, 10) * 0.03, 0, 0.85);
+  else continuity = clamp(streak / (streak + gapDays * 3), 0, 0.45);
+  return {
+    streak,
+    playedToday,
+    continuity: Math.round(continuity * 100) / 100,
+    evidence: `streak=${streak} gap=${gapDays}`
+  };
+}
+
+function skipChance(params: {
+  gapDays: number;
+  quality: number;
+  continuity: number;
+  irregularity: number;
+  playedToday: boolean;
+  fatigue: number;
+  sampleDays: number;
+}): number {
+  const z =
+    SKIP_LOGIT.intercept
+    + SKIP_LOGIT.gap * (clamp(params.gapDays, 0, 10) / 4)
+    + SKIP_LOGIT.quality * (1 - params.quality / 100)
+    + SKIP_LOGIT.continuity * (1 - params.continuity)
+    + SKIP_LOGIT.irregularity * clamp(params.irregularity, 0, 1.5)
+    + (params.playedToday ? SKIP_LOGIT.playedToday : 0)
+    + SKIP_LOGIT.fatigue * (params.fatigue / 100);
+
+  let p = logistic(z);
+  if (params.sampleDays < 2 && params.gapDays < 3) {
+    p = Math.min(p, 0.16);
+  }
+  return round3(clamp(p, 0.04, 0.9));
+}
+
+function churnChance(params: {
+  skip: number;
+  gapDays: number;
+  quality: number;
+  playedToday: boolean;
+  sampleDays: number;
+}): number {
+  const remaining = params.playedToday ? 6 : 7;
+  const independent = 1 - Math.pow(1 - params.skip, Math.max(1, remaining));
+  const gapLift = clamp((params.gapDays - 1) * 0.07, 0, 0.38);
+  const qualityLift = params.quality < 42 ? 0.1 : params.quality < 55 ? 0.04 : 0;
+  let p = 0.5 * independent + 0.3 * params.skip + 0.2 * gapLift + qualityLift;
+  if (params.playedToday && params.quality >= 60 && params.gapDays === 0) p *= 0.55;
+  if (params.sampleDays < 2 && params.gapDays < 3) p = Math.min(p, 0.12);
+  return round3(clamp(p, 0.03, 0.92));
+}
+
+function difficultyFloorAfterGap(params: {
+  gapDays: number;
+  quality: number;
+  plannedSec: number;
+}): DifficultyFloor {
+  const { gapDays, quality, plannedSec } = params;
+  let multiplier = 1;
+  let delta = 0;
+  let durationSec = plannedSec;
+
+  if (gapDays >= 8) {
+    multiplier = 0.7;
+    delta = 4;
+    durationSec = Math.min(plannedSec, 240);
+  } else if (gapDays >= 5) {
+    multiplier = 0.78;
+    delta = 3;
+    durationSec = Math.min(plannedSec, 300);
+  } else if (gapDays >= 3) {
+    multiplier = 0.85;
+    delta = 2;
+    durationSec = Math.min(plannedSec, 300);
+  } else if (gapDays === 2) {
+    multiplier = 0.92;
+    delta = 1;
+    durationSec = Math.min(plannedSec, 300);
+  }
+
+  if (gapDays >= 2 && quality < 40) {
+    multiplier = Math.max(0.6, multiplier - 0.05);
+    delta += 1;
+  }
+
+  return {
+    multiplier,
+    delta,
+    durationSec,
+    gapDays,
+    reason: `gap=${gapDays}d quality=${quality} ×${multiplier} −${delta}`
+  };
+}
+
+function buildReengagementPlan(params: {
+  band: ChurnBand;
+  gapDays: number;
+  playedToday: boolean;
+  fatigue: number;
+  neglectedDomain: string | null;
+  quality: number;
+  floor: DifficultyFloor;
+  plannedSec: number;
+}): ReengagementPlan {
+  const steps: RitualStep[] = [];
+  const short = params.floor.durationSec;
+  const usual = params.plannedSec;
+
+  if (params.playedToday && params.fatigue >= 55) {
+    steps.push({
+      dayOffset: 0,
+      kind: 'rest',
+      title: 'Форма уже есть',
+      body: 'Ещё один заход сегодня скорее смажет точность. Завтра ритуал будет чище.',
+      durationSec: 0
+    });
+    steps.push({
+      dayOffset: 1,
+      kind: 'resume',
+      title: 'Завтра как обычно',
+      body: 'Короткий блок в привычное время важнее навёрстывания.',
+      durationSec: usual
+    });
+  } else if (!params.playedToday && params.gapDays >= 2) {
+    steps.push({
+      dayOffset: 0,
+      kind: 'ease_in',
+      title: 'Мягкий вход',
+      body: 'После паузы Fokus снизит сложность. Пять минут достаточно — навык не обнуляется.',
+      durationSec: short
+    });
+    steps.push({
+      dayOffset: 1,
+      kind: 'short_session',
+      title: 'Тот же короткий шаг',
+      body: 'Второй день подряд важнее длины. Сложность ещё не прыгает вверх.',
+      durationSec: short
+    });
+    if (params.gapDays >= 3) {
+      const stillGentle = params.quality < 45;
+      steps.push({
+        dayOffset: 2,
+        kind: params.neglectedDomain ? 'rebalance' : 'resume',
+        title: params.neglectedDomain ? 'Область ждала' : 'Вернуть обычный ритм',
+        body: params.neglectedDomain
+          ? `«${domainLabel(params.neglectedDomain)}» можно вернуть в план без марафона.`
+          : stillGentle
+            ? 'Сложность ещё держим ниже обычной — форма после паузы не любит скачка.'
+            : 'Если форма откликнулась, можно вернуться к привычной длине.',
+        durationSec: stillGentle ? short : usual
+      });
+    }
+  } else if (!params.playedToday && params.band !== 'stable') {
+    steps.push({
+      dayOffset: 0,
+      kind: 'short_session',
+      title: 'Короткий ритуал',
+      body: 'Сегодня достаточно короткого блока. Сложность подстроится сама.',
+      durationSec: Math.min(usual, 300)
+    });
+  }
+
+  return { steps: steps.slice(0, 3), floor: params.floor };
+}
+
 function lastDeltaDay(summaries: DaySummary[], domain: string): string | null {
   for (let i = summaries.length - 1; i >= 0; i--) {
     const delta = summaries[i].domainDeltas?.[domain];
@@ -465,6 +848,27 @@ function addDays(day: string, delta: number): string {
 function meanAccuracy(items: SessionItem[]): number | null {
   if (!items.length) return null;
   return items.reduce((sum, i) => sum + i.accuracy, 0) / items.length;
+}
+
+function meanRt(items: SessionItem[]): number | null {
+  const rts = items.map((i) => i.avgRtMs).filter((n) => n > 0);
+  if (!rts.length) return null;
+  return rts.reduce((sum, n) => sum + n, 0) / rts.length;
+}
+
+/** 400 ms → 1.0, 1800 ms → 0.0. Comfort of recent form, not an ability score. */
+function rtComfort(rtMs: number): number {
+  return clamp(1 - (rtMs - 400) / 1400, 0, 1);
+}
+
+function logistic(z: number): number {
+  if (z > 12) return 1;
+  if (z < -12) return 0;
+  return 1 / (1 + Math.exp(-z));
+}
+
+function round3(n: number): number {
+  return Math.round(n * 1000) / 1000;
 }
 
 function reactionTimeVariability(items: SessionItem[]): number {

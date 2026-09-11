@@ -10,11 +10,13 @@ import {
   FAIR_INDEX_GAP,
   POINT_ACCURACY_THRESHOLD,
   REMATCH_COOLDOWN_MS,
+  assessDuelReadiness,
   describeMatch,
   duelantFromLocal,
   formatCooldown,
   matchQuality,
   parseSpectatorSummary,
+  readinessLabel,
   rematchStatus,
   type Duelant
 } from '../../core/duelIntel';
@@ -35,16 +37,32 @@ export function renderDuel(container: HTMLElement) {
   }
 
   const lastBoutAt = lastSummary ? guessFinishedAt(lastSummary.boutId) : null;
+  const sessions = storage.getSessions();
   const self = duelantFromLocal({
     profile,
     fokusIndex: fi.value,
     domains,
-    lastBoutAt
+    lastBoutAt,
+    sessions
   });
   const cooldown = rematchStatus(lastBoutAt);
   const ticketDomain = strongestReadyDomain(self);
   const mirror = { ...self, id: 'preview', alias: 'Соперник', fokusIndex: self.fokusIndex };
   const preview = matchQuality(self, mirror, ticketDomain);
+
+  let readyHtml = '';
+  try {
+    const ready = assessDuelReadiness({
+      domains,
+      sessions,
+      fokusIndex: fi.value
+    });
+    if (fi.coverage > 0) {
+      readyHtml = `<span class="duel-ready-badge band-${ready.band}" data-duel-ready="${ready.band}">${readinessLabel(ready.band)}</span>`;
+    }
+  } catch {
+    readyHtml = '';
+  }
 
   const lastHtml = lastSummary ? `
     <div class="surface spectator-card" data-bout="${lastSummary.boutId}">
@@ -76,6 +94,7 @@ export function renderDuel(container: HTMLElement) {
         ? `${domainLabel(ticketDomain)} · честный коридор ±${FAIR_INDEX_GAP}`
         : 'После калибровки Fokus Index станет билетом подбора.'}</p>
       <p class="duel-fairness">${fi.coverage > 0 ? describeMatch(preview) : 'Пока нет соперников в вашей зоне — это не пустой лидерборд, а честный empty-state.'}</p>
+      ${readyHtml}
       <ul class="duel-rules">
         <li>До ${BOUT_TARGET_POINTS} очков · ${BOUT_DURATION_SEC} с</li>
         <li>Очко за точность ≥ ${Math.round(POINT_ACCURACY_THRESHOLD * 100)}%</li>
