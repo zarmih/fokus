@@ -1,7 +1,9 @@
 import { storage } from '../../core/storage';
-import { registry } from '../../exercises/registry';
-import { buildTrainingPlan } from '../../core/session-builder';
+import { catalog, getManifest } from '../../exercises/catalog';
+import { bindDialog } from '../a11y';
 import { navigateTo } from '../router';
+import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
+import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
 import { generateInsights } from '../../core/insights';
@@ -12,6 +14,8 @@ import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual, pickTransferTip } from '../../core/onboarding';
+import { assessRetention, bandLabel } from '../../core/retention';
+import { enterStage } from '../../core/motion';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -49,14 +53,9 @@ export function renderToday(container: HTMLElement) {
   const durationSec = ritual.inFirstWeek && ritual.ritualDay
     ? ritual.ritualDay.durationSec
     : profile.sessionLengthSec;
-  const plan = buildTrainingPlan({
-    durationSec,
-    catalog: registry as any,
-    domains,
-    skills,
-    states,
-    primaryGoal: (ritual.ritualDay && ritual.ritualDay.focusDomains[0]) || profile.primaryGoal
-  });
+  const plan = planForNow({ durationSec });
+  const recal = plan.recalibration;
+  const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
   const prevFi = previousFokusIndex(ds, new Date().toISOString());
@@ -67,11 +66,13 @@ export function renderToday(container: HTMLElement) {
     : 'Сбалансированная тренировка';
 
   const compositionHtml = plan.items.map((item, index) => {
-    const r = registry.find(x => x.manifest.id === item.exerciseId);
+    const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
-    return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="18" height="18" alt="">
-      <span>${r?.manifest.name}</span>
+    const slot = item.slot ? SLOT_LABEL[item.slot] : '';
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}">
+      <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
+      <span>${r?.name}</span>
+      ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
     </div>`;
   }).join('');
 
@@ -79,6 +80,10 @@ export function renderToday(container: HTMLElement) {
   const hello = hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
   const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
   const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
+
+  const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
+    ? (profile as { shieldCharges?: number }).shieldCharges
+    : undefined;
 
   const spark = getDailySpark({
     domains,
@@ -91,8 +96,31 @@ export function renderToday(container: HTMLElement) {
     streak,
     skippedYesterday,
     primaryGoal: profile.primaryGoal,
-    focusDomains: plan.focusDomains
+    focusDomains: plan.focusDomains,
+    shieldCharges
   });
+
+  let retentionHtml = '';
+  try {
+    const snap = assessRetention({
+      daySummaries: ds,
+      sessions,
+      domains,
+      playedToday,
+      streak,
+      skippedYesterday,
+      sessionLengthSec: profile.sessionLengthSec,
+      shieldCharges
+    });
+    if (profile.calibrated && snap.confidence >= 20) {
+      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
+        ? ` · ${snap.primaryNudge.title.toLowerCase()}`
+        : '';
+      retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
+    }
+  } catch {
+    retentionHtml = '';
+  }
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
   const topInsight = insights[0];
@@ -138,7 +166,7 @@ export function renderToday(container: HTMLElement) {
             </div>
             <div class="quest-count">${q.progress}/${q.target}</div>
           </div>
-          <div class="scale-track quest-track"><div class="scale-fill" style="width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
+          <div class="scale-track quest-track"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'};"></div></div>
         `;
       }).join('')}
     </div>
@@ -158,32 +186,44 @@ export function renderToday(container: HTMLElement) {
     `;
   }
 
+  const recalHtml = showRecal ? `
+    <div class="workout-card recal-card">
+      <div class="workout-kicker">Мягкая перекалибровка</div>
+      <h3>Обновить оценку</h3>
+      <p>${recal.summary || 'Короткая сверка, чтобы сложность снова попала в зону вызова. Серия не сбрасывается.'}</p>
+      <div class="recal-actions">
+        <button id="btn-recal" class="btn-primary" type="button">Пройти (~90 сек)</button>
+        <button id="btn-recal-later" class="btn-secondary" type="button">Позже</button>
+      </div>
+    </div>
+  ` : '';
+
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
         <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary">Пройти калибровку</button>
+        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done">
+      <div class="workout-card done fx-celebrate">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
-        <button id="btn-start" class="btn-secondary">Ещё одна сессия</button>
+        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
   } else {
     actionHtml = `
-      <div class="workout-card">
+      <div class="workout-card fx-enter">
         <div class="workout-kicker">Тренировка дня</div>
         <h3>${Math.floor(durationSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
     `;
   }
@@ -196,13 +236,15 @@ export function renderToday(container: HTMLElement) {
 
     ${heroHtml}
 
+    ${recalHtml}
+
     ${actionHtml}
 
     ${weekHtml}
 
     <div class="dashboard-widgets">
       <div class="stat-row">
-        <div class="stat-pill">
+        <div class="stat-pill fx-enter ${streak > 0 ? 'has-streak' : ''}">
           <div class="stat-num">${streak}</div>
           <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
         </div>
@@ -216,6 +258,7 @@ export function renderToday(container: HTMLElement) {
         </div>
       </div>
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
+      ${retentionHtml}
 
       <div class="insight-banner coach-${spark.tone}">
         <div class="insight-icon">💡</div>
@@ -253,6 +296,20 @@ export function renderToday(container: HTMLElement) {
     p.transferTipCursor = (p.transferTipCursor || 0) + 1;
     storage.setProfile(p);
   });
+  content.querySelector('#btn-recal')?.addEventListener('click', () => {
+    const items = (recal.probe.length ? recal.probe : [
+      { exerciseId: 'odd-one' },
+      { exerciseId: 'grid-memory' },
+      { exerciseId: 'stroop' }
+    ]).map((p) => ({ exerciseId: p.exerciseId }));
+    navigateTo('session', { mode: 'recalibration', items });
+  });
+  content.querySelector('#btn-recal-later')?.addEventListener('click', () => {
+    snoozeRecalibration();
+    renderToday(container);
+  });
+  const workout = content.querySelector('.workout-card') as HTMLElement | null;
+  if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
@@ -261,7 +318,7 @@ export function renderToday(container: HTMLElement) {
           mode: 'calibration',
           items: calibrationSessionItems({
             primaryGoal: profile.primaryGoal,
-            catalog: registry.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain, skills: [...r.manifest.skills] }))
+            catalog: catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain, skills: [...r.manifest.skills] }))
           })
         });
       } else {
@@ -274,7 +331,7 @@ export function renderToday(container: HTMLElement) {
       modal.className = 'modal-root';
       modal.innerHTML = `
         <div class="surface modal-card">
-          <h3>Как вы сегодня?</h3>
+          <h3 id="ls-title">Как вы сегодня?</h3>
           <p class="modal-lead">Необязательно. Помогает увидеть связь сна и результата.</p>
           <div class="modal-field">
             <div class="modal-label">Сон</div>
@@ -297,6 +354,14 @@ export function renderToday(container: HTMLElement) {
         </div>
       `;
       document.body.appendChild(modal);
+      const unbindDialog = bindDialog(modal, {
+        labelledBy: 'ls-title',
+        onClose: () => {
+          unbindDialog();
+          modal.remove();
+          startSession();
+        }
+      });
 
       let sleepVal: string | null = null;
       let stressVal: string | null = null;
@@ -333,12 +398,14 @@ export function renderToday(container: HTMLElement) {
           p.lastLifestyle = { sleep: sleepVal, stress: stressVal, date: todayStr };
           storage.setProfile(p);
         }
+        unbindDialog();
         modal.remove();
         startSession();
       };
 
       modal.querySelector('#btn-ls-done')?.addEventListener('click', closeAndStart);
       modal.querySelector('#btn-ls-skip')?.addEventListener('click', () => {
+        unbindDialog();
         modal.remove();
         startSession();
       });

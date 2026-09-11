@@ -1,9 +1,10 @@
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import type { Session } from '../../core/types';
-import { registry } from '../../exercises/registry';
+import { catalog, getManifest } from '../../exercises/catalog';
 import { storage } from '../../core/storage';
-import { buildTrainingPlan } from '../../core/session-builder';
+import { planForNow } from '../../core/adaptive-plan';
+import { SLOT_LABEL } from '../../core/engine';
 import { getLevelProgress } from '../../core/xp';
 import { ACHIEVEMENTS_DEF } from '../../core/achievements';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
@@ -12,11 +13,15 @@ import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
 import { precisionLabel } from '../../core/calibration';
 import { abilityCaption, pickTransferTip } from '../../core/onboarding';
+import { setScreenTitle } from '../a11y';
+import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 
-export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; unlocked?: string[] }) {
+export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'today', hideNav: true });
+  setScreenTitle(params.calibration ? 'Калибровка' : 'Результат');
   const session = params.session;
   const isCalibration = !!params.calibration;
+  const isRecalibration = !!params.recalibration;
 
   let totalScore = 0;
   let totalAcc = 0;
@@ -47,7 +52,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const leveledUp = lvl.currentLevel > lvlBefore.currentLevel;
 
   const itemsHtml = session.items.map(item => {
-    const ex = registry.find(r => r.manifest.id === item.exerciseId);
+    const ex = getManifest(item.exerciseId);
     const p = Math.round(item.performance || item.score * 10);
     const mBefore = item.masteryBefore || 0;
     const mAfter = item.masteryAfter || 0;
@@ -79,7 +84,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     return `
       <div class="result-block staggered-block">
         <div class="result-block-head">
-          <div class="result-ex">${ex?.manifest.name}</div>
+          <div class="result-ex">${ex?.name}</div>
           <div class="result-score">+${Math.round(item.score)}</div>
         </div>
         <div class="result-sub">Точность ${accPct}% · Форма ${p}</div>
@@ -152,22 +157,15 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     </div>
   ` : '';
 
-  const plan = buildTrainingPlan({
-    durationSec: 300,
-    catalog: registry as any,
-    domains: storage.getDomains(),
-    skills: storage.getSkills(),
-    states: storage.getExerciseStates(),
-    primaryGoal: storage.getProfile().primaryGoal
-  });
+  const plan = planForNow({ durationSec: profile.sessionLengthSec || 300 });
 
   const nextItem = plan.items[0];
-  const nextEx = nextItem ? registry.find(r => r.manifest.id === nextItem.exerciseId) : null;
+  const nextEx = nextItem ? getManifest(nextItem.exerciseId) : null;
   const nextHtml = nextEx ? `
     <div class="surface next-card">
       <h3>Следующий шаг</h3>
-      <p class="next-name">${nextEx.manifest.name}</p>
-      <p class="muted">${nextItem.reason}</p>
+      <p class="next-name">${nextEx.name}</p>
+      <p class="muted">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
     </div>
   ` : '';
 
@@ -185,15 +183,15 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     : '';
 
   content.innerHTML = `
-    <div class="result-hero" style="animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;">
-      <div class="result-kicker">${isCalibration ? 'Профиль готов' : 'Тренировка завершена'}</div>
-      <div class="result-big"><span class="xp-counter">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
-      <div class="muted">${isCalibration ? 'стартовая оценка · не IQ' : 'всего очков'}</div>
+    <div class="result-hero fx-celebrate" id="result-hero">
+      <div class="result-kicker">${isCalibration ? 'Профиль готов' : isRecalibration ? 'Оценка обновлена' : 'Тренировка завершена'}</div>
+      <div class="result-big"><span class="xp-counter" id="xp-counter" data-xp="${Math.round(totalScore)}">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
+      <div class="muted">${isCalibration ? 'стартовая оценка · не IQ' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
       ${compareHtml}
     </div>
 
-    ${leveledUp ? `<div class="level-up">Новый уровень ${lvl.currentLevel}</div>` : ''}
+    ${leveledUp ? `<div class="level-up fx-celebrate">Новый уровень ${lvl.currentLevel}</div>` : ''}
     ${unlockedHtml}
 
     ${fi.coverage > 0 ? `
@@ -229,6 +227,12 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       <button id="btn-done" class="btn-primary">Готово</button>
     </div>
   `;
+
+  const hero = content.querySelector('#result-hero') as HTMLElement | null;
+  if (hero) celebrate(hero);
+  const xpEl = content.querySelector('#xp-counter') as HTMLElement | null;
+  if (xpEl) animateCount(xpEl, totalScore);
+  playSessionCue(leveledUp || unlocked.length > 0 ? 'celebrate' : 'ritual');
 
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
   content.querySelector('#btn-share')?.addEventListener('click', async () => {

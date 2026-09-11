@@ -26,6 +26,33 @@ test('today shows calibration CTA before first session', () => {
   expect(app.textContent).toMatch(/Калибровка/);
   expect(app.textContent).toMatch(/Коуч/);
   expect(app.querySelector('#btn-start')).toBeTruthy();
+  expect(app.querySelector('.workout-card.fx-enter')).toBeTruthy();
+  expect(app.querySelectorAll('.ritual-fill').length).toBeGreaterThan(0);
+});
+
+test('today shows a rhythm line after a gap, without churn-panic copy', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+  const last = new Date();
+  last.setDate(last.getDate() - 4);
+  storage.addDaySummary({
+    date: last.toISOString(),
+    totalScore: 90,
+    domainDeltas: { attention: 5 },
+    streak: 3,
+    skipped: false
+  });
+  storage.setDomains([
+    { domain: 'attention', value: 700, trend: 0, updatedAt: last.toISOString() }
+  ]);
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  expect(app.textContent).toMatch(/Ритм/);
+  expect(app.querySelector('[data-rhythm]')).toBeTruthy();
+  expect(app.textContent).not.toMatch(/churn|не пропусти|прокачай мозг/i);
 });
 
 test('today shows first-week strip and transfer framing after probe', () => {

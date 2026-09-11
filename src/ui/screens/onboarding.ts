@@ -29,6 +29,7 @@ export function renderOnboarding(container: HTMLElement) {
 
     container.innerHTML = `
       <div class="onboard">
+        <div class="sr-only" aria-live="polite">Шаг ${step} из ${totalSteps}</div>
         <div class="onboard-dots" role="progressbar" aria-valuemin="1" aria-valuemax="${totalSteps}" aria-valuenow="${step}" aria-label="Шаг ${step} из ${totalSteps}">
           ${Array.from({ length: totalSteps }, (_, i) => `<span class="${i + 1 <= step ? 'on' : ''}"></span>`).join('')}
         </div>
@@ -66,7 +67,8 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 4 ? `
           <h1>Как к вам обращаться?</h1>
           <p class="onboard-lead">Необязательно. Имя остаётся только на этом устройстве.</p>
-          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Имя или ник" value="${displayName.replace(/"/g, '&quot;')}" autocomplete="nickname" />
+          <label class="sr-only" for="onboard-name">Имя или ник</label>
+          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Имя или ник" autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
         ` : ''}
         ${step === 5 ? `
           <h1>Как это работает</h1>
