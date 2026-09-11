@@ -134,7 +134,7 @@ function scoreCatalog(params: ComposeRitualParams & {
     score += goalPts;
 
     let diversity = 0;
-    if (selectedDomains.includes(item.domain)) diversity = -42;
+    if (selectedDomains.includes(item.domain)) diversity = -100;
     score += diversity;
 
     let repeat = 0;
@@ -142,12 +142,12 @@ function scoreCatalog(params: ComposeRitualParams & {
     const hoursSince = spacing.lastPlayedAt
       ? (nowMs - Date.parse(spacing.lastPlayedAt)) / 3600000
       : 999;
-    if (hoursSince < 10) repeat -= 48;
-    else if (hoursSince < 30) repeat -= 16;
+    if (hoursSince < 12) repeat -= 80;
+    else if (hoursSince < 36) repeat -= 40;
     score += repeat;
 
     let plateau = 0;
-    if ((state?.consecutivePlateau || 0) >= 3) plateau = -22;
+    if ((state?.consecutivePlateau || 0) >= 3) plateau = -40;
     score += plateau;
 
     let novelty = 0;
@@ -190,15 +190,15 @@ function reasonFor(args: {
   goal: string;
   itemDomain: DomainId;
 }): string {
-  if (args.plateau < 0) return 'Смена контекста для прорыва';
+  if (args.plateau < 0) return 'Смена фокуса для прорыва';
   if (args.wantedSlot === 'overdue' || args.slot === 'overdue') return SLOT_REASON.overdue;
   if (args.novelty > 0 && args.wantedSlot === 'fresh') return SLOT_REASON.fresh;
-  if (args.goalPts > 0 && args.need > 0.6) return 'Ваша цель и зона роста';
-  if (args.goalPts > 0) return 'Работа над вашей целью';
-  if (args.need > 0.7) return 'Укрепление слабой области';
+  if (args.goalPts > 0 && args.need > 0.6) return 'Идеально ложится на вашу цель и слабую зону';
+  if (args.goalPts > 0) return 'Главная цель на сегодня';
+  if (args.need > 0.7) return 'Подтягиваем слабую зону';
   if (args.wantedSlot === 'due' || args.slot === 'due') return SLOT_REASON.due;
   if (args.novelty > 0) return SLOT_REASON.fresh;
-  return 'Сбалансированная тренировка';
+  return 'Для баланса с другими задачами';
 }
 
 function pickWithExplore(ranked: ScoredCandidate[], rng: () => number): ScoredCandidate | null {
