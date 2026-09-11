@@ -1,16 +1,18 @@
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
-import { dispatch } from '../../exercises/dispatch';
+import { catalog, getManifest } from '../../exercises/catalog';
+import { loadExercise } from '../../exercises/load-exercise';
+import type { ExerciseModule } from '../../exercises/contract';
 import { scoreBlock } from '../../core/scoring';
 import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex, initializeExerciseStateFromCalibration, initializeSkillFromCalibration } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
-import { registry } from '../../exercises/registry';
 import { mapAccuracyToStartLevel } from '../../core/calibration';
 import { buildTrainingPlan } from '../../core/session-builder';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { SessionItem } from '../../core/types';
+import { announce, bindDialog, setScreenTitle } from '../a11y';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
   const {items, mode = 'normal'} = params;
@@ -38,7 +40,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       // Adaptive Session: re-evaluate the next item based on fresh results
       const plan = buildTrainingPlan({
         durationSec: timeLeft,
-        catalog: registry as any,
+        catalog,
         domains: storage.getDomains(),
         skills: storage.getSkills(),
         states: storage.getExerciseStates(),
@@ -51,34 +53,36 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
 
     const item = items[currentIndex];
-    const exDispatch = dispatch[item.exerciseId];
-    if (!exDispatch) {
+    const preview = getManifest(item.exerciseId);
+    if (!preview) {
       console.error('Unknown exercise', item.exerciseId);
       currentIndex++;
       renderCurrent();
       return;
     }
     
-    const manifest = exDispatch.manifest;
+    const manifest = preview;
+    const loadPromise = loadExercise(item.exerciseId);
+    setScreenTitle(manifest.name);
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
     if (!state) state = { exerciseId: item.exerciseId, level: mode === 'calibration' ? 3 : 1, difficulty: mode === 'calibration' ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
 
     const last = sessionResults[sessionResults.length - 1];
-    const lastEx = last ? registry.find(r => r.manifest.id === last.exerciseId) : null;
+    const lastEx = last ? getManifest(last.exerciseId) : null;
     const lastBanner = last && lastEx ? `
-      <div class="block-recap">
-        ${lastEx.manifest.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
+      <div class="block-recap" aria-live="polite">
+        ${lastEx.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
       </div>
     ` : '';
 
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
-          <button id="btn-back" class="btn-tiny">Назад</button>
-          <button id="btn-pause" class="btn-tiny">Пауза</button>
-          <button id="btn-restart" class="btn-tiny">Заново</button>
+          <button id="btn-back" class="btn-tiny" type="button">Назад</button>
+          <button id="btn-pause" class="btn-tiny" type="button">Пауза</button>
+          <button id="btn-restart" class="btn-tiny" type="button">Заново</button>
         </div>
-        <div class="session-timer" id="session-timer">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
+        <div class="session-timer" id="session-timer" role="timer" aria-live="off">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
         <div class="session-block-info">Блок ${currentIndex + 1} из ${items.length}</div>
       </div>
       ${lastBanner}
@@ -89,7 +93,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <p>${manifest.instruction}</p>
         <div class="instruction-meta">Блок ${currentIndex + 1} · уровень ${Math.floor(state.difficulty)}</div>
       </div>
-      <button id="btn-next" class="btn-primary">Начать</button>
+      <button id="btn-next" class="btn-primary" type="button">Начать</button>
       <div id="game-container" class="play-arena"></div>
     `;
 
@@ -103,17 +107,21 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       const btn = e.target as HTMLButtonElement;
       isPaused = !isPaused;
       btn.textContent = isPaused ? 'Прод.' : 'Пауза';
+      btn.setAttribute('aria-pressed', isPaused ? 'true' : 'false');
       let overlay = document.getElementById('pause-overlay');
       if (isPaused) {
         if (!overlay) {
           overlay = document.createElement('div');
           overlay.id = 'pause-overlay';
           overlay.className = 'pause-overlay';
+          overlay.setAttribute('role', 'status');
           overlay.innerHTML = '<div class="pause-card">Пауза</div>';
           document.getElementById('game-container')?.appendChild(overlay);
         }
+        announce('Пауза');
       } else {
         overlay?.remove();
+        announce('Продолжаем');
       }
     });
 
@@ -142,9 +150,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       
       const container = document.getElementById('game-container');
       if (!container) return;
-      
+      container.setAttribute('aria-busy', 'true');
+
+      const runBlock = (exDispatch: ExerciseModule) => {
+      container.removeAttribute('aria-busy');
       const countdown = document.createElement('div');
       countdown.className = 'count-overlay';
+      countdown.setAttribute('role', 'status');
+      countdown.setAttribute('aria-live', 'assertive');
       container.appendChild(countdown);
       
       let count = 3;
@@ -189,7 +202,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             const newLevel = mapAccuracyToStartLevel(res.accuracy);
             const domain = manifest.domain;
             const st = storage.getExerciseStates();
-            registry.filter(r => r.manifest.domain === domain).forEach(ex => {
+            catalog.filter(r => r.manifest.domain === domain).forEach(ex => {
               const idx = st.findIndex(s => s.exerciseId === ex.manifest.id);
               if (idx >= 0) {
                 st[idx].level = newLevel;
@@ -303,6 +316,12 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           startBlock();
         }
       }, 700);
+      };
+
+      loadPromise.then(runBlock).catch(() => {
+        currentIndex++;
+        renderCurrent();
+      });
     });
   };
 
@@ -391,18 +410,30 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     overlay.className = 'modal-root';
     overlay.innerHTML = `
       <div class="surface modal-card">
-        <h3>Похоже, внимание падает</h3>
+        <h3 id="fatigue-title">Похоже, внимание падает</h3>
         <p class="modal-lead">Два слабых блока подряд — это маркер усталости, не провала. Можно сохранить результат и остановиться.</p>
         <button id="btn-fatigue-end" class="btn-primary" type="button">Завершить сессию</button>
         <button id="btn-fatigue-go" class="btn-secondary" type="button">Продолжить</button>
       </div>
     `;
     document.body.appendChild(overlay);
+    const unbind = bindDialog(overlay, {
+      labelledBy: 'fatigue-title',
+      onClose: () => {
+        unbind();
+        overlay.remove();
+        fatigueCounter = 0;
+        currentIndex++;
+        renderCurrent();
+      }
+    });
     overlay.querySelector('#btn-fatigue-end')?.addEventListener('click', () => {
+      unbind();
       overlay.remove();
       finishSession();
     });
     overlay.querySelector('#btn-fatigue-go')?.addEventListener('click', () => {
+      unbind();
       overlay.remove();
       fatigueCounter = 0;
       currentIndex++;

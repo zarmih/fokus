@@ -12,6 +12,7 @@ export function renderOnboarding(container: HTMLElement) {
   const render = () => {
     container.innerHTML = `
       <div class="onboard">
+        <div class="sr-only" aria-live="polite">Шаг ${step} из ${totalSteps}</div>
         <div class="onboard-dots" aria-hidden="true">
           ${Array.from({ length: totalSteps }, (_, i) => `<span class="${i + 1 <= step ? 'on' : ''}"></span>`).join('')}
         </div>
@@ -30,7 +31,7 @@ export function renderOnboarding(container: HTMLElement) {
           <p class="onboard-lead">Это задаёт фокус ежедневной сессии. Можно сменить в настройках.</p>
           <div class="goal-grid">
             ${GOAL_COPY.map((g) => `
-              <button class="goal-card ${selectedGoal === g.id ? 'active' : ''}" data-goal="${g.id}" type="button">
+              <button class="goal-card ${selectedGoal === g.id ? 'active' : ''}" data-goal="${g.id}" type="button" aria-pressed="${selectedGoal === g.id ? 'true' : 'false'}">
                 <div class="goal-title">${g.title}</div>
                 <div class="goal-desc">${g.desc}</div>
               </button>
@@ -49,7 +50,8 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 4 ? `
           <h1>Как к вам обращаться?</h1>
           <p class="onboard-lead">Необязательно. Имя остаётся только на этом устройстве.</p>
-          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Имя или ник" value="${displayName.replace(/"/g, '&quot;')}" />
+          <label class="sr-only" for="onboard-name">Имя или ник</label>
+          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Имя или ник" autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
         ` : ''}
         ${step === 5 ? `
           <h1>Как это работает</h1>
@@ -90,6 +92,12 @@ export function renderOnboarding(container: HTMLElement) {
     nameInput?.addEventListener('input', () => {
       displayName = nameInput.value.trim();
     });
+
+    const heading = container.querySelector('h1') as HTMLElement | null;
+    if (heading) {
+      heading.tabIndex = -1;
+      heading.focus();
+    }
 
     container.querySelector('#btn-next')?.addEventListener('click', () => {
       if (nameInput) displayName = nameInput.value.trim();

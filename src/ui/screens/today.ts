@@ -1,5 +1,6 @@
 import { storage } from '../../core/storage';
-import { registry } from '../../exercises/registry';
+import { catalog, getManifest } from '../../exercises/catalog';
+import { bindDialog } from '../a11y';
 import { buildTrainingPlan } from '../../core/session-builder';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
@@ -45,7 +46,7 @@ export function renderToday(container: HTMLElement) {
   const sessions = storage.getSessions();
   const plan = buildTrainingPlan({
     durationSec: profile.sessionLengthSec,
-    catalog: registry as any,
+    catalog,
     domains,
     skills,
     states,
@@ -61,11 +62,11 @@ export function renderToday(container: HTMLElement) {
     : 'Сбалансированная тренировка';
 
   const compositionHtml = plan.items.map((item, index) => {
-    const r = registry.find(x => x.manifest.id === item.exerciseId);
+    const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
-    return `<div class="chip dom-${r?.manifest.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="18" height="18" alt="">
-      <span>${r?.manifest.name}</span>
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}">
+      <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
+      <span>${r?.name}</span>
     </div>`;
   }).join('');
 
@@ -132,7 +133,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
         <p>Три коротких блока, около 90 секунд. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary">Пройти калибровку</button>
+        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
       </div>
     `;
   } else if (playedToday) {
@@ -141,7 +142,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
-        <button id="btn-start" class="btn-secondary">Ещё одна сессия</button>
+        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
   } else {
@@ -150,7 +151,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Тренировка дня</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
     `;
   }
@@ -218,7 +219,7 @@ export function renderToday(container: HTMLElement) {
       modal.className = 'modal-root';
       modal.innerHTML = `
         <div class="surface modal-card">
-          <h3>Как вы сегодня?</h3>
+          <h3 id="ls-title">Как вы сегодня?</h3>
           <p class="modal-lead">Необязательно. Помогает увидеть связь сна и результата.</p>
           <div class="modal-field">
             <div class="modal-label">Сон</div>
@@ -241,6 +242,14 @@ export function renderToday(container: HTMLElement) {
         </div>
       `;
       document.body.appendChild(modal);
+      const unbindDialog = bindDialog(modal, {
+        labelledBy: 'ls-title',
+        onClose: () => {
+          unbindDialog();
+          modal.remove();
+          startSession();
+        }
+      });
 
       let sleepVal: string | null = null;
       let stressVal: string | null = null;
@@ -277,12 +286,14 @@ export function renderToday(container: HTMLElement) {
           p.lastLifestyle = { sleep: sleepVal, stress: stressVal, date: todayStr };
           storage.setProfile(p);
         }
+        unbindDialog();
         modal.remove();
         startSession();
       };
 
       modal.querySelector('#btn-ls-done')?.addEventListener('click', closeAndStart);
       modal.querySelector('#btn-ls-skip')?.addEventListener('click', () => {
+        unbindDialog();
         modal.remove();
         startSession();
       });

@@ -44,7 +44,7 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
   }).join('');
 
   return `
-    <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Когнитивный профиль">
+    <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Когнитивный профиль: ${slices.map((s) => `${domainLabel(s.id)} ${s.ready ? Math.round(s.value) : 'нет данных'}`).join(', ')}">
       ${rings}
       ${axes}
       <polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2"/>

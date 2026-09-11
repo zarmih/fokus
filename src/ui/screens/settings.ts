@@ -1,6 +1,7 @@
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
+import { applyDocumentLang } from '../a11y';
 
 export function renderSettings(container: HTMLElement) {
   const content = renderShell(container, { active: 'settings' });
@@ -11,38 +12,38 @@ export function renderSettings(container: HTMLElement) {
     
     <div class="surface" style="margin-top: 24px;">
       <h3 style="margin-bottom: 16px;">Длительность сессии</h3>
-      <div class="segmented" id="duration-segmented">
-        <button data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}">5 мин</button>
-        <button data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}">8 мин</button>
-        <button data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}">12 мин</button>
+      <div class="segmented" id="duration-segmented" role="radiogroup" aria-label="Длительность сессии">
+        <button type="button" role="radio" data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 300 ? 'true' : 'false'}">5 мин</button>
+        <button type="button" role="radio" data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 480 ? 'true' : 'false'}">8 мин</button>
+        <button type="button" role="radio" data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 720 ? 'true' : 'false'}">12 мин</button>
       </div>
     </div>
     
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Главная цель</h3>
-      <div class="segmented" id="goal-segmented" style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <button data-val="balance" class="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'active' : ''}">Баланс</button>
-        <button data-val="memory" class="${profile.primaryGoal === 'memory' ? 'active' : ''}">Память</button>
-        <button data-val="attention" class="${profile.primaryGoal === 'attention' ? 'active' : ''}">Внимание</button>
-        <button data-val="speed" class="${profile.primaryGoal === 'speed' ? 'active' : ''}">Скорость</button>
-        <button data-val="flexibility" class="${profile.primaryGoal === 'flexibility' ? 'active' : ''}">Гибкость</button>
-        <button data-val="logic" class="${profile.primaryGoal === 'logic' ? 'active' : ''}">Логика</button>
+      <div class="segmented" id="goal-segmented" role="radiogroup" aria-label="Главная цель" style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button type="button" role="radio" data-val="balance" class="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'active' : ''}" aria-checked="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'true' : 'false'}">Баланс</button>
+        <button type="button" role="radio" data-val="memory" class="${profile.primaryGoal === 'memory' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'memory' ? 'true' : 'false'}">Память</button>
+        <button type="button" role="radio" data-val="attention" class="${profile.primaryGoal === 'attention' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'attention' ? 'true' : 'false'}">Внимание</button>
+        <button type="button" role="radio" data-val="speed" class="${profile.primaryGoal === 'speed' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'speed' ? 'true' : 'false'}">Скорость</button>
+        <button type="button" role="radio" data-val="flexibility" class="${profile.primaryGoal === 'flexibility' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'flexibility' ? 'true' : 'false'}">Гибкость</button>
+        <button type="button" role="radio" data-val="logic" class="${profile.primaryGoal === 'logic' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'logic' ? 'true' : 'false'}">Логика</button>
       </div>
     </div>
     
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Тема</h3>
-      <div class="segmented" id="theme-segmented">
-        <button data-val="light" class="${profile.theme === 'light' ? 'active' : ''}">Светлая</button>
-        <button data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}">Тёмная</button>
+      <div class="segmented" id="theme-segmented" role="radiogroup" aria-label="Тема">
+        <button type="button" role="radio" data-val="light" class="${profile.theme === 'light' ? 'active' : ''}" aria-checked="${profile.theme === 'light' ? 'true' : 'false'}">Светлая</button>
+        <button type="button" role="radio" data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}" aria-checked="${profile.theme === 'dark' || !profile.theme ? 'true' : 'false'}">Тёмная</button>
       </div>
     </div>
 
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Язык / Language</h3>
-      <div class="segmented" id="lang-segmented">
-        <button data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}">Русский</button>
-        <button data-val="en" class="${profile.language === 'en' ? 'active' : ''}">English</button>
+      <div class="segmented" id="lang-segmented" role="radiogroup" aria-label="Language">
+        <button type="button" role="radio" data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}" aria-checked="${!profile.language || profile.language === 'ru' ? 'true' : 'false'}">Русский</button>
+        <button type="button" role="radio" data-val="en" class="${profile.language === 'en' ? 'active' : ''}" aria-checked="${profile.language === 'en' ? 'true' : 'false'}">English</button>
       </div>
     </div>
 
@@ -56,20 +57,20 @@ export function renderSettings(container: HTMLElement) {
 
     <div class="surface" id="install-container" style="display: none;">
       <h3 style="margin-bottom: 16px;">Установка</h3>
-      <button id="btn-install" class="btn-primary" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
+      <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
       <div style="font-size: 11px; color: var(--muted); text-align: center;">Для быстрого доступа без браузера</div>
     </div>
 
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Уведомления</h3>
-      <button id="btn-notifications" class="btn-secondary" style="width: 100%;">Разрешить уведомления</button>
+      <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Разрешить уведомления</button>
       <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
-      <div class="segmented" id="reminder-segmented">
-        <button data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}">08:00</button>
-        <button data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}">09:00</button>
-        <button data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}">12:00</button>
-        <button data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}">19:00</button>
-        <button data-val="off" class="${profile.reminderHour === null ? 'active' : ''}">Выкл</button>
+      <div class="segmented" id="reminder-segmented" role="radiogroup" aria-label="Напоминание">
+        <button type="button" role="radio" data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}" aria-checked="${profile.reminderHour === 8 ? 'true' : 'false'}">08:00</button>
+        <button type="button" role="radio" data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}" aria-checked="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'true' : 'false'}">09:00</button>
+        <button type="button" role="radio" data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}" aria-checked="${profile.reminderHour === 12 ? 'true' : 'false'}">12:00</button>
+        <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
+        <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
       </div>
       <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
     </div>
@@ -85,11 +86,12 @@ export function renderSettings(container: HTMLElement) {
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Данные</h3>
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-        <button id="btn-export" class="btn-primary" style="flex: 1;">Экспорт</button>
-        <button id="btn-import" class="btn-secondary" style="flex: 1;" onclick="document.getElementById('file-input').click()">Импорт</button>
-        <input type="file" id="file-input" accept=".json" style="display: none;">
+        <button id="btn-export" class="btn-primary" type="button" style="flex: 1;">Экспорт</button>
+        <button id="btn-import" class="btn-secondary" type="button" style="flex: 1;">Импорт</button>
+        <label class="sr-only" for="file-input">Файл импорта JSON</label>
+        <input type="file" id="file-input" accept=".json,application/json" style="display: none;">
       </div>
-      <button id="btn-reset" class="btn-secondary" style="width: 100%; margin-top: 12px; color: #f44336; border-color: #f44336;">Сбросить профиль</button>
+      <button id="btn-reset" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; color: #f44336; border-color: #f44336;">Сбросить профиль</button>
     </div>
     
     <div class="disclaimer">
@@ -97,11 +99,17 @@ export function renderSettings(container: HTMLElement) {
     </div>
   `;
 
+  const markRadio = (group: NodeListOf<Element>, active: Element) => {
+    group.forEach(b => {
+      b.classList.toggle('active', b === active);
+      b.setAttribute('aria-checked', b === active ? 'true' : 'false');
+    });
+  };
+
   const btns = content.querySelectorAll('#duration-segmented button');
   btns.forEach(btn => {
     btn.addEventListener('click', () => {
-      btns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      markRadio(btns, btn);
       const val = parseInt((btn as HTMLElement).dataset.val || '300', 10);
       const p = storage.getProfile();
       p.sessionLengthSec = val;
@@ -112,8 +120,7 @@ export function renderSettings(container: HTMLElement) {
   const tbtns = content.querySelectorAll('#theme-segmented button');
   tbtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      tbtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      markRadio(tbtns, btn);
       const val = (btn as HTMLElement).dataset.val as 'light' | 'dark';
       const p = storage.getProfile();
       p.theme = val;
@@ -125,8 +132,7 @@ export function renderSettings(container: HTMLElement) {
   const gbtns = content.querySelectorAll('#goal-segmented button');
   gbtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      gbtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      markRadio(gbtns, btn);
       const val = (btn as HTMLElement).dataset.val;
       const p = storage.getProfile();
       p.primaryGoal = val;
@@ -144,20 +150,20 @@ export function renderSettings(container: HTMLElement) {
   const lbtns = content.querySelectorAll('#lang-segmented button');
   lbtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      lbtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      markRadio(lbtns, btn);
       const val = (btn as HTMLElement).dataset.val;
       const p = storage.getProfile();
       p.language = val;
       storage.setProfile(p);
       import('../../core/i18n').then(({setLocale}) => {
         setLocale(val as 'ru' | 'en');
-        location.reload(); // Quick way to apply translations everywhere
+        applyDocumentLang(val);
+        location.reload();
       });
     });
   });
 
-  import('../../main').then(({ deferredPrompt }) => {
+  import('../../pwa-install').then(({ deferredPrompt }) => {
     const installContainer = document.getElementById('install-container');
     const btnInstall = document.getElementById('btn-install');
     if (deferredPrompt && installContainer && btnInstall) {
@@ -181,8 +187,7 @@ export function renderSettings(container: HTMLElement) {
   const rbtns = content.querySelectorAll('#reminder-segmented button');
   rbtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      rbtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      markRadio(rbtns, btn);
       const raw = (btn as HTMLElement).dataset.val;
       const p = storage.getProfile();
       p.reminderHour = raw === 'off' ? null : parseInt(raw || '9', 10);
@@ -214,6 +219,10 @@ export function renderSettings(container: HTMLElement) {
       }
     });
   }
+
+  document.getElementById('btn-import')?.addEventListener('click', () => {
+    document.getElementById('file-input')?.click();
+  });
 
   document.getElementById('btn-export')?.addEventListener('click', () => {
     const json = storage.exportJson();
