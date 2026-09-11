@@ -147,10 +147,10 @@ export function renderToday(container: HTMLElement) {
   } else {
     actionHtml = `
       <div class="workout-card">
-        <div class="workout-kicker">Тренировка дня</div>
+        <div class="workout-kicker">Дневной ритуал</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary">Начать сессию</button>
+        <button id="btn-start" class="btn-primary">Начать ритуал</button>
       </div>
     `;
   }
@@ -207,7 +207,13 @@ export function renderToday(container: HTMLElement) {
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
       if (!profile.calibrated) {
-        navigateTo('session', { mode: 'calibration', items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'stroop' }] });
+        navigateTo('session', { mode: 'calibration', items: [
+          { exerciseId: 'grid-memory' }, 
+          { exerciseId: 'odd-one' }, 
+          { exerciseId: 'pattern-next' }, 
+          { exerciseId: 'reaction-strike' }, 
+          { exerciseId: 'switch-rule' }
+        ] });
       } else {
         navigateTo('session', { mode: 'normal', items: plan.items });
       }

@@ -1,6 +1,8 @@
 import { renderShell } from '../shell';
 import { storage } from '../../core/storage';
 import { navigateTo } from '../router';
+import { registry } from '../../exercises/registry';
+import { buildTrainingPlan } from '../../core/session-builder';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -22,7 +24,7 @@ export function renderProgram(container: HTMLElement) {
       ` : `
         <div class="card" style="margin-bottom: 24px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 16px; border: 1px solid rgba(255,255,255,0.1);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h3 style="margin: 0;">Тренировка дня</h3>
+            <h3 style="margin: 0;">Дневной ритуал</h3>
             <span style="background: rgba(99, 102, 241, 0.2); color: #818cf8; padding: 4px 8px; border-radius: 12px; font-size: 12px; font-weight: 600;">
               Фаза ${profile.programPhase || 1}
             </span>
@@ -30,7 +32,7 @@ export function renderProgram(container: HTMLElement) {
           <p style="opacity: 0.8; font-size: 14px; margin: 0 0 16px 0; line-height: 1.5;">
             Ваша персональная программа готова. Начните сессию для улучшения отстающих навыков.
           </p>
-          <button id="btn-program-start" class="btn primary" style="width: 100%;">Начать тренировку</button>
+          <button id="btn-program-start" class="btn primary" style="width: 100%;">Начать ритуал</button>
         </div>
       `}
       
@@ -45,16 +47,28 @@ export function renderProgram(container: HTMLElement) {
   `;
 
   shell.querySelector('#btn-calibrate')?.addEventListener('click', () => {
-    // Fake calibration complete for skeleton
-    profile.calibrated = true;
-    profile.programPhase = 1;
-    profile.programStartDate = new Date().toISOString();
-    storage.setProfile(profile);
-    renderProgram(container);
+    navigateTo('session', { mode: 'calibration', items: [
+      { exerciseId: 'grid-memory' }, 
+      { exerciseId: 'odd-one' }, 
+      { exerciseId: 'pattern-next' }, 
+      { exerciseId: 'reaction-strike' }, 
+      { exerciseId: 'switch-rule' }
+    ] });
   });
 
   shell.querySelector('#btn-program-start')?.addEventListener('click', () => {
-    navigateTo('session', { mode: 'daily' });
+    const domains = storage.getDomains();
+    const skills = storage.getSkills();
+    const states = storage.getExerciseStates();
+    const plan = buildTrainingPlan({
+      durationSec: profile.sessionLengthSec,
+      catalog: registry as any,
+      domains,
+      skills,
+      states,
+      primaryGoal: profile.primaryGoal
+    });
+    navigateTo('session', { mode: 'normal', items: plan.items });
   });
 
   shell.querySelector('#btn-catalog')?.addEventListener('click', () => {
