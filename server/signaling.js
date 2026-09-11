@@ -60,8 +60,8 @@ wss.on('connection', (ws) => {
           }
           break;
       }
-    } catch (e) {
-      console.error('Failed to parse message', e);
+    } catch {
+      console.error('Failed to parse signaling message');
     }
   });
 

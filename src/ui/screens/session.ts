@@ -5,6 +5,7 @@ import { scoreBlock } from '../../core/scoring';
 import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex, initializeExerciseStateFromCalibration, initializeSkillFromCalibration } from '../../core/adaptive';
 import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
+import { safeError } from '../../core/log';
 import { registry } from '../../exercises/registry';
 import { mapAccuracyToStartLevel } from '../../core/calibration';
 import { buildTrainingPlan } from '../../core/session-builder';
@@ -53,7 +54,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const item = items[currentIndex];
     const exDispatch = dispatch[item.exerciseId];
     if (!exDispatch) {
-      console.error('Unknown exercise', item.exerciseId);
+      safeError('Unknown exercise', item.exerciseId);
       currentIndex++;
       renderCurrent();
       return;

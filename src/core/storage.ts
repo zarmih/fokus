@@ -1,12 +1,25 @@
 import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem } from './types';
+import { safeError } from './log';
+import {
+  APP_STATE_KEY,
+  inventoryLocalData,
+  listFokusKeys,
+  redactExportJson,
+  resetProgressState,
+  stripPii,
+  wipeFokusKeys,
+  type InventoryReport,
+  type PiiKind
+} from './privacy';
 
 export const CURRENT_SCHEMA_VERSION = 3;
-export const STORAGE_KEY = 'fokus.v1';
+export const STORAGE_KEY = APP_STATE_KEY;
 
 export interface StorageBackend {
   getItem(key: string): string | null;
   setItem(key: string, value: string): void;
   removeItem(key: string): void;
+  keys?(): string[];
 }
 
 const defaultProfile: Profile = {
@@ -66,7 +79,7 @@ export class Storage {
         this.backend.setItem(STORAGE_KEY, JSON.stringify(parsed));
       }
     } catch (e) {
-      console.error('Storage migration failed', e);
+      safeError('Storage migration failed', e);
     }
   }
 
@@ -122,8 +135,9 @@ export class Storage {
     this.saveState(s); 
   }
 
-  exportJson(): string {
-    return this.backend.getItem(STORAGE_KEY) || JSON.stringify(defaultState);
+  exportJson(options?: { redact?: boolean }): string {
+    const raw = this.backend.getItem(STORAGE_KEY) || JSON.stringify(defaultState);
+    return options?.redact ? redactExportJson(raw) : raw;
   }
   importJson(json: string): boolean {
     try {
@@ -139,16 +153,50 @@ export class Storage {
     }
   }
 
+  listFokusKeys(): string[] {
+    return listFokusKeys(this.backend);
+  }
+
+  inventory(): InventoryReport {
+    return inventoryLocalData(this.backend);
+  }
+
+  clearPii(kinds: PiiKind[]) {
+    this.saveState(stripPii(this.getState(), kinds));
+  }
+
+  resetProgress() {
+    this.saveState(resetProgressState(this.getState(), { schemaVersion: CURRENT_SCHEMA_VERSION }));
+  }
+
   reset() {
-    this.backend.removeItem(STORAGE_KEY);
+    wipeFokusKeys(this.backend);
   }
 }
 
 const fallbackStorage: StorageBackend = {
   getItem: () => null,
   setItem: () => {},
-  removeItem: () => {}
+  removeItem: () => {},
+  keys: () => []
 };
+
+function enumerateKeys(backend: StorageBackend): string[] {
+  if (typeof backend.keys === 'function') return backend.keys();
+  try {
+    if (typeof window !== 'undefined' && window.localStorage && backend === window.localStorage) {
+      const out: string[] = [];
+      for (let i = 0; i < window.localStorage.length; i++) {
+        const key = window.localStorage.key(i);
+        if (key) out.push(key);
+      }
+      return out;
+    }
+  } catch {
+    /* blocked */
+  }
+  return [];
+}
 
 function liveBackend(): StorageBackend {
   try {
@@ -162,5 +210,6 @@ function liveBackend(): StorageBackend {
 export const storage = new Storage({
   getItem: (key) => liveBackend().getItem(key),
   setItem: (key, value) => liveBackend().setItem(key, value),
-  removeItem: (key) => liveBackend().removeItem(key)
+  removeItem: (key) => liveBackend().removeItem(key),
+  keys: () => enumerateKeys(liveBackend())
 });

@@ -11,6 +11,7 @@ import { applyTheme } from './ui/theme';
 import { initI18n } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 import { unlockAudio } from './core/audio';
+import { safeError } from './core/log';
 
 export let deferredPrompt: any = null;
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -31,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (import.meta.env.PROD) {
         navigator.serviceWorker
           .register(`${import.meta.env.BASE_URL}sw.js`)
-          .catch((err) => console.error('SW reg failed', err));
+          .catch((err) => safeError('SW reg failed', err));
       } else {
         navigator.serviceWorker.getRegistrations().then((regs) => {
           regs.forEach((r) => r.unregister());
@@ -51,12 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       renderToday(app);
     }
-  } catch (e: any) {
+  } catch (e: unknown) {
     app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
       <h3>Ошибка инициализации</h3>
-      <p>${e?.message || e}</p>
+      <p>Не удалось прочитать локальные данные. Они остаются на этом устройстве и никуда не отправлялись.</p>
     </div>`;
-    console.error(e);
+    safeError('init failed', e);
   }
 });
 
@@ -76,11 +77,11 @@ window.addEventListener('navigate', (e: any) => {
     else if (screenId === 'weekly-review') {
       import('./ui/screens/weekly-review').then(m => m.renderWeeklyReview(app));
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
       <h3>Ошибка навигации</h3>
-      <p>${err?.message || err}</p>
+      <p>Экран не открылся. Данные на устройстве не менялись.</p>
     </div>`;
-    console.error(err);
+    safeError('navigate failed', err);
   }
 });
