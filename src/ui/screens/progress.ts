@@ -1,11 +1,12 @@
 import { generateInsights } from "../../core/insights";
-import { buildTrainingPlan } from "../../core/session-builder";
+import { planWithRecovery } from "../../core/recovery";
 import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { registry } from '../../exercises/registry';
 import { renderScatterPlot, renderRadarChart } from '../components/charts';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
+import { renderQualityCard } from '../components/quality-card';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -170,14 +171,18 @@ export function renderProgress(container: HTMLElement) {
   // Next Step Block
   
   const profile = storage.getProfile();
-  const plan = buildTrainingPlan({
+  const ritual = planWithRecovery({
     durationSec: profile.sessionLengthSec || 300,
     catalog: registry as any,
     domains,
     skills,
     states: exStates,
-    primaryGoal: profile.primaryGoal
+    primaryGoal: profile.primaryGoal,
+    sessions: storage.getSessions(),
+    daySummaries: ds,
+    recoveryHintsEnabled: profile.recoveryHints !== false
   });
+  const plan = ritual.plan;
 
   let nextStepHtml = '';
   if (plan.items.length > 0) {
@@ -249,6 +254,7 @@ export function renderProgress(container: HTMLElement) {
       <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
     </div>
     ${fiHtml}
+    ${renderQualityCard(ritual.snapshot, { detailed: true })}
     ${insightHtml}
     ${nextStepHtml}
     

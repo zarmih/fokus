@@ -1138,6 +1138,79 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .quest-count { font-size: 12px; font-weight: 700; color: var(--muted); }
 .quest-track { height: 6px; margin: 0 0 12px; }
 
+/* Session quality + recovery (G8) */
+.quality-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
+.quality-card.tone-rest-light { border-left-color: var(--accent-2); }
+.quality-card.tone-push-hard { border-left-color: var(--ok); }
+.quality-card.tone-steady { border-left-color: var(--accent); }
+.quality-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.quality-kicker {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 700;
+}
+.quality-value {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+.quality-meta, .quality-load, .quality-weight {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.quality-spark { color: var(--accent); flex-shrink: 0; }
+.quality-hint {
+  margin: 12px 0 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.quality-breakdown {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.quality-break-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+}
+.quality-track { height: 6px; margin-top: 6px; }
+.quality-note {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.quality-explainer p { margin-bottom: 10px; }
+.quality-explainer p:last-child { margin-bottom: 0; }
+.workout-card.rest-light {
+  background: linear-gradient(180deg, var(--accent-2-glow) 0%, var(--surface) 52%);
+  border-color: var(--accent-2-glow);
+}
+
 /* Result */
 .result-hero { text-align: center; padding: 12px 0 20px; }
 .result-kicker { font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 8px; }

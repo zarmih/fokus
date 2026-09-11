@@ -7,19 +7,23 @@ import { nextStreak } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
 import { mapAccuracyToStartLevel } from '../../core/calibration';
-import { buildTrainingPlan } from '../../core/session-builder';
+import { planWithRecovery } from '../../core/recovery';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
-import type { SessionItem } from '../../core/types';
+import type { Session, SessionEndReason, SessionItem } from '../../core/types';
 
-export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[]}) {
+export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string}[], durationSec?: number}) {
   const {items, mode = 'normal'} = params;
   let currentIndex = 0;
   const sessionResults: SessionItem[] = [];
   const domainDeltas: Record<string, number> = {};
   const sessionStartedAt = new Date().toISOString();
   let timerInterval: any;
-  let timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+  const plannedDuration = mode === 'calibration'
+    ? items.length * 30
+    : (params.durationSec || storage.getProfile().sessionLengthSec);
+  let timeLeft = plannedDuration;
+  let sessionEndReason: SessionEndReason = 'completed';
   let blockTimeLeft = mode === 'calibration' ? 30 : timeLeft;
   let isPaused = false;
   let currentCleanup: any = null;
@@ -36,15 +40,19 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     if (mode === 'normal' && currentIndex > 0) {
       // Adaptive Session: re-evaluate the next item based on fresh results
-      const plan = buildTrainingPlan({
+      const profile = storage.getProfile();
+      const ritual = planWithRecovery({
         durationSec: timeLeft,
         catalog: registry as any,
         domains: storage.getDomains(),
         skills: storage.getSkills(),
         states: storage.getExerciseStates(),
-        primaryGoal: storage.getProfile().primaryGoal
+        primaryGoal: profile.primaryGoal,
+        sessions: storage.getSessions(),
+        daySummaries: storage.getDaySummaries(),
+        recoveryHintsEnabled: profile.recoveryHints !== false
       });
-      const nextItem = plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
+      const nextItem = ritual.plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
       if (nextItem) {
         items[currentIndex].exerciseId = nextItem.exerciseId;
       }
@@ -96,6 +104,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     document.getElementById('btn-back')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
       clearInterval(timerInterval);
+      if (mode === 'normal' && sessionResults.length > 0) {
+        persistAbandonedSession();
+      }
       navigateTo(mode === 'practice' ? 'trainers' : 'today');
     });
 
@@ -119,7 +130,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
-      timeLeft = mode === 'calibration' ? items.length * 30 : storage.getProfile().sessionLengthSec;
+      timeLeft = plannedDuration;
       const t = document.getElementById('session-timer');
       if (t) {
         t.textContent = `${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}`;
@@ -326,13 +337,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
 
     const finishedAt = new Date().toISOString();
-    const duration = storage.getProfile().sessionLengthSec - timeLeft;
-    const s = {
+    const duration = Math.max(0, plannedDuration - timeLeft);
+    const s: Session = {
       id: Date.now().toString(),
       startedAt: sessionStartedAt,
       finishedAt,
       durationSec: duration,
-      items: sessionResults
+      items: sessionResults,
+      interrupted: false,
+      endReason: sessionEndReason,
+      plannedDurationSec: plannedDuration
     };
     storage.addSession(s);
 
@@ -386,6 +400,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     navigateTo('result', { session: s, unlocked });
   };
 
+  function persistAbandonedSession() {
+    const duration = Math.max(0, plannedDuration - timeLeft);
+    storage.addSession({
+      id: Date.now().toString(),
+      startedAt: sessionStartedAt,
+      finishedAt: null,
+      durationSec: duration,
+      items: sessionResults,
+      interrupted: true,
+      endReason: 'abandoned',
+      plannedDurationSec: plannedDuration
+    });
+  }
+
   function showFatiguePrompt() {
     const overlay = document.createElement('div');
     overlay.className = 'modal-root';
@@ -400,6 +428,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     document.body.appendChild(overlay);
     overlay.querySelector('#btn-fatigue-end')?.addEventListener('click', () => {
       overlay.remove();
+      sessionEndReason = 'fatigue';
       finishSession();
     });
     overlay.querySelector('#btn-fatigue-go')?.addEventListener('click', () => {

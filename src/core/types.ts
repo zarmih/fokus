@@ -18,6 +18,8 @@ export interface Profile {
   reminderHour?: number | null;
   skipLifestylePrompt?: boolean;
   displayName?: string;
+  /** When false, Today ignores the recovery gate. Default true. */
+  recoveryHints?: boolean;
 }
 
 export interface SkillIndex {
@@ -64,12 +66,18 @@ export interface SessionItem {
   confidenceAfter?: number;
   progressionState?: string;
 }
+export type SessionEndReason = 'completed' | 'fatigue' | 'timeout' | 'abandoned';
+
 export interface Session {
   id: string;
   startedAt: string;
   finishedAt: string | null;
   durationSec: number;
   items: SessionItem[];
+  /** User left before finishing. Older sessions omit this; infer from finishedAt. */
+  interrupted?: boolean;
+  endReason?: SessionEndReason;
+  plannedDurationSec?: number;
 }
 export interface HistoryItem {
   date: string;

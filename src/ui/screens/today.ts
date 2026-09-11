@@ -1,6 +1,6 @@
 import { storage } from '../../core/storage';
 import { registry } from '../../exercises/registry';
-import { buildTrainingPlan } from '../../core/session-builder';
+import { planWithRecovery } from '../../core/recovery';
 import { navigateTo } from '../router';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -10,6 +10,7 @@ import { getDailySpark } from '../../core/coach';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
+import { renderQualityCard } from '../components/quality-card';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -43,14 +44,19 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
-  const plan = buildTrainingPlan({
+  const ritual = planWithRecovery({
     durationSec: profile.sessionLengthSec,
     catalog: registry as any,
     domains,
     skills,
     states,
-    primaryGoal: profile.primaryGoal
+    primaryGoal: profile.primaryGoal,
+    sessions,
+    daySummaries: ds,
+    recoveryHintsEnabled: profile.recoveryHints !== false
   });
+  const plan = ritual.plan;
+  const ritualDuration = ritual.snapshot.durationSec;
 
   const fi = computeFokusIndex(domains);
   const prevFi = previousFokusIndex(ds, new Date().toISOString());
@@ -145,10 +151,11 @@ export function renderToday(container: HTMLElement) {
       </div>
     `;
   } else {
+    const rest = ritual.snapshot.gate.active;
     actionHtml = `
-      <div class="workout-card">
-        <div class="workout-kicker">Тренировка дня</div>
-        <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
+      <div class="workout-card ${rest ? 'rest-light' : ''}">
+        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
+        <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary">Начать сессию</button>
       </div>
@@ -162,6 +169,8 @@ export function renderToday(container: HTMLElement) {
     </div>
 
     ${heroHtml}
+
+    ${renderQualityCard(ritual.snapshot)}
 
     ${actionHtml}
 
@@ -209,7 +218,7 @@ export function renderToday(container: HTMLElement) {
       if (!profile.calibrated) {
         navigateTo('session', { mode: 'calibration', items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'stroop' }] });
       } else {
-        navigateTo('session', { mode: 'normal', items: plan.items });
+        navigateTo('session', { mode: 'normal', items: plan.items, durationSec: ritualDuration });
       }
     };
 
