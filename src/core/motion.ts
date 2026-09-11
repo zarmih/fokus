@@ -57,7 +57,7 @@ export function celebrate(el: HTMLElement): void {
 
 export function playSessionCue(kind: MotionCue, extra?: number): void {
   try {
-    playCue(kind, extra);
+    playCue(kind, extra ?? 1);
   } catch {
     /* audio layer is optional */
   }

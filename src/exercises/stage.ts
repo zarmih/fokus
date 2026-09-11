@@ -1,5 +1,7 @@
-import { nextCombo, playCue } from '../core/audio';
-import { prefersReducedMotion } from '../core/motion';
+import { comboAtMilestone, nextCombo, playCombo, playHit, playMiss } from '../core/audio';
+import { vibrateForCue } from '../core/haptics';
+import { detectReducedMotion, readSoundPrefs } from '../core/soundscape';
+import { storage } from '../core/storage';
 
 export interface PlayStage {
   root: HTMLElement;
@@ -11,7 +13,15 @@ export interface PlayStage {
   cleanup(): void;
 }
 
-const reduced = prefersReducedMotion;
+const reduced = () => detectReducedMotion();
+
+function cuePrefs() {
+  try {
+    return readSoundPrefs(storage.getProfile(), detectReducedMotion());
+  } catch {
+    return readSoundPrefs({ soundOn: true, hapticsOn: true }, detectReducedMotion());
+  }
+}
 
 export function mountStage(container: HTMLElement, domain = 'attention'): PlayStage {
   container.innerHTML = '';
@@ -77,7 +87,8 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
   };
   if (!reduced()) raf = requestAnimationFrame(tick);
 
-  const burst = (ok = true, origin?: { x: number; y: number }) => {
+  const burst = (ok = true, origin?: { x: number; y: number }, opts?: { haptic?: boolean }) => {
+    if (opts?.haptic !== false) vibrateForCue(ok ? 'hit' : 'miss', cuePrefs());
     if (reduced() || !ctx) return;
     const rect = root.getBoundingClientRect();
     const x = origin?.x ?? rect.width / 2;
@@ -95,9 +106,6 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
         r: 1.5 + Math.random() * 2.5
       });
     }
-    try {
-      navigator.vibrate?.(ok ? 12 : 28);
-    } catch { /* ignore */ }
   };
 
   const showCombo = (n: number) => {
@@ -115,16 +123,16 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
   const pulse = (ok: boolean) => {
     combo = nextCombo(combo, ok);
     if (ok) {
-      playCue('hit', combo);
-      if (combo === 3 || combo === 5 || combo === 8 || combo === 12) playCue('combo', combo);
+      playHit(combo);
+      if (comboAtMilestone(combo)) playCombo(combo);
     } else {
-      playCue('miss');
+      playMiss();
     }
     showCombo(combo);
     root.classList.remove('pulse-ok', 'pulse-bad');
     void root.offsetWidth;
     root.classList.add(ok ? 'pulse-ok' : 'pulse-bad');
-    burst(ok);
+    burst(ok, undefined, { haptic: false });
   };
 
   return {

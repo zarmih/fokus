@@ -64,6 +64,8 @@ const defaultProfile: Profile = {
   createdAt: new Date().toISOString(),
   sessionLengthSec: 300,
   soundOn: true,
+  soundVolume: 1,
+  hapticsOn: true,
   onboarded: false,
   theme: typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark',
   locale: 'ru',

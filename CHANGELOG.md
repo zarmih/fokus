@@ -1,4 +1,9 @@
 # Changelog
+## [G12] - Soundscape + haptics
+- Именованный Web Audio cue graph: tap / hit / miss / combo / ritual / celebrate
+- Громкость и mute через master GainNode; слайдер в настройках
+- Синхронизация flourish-сигналов с `prefers-reduced-motion`
+- Опциональные vibrate-хуки (`hapticsOn`), без зависимости от mute
 ## [0.5.1] - Session quality & recovery
 - Качество ритуала (0–100) из точности, стабильности реакции, сложности, завершённости и обрывов — не «балл мозга»
 - Короткий горизонт нагрузки (EWMA) и подсказка rest-light / steady / push-hard на экране «Сегодня»
