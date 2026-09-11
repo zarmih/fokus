@@ -21,8 +21,10 @@ import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, bandLabel } from '../../core/retention';
+import { adviseNextLoad } from '../../core/retention-advisor';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
+import { renderLoadAdvisorCard } from '../components/load-advisor-card';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -137,8 +139,9 @@ export function renderToday(container: HTMLElement) {
 
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
   let retentionHtml = '';
+  let retentionSnap: ReturnType<typeof assessRetention> | undefined;
   try {
-    const snap = assessRetention({
+    retentionSnap = assessRetention({
       daySummaries: ds,
       sessions,
       domains,
@@ -148,14 +151,41 @@ export function renderToday(container: HTMLElement) {
       sessionLengthSec: profile.sessionLengthSec,
       shieldCharges
     });
-    if (profile.calibrated && snap.confidence >= 20) {
-      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
-        ? ` · ${snap.primaryNudge.title.toLowerCase()}`
+    if (profile.calibrated && retentionSnap.confidence >= 20) {
+      const extra = retentionSnap.primaryNudge && retentionSnap.primaryNudge.title !== spark.title
+        ? ` · ${retentionSnap.primaryNudge.title.toLowerCase()}`
         : '';
-      retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
+      retentionHtml = `<p class="rhythm-line band-${retentionSnap.band}" data-rhythm="${retentionSnap.rhythm}">Ритм ${retentionSnap.rhythm} · ${bandLabel(retentionSnap.band)}${extra}</p>`;
     }
   } catch {
     retentionHtml = '';
+  }
+
+  let advisorHtml = '';
+  try {
+    const domainByExercise: Record<string, string> = {};
+    catalog.forEach((c) => {
+      domainByExercise[c.manifest.id] = c.manifest.domain;
+    });
+    const advice = adviseNextLoad({
+      sessions,
+      daySummaries: ds,
+      domains,
+      playedToday,
+      streak,
+      skippedYesterday,
+      calibrated: !!profile.calibrated,
+      primaryGoal: profile.primaryGoal,
+      plannedDurationSec: ritualDuration,
+      sessionLengthSec: profile.sessionLengthSec,
+      shieldCharges,
+      recovery: ritual.snapshot,
+      retention: retentionSnap,
+      domainByExercise
+    });
+    advisorHtml = renderLoadAdvisorCard(advice);
+  } catch {
+    advisorHtml = '';
   }
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
@@ -303,6 +333,8 @@ export function renderToday(container: HTMLElement) {
           <div class="insight-body">${spark.body}</div>
         </div>
       </div>
+
+      ${advisorHtml}
 
       ${transferCardHtml}
 

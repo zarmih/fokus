@@ -236,3 +236,65 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
 });
+
+test('today stays quiet on the load advisor before there is history', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  expect(app.querySelector('[data-load-advisor]')).toBeNull();
+  expect(app.textContent).not.toMatch(/Коуч · завтра/);
+});
+
+test('today shows tomorrow load band after dense sessions, without IQ claims', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  p.sessionLengthSec = 720;
+  storage.setProfile(p);
+  storage.setDomains([
+    { domain: 'memory', value: 480, trend: -4, updatedAt: '2026-09-07T18:00:00.000Z' },
+    { domain: 'attention', value: 740, trend: 8, updatedAt: new Date().toISOString() },
+    { domain: 'logic', value: 610, trend: 0, updatedAt: '2026-09-08T18:00:00.000Z' }
+  ]);
+
+  for (let i = 0; i < 4; i++) {
+    const day = String(7 + i).padStart(2, '0');
+    storage.addSession({
+      id: `adv-${i}`,
+      startedAt: `2026-09-${day}T18:00:00.000Z`,
+      finishedAt: `2026-09-${day}T18:12:00.000Z`,
+      durationSec: 700,
+      plannedDurationSec: 720,
+      items: [
+        { exerciseId: 'grid-memory', level: 14, accuracy: 0.44, avgRtMs: 1100, score: 20 },
+        { exerciseId: 'stroop', level: 13, accuracy: 0.4, avgRtMs: 1500, score: 18 },
+        { exerciseId: 'odd-one', level: 12, accuracy: 0.42, avgRtMs: 1700, score: 16 }
+      ]
+    });
+    storage.addDaySummary({
+      date: `2026-09-${day}T18:00:00.000Z`,
+      totalScore: 54,
+      domainDeltas: { memory: 1, attention: 2 },
+      streak: i + 1,
+      skipped: false
+    });
+  }
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  const card = app.querySelector('[data-load-advisor]') as HTMLElement | null;
+  expect(card).toBeTruthy();
+  expect(card?.getAttribute('data-load-band')).toBe('rest-light');
+  expect(card?.getAttribute('data-copy-situation')).toBeTruthy();
+  expect(card?.getAttribute('aria-labelledby')).toBe('load-advisor-title');
+  expect(app.querySelector('#load-advisor-title')).toBeTruthy();
+  expect(app.querySelector('.load-advisor-primary')?.tagName).toBe('H3');
+  expect(app.textContent).toMatch(/Коуч · завтра/);
+  expect(app.textContent).toMatch(/Завтра короче/);
+  expect(card?.querySelectorAll('.load-advisor-focus li').length).toBeLessThanOrEqual(2);
+  expect(app.textContent).not.toMatch(/прокачай|нейрофитнес|IQ-тест|возраст мозга/i);
+  expect(app.textContent).toMatch(/не балл способностей/i);
+});
