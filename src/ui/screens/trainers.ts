@@ -61,7 +61,7 @@ export function renderTrainers(container: HTMLElement) {
     }
 
     return `
-      <div class="trainer-card dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-domain="${ex.manifest.domain}">
+      <div class="trainer-card dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-domain="${ex.manifest.domain}" role="button" tabindex="0" aria-label="Тренажёр ${ex.manifest.name}, домен ${domainLabel(ex.manifest.domain)}, ${intel.state === 'CALIBRATING' ? 'Калибровка' : stateLabels[intel.state]}">
         <div style="display: flex; justify-content: space-between; align-items: flex-start;">
           <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
           <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="32" height="32" style="border-radius: 8px;">
@@ -89,7 +89,7 @@ export function renderTrainers(container: HTMLElement) {
       <p class="today-date">18 упражнений. Практика без влияния на Fokus Index.</p>
     </div>
     <div class="domain-filters">
-      ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button">${f.name}</button>`).join('')}
+      ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button" aria-pressed="${i === 0 ? 'true' : 'false'}">${f.name}</button>`).join('')}
     </div>
     <div class="trainers-grid">
       ${gridHtml}
@@ -99,7 +99,11 @@ export function renderTrainers(container: HTMLElement) {
   content.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
       const dom = (chip as HTMLElement).dataset.dom;
-      content.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c === chip));
+      content.querySelectorAll('.filter-chip').forEach(c => {
+        const isActive = c === chip;
+        c.classList.toggle('active', isActive);
+        c.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
       content.querySelectorAll('.trainer-card').forEach(card => {
         const match = dom === 'all' || (card as HTMLElement).dataset.domain === dom;
         card.classList.toggle('is-hidden', !match);

@@ -80,7 +80,9 @@ import vowelConsonantModule from './vowel-consonant';
 import arrowSwipeModule from './arrow-swipe';
 import shapeNameModule from './shape-name';
 import numberSeriesModule from './number-series';
-
+import chordTapModule from './chord-tap';
+import latticeSpanModule from './lattice-span';
+import dialFlipModule from './dial-flip';
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
   oddOneModule,
@@ -162,5 +164,8 @@ export const registry: ExerciseModule[] = [
   vowelConsonantModule,
   arrowSwipeModule,
   shapeNameModule,
-  numberSeriesModule
+  numberSeriesModule,
+  chordTapModule,
+  latticeSpanModule,
+  dialFlipModule
 ];

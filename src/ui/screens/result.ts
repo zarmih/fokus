@@ -75,7 +75,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     const accPct = Math.round(item.accuracy * 100);
 
     return `
-      <div class="result-block staggered-block">
+      <div class="result-block staggered-block" tabindex="0" aria-label="Результат: ${ex?.manifest.name || 'Упражнение'}, точность ${accPct}%">
         <div class="result-block-head">
           <div class="result-ex">${ex?.manifest.name}</div>
           <div class="result-score">+${Math.round(item.score)}</div>
@@ -165,7 +165,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
           <div class="fi-value">${fi.value}</div>
           <div class="fi-meta">${fiDelta.label}</div>
         </div>
-        <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 160, max: 1200 })}</div>
+        <div class="fi-radar" aria-label="Радар Fokus Index" role="img">${renderRadarChart(fi.byDomain, { size: 160, max: 1200 })}</div>
       </div>
     ` : ''}
 
