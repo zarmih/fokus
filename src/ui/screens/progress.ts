@@ -336,40 +336,6 @@ export function renderProgress(container: HTMLElement) {
     </div>
   ` : '';
 
-  let currentStreak = 0;
-  if (ds.length > 0) {
-    const last = ds[ds.length - 1];
-    const todayStr = new Date().toISOString().split('T')[0];
-    const yesterdayDate = new Date();
-    yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-    const yesterdayStr = yesterdayDate.toISOString().split('T')[0];
-    if (last.date.startsWith(todayStr) || last.date.startsWith(yesterdayStr)) {
-      currentStreak = last.streak;
-    }
-  }
-
-  const milestones = [7, 14, 30];
-  let milestonesHtml = '';
-  const nextMilestone = milestones.find(m => m > currentStreak);
-  if (currentStreak >= 7 || nextMilestone) {
-    milestonesHtml = `
-      <div class="surface" style="margin-bottom: 24px; padding: 16px;">
-        <h3 style="margin-bottom: 12px; font-size: 14px; color: var(--muted); text-align: center;">Вехи серии</h3>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          ${milestones.map(m => {
-            const achieved = currentStreak >= m;
-            return `
-              <div style="text-align: center; flex: 1; opacity: ${achieved ? '1' : '0.4'};">
-                <div style="font-size: 24px; margin-bottom: 4px;">${achieved ? '🔥' : '⏳'}</div>
-                <div style="font-size: 11px; font-weight: 600;">${m} дней</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      </div>
-    `;
-  }
-
   const goal = getWeeklyGoal();
   const goalProgressPct = Math.min(100, Math.max(0, (goal.progress / goal.target) * 100));
   const weeklyGoalHtml = `

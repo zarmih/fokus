@@ -18,7 +18,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Дрейф якоря',
       domain: 'attention',
       skills: ['sustained_attention', 'selective_attention'] as ExerciseManifest['skills'],
-      instruction: 'Нажимайте только на якорь (★). Не трогайте дистракторы (●). Они медленно перемещаются.'
+      instruction: 'Нажимайте только на якорь (★). Не трогайте дистракторы (●). Они медленно перемещаются.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -57,7 +57,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Смена оси',
       domain: 'flexibility',
       skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Правило: ГОРИЗОНТАЛЬ (Влево/Вправо) или ВЕРТИКАЛЬ (Вверх/Вниз). Укажите положение точки относительно центра.'
+      instruction: 'Правило: ГОРИЗОНТАЛЬ (Влево/Вправо) или ВЕРТИКАЛЬ (Вверх/Вниз). Укажите положение точки относительно центра.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -77,7 +77,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Маяк',
       domain: 'attention',
       skills: ['selective_attention', 'reaction_speed', 'visual_scanning'] as ExerciseManifest['skills'],
-      instruction: 'Запомните целевой цвет. Когда маяк нужного цвета вспыхнет, быстро нажмите на него. Игнорируйте другие цвета.'
+      instruction: 'Запомните целевой цвет. Когда маяк нужного цвета вспыхнет, быстро нажмите на него. Игнорируйте другие цвета.',
       metricModel: 'timing-precision'
     }
   },
@@ -107,7 +107,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Найди отличие',
       domain: 'attention',
       skills: ['visual_scanning', 'sustained_attention'] as ExerciseManifest['skills'],
-      instruction: 'Запомните объекты. Через мгновение один объект изменится, исчезнет или появится новый. Нажмите на то, что изменилось.'
+      instruction: 'Запомните объекты. Через мгновение один объект изменится, исчезнет или появится новый. Нажмите на то, что изменилось.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -187,7 +187,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Гребень',
       domain: 'attention',
       skills: ['reaction_speed', 'inhibition'] as ExerciseManifest['skills'],
-      instruction: 'Нажмите кнопку в тот момент, когда пульсирующий круг достигает МАКСИМАЛЬНОГО размера. Избегайте ранних нажатий.'
+      instruction: 'Нажмите кнопку в тот момент, когда пульсирующий круг достигает МАКСИМАЛЬНОГО размера. Избегайте ранних нажатий.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -197,7 +197,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Толпа',
       domain: 'attention',
       skills: ['visual_scanning', 'selective_attention'] as ExerciseManifest['skills'],
-      instruction: 'Запомните количество целевых фигур. Они появятся на короткое время. Затем выберите правильное число.'
+      instruction: 'Запомните количество целевых фигур. Они появятся на короткое время. Затем выберите правильное число.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -207,7 +207,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Отскок правила',
       domain: 'flexibility',
       skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Следите за правилом сверху. Если "ЧЁТНОСТЬ", определите, чётное число или нечётное. Если "ВЕЛИЧИНА" — больше или меньше 5.'
+      instruction: 'Следите за правилом сверху. Если "ЧЁТНОСТЬ", определите, чётное число или нечётное. Если "ВЕЛИЧИНА" — больше или меньше 5.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -267,7 +267,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Двойная метка',
       domain: 'flexibility',
       skills: ['task_switching', 'inhibition'] as ExerciseManifest['skills'],
-      instruction: 'Ориентируйтесь на верхнюю метку. Если "ФОРМА" — выбирайте форму, если "СЛОВО" — ориентируйтесь на значение слова.'
+      instruction: 'Ориентируйтесь на верхнюю метку. Если "ФОРМА" — выбирайте форму, если "СЛОВО" — ориентируйтесь на значение слова.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -337,7 +337,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Вспышка',
       domain: 'attention',
       skills: ['selective_attention', 'inhibition'] as ExerciseManifest['skills'],
-      instruction: 'Следите за тусклыми точками. Нажимайте на точку ТОЛЬКО в момент её яркой вспышки. Не нажимайте в другое время.'
+      instruction: 'Следите за тусклыми точками. Нажимайте на точку ТОЛЬКО в момент её яркой вспышки. Не нажимайте в другое время.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -357,7 +357,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Смена повестки',
       domain: 'flexibility',
       skills: ['task_switching', 'inhibition'] as ExerciseManifest['skills'],
-      instruction: 'Следите за правилом. Если "Цвет": Красный - влево, Синий - вправо. Если "Форма": Круг - влево, Квадрат - вправо.'
+      instruction: 'Следите за правилом. Если "Цвет": Красный - влево, Синий - вправо. Если "Форма": Круг - влево, Квадрат - вправо.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -377,7 +377,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Смена кадра',
       domain: 'flexibility',
       skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'КРУГЛАЯ рамка: выберите фигуру ТАКОГО ЖЕ ЦВЕТА. КВАДРАТНАЯ рамка: выберите ТАКУЮ ЖЕ ФИГУРУ.'
+      instruction: 'КРУГЛАЯ рамка: выберите фигуру ТАКОГО ЖЕ ЦВЕТА. КВАДРАТНАЯ рамка: выберите ТАКУЮ ЖЕ ФИГУРУ.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -387,7 +387,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Тап у ворот',
       domain: 'attention',
       skills: ['sustained_attention', 'response_inhibition'] as ExerciseManifest['skills'],
-      instruction: 'Нажимайте на цель только тогда, когда ворота ОТКРЫТЫ. Штраф за пропуск или нажатие в закрытые ворота.'
+      instruction: 'Нажимайте на цель только тогда, когда ворота ОТКРЫТЫ. Штраф за пропуск или нажатие в закрытые ворота.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -397,7 +397,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Тайник глифов',
       domain: 'memory',
       skills: ['visual_memory', 'spatial_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните расположение глифов. Когда они исчезнут, выберите все ячейки, где они были.'
+      instruction: 'Запомните расположение глифов. Когда они исчезнут, выберите все ячейки, где они были.',
       metricModel: 'memory-span'
     }
   },
@@ -427,7 +427,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Сетка-тайник',
       domain: 'memory',
       skills: ['visual_memory', 'spatial_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните подсвеченные ячейки, а затем воспроизведите их расположение.'
+      instruction: 'Запомните подсвеченные ячейки, а затем воспроизведите их расположение.',
       metricModel: 'memory-span'
     }
   },
@@ -437,7 +437,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'След ореола',
       domain: 'memory',
       skills: ['spatial_memory', 'sequential_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните последовательность вспыхивающих ореолов и повторите её.'
+      instruction: 'Запомните последовательность вспыхивающих ореолов и повторите её.',
       metricModel: 'sequence-accuracy'
     }
   },
@@ -457,7 +457,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Эхо с задержкой',
       domain: 'memory',
       skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните последовательность вспышек. Подождите, пока пройдет задержка, а затем повторите последовательность.'
+      instruction: 'Запомните последовательность вспышек. Подождите, пока пройдет задержка, а затем повторите последовательность.',
       metricModel: 'memory-span'
     }
   },
@@ -467,7 +467,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Смена линзы',
       domain: 'flexibility',
       skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Сортируйте фигуры по текущему правилу (ЦВЕТ или ФОРМА). Внимательно следите за сменой правила!'
+      instruction: 'Сортируйте фигуры по текущему правилу (ЦВЕТ или ФОРМА). Внимательно следите за сменой правила!',
       metricModel: 'speed-accuracy'
     }
   },
@@ -487,7 +487,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Маска-спан',
       domain: 'memory',
       skills: ['visual_memory', 'working_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните символы. После маски выберите все символы, которые были показаны (порядок не важен).'
+      instruction: 'Запомните символы. После маски выберите все символы, которые были показаны (порядок не важен).',
       metricModel: 'memory-span'
     }
   },
@@ -537,7 +537,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Матрицы',
       domain: 'logic',
       skills: ['pattern_recognition', 'logical_reasoning'] as ExerciseManifest['skills'],
-      instruction: 'Выберите фигуру, которая логически дополняет пустую клетку в матрице.'
+      instruction: 'Выберите фигуру, которая логически дополняет пустую клетку в матрице.',
       metricModel: 'logic-correctness'
     }
   },
@@ -567,7 +567,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Зеркальное отражение',
       domain: 'flexibility',
       skills: ['spatial_reasoning', 'visual_scanning'] as ExerciseManifest['skills'],
-      instruction: 'Среди предложенных вариантов найдите правильное зеркальное отражение показанной фигуры.'
+      instruction: 'Среди предложенных вариантов найдите правильное зеркальное отражение показанной фигуры.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -607,7 +607,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Гнёзда',
       domain: 'memory',
       skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните, в каких гнездах лежат предметы. Затем распределите предметы по своим местам.'
+      instruction: 'Запомните, в каких гнездах лежат предметы. Затем распределите предметы по своим местам.',
       metricModel: 'memory-span'
     }
   },
@@ -677,7 +677,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Орбита',
       domain: 'attention',
       skills: ['selective_attention', 'divided_attention'] as ExerciseManifest['skills'],
-      instruction: 'Нажмите ТАП (или пробел), когда ЗЕЛЁНАЯ цель проходит через жёлтые ворота. Ложные тапы штрафуются.'
+      instruction: 'Нажмите ТАП (или пробел), когда ЗЕЛЁНАЯ цель проходит через жёлтые ворота. Ложные тапы штрафуются.',
       metricModel: 'timing-precision'
     }
   },
@@ -687,7 +687,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Порядок',
       domain: 'memory',
       skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
-      instruction: 'Запомните последовательность символов. После их исчезновения выберите их в том же порядке.'
+      instruction: 'Запомните последовательность символов. После их исчезновения выберите их в том же порядке.',
       metricModel: 'memory-span'
     }
   },
@@ -697,7 +697,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Связь пар',
       domain: 'memory',
       skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
-      instruction: 'Запомните, какое слово или число соответствует каждому символу. Затем выберите правильный вариант.'
+      instruction: 'Запомните, какое слово или число соответствует каждому символу. Затем выберите правильный вариант.',
       metricModel: 'memory-span'
     }
   },
@@ -767,7 +767,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Мешочки',
       domain: 'memory',
       skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните, в каком мешочке спрятан каждый предмет. Затем найдите мешочек с заданным предметом.'
+      instruction: 'Запомните, в каком мешочке спрятан каждый предмет. Затем найдите мешочек с заданным предметом.',
       metricModel: 'memory-span'
     }
   },
@@ -777,7 +777,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Призма',
       domain: 'flexibility',
       skills: ['task_switching', 'rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Сортируйте фигуры по текущему правилу (ЦВЕТ или ФОРМА). Внимание: правило может внезапно измениться!'
+      instruction: 'Сортируйте фигуры по текущему правилу (ЦВЕТ или ФОРМА). Внимание: правило может внезапно измениться!',
       metricModel: 'speed-accuracy'
     }
   },
@@ -797,7 +797,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Пропуск пульса',
       domain: 'speed',
       skills: ['reaction_speed', 'processing_speed'] as ExerciseManifest['skills'],
-      instruction: 'Следите за последовательностью вспышек. Один из элементов пропустит свою очередь. После окончания серии укажите, где был пропуск.'
+      instruction: 'Следите за последовательностью вспышек. Один из элементов пропустит свою очередь. После окончания серии укажите, где был пропуск.',
       metricModel: 'timing-precision'
     }
   },
@@ -807,7 +807,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Пульс-рельс',
       domain: 'attention',
       skills: ['selective_attention', 'inhibition'] as ExerciseManifest['skills'],
-      instruction: 'В центре указан целевой цвет. Нажимайте на рельс (Влево или Вправо), когда на нем появляется фигура целевого цвета. Игнорируйте другие цвета.'
+      instruction: 'В центре указан целевой цвет. Нажимайте на рельс (Влево или Вправо), когда на нем появляется фигура целевого цвета. Игнорируйте другие цвета.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -817,7 +817,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Гонка по рельсам',
       domain: 'attention',
       skills: ['sustained_attention', 'inhibition'] as ExerciseManifest['skills'],
-      instruction: 'Следите за целевым объектом. Нажмите кнопку, когда цель окажется в подсвеченной зоне. Не реагируйте на дистракторы.'
+      instruction: 'Следите за целевым объектом. Нажмите кнопку, когда цель окажется в подсвеченной зоне. Не реагируйте на дистракторы.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -847,7 +847,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Цепочка связей',
       domain: 'logic',
       skills: ['logical_reasoning', 'pattern_recognition'] as ExerciseManifest['skills'],
-      instruction: 'Проанализируйте утверждения и ответьте на вопрос. Будьте внимательны к логическим цепочкам.'
+      instruction: 'Проанализируйте утверждения и ответьте на вопрос. Будьте внимательны к логическим цепочкам.',
       metricModel: 'logic-correctness'
     }
   },
@@ -857,7 +857,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Ритм',
       domain: 'speed',
       skills: ['reaction_speed'] as ExerciseManifest['skills'],
-      instruction: 'Внимательно следите за пульсацией. Когда она закончится, повторите ритм, нажимая на круг.'
+      instruction: 'Внимательно следите за пульсацией. Когда она закончится, повторите ритм, нажимая на круг.',
       metricModel: 'timing-precision'
     }
   },
@@ -867,7 +867,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Рубрика',
       domain: 'flexibility',
       skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Сортируйте фигуру по указанному правилу (Цвет, Форма или Размер). Будьте внимательны: правило внезапно меняется!'
+      instruction: 'Сортируйте фигуру по указанному правилу (Цвет, Форма или Размер). Будьте внимательны: правило внезапно меняется!',
       metricModel: 'speed-accuracy'
     }
   },
@@ -877,7 +877,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Поиск правила',
       domain: 'logic',
       skills: ['pattern_recognition', 'logical_reasoning'] as ExerciseManifest['skills'],
-      instruction: 'Изучите примеры и поймите, по какому правилу карточки попадают в Группу А или Б. Затем распределите новую карточку.'
+      instruction: 'Изучите примеры и поймите, по какому правилу карточки попадают в Группу А или Б. Затем распределите новую карточку.',
       metricModel: 'logic-correctness'
     }
   },
@@ -887,7 +887,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Поворот правила',
       domain: 'flexibility',
       skills: ['task_switching', 'rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Сортируйте фигуру по указанному правилу (по цвету или по форме), используя стрелки ВЛЕВО и ВПРАВО.'
+      instruction: 'Сортируйте фигуру по указанному правилу (по цвету или по форме), используя стрелки ВЛЕВО и ВПРАВО.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -937,7 +937,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Смена установки',
       domain: 'flexibility',
       skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Классифицируйте центральную фигуру по указанному правилу (ЦВЕТ или ФОРМА), выбирая левый или правый вариант. Правило будет меняться!'
+      instruction: 'Классифицируйте центральную фигуру по указанному правилу (ЦВЕТ или ФОРМА), выбирая левый или правый вариант. Правило будет меняться!',
       metricModel: 'speed-accuracy'
     }
   },
@@ -977,7 +977,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Осколки',
       domain: 'memory',
       skills: ['spatial_memory', 'working_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните расположение осколков. Затем восстановите их позиции (порядок не важен).'
+      instruction: 'Запомните расположение осколков. Затем восстановите их позиции (порядок не важен).',
       metricModel: 'memory-span'
     }
   },
@@ -997,7 +997,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Смена знака',
       domain: 'flexibility',
       skills: ['inhibition', 'task_switching'] as ExerciseManifest['skills'],
-      instruction: 'Решайте пример. Будьте внимательны: иногда знак операции внезапно меняется на противоположный! Отвечайте по актуальному знаку.'
+      instruction: 'Решайте пример. Будьте внимательны: иногда знак операции внезапно меняется на противоположный! Отвечайте по актуальному знаку.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -1017,7 +1017,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Ячейки',
       domain: 'memory',
       skills: ['working_memory', 'visual_memory', 'spatial_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните символы в ячейках. Затем восстановите их в правильном порядке.'
+      instruction: 'Запомните символы в ячейках. Затем восстановите их в правильном порядке.',
       metricModel: 'memory-span'
     }
   },
@@ -1027,7 +1027,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Искра',
       domain: 'attention',
       skills: ['sustained_attention', 'reaction_speed'] as ExerciseManifest['skills'],
-      instruction: 'Ждите вспышку (искру) в одной из полос и быстро нажимайте на эту полосу. Игнорируйте тусклые отвлекающие вспышки.'
+      instruction: 'Ждите вспышку (искру) в одной из полос и быстро нажимайте на эту полосу. Игнорируйте тусклые отвлекающие вспышки.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -1067,7 +1067,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Глубина стека',
       domain: 'memory',
       skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
-      instruction: 'Запоминайте элементы, добавляемые в стек. Следите за операциями удаления. Ответьте на вопрос о состоянии стека.'
+      instruction: 'Запоминайте элементы, добавляемые в стек. Следите за операциями удаления. Ответьте на вопрос о состоянии стека.',
       metricModel: 'memory-span'
     }
   },
@@ -1117,7 +1117,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Обновление счёта',
       domain: 'memory',
       skills: ['working_memory', 'sustained_attention'] as ExerciseManifest['skills'],
-      instruction: 'Считайте количество появляющихся фигур каждой формы. Когда появится вопрос, выберите правильное число или лидирующую форму.'
+      instruction: 'Считайте количество появляющихся фигур каждой формы. Когда появится вопрос, выберите правильное число или лидирующую форму.',
       metricModel: 'memory-span'
     }
   },
@@ -1147,7 +1147,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Сдвиг жетона',
       domain: 'flexibility',
       skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
-      instruction: 'Сортируйте фигуры по текущему правилу (Цвет или Форма). Внимание: правило может внезапно измениться!'
+      instruction: 'Сортируйте фигуры по текущему правилу (Цвет или Форма). Внимание: правило может внезапно измениться!',
       metricModel: 'speed-accuracy'
     }
   },
@@ -1157,7 +1157,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Связь точек',
       domain: 'attention',
       skills: ['visual_scanning', 'processing_speed'] as ExerciseManifest['skills'],
-      instruction: 'Соединяйте точки в правильном порядке. На более высоких уровнях чередуйте цифры и буквы (1-А-2-Б-3-В).'
+      instruction: 'Соединяйте точки в правильном порядке. На более высоких уровнях чередуйте цифры и буквы (1-А-2-Б-3-В).',
       metricModel: 'speed-accuracy'
     }
   },
@@ -1167,7 +1167,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Подносы',
       domain: 'memory',
       skills: ['working_memory', 'visual_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните, какие предметы лежат на каких подносах. Затем выберите поднос и верните на него нужные предметы.'
+      instruction: 'Запомните, какие предметы лежат на каких подносах. Затем выберите поднос и верните на него нужные предметы.',
       metricModel: 'memory-span'
     }
   },
@@ -1197,7 +1197,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Хранилище',
       domain: 'memory',
       skills: ['working_memory', 'visual_memory'] as ExerciseManifest['skills'],
-      instruction: 'Запомните, в каких ячейках хранилища появились монеты, и повторите их в ТОМ ЖЕ порядке.'
+      instruction: 'Запомните, в каких ячейках хранилища появились монеты, и повторите их в ТОМ ЖЕ порядке.',
       metricModel: 'capacity'
     }
   },
@@ -1217,7 +1217,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Бдительность',
       domain: 'attention',
       skills: ['sustained_attention', 'processing_speed'] as ExerciseManifest['skills'],
-      instruction: 'Нажимайте кнопку только тогда, когда появляется целевой объект. Пропускайте все остальные.'
+      instruction: 'Нажимайте кнопку только тогда, когда появляется целевой объект. Пропускайте все остальные.',
       metricModel: 'speed-accuracy'
     }
   },
@@ -1247,7 +1247,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Волна',
       domain: 'attention',
       skills: ['sustained_attention', 'reaction_speed', 'inhibition'] as ExerciseManifest['skills'],
-      instruction: 'Нажмите ПРОБЕЛ, когда подвижная волна окажется в зелёной зоне. Не торопитесь и не опаздывайте!'
+      instruction: 'Нажмите ПРОБЕЛ, когда подвижная волна окажется в зелёной зоне. Не торопитесь и не опаздывайте!',
       metricModel: 'timing-precision'
     }
   },
@@ -1287,7 +1287,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Страж зоны',
       domain: 'attention',
       skills: ['sustained_attention', 'selective_attention'] as ExerciseManifest['skills'],
-      instruction: 'Защищайте центр от красных объектов! Нажимайте только на красные угрозы и пропускайте остальные.'
+      instruction: 'Защищайте центр от красных объектов! Нажимайте только на красные угрозы и пропускайте остальные.',
       metricModel: 'speed-accuracy'
     }
   },
