@@ -44,12 +44,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       try {
         const fresh = await fetch(req);
-        const cache = await caches.open(CACHE);
-        const shell = await caches.match(toUrl('index.html'));
-        if (fresh.ok) cache.put(req, fresh.clone());
         return fresh;
       } catch {
-        return (await caches.match(toUrl('index.html'))) || Response.error();
+        const cache = await caches.open(CACHE);
+        return (await cache.match(toUrl('index.html'))) || Response.error();
       }
     })());
     return;

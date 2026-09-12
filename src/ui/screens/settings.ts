@@ -341,14 +341,29 @@ export function renderSettings(container: HTMLElement) {
     });
   });
 
-  import('../../pwa-install').then(({ deferredPrompt }) => {
-    const installContainer = document.getElementById('install-container');
-    const btnInstall = document.getElementById('btn-install');
-    if (deferredPrompt && installContainer && btnInstall) {
-      installContainer.style.display = 'block';
+  const installContainer = typeof document !== 'undefined' ? document.getElementById('install-container') : null;
+  const btnInstall = typeof document !== 'undefined' ? document.getElementById('btn-install') : null;
+  import('../../pwa-install').then(({ deferredPrompt, onInstallPrompt }) => {
+    if (installContainer && btnInstall) {
+      const check = async () => {
+        if (typeof document !== 'undefined' && document.getElementById('install-container')) {
+          const { deferredPrompt: currentPrompt } = await import('../../pwa-install');
+          if (currentPrompt || window.matchMedia?.('(display-mode: browser)').matches) {
+             installContainer.style.display = 'block';
+          }
+        }
+      };
+      check();
+      if (onInstallPrompt) onInstallPrompt(check);
+
       btnInstall.addEventListener('click', async () => {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
+        const pwaPrompt = await import('../../pwa-install').then(m => m.deferredPrompt);
+        if (!pwaPrompt) {
+          alert('Ваш браузер не поддерживает автоматическую установку. Добавьте сайт на главный экран через меню браузера (Поделиться -> На экран Домой).');
+          return;
+        }
+        pwaPrompt.prompt();
+        const { outcome } = await pwaPrompt.userChoice;
         if (outcome === 'accepted') {
           installContainer.style.display = 'none';
         }
