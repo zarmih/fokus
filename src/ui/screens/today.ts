@@ -237,9 +237,9 @@ export function renderToday(container: HTMLElement) {
     actionHtml = `
       <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
-        <h3>Калибровка уровня</h3>
+        <h3>Первый ритуал</h3>
         <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать первый ритуал</button>
       </div>
     `;
   } else if (playedToday) {
