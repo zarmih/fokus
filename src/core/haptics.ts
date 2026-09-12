@@ -53,3 +53,18 @@ export function vibrateForCue(
   if (scheduled.skipHaptic || scheduled.haptic == null) return false;
   return vibratePattern(scheduled.haptic);
 }
+
+export type HapticFeedbackType = 'success' | 'error' | 'progress';
+
+export function triggerHapticFeedback(
+  type: HapticFeedbackType,
+  prefs: Pick<SoundPrefs, 'hapticsOn' | 'reducedMotion'>
+): boolean {
+  if (!canVibrate(prefs)) return false;
+  if (type === 'progress' && prefs.reducedMotion) return false;
+  
+  if (type === 'success') return vibratePattern(12);
+  if (type === 'error') return vibratePattern(28); // Matches miss cue
+  if (type === 'progress') return vibratePattern(8); // Matches tap cue
+  return false;
+}
