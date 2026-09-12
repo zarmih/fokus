@@ -218,6 +218,15 @@ export function renderToday(container: HTMLElement) {
         <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 180, max: 1200 })}</div>
       </div>
     `;
+  } else if (!profile.calibrated) {
+    heroHtml = `
+      <div class="fi-hero compact empty-state fx-enter">
+        <div class="fi-copy">
+          <div class="fi-kicker">Fokus Index</div>
+          <p class="fi-meta">Пройдите калибровку, чтобы открыть индекс</p>
+        </div>
+      </div>
+    `;
   }
 
   const recalHtml = showRecal ? `
@@ -239,7 +248,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
         <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
+        <button id="btn-start" class="btn-primary pulse-cta" type="button">Пройти калибровку</button>
       </div>
     `;
   } else if (playedToday) {
@@ -261,7 +270,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Мягкий возврат</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary pulse-cta" type="button">Начать сессию</button>
       </div>
     `;
   } else {
@@ -273,7 +282,7 @@ export function renderToday(container: HTMLElement) {
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary pulse-cta" type="button">Начать сессию</button>
       </div>
     `;
   }
@@ -293,7 +302,7 @@ export function renderToday(container: HTMLElement) {
 
     ${weekHtml}
 
-    <div class="dashboard-widgets">
+    <div class="dashboard-widgets staggered-list">
       <div class="stat-row">
         ${renderStreakChip(snap, 'pill')}
         <div class="stat-pill">
