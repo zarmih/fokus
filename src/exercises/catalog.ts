@@ -153,6 +153,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'crowd-probe',
+      name: 'Толпа',
+      domain: 'attention',
+      skills: ['visual_scanning', 'selective_attention'] as ExerciseManifest['skills'],
+      instruction: 'Запомните количество целевых фигур. Они появятся на короткое время. Затем выберите правильное число.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'direction-match',
       name: 'Вектор',
       domain: 'flexibility',
@@ -583,6 +593,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'pulse-gap',
+      name: 'Пропуск пульса',
+      domain: 'speed',
+      skills: ['reaction_speed', 'processing_speed'] as ExerciseManifest['skills'],
+      instruction: 'Следите за последовательностью вспышек. Один из элементов пропустит свою очередь. После окончания серии укажите, где был пропуск.'
+      metricModel: 'timing-precision'
+    }
+  },
+  {
+    manifest: {
       id: 'rapid-sorting',
       name: 'Живое-Неживое',
       domain: 'speed',
@@ -669,6 +689,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
       instruction: 'Запомните последовательность и повторите её В ОБРАТНОМ ПОРЯДКЕ.',
       metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
+      id: 'set-shift',
+      name: 'Смена установки',
+      domain: 'flexibility',
+      skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Классифицируйте центральную фигуру по указанному правилу (ЦВЕТ или ФОРМА), выбирая левый или правый вариант. Правило будет меняться!'
+      metricModel: 'speed-accuracy'
     }
   },
   {

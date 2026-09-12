@@ -92,6 +92,9 @@ import ruleInduceModule from './rule-induce';
 import changeSpotModule from './change-spot';
 import tallyUpdateModule from './tally-update';
 import relationChainModule from './relation-chain';
+import pulseGapModule from './pulse-gap';
+import setShiftModule from './set-shift';
+import crowdProbeModule from './crowd-probe';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -186,5 +189,8 @@ export const registry: ExerciseModule[] = [
   ruleInduceModule,
   changeSpotModule,
   tallyUpdateModule,
-  relationChainModule
+  relationChainModule,
+  pulseGapModule,
+  setShiftModule,
+  crowdProbeModule
 ];
