@@ -26,7 +26,7 @@ test('stats wires one streak chip and one continuity hint', () => {
   expect(app.textContent).not.toMatch(/прокачать IQ|streak freeze|купите заморозку/i);
 });
 
-test('settings explains honest streak, timezone, and no freeze paywall', () => {
+test('settings explains honest streak, timezone, and no freeze paywall', async () => {
   const tz = resolveFokusTimeZone();
   const today = calendarDayKey(new Date(), tz.timeZone);
   storage.addDaySummary({
@@ -45,4 +45,5 @@ test('settings explains honest streak, timezone, and no freeze paywall', () => {
   expect(app.textContent).toMatch(/заморозк/);
   expect(app.textContent).toMatch(/0 до 1|0–1|от 0 до 1/);
   expect(app.textContent).not.toMatch(/купите заморозку|brain age|Lumosity|Wikium|Elevate|Peak|NeuroNation/i);
+  await new Promise(r => setTimeout(r, 10));
 });

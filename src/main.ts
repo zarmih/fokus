@@ -10,6 +10,7 @@ import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
 import { safeError } from './core/log';
 
+(window as any).plannedDuration = 300;
 initInstallPrompt();
 
 type ScreenFn = (el: HTMLElement, params?: any) => void;
