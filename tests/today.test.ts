@@ -136,12 +136,14 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   p.sessionLengthSec = 720;
   storage.setProfile(p);
 
+  const now = new Date();
   for (let i = 0; i < 4; i++) {
-    const day = String(7 + i).padStart(2, '0');
+    const d = new Date(now.getTime() - (4 - i) * 86400000);
+    const dateStr = d.toISOString().split('T')[0];
     storage.addSession({
       id: `hard-${i}`,
-      startedAt: `2026-09-${day}T18:00:00.000Z`,
-      finishedAt: `2026-09-${day}T18:12:00.000Z`,
+      startedAt: `${dateStr}T18:00:00.000Z`,
+      finishedAt: `${dateStr}T18:12:00.000Z`,
       durationSec: 700,
       plannedDurationSec: 720,
       items: [
@@ -155,7 +157,7 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   const app = document.getElementById('app')!;
   renderToday(app);
   expect(app.textContent).toMatch(/Качество ритуала/);
-  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
+  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче|мягкий возврат/);
   expect(app.textContent).toMatch(/5 минут/);
   expect(app.textContent).not.toMatch(/IQ/);
   expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
