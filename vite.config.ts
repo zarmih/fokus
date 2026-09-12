@@ -32,6 +32,7 @@ function fokusSw(): Plugin {
 
 export default defineConfig(({ command, isPreview }) => ({
   base: command === 'build' || isPreview ? '/fokus/' : '/',
+  define: { plannedDuration: 'sessionBudget' },
   plugins: [fokusSw()],
   build: {
     rollupOptions: {
