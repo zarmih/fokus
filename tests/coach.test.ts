@@ -13,8 +13,9 @@ test('uncalibrated users get a calibration spark', () => {
     playedToday: false,
     streak: 0
   });
-  expect(spark.tone).toBe('start');
-  expect(spark.body).toMatch(/калибр/i);
+  expect(spark).not.toBeNull();
+  expect(spark!.tone).toBe('start');
+  expect(spark!.body).toMatch(/калибр/i);
 });
 
 test('completed day prefers rest over more grinding', () => {
@@ -28,8 +29,9 @@ test('completed day prefers rest over more grinding', () => {
     playedToday: true,
     streak: 3
   });
-  expect(spark.tone).toBe('habit');
-  expect(spark.body).toMatch(/завтра/i);
+  expect(spark).not.toBeNull();
+  expect(spark!.tone).toBe('habit');
+  expect(spark!.body).toMatch(/завтра/i);
 });
 
 test('missed day with remaining streak is recovery, not reset panic', () => {
@@ -44,7 +46,8 @@ test('missed day with remaining streak is recovery, not reset panic', () => {
     streak: 4,
     skippedYesterday: true
   });
-  expect(spark.tone).toBe('recovery');
+  expect(spark).not.toBeNull();
+  expect(spark!.tone).toBe('recovery');
 });
 
 test('evening fragility surfaces a soft streak nudge, not FOMO copy', () => {
@@ -69,8 +72,9 @@ test('evening fragility surfaces a soft streak nudge, not FOMO copy', () => {
     streak: 12,
     now: evening
   });
-  expect(spark.title).toMatch(/серия|возврат|короче/i);
-  expect(spark.body).not.toMatch(/не пропусти|прокачай|нейрофитнес|last chance/i);
+  expect(spark).not.toBeNull();
+  expect(spark!.title).toMatch(/серия|возврат|короче/i);
+  expect(spark!.body).not.toMatch(/не пропусти|прокачай|нейрофитнес|last chance/i);
 });
 
 test('chronotype needs at least two buckets with samples', () => {

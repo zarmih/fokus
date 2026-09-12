@@ -149,7 +149,7 @@ export function renderToday(container: HTMLElement) {
       shieldCharges
     });
     if (profile.calibrated && snap.confidence >= 20) {
-      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
+      const extra = snap.primaryNudge && spark && snap.primaryNudge.title !== spark.title
         ? ` · ${snap.primaryNudge.title.toLowerCase()}`
         : '';
       retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
@@ -296,6 +296,7 @@ export function renderToday(container: HTMLElement) {
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
       ${retentionHtml}
 
+      ${spark ? `
       <div class="insight-banner coach-${spark.tone}">
         <div class="insight-icon">💡</div>
         <div>
@@ -303,6 +304,7 @@ export function renderToday(container: HTMLElement) {
           <div class="insight-body">${spark.body}</div>
         </div>
       </div>
+      ` : ''}
 
       ${transferCardHtml}
 
