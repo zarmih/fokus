@@ -71,6 +71,10 @@ export interface Profile {
   schemaVersion: number;
   xp?: number;
   primaryGoal?: string; // e.g. 'memory', 'attention', 'speed', 'flexibility', 'logic' or 'balance'
+  programDay?: number; // 1 to 7
+  programWeek?: number;
+  needsRecalibration?: boolean;
+  recalibrationPostponed?: boolean;
   quests?: any[];
   questsDate?: string;
   lastLifestyle?: { sleep: string | null; stress: string | null; date: string };
