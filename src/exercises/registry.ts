@@ -113,6 +113,9 @@ import axisSwapModule from './axis-swap';
 import flarePickModule from './flare-pick';
 import nestSpanModule from './nest-span';
 import tokenWarpModule from './token-warp';
+import sparkLaneModule from './spark-lane';
+import traySpanModule from './tray-span';
+import lensSwapModule from './lens-swap';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -228,5 +231,8 @@ export const registry: ExerciseModule[] = [
   axisSwapModule,
   flarePickModule,
   nestSpanModule,
-  tokenWarpModule
+  tokenWarpModule,
+  sparkLaneModule,
+  traySpanModule,
+  lensSwapModule
 ];

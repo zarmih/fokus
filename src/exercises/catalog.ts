@@ -423,6 +423,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'lens-swap',
+      name: 'Смена линзы',
+      domain: 'flexibility',
+      skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Сортируйте фигуры по текущему правилу (ЦВЕТ или ФОРМА). Внимательно следите за сменой правила!'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'location-recall',
       name: 'Позиция',
       domain: 'memory',
@@ -913,6 +923,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'spark-lane',
+      name: 'Искра',
+      domain: 'attention',
+      skills: ['sustained_attention', 'reaction_speed'] as ExerciseManifest['skills'],
+      instruction: 'Ждите вспышку (искру) в одной из полос и быстро нажимайте на эту полосу. Игнорируйте тусклые отвлекающие вспышки.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'spatial-match',
       name: 'Шаблон',
       domain: 'memory',
@@ -1039,6 +1059,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['visual_scanning', 'processing_speed'] as ExerciseManifest['skills'],
       instruction: 'Соединяйте точки в правильном порядке. На более высоких уровнях чередуйте цифры и буквы (1-А-2-Б-3-В).'
       metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'tray-span',
+      name: 'Подносы',
+      domain: 'memory',
+      skills: ['working_memory', 'visual_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните, какие предметы лежат на каких подносах. Затем выберите поднос и верните на него нужные предметы.'
+      metricModel: 'memory-span'
     }
   },
   {
