@@ -149,7 +149,7 @@ export function renderToday(container: HTMLElement) {
       shieldCharges
     });
     if (profile.calibrated && snap.confidence >= 20) {
-      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
+      const extra = snap.primaryNudge && spark && snap.primaryNudge.title !== spark.title
         ? ` · ${snap.primaryNudge.title.toLowerCase()}`
         : '';
       retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
@@ -224,9 +224,9 @@ export function renderToday(container: HTMLElement) {
     actionHtml = `
       <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
-        <h3>Калибровка уровня</h3>
+        <h3>Первый ритуал</h3>
         <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать первый ритуал</button>
       </div>
     `;
   } else if (playedToday) {
@@ -296,6 +296,7 @@ export function renderToday(container: HTMLElement) {
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
       ${retentionHtml}
 
+      ${spark ? `
       <div class="insight-banner coach-${spark.tone}">
         <div class="insight-icon">💡</div>
         <div>
@@ -303,6 +304,7 @@ export function renderToday(container: HTMLElement) {
           <div class="insight-body">${spark.body}</div>
         </div>
       </div>
+      ` : ''}
 
       ${transferCardHtml}
 
