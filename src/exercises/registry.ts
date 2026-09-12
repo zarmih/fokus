@@ -119,6 +119,9 @@ import lensSwapModule from './lens-swap';
 import beaconSnapModule from './beacon-snap';
 import slotSpanModule from './slot-span';
 import prismFlipModule from './prism-flip';
+import waveLockModule from './wave-lock';
+import gridStashModule from './grid-stash';
+import rulePivotModule from './rule-pivot';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -240,5 +243,8 @@ export const registry: ExerciseModule[] = [
   lensSwapModule,
   beaconSnapModule,
   slotSpanModule,
-  prismFlipModule
+  prismFlipModule,
+  waveLockModule,
+  gridStashModule,
+  rulePivotModule
 ];

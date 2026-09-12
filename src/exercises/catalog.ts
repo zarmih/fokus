@@ -403,6 +403,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'grid-stash',
+      name: 'Сетка-тайник',
+      domain: 'memory',
+      skills: ['visual_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните подсвеченные ячейки, а затем воспроизведите их расположение.'
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
       id: 'halo-trace',
       name: 'След ореола',
       domain: 'memory',
@@ -823,6 +833,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'rule-pivot',
+      name: 'Поворот правила',
+      domain: 'flexibility',
+      skills: ['task_switching', 'rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Сортируйте фигуру по указанному правилу (по цвету или по форме), используя стрелки ВЛЕВО и ВПРАВО.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'same-different',
       name: 'Близнецы',
       domain: 'speed',
@@ -1159,6 +1179,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
       instruction: 'Если цвет слова СИНИЙ — нажмите "Гласная". Если ОРАНЖЕВЫЙ — "Согласная", вне зависимости от буквы.',
       metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'wave-lock',
+      name: 'Волна',
+      domain: 'attention',
+      skills: ['sustained_attention', 'reaction_speed', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Нажмите ПРОБЕЛ, когда подвижная волна окажется в зелёной зоне. Не торопитесь и не опаздывайте!'
+      metricModel: 'timing-precision'
     }
   },
   {
