@@ -2348,6 +2348,14 @@ html.focus-mode .shell-content.no-nav {
 }
 html.focus-mode .session-header.is-focus {
   margin-bottom: 12px;
+  transition: opacity var(--motion-slow) var(--ease-standard), transform var(--motion-slow) var(--ease-standard);
+}
+.shell-content[data-session-phase="play"] .session-header.is-focus {
+  opacity: 0.15;
+}
+.shell-content[data-session-phase="play"] .session-header.is-focus:hover,
+.shell-content[data-session-phase="play"] .session-header.is-focus:focus-within {
+  opacity: 1;
 }
 html.focus-mode .session-block-info,
 html.focus-mode .block-recap,
@@ -2388,7 +2396,7 @@ html.focus-mode .play-arena [role="button"] {
 .timer-ring-fill {
   stroke: var(--accent-2);
   stroke-linecap: round;
-  transition: stroke-dashoffset var(--motion-base) var(--ease-standard);
+  transition: stroke-dashoffset 1s linear;
 }
 .timer-digits {
   font-variant-numeric: tabular-nums;

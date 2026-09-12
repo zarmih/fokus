@@ -35,6 +35,8 @@ import {
   shouldSaveCheckpoint,
   timerRingOffset
 } from '../../core/focus-mode';
+import { renderInterruptOverlay, removeInterruptOverlay } from '../components/focus-d5';
+
 
 export function renderSession(container: HTMLElement, params: {
   mode?: string;
@@ -176,19 +178,12 @@ export function renderSession(container: HTMLElement, params: {
     }
     let overlay = document.getElementById('pause-overlay');
     if (isPaused) {
-      if (!overlay) {
-        overlay = document.createElement('div');
-        overlay.id = 'pause-overlay';
-        overlay.className = 'pause-overlay';
-        overlay.setAttribute('role', 'status');
-        overlay.innerHTML = `<div class="pause-card">${source === 'system' ? 'Пауза — экран скрыт' : 'Пауза'}</div>`;
-        (document.getElementById('game-container') || content).appendChild(overlay);
-      }
+      renderInterruptOverlay(document.getElementById('game-container') || content, source, () => setPaused(false, 'user'));
       announce(source === 'system' ? 'Пауза, экран скрыт' : 'Пауза');
       if (source === 'system') saveCheckpointIfNeeded();
       releaseWakeLock();
     } else {
-      overlay?.remove();
+      removeInterruptOverlay();
       announce('Продолжаем');
       acquireWakeLock();
     }
@@ -317,7 +312,7 @@ export function renderSession(container: HTMLElement, params: {
       probeOutcomes.length = 0;
       isPaused = false;
       playing = false;
-      document.getElementById('pause-overlay')?.remove();
+      removeInterruptOverlay();
       const pBtn = document.getElementById('btn-pause');
       if (pBtn) {
         pBtn.textContent = 'Пауза';
