@@ -353,6 +353,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'matrix-complete',
+      name: 'Матрицы',
+      domain: 'logic',
+      skills: ['pattern_recognition', 'logical_reasoning'] as ExerciseManifest['skills'],
+      instruction: 'Выберите фигуру, которая логически дополняет пустую клетку в матрице.'
+      metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
       id: 'mental-rotation',
       name: 'Ментальная ротация',
       domain: 'logic',
@@ -478,6 +488,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'memory',
       skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
       instruction: 'Запомните последовательность символов. После их исчезновения выберите их в том же порядке.'
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
+      id: 'pair-bind',
+      name: 'Связь пар',
+      domain: 'memory',
+      skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
+      instruction: 'Запомните, какое слово или число соответствует каждому символу. Затем выберите правильный вариант.'
       metricModel: 'memory-span'
     }
   },
@@ -759,6 +779,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['logical_reasoning', 'mental_calculation'] as ExerciseManifest['skills'],
       instruction: 'Определите ИТОГОВОЕ время после прибавления или вычитания указанных часов и минут.',
       metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
+      id: 'trail-make',
+      name: 'Связь точек',
+      domain: 'attention',
+      skills: ['visual_scanning', 'processing_speed'] as ExerciseManifest['skills'],
+      instruction: 'Соединяйте точки в правильном порядке. На более высоких уровнях чередуйте цифры и буквы (1-А-2-Б-3-В).'
+      metricModel: 'speed-accuracy'
     }
   },
   {

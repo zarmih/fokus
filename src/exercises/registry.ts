@@ -83,6 +83,9 @@ import numberSeriesModule from './number-series';
 import rhythmTapModule from './rhythm-tap';
 import mirrorPickModule from './mirror-pick';
 import orderRecallModule from './order-recall';
+import trailMakeModule from './trail-make';
+import matrixCompleteModule from './matrix-complete';
+import pairBindModule from './pair-bind';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -168,5 +171,8 @@ export const registry: ExerciseModule[] = [
   numberSeriesModule,
   rhythmTapModule,
   mirrorPickModule,
-  orderRecallModule
+  orderRecallModule,
+  trailMakeModule,
+  matrixCompleteModule,
+  pairBindModule
 ];
