@@ -14,7 +14,7 @@ import { shareSessionCard } from '../components/share-card';
 import { precisionLabel } from '../../core/calibration';
 import { abilityCaption, pickTransferTip } from '../../core/onboarding';
 import { setScreenTitle } from '../a11y';
-import { animateCount, celebrate, playSessionCue } from '../../core/motion';
+import { animateCount, celebrate, playSessionCue, prefersReducedMotion } from '../../core/motion';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'today', hideNav: true });
@@ -163,11 +163,28 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const nextEx = nextItem ? getManifest(nextItem.exerciseId) : null;
   const nextHtml = nextEx ? `
     <div class="surface next-card">
-      <h3>Следующий шаг</h3>
-      <p class="next-name">${nextEx.name}</p>
-      <p class="muted">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
+      <h3 style="margin-top: 0;">Следующий шаг</h3>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+        <div>
+          <p class="next-name" style="margin: 0; font-weight: 600;">${nextEx.name}</p>
+          <p class="muted" style="margin: 4px 0 0 0; font-size: 0.9em;">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
+        </div>
+        <button id="btn-next-cta" class="btn-primary" style="margin: 0; padding: 6px 12px; min-height: 0;">Далее</button>
+      </div>
     </div>
   ` : '';
+
+  const feedbackHtml = `
+    <div class="surface feedback-card" id="feedback-card">
+      <h3 style="margin-top: 0;">Как прошла тренировка?</h3>
+      <div class="feedback-options" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button class="btn-secondary feedback-btn" data-val="easy">🥱 Легко</button>
+        <button class="btn-secondary feedback-btn" data-val="ok">👍 Нормально</button>
+        <button class="btn-secondary feedback-btn" data-val="hard">🥵 Тяжело</button>
+      </div>
+      <p class="muted feedback-thanks" style="display: none; margin-top: 12px;">Спасибо за фидбек!</p>
+    </div>
+  `;
 
   const unlocked = (params.unlocked || [])
     .map(id => ACHIEVEMENTS_DEF.find(a => a.id === id))
@@ -220,6 +237,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       ${itemsHtml}
     </div>
 
+    ${feedbackHtml}
     ${nextHtml}
 
     <div class="result-actions">
@@ -229,12 +247,24 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   `;
 
   const hero = content.querySelector('#result-hero') as HTMLElement | null;
-  if (hero) celebrate(hero);
+  if (hero && !prefersReducedMotion()) celebrate(hero);
   const xpEl = content.querySelector('#xp-counter') as HTMLElement | null;
   if (xpEl) animateCount(xpEl, totalScore);
-  playSessionCue(leveledUp || unlocked.length > 0 ? 'celebrate' : 'ritual');
+  if (!prefersReducedMotion()) playSessionCue(leveledUp || unlocked.length > 0 ? 'celebrate' : 'ritual');
 
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
+  content.querySelector('#btn-next-cta')?.addEventListener('click', () => navigateTo('today'));
+
+  const feedbackBtns = content.querySelectorAll('.feedback-btn');
+  feedbackBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const opts = content.querySelector('.feedback-options') as HTMLElement;
+      const thanks = content.querySelector('.feedback-thanks') as HTMLElement;
+      if (opts) opts.style.display = 'none';
+      if (thanks) thanks.style.display = 'block';
+    });
+  });
+
   content.querySelector('#btn-share')?.addEventListener('click', async () => {
     try {
       await shareSessionCard({
