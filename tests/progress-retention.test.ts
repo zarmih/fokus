@@ -15,10 +15,10 @@ beforeEach(() => {
   document.body.innerHTML = '<div id="app"></div>';
 });
 
-test('progress stays quiet without enough rhythm data', () => {
+test('progress shows honest empty state without enough rhythm data', () => {
   renderProgress(document.getElementById('app')!);
   expect(document.body.textContent).not.toMatch(/churn/i);
-  expect(document.querySelector('.rhythm-card')).toBeNull();
+  expect(document.body.textContent).toMatch(/Анализ ритма будет доступен после нескольких регулярных сессий/i);
 });
 
 test('progress shows rhythm signals after a few sessions', () => {

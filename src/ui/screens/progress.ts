@@ -282,6 +282,17 @@ export function renderProgress(container: HTMLElement) {
           ${nudge}
           ${rows}
         </div>`;
+    } else {
+      rhythmHtml = `
+        <div class="surface rhythm-card" style="border: 1px dashed var(--line); box-shadow: none; background: transparent;">
+          <div class="rhythm-head">
+            <div>
+              <div class="fi-kicker">Ритм тренировок</div>
+              <div class="fi-meta">Анализ ритма будет доступен после нескольких регулярных сессий.</div>
+            </div>
+          </div>
+        </div>
+      `;
     }
   } catch {
     rhythmHtml = '';
@@ -302,7 +313,17 @@ export function renderProgress(container: HTMLElement) {
     ? `<div class="fi-pb">${intel.personalBest.isLatest ? 'личный рекорд' : 'рекорд'} · ${intel.personalBest.value}</div>`
     : '';
 
-  const fiHtml = fi.coverage > 0 ? `
+  const fiExplainHtml = `
+    <details class="fi-explain" style="margin-bottom: 16px; font-size: 13px; color: var(--muted); background: var(--surface); padding: 12px; border-radius: 8px; border: 1px solid var(--line);">
+      <summary style="cursor: pointer; font-weight: 600; color: var(--text);">Как считается Fokus Index?</summary>
+      <div style="margin-top: 8px; line-height: 1.45;">
+        Fokus Index — это сводная оценка вашей когнитивной формы. Он строится на основе пяти областей: памяти, внимания, скорости, гибкости и логики. 
+        Чем выше уверенность, тем точнее оценка, так как она опирается на большее число недавних тренировок.
+      </div>
+    </details>
+  `;
+
+  const fiHtml = fi.coverage >= 3 ? `
     <div class="fi-hero">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
@@ -313,15 +334,18 @@ export function renderProgress(container: HTMLElement) {
       </div>
       <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
-  ` : fi.coverage === 0 && intel.ready ? `
-    <div class="fi-hero empty">
-      <div class="fi-copy">
-        <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+    ${fiExplainHtml}
+  ` : `
+    <div class="fi-hero empty" style="border: 1px dashed var(--line); box-shadow: none; background: transparent; padding-top: 24px; padding-bottom: 24px;">
+      <div class="fi-copy" style="text-align: center;">
+        <div class="fi-kicker" style="margin-bottom: 8px;">Fokus Index</div>
+        <div class="fi-value" style="color: var(--muted); font-weight: 400; font-size: 28px; line-height: 1.2;">Формируется</div>
+        <div class="fi-meta" style="margin-top: 8px; max-width: 260px; margin-left: auto; margin-right: auto;">Открыто ${fi.coverage} из 5 областей. Продолжайте тренировки, чтобы открыть сводный график.</div>
         ${sparkHtml}
       </div>
     </div>
-  ` : '';
+    ${fiExplainHtml}
+  `;
 
   const nextMile = intel.milestones.find((m) => !m.reached);
   const milestonesHtml = intel.ready ? `
@@ -339,7 +363,12 @@ export function renderProgress(container: HTMLElement) {
       </div>
       <p class="intel-rhythm">${intel.adherence.currentStreak > 0 ? `сейчас ${intel.adherence.currentStreak}` : 'серия начнётся с сегодняшней сессии'}${nextMile ? ` · дальше ${nextMile.days}` : ''}</p>
     </div>
-  ` : '';
+  ` : `
+    <div class="intel-card intel-card-compact" style="margin-bottom: 24px; border: 1px dashed var(--line); box-shadow: none; background: transparent;">
+      <div class="intel-kicker">Вехи серии</div>
+      <div class="fi-meta" style="margin-top: 8px;">Начните заниматься, чтобы открыть вехи регулярности.</div>
+    </div>
+  `;
 
   const goal = getWeeklyGoal();
   const goalProgressPct = Math.min(100, Math.max(0, (goal.progress / goal.target) * 100));
