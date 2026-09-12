@@ -125,6 +125,9 @@ import rulePivotModule from './rule-pivot';
 import crestTapModule from './crest-tap';
 import pouchSpanModule from './pouch-span';
 import rubricFlipModule from './rubric-flip';
+import pulseRailModule from './pulse-rail';
+import vaultSpanModule from './vault-span';
+import frameSwapModule from './frame-swap';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -252,5 +255,8 @@ export const registry: ExerciseModule[] = [
   rulePivotModule,
   crestTapModule,
   pouchSpanModule,
-  rubricFlipModule
+  rubricFlipModule,
+  pulseRailModule,
+  vaultSpanModule,
+  frameSwapModule
 ];

@@ -373,6 +373,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'frame-swap',
+      name: 'Смена кадра',
+      domain: 'flexibility',
+      skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'КРУГЛАЯ рамка: выберите фигуру ТАКОГО ЖЕ ЦВЕТА. КВАДРАТНАЯ рамка: выберите ТАКУЮ ЖЕ ФИГУРУ.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'gate-tap',
       name: 'Тап у ворот',
       domain: 'attention',
@@ -793,6 +803,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'pulse-rail',
+      name: 'Пульс-рельс',
+      domain: 'attention',
+      skills: ['selective_attention', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'В центре указан целевой цвет. Нажимайте на рельс (Влево или Вправо), когда на нем появляется фигура целевого цвета. Игнорируйте другие цвета.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'rail-chase',
       name: 'Гонка по рельсам',
       domain: 'attention',
@@ -1169,6 +1189,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['selective_attention', 'visual_scanning'] as ExerciseManifest['skills'],
       instruction: 'Найдите единственную уникальную фигуру, которая не повторяется.',
       metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'vault-span',
+      name: 'Хранилище',
+      domain: 'memory',
+      skills: ['working_memory', 'visual_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните, в каких ячейках хранилища появились монеты, и повторите их в ТОМ ЖЕ порядке.'
+      metricModel: 'capacity'
     }
   },
   {
