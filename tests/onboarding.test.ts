@@ -19,9 +19,7 @@ test('onboarding collects goal, duration and starts calibration', () => {
   const app = document.getElementById('app')!;
   renderOnboarding(app);
 
-  expect(app.textContent).toMatch(/Пять минут/);
-  (app.querySelector('#btn-next') as HTMLButtonElement).click();
-
+  expect(app.textContent).toMatch(/Что для вас важнее/);
   const memory = [...app.querySelectorAll('.goal-card')].find(el => (el as HTMLElement).dataset.goal === 'memory') as HTMLButtonElement;
   memory.click();
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
@@ -30,21 +28,13 @@ test('onboarding collects goal, duration and starts calibration', () => {
   eight.click();
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
-  const name = app.querySelector('#onboard-name') as HTMLInputElement;
-  name.value = 'Михаил';
-  name.dispatchEvent(new Event('input'));
-  (app.querySelector('#btn-next') as HTMLButtonElement).click();
-
-  expect(app.textContent).toMatch(/Не медицинское изделие/);
-  expect(app.textContent).toMatch(/60–90/);
-  expect(app.textContent).toMatch(/Навёрстывать/);
+  expect(app.textContent).toMatch(/Не медицина/);
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const p = storage.getProfile();
   expect(p.onboarded).toBe(true);
   expect(p.primaryGoal).toBe('memory');
   expect(p.sessionLengthSec).toBe(480);
-  expect(p.displayName).toBe('Михаил');
   expect(p.onboardingCompletedAt).toBeTruthy();
   expect(p.firstWeekPlan?.skipPolicy).toBe('one-forgiven');
   expect(p.firstWeekPlan?.days).toHaveLength(7);

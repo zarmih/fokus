@@ -18,7 +18,7 @@ import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'today', hideNav: true });
-  setScreenTitle(params.calibration ? 'Калибровка' : 'Результат');
+  setScreenTitle(params.calibration ? 'Первый ритуал' : 'Результат');
   const session = params.session;
   const isCalibration = !!params.calibration;
   const isRecalibration = !!params.recalibration;
@@ -186,7 +186,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     <div class="result-hero fx-celebrate" id="result-hero">
       <div class="result-kicker">${isCalibration ? 'Профиль готов' : isRecalibration ? 'Оценка обновлена' : 'Тренировка завершена'}</div>
       <div class="result-big"><span class="xp-counter" id="xp-counter" data-xp="${Math.round(totalScore)}">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
-      <div class="muted">${isCalibration ? 'стартовая оценка · не IQ' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
+      <div class="muted">${isCalibration ? 'первый ритуал завершён · не IQ' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
       ${compareHtml}
     </div>

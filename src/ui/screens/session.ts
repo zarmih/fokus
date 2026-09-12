@@ -458,7 +458,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
 
     const finishedAt = new Date().toISOString();
-    const duration = Math.max(0, plannedDuration - timeLeft);
+    const duration = Math.max(0, sessionBudget - timeLeft);
     const s: Session = {
       id: Date.now().toString(),
       startedAt: sessionStartedAt,
@@ -467,7 +467,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       items: sessionResults,
       interrupted: false,
       endReason: sessionEndReason,
-      plannedDurationSec: plannedDuration
+      plannedDurationSec: sessionBudget
     };
     storage.addSession(s);
 
@@ -528,7 +528,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   };
 
   function persistAbandonedSession() {
-    const duration = Math.max(0, plannedDuration - timeLeft);
+    const duration = Math.max(0, sessionBudget - timeLeft);
     storage.addSession({
       id: Date.now().toString(),
       startedAt: sessionStartedAt,
@@ -537,7 +537,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       items: sessionResults,
       interrupted: true,
       endReason: 'abandoned',
-      plannedDurationSec: plannedDuration
+      plannedDurationSec: sessionBudget
     });
   }
 
