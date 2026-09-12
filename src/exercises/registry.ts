@@ -104,6 +104,9 @@ import dualLabelModule from './dual-label';
 import anchorDriftModule from './anchor-drift';
 import maskSpanModule from './mask-span';
 import cueBounceModule from './cue-bounce';
+import railChaseModule from './rail-chase';
+import shardHoldModule from './shard-hold';
+import flipAgendaModule from './flip-agenda';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -210,5 +213,8 @@ export const registry: ExerciseModule[] = [
   dualLabelModule,
   anchorDriftModule,
   maskSpanModule,
-  cueBounceModule
+  cueBounceModule,
+  railChaseModule,
+  shardHoldModule,
+  flipAgendaModule
 ];

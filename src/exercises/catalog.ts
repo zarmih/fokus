@@ -313,6 +313,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'flip-agenda',
+      name: 'Смена повестки',
+      domain: 'flexibility',
+      skills: ['task_switching', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Следите за правилом. Если "Цвет": Красный - влево, Синий - вправо. Если "Форма": Круг - влево, Квадрат - вправо.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'focus-circle',
       name: 'Снайпер',
       domain: 'attention',
@@ -673,6 +683,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'rail-chase',
+      name: 'Гонка по рельсам',
+      domain: 'attention',
+      skills: ['sustained_attention', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Следите за целевым объектом. Нажмите кнопку, когда цель окажется в подсвеченной зоне. Не реагируйте на дистракторы.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'rapid-sorting',
       name: 'Живое-Неживое',
       domain: 'speed',
@@ -798,6 +818,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'memory',
       skills: ['spatial_memory', 'visual_memory'] as ExerciseManifest['skills'],
       instruction: 'Запомните расположение фигур. Затем укажите, где находилась появившаяся фигура.',
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
+      id: 'shard-hold',
+      name: 'Осколки',
+      domain: 'memory',
+      skills: ['spatial_memory', 'working_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните расположение осколков. Затем восстановите их позиции (порядок не важен).'
       metricModel: 'memory-span'
     }
   },
