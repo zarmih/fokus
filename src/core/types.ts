@@ -66,6 +66,7 @@ export interface Profile {
   hapticsOn?: boolean;
   language?: string;
   achievements?: string[];
+  shieldCharges?: number;
   locale: 'ru';
   schemaVersion: number;
   xp?: number;
