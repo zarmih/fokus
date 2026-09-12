@@ -2,6 +2,7 @@ import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from
 import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
 import { assessRetention, sparkFromRetention } from './retention';
+import { adviseNextLoad, sparkFromAdvisor } from './retention-advisor';
 
 export interface CoachSpark {
   title: string;
@@ -108,6 +109,24 @@ export function getDailySpark(params: {
   };
 
   if (playedToday) {
+    try {
+      const advice = adviseNextLoad({
+        sessions,
+        daySummaries,
+        domains,
+        playedToday,
+        streak,
+        skippedYesterday,
+        calibrated,
+        primaryGoal,
+        nowIso: (now ?? new Date()).toISOString(),
+        shieldCharges
+      });
+      const fromAdvisor = sparkFromAdvisor(advice);
+      if (fromAdvisor) return fromAdvisor;
+    } catch {
+      /* advisor is optional; fall through */
+    }
     const rest = retentionSpark();
     if (rest && rest.tone === 'habit' && /завтра/i.test(rest.body)) {
       return rest;
