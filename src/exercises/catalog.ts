@@ -73,12 +73,32 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'beacon-rail',
+      name: 'Маяк-рельс',
+      domain: 'attention',
+      skills: ['selective_attention', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Нажимайте кнопку только тогда, когда заданный маяк (цветной круг) достигает центральной зоны.',
+      metricModel: 'timing-precision'
+    }
+  },
+  {
+    manifest: {
       id: 'beacon-snap',
       name: 'Маяк',
       domain: 'attention',
       skills: ['selective_attention', 'reaction_speed', 'visual_scanning'] as ExerciseManifest['skills'],
       instruction: 'Запомните целевой цвет. Когда маяк нужного цвета вспыхнет, быстро нажмите на него. Игнорируйте другие цвета.',
       metricModel: 'timing-precision'
+    }
+  },
+  {
+    manifest: {
+      id: 'cache-span',
+      name: 'Кэш',
+      domain: 'memory',
+      skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните, в каких ячейках лежат символы. Затем найдите заданный символ.',
+      metricModel: 'memory-span'
     }
   },
   {
@@ -578,6 +598,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'logic',
       skills: ['mental_calculation', 'processing_speed'] as ExerciseManifest['skills'],
       instruction: 'Определите недостающий математический знак (+, -, ×, ÷), чтобы равенство стало верным.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'motif-flip',
+      name: 'Смена мотива',
+      domain: 'flexibility',
+      skills: ['rule_switching', 'task_switching'] as ExerciseManifest['skills'],
+      instruction: 'Сопоставьте центральную карту с одной из нижних по текущему правилу (Цвет или Форма). Правило может меняться!',
       metricModel: 'speed-accuracy'
     }
   },

@@ -128,6 +128,9 @@ import rubricFlipModule from './rubric-flip';
 import pulseRailModule from './pulse-rail';
 import vaultSpanModule from './vault-span';
 import frameSwapModule from './frame-swap';
+import cacheSpanModule from './cache-span';
+import beaconRailModule from './beacon-rail';
+import motifFlipModule from './motif-flip';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -258,5 +261,8 @@ export const registry: ExerciseModule[] = [
   rubricFlipModule,
   pulseRailModule,
   vaultSpanModule,
-  frameSwapModule
+  frameSwapModule,
+  cacheSpanModule,
+  beaconRailModule,
+  motifFlipModule
 ];
