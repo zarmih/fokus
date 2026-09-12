@@ -101,6 +101,9 @@ import signFlipModule from './sign-flip';
 import haloTraceModule from './halo-trace';
 import gateTapModule from './gate-tap';
 import dualLabelModule from './dual-label';
+import anchorDriftModule from './anchor-drift';
+import maskSpanModule from './mask-span';
+import cueBounceModule from './cue-bounce';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -204,5 +207,8 @@ export const registry: ExerciseModule[] = [
   signFlipModule,
   haloTraceModule,
   gateTapModule,
-  dualLabelModule
+  dualLabelModule,
+  anchorDriftModule,
+  maskSpanModule,
+  cueBounceModule
 ];

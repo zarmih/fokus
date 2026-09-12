@@ -14,6 +14,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'anchor-drift',
+      name: 'Дрейф якоря',
+      domain: 'attention',
+      skills: ['sustained_attention', 'selective_attention'] as ExerciseManifest['skills'],
+      instruction: 'Нажимайте только на якорь (★). Не трогайте дистракторы (●). Они медленно перемещаются.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'arcade-shooter',
       name: 'Космический стрелок',
       domain: 'speed',
@@ -158,6 +168,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'attention',
       skills: ['visual_scanning', 'selective_attention'] as ExerciseManifest['skills'],
       instruction: 'Запомните количество целевых фигур. Они появятся на короткое время. Затем выберите правильное число.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'cue-bounce',
+      name: 'Отскок правила',
+      domain: 'flexibility',
+      skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Следите за правилом сверху. Если "ЧЁТНОСТЬ", определите, чётное число или нечётное. Если "ВЕЛИЧИНА" — больше или меньше 5.'
       metricModel: 'speed-accuracy'
     }
   },
@@ -368,6 +388,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'memory',
       skills: ['spatial_memory', 'working_memory'] as ExerciseManifest['skills'],
       instruction: 'Запомните расположение фигур в сетке. Затем укажите, где находилась заданная фигура.',
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
+      id: 'mask-span',
+      name: 'Маска-спан',
+      domain: 'memory',
+      skills: ['visual_memory', 'working_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните символы. После маски выберите все символы, которые были показаны (порядок не важен).'
       metricModel: 'memory-span'
     }
   },
