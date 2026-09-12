@@ -109,6 +109,11 @@ export function renderProgram(container: HTMLElement) {
         <h2>Персональный план</h2>
         <p class="today-date">Адаптивный движок v2 · не копия чужих методик</p>
       </div>
+      <div class="segmented" style="margin-bottom: 24px;" role="tablist">
+        <button type="button" role="tab" id="nav-program" aria-selected="true" class="active">План</button>
+        <button type="button" role="tab" id="nav-trainers" aria-selected="false">Упражнения</button>
+        <button type="button" role="tab" id="nav-duel" aria-selected="false">Дуэли</button>
+      </div>
       ${hero}
       ${profile.calibrated ? `
         <div class="surface">
@@ -121,11 +126,6 @@ export function renderProgram(container: HTMLElement) {
           <div class="ritual-list">${ritualHtml || '<p class="muted">Каталог пуст — откройте тренажёры.</p>'}</div>
         </div>
       ` : ''}
-      <div class="surface" style="margin-top:16px">
-        <h3>Каталог</h3>
-        <p class="muted" style="margin-bottom:12px">Отдельные упражнения не ломают ритуал.</p>
-        <button id="btn-catalog" class="btn-secondary" type="button">Открыть тренажёры</button>
-      </div>
     </div>
   `;
 
@@ -154,5 +154,7 @@ export function renderProgram(container: HTMLElement) {
     snoozeRecalibration();
     renderProgram(container);
   });
-  shell.querySelector('#btn-catalog')?.addEventListener('click', () => navigateTo('trainers'));
+  shell.querySelector('#nav-trainers')?.addEventListener('click', () => navigateTo('trainers'));
+  shell.querySelector('#nav-duel')?.addEventListener('click', () => navigateTo('duel'));
 }
+

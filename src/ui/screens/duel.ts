@@ -3,6 +3,7 @@ import { renderShell } from '../shell';
 import { storage } from '../../core/storage';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { domainLabel } from '../../core/labels';
+import { navigateTo } from '../router';
 import {
   BOUT_DURATION_SEC,
   BOUT_TARGET_POINTS,
@@ -67,6 +68,11 @@ export function renderDuel(container: HTMLElement) {
     <div class="today-head">
       <h2>Дуэль</h2>
       <p class="today-date">Схватка по Fokus Index, не турнир с лидербордом.</p>
+    </div>
+    <div class="segmented" style="margin-bottom: 24px;" role="tablist">
+      <button type="button" role="tab" id="nav-program" aria-selected="false">План</button>
+      <button type="button" role="tab" id="nav-trainers" aria-selected="false">Упражнения</button>
+      <button type="button" role="tab" id="nav-duel" aria-selected="true" class="active">Дуэли</button>
     </div>
 
     <div class="surface duel-intel">
@@ -173,6 +179,9 @@ export function renderDuel(container: HTMLElement) {
     statusMsg.textContent = 'Подключение...';
     wireP2p().join(code).catch((e) => showError(e));
   });
+
+  content.querySelector('#nav-program')?.addEventListener('click', () => navigateTo('program'));
+  content.querySelector('#nav-trainers')?.addEventListener('click', () => navigateTo('trainers'));
 }
 
 function strongestReadyDomain(self: Duelant): string {
