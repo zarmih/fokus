@@ -8,9 +8,11 @@ import { unlockAudio } from './core/audio';
 import { initInstallPrompt } from './pwa-install';
 import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
+import { initFlowHandoff } from './ui/screens/flow';
 import { safeError } from './core/log';
 
 initInstallPrompt();
+initFlowHandoff();
 
 type ScreenFn = (el: HTMLElement, params?: any) => void;
 
