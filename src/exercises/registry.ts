@@ -116,6 +116,9 @@ import tokenWarpModule from './token-warp';
 import sparkLaneModule from './spark-lane';
 import traySpanModule from './tray-span';
 import lensSwapModule from './lens-swap';
+import beaconSnapModule from './beacon-snap';
+import slotSpanModule from './slot-span';
+import prismFlipModule from './prism-flip';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -234,5 +237,8 @@ export const registry: ExerciseModule[] = [
   tokenWarpModule,
   sparkLaneModule,
   traySpanModule,
-  lensSwapModule
+  lensSwapModule,
+  beaconSnapModule,
+  slotSpanModule,
+  prismFlipModule
 ];

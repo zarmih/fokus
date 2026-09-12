@@ -73,6 +73,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'beacon-snap',
+      name: 'Маяк',
+      domain: 'attention',
+      skills: ['selective_attention', 'reaction_speed', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Запомните целевой цвет. Когда маяк нужного цвета вспыхнет, быстро нажмите на него. Игнорируйте другие цвета.'
+      metricModel: 'timing-precision'
+    }
+  },
+  {
+    manifest: {
       id: 'catch-the-color',
       name: 'Цветолов',
       domain: 'speed',
@@ -723,6 +733,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'prism-flip',
+      name: 'Призма',
+      domain: 'flexibility',
+      skills: ['task_switching', 'rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Сортируйте фигуры по текущему правилу (ЦВЕТ или ФОРМА). Внимание: правило может внезапно измениться!'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'pulley',
       name: 'Шкив',
       domain: 'logic',
@@ -919,6 +939,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['logical_reasoning', 'processing_speed'] as ExerciseManifest['skills'],
       instruction: 'Несмотря на размер картинки на экране, выберите животное или объект, который БОЛЬШЕ В РЕАЛЬНОЙ ЖИЗНИ.',
       metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'slot-span',
+      name: 'Ячейки',
+      domain: 'memory',
+      skills: ['working_memory', 'visual_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните символы в ячейках. Затем восстановите их в правильном порядке.'
+      metricModel: 'memory-span'
     }
   },
   {
