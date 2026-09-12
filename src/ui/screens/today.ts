@@ -77,16 +77,16 @@ export function renderToday(container: HTMLElement) {
     durationSec: ritualDuration,
     primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal
   });
+
   const trendChipHtml = depth.chip
     ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
     : '';
-  const ritualWhyHtml = depth.why
-    ? `<p class="ritual-why">${depth.why}</p>`
-    : '';
+
   if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
-    (plan as { items: { exerciseId: string; reason?: string }[]; focusDomains: string[] }).items = depth.ritual.items.map((s) => ({
+    (plan as { items: { exerciseId: string; reason?: string, slot?: string }[]; focusDomains: string[] }).items = depth.ritual.items.map((s, idx) => ({
       exerciseId: s.exerciseId,
-      reason: s.reasonLabel
+      reason: s.reasonLabel,
+      slot: plan.items[idx]?.slot
     }));
     (plan as { focusDomains: string[] }).focusDomains = depth.ritual.focusDomains;
   }
@@ -100,15 +100,20 @@ export function renderToday(container: HTMLElement) {
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
     : 'Сбалансированная тренировка';
 
-  const compositionHtml = plan.items.map((item, index) => {
+  const compositionV3Html = plan.items.map((item, index) => {
     const r = getManifest(item.exerciseId);
-    const isPrimary = index === 0;
-    const slot = item.slot ? SLOT_LABEL[item.slot] : '';
-    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
-      <span>${r?.name}</span>
-      ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
-    </div>`;
+    const slotStr = item.slot ? SLOT_LABEL[item.slot] : (index === 0 ? 'Разминка' : index === plan.items.length - 1 ? 'Заминка' : 'Фокус');
+    return `
+      <div class="ritual-slot">
+        <div class="ritual-slot-icon dom-${r?.domain}-bg">
+          <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="20" height="20" alt="" decoding="async">
+        </div>
+        <div class="ritual-slot-info">
+          <div class="ritual-slot-name">${slotStr}: ${r?.name}</div>
+          <div class="ritual-slot-domain">${domainLabel(r?.domain || 'focus')} ${item.reason ? '· ' + item.reason : ''}</div>
+        </div>
+      </div>
+    `;
   }).join('');
 
   const hour = new Date().getHours();
@@ -159,7 +164,6 @@ export function renderToday(container: HTMLElement) {
   }
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
-  const topInsight = insights[0];
   const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
     <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
       <div class="week-kicker">Первая неделя · день ${weekRitual.day} из 7 · ${weekRitual.ritualDay.label}</div>
@@ -222,21 +226,21 @@ export function renderToday(container: HTMLElement) {
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Первый шаг</div>
-        <h3>Калибровка уровня</h3>
-        <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
+      <div class="ritual-v3-card workout-card fx-enter">
+        <div class="ritual-v3-kicker">✨ Первый шаг</div>
+        <h3 class="ritual-v3-title">Калибровка уровня</h3>
+        <p class="ritual-v3-desc">3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
+        <button id="btn-start" class="ritual-v3-cta" type="button">Пройти калибровку</button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate">
-        <div class="workout-kicker">Сегодня</div>
-        <h3>План выполнен</h3>
+      <div class="empty-state-v3 workout-card done fx-celebrate">
+        <div class="empty-state-icon">✨</div>
+        <h3 class="empty-state-title">На сегодня всё</h3>
+        <p class="empty-state-desc">Вы выполнили дневной ритуал. Отличная работа! Возвращайтесь завтра для новой тренировки.</p>
         ${trendChipHtml}
-        <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
-        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
+        <button id="btn-start" class="btn-secondary" style="margin-top: 16px;" type="button">Ещё одна сессия</button>
       </div>
     `;
   } else if (snap.ritual.active) {
@@ -244,40 +248,44 @@ export function renderToday(container: HTMLElement) {
       ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Мягкий возврат</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
-        <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+      <div class="ritual-v3-card workout-card fx-enter">
+        <div class="ritual-v3-kicker">🌱 Мягкий возврат</div>
+        <h3 class="ritual-v3-title">${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
+        <p class="ritual-v3-desc">Поможем плавно вернуться в ритм без перегрузки.</p>
+        <div class="ritual-v3-slots">
+          ${compositionV3Html}
+        </div>
+        <button id="btn-start" class="ritual-v3-cta" type="button">Начать сессию</button>
       </div>
     `;
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
-        ${trendChipHtml}
-        <div class="workout-chips">${compositionHtml}</div>
-        ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+      <div class="ritual-v3-card workout-card fx-enter ${rest ? 'rest-light' : ''}">
+        <div class="ritual-v3-kicker">${rest ? '🧘 Сегодня легче' : '🔥 Тренировка дня'}</div>
+        <h3 class="ritual-v3-title">${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
+        <p class="ritual-v3-desc ritual-why">${depth.why || 'Интеллектуальная подборка для вашего мозга.'}</p>
+        ${trendChipHtml ? '<div style="margin-bottom: 16px;">' + trendChipHtml + '</div>' : ''}
+        <div class="ritual-v3-slots">
+          ${compositionV3Html}
+        </div>
+        <button id="btn-start" class="ritual-v3-cta" type="button">Начать сессию</button>
       </div>
     `;
   }
 
   content.innerHTML = `
-    <div class="today-head">
-      <h2>${hello}${greetName ? ', <span class="greet-name">' + greetName + '</span>' : ''}</h2>
-      <p class="today-date">${dateStr}</p>
+    <div class="today-v3-header">
+      <h2 class="today-v3-greeting">${hello}${greetName ? ', <span class="greet-name">' + greetName + '</span>' : ''}</h2>
+      <p class="today-v3-date">${dateStr}</p>
     </div>
+
+    ${actionHtml}
 
     ${heroHtml}
 
     ${renderQualityCard(ritual.snapshot)}
     ${recalHtml}
-
-    ${actionHtml}
-
     ${weekHtml}
 
     <div class="dashboard-widgets">
@@ -305,9 +313,7 @@ export function renderToday(container: HTMLElement) {
       </div>
 
       ${transferCardHtml}
-
       ${questsHtml}
-
     </div>
   `;
 
@@ -323,12 +329,11 @@ export function renderToday(container: HTMLElement) {
     snoozeRecalibration();
     renderToday(container);
   });
-  const workout = content.querySelector('.workout-card') as HTMLElement | null;
-  if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
       if (!profile.calibrated) {
+        (window as any).plannedDuration = 180;
         navigateTo('session', {
           mode: 'calibration',
           items: calibrationSessionItems({
@@ -337,6 +342,7 @@ export function renderToday(container: HTMLElement) {
           })
         });
       } else {
+        (window as any).plannedDuration = ritualDuration;
         navigateTo('session', { mode: 'normal', items: plan.items, durationSec: ritualDuration });
       }
     };

@@ -2507,3 +2507,203 @@ html[data-motion="reduce"] .trainer-card { transition-duration: 0ms; }
   color: var(--text);
   font-size: 16px;
 }
+
+/* Today v3 */
+.today-v3-header {
+  margin-bottom: 24px;
+  animation: fadeSlideDown 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.today-v3-greeting {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+}
+.today-v3-date {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.ritual-v3-card {
+  background: var(--bg-elev);
+  border-radius: 24px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 32px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+  opacity: 0;
+  animation: fadeSlideUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s forwards;
+}
+
+.ritual-v3-card.rest-light {
+  border-color: var(--ok);
+}
+
+.ritual-v3-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--ok));
+}
+
+.ritual-v3-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ritual-v3-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.ritual-v3-desc {
+  font-size: 15px;
+  color: var(--muted);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.ritual-v3-slots {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.ritual-slot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg);
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  transition: transform 0.2s;
+}
+
+.ritual-slot:hover {
+  transform: translateX(4px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ritual-slot:hover { transform: none; }
+  .today-v3-header, .ritual-v3-card, .empty-state-v3 {
+    animation-duration: 0.01ms !important;
+  }
+}
+
+.ritual-slot-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--bg-elev);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.dom-memory-bg { background: rgba(59, 130, 246, 0.15); color: #3b82f6; }
+.dom-attention-bg { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+.dom-speed-bg { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+.dom-flexibility-bg { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; }
+.dom-problem_solving-bg { background: rgba(236, 72, 153, 0.15); color: #ec4899; }
+.dom-focus-bg { background: rgba(100, 116, 139, 0.15); color: #64748b; }
+
+.ritual-slot-info {
+  flex: 1;
+}
+
+.ritual-slot-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 2px;
+}
+
+.ritual-slot-domain {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.ritual-v3-cta {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 17px;
+  font-weight: 600;
+  background: var(--text);
+  color: var(--bg);
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+}
+
+.ritual-v3-cta:active {
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  .ritual-v3-cta:active { transform: none; }
+}
+
+.empty-state-v3 {
+  text-align: center;
+  padding: 48px 24px;
+  background: var(--bg-elev);
+  border-radius: 24px;
+  border: 1px dashed var(--line);
+  margin-bottom: 32px;
+  opacity: 0;
+  animation: fadeSlideUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) 0.1s forwards;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  animation: float 4s ease-in-out infinite;
+  display: inline-block;
+}
+@media (prefers-reduced-motion: reduce) {
+  .empty-state-icon { animation: none; }
+}
+
+.empty-state-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px;
+}
+
+.empty-state-desc {
+  font-size: 15px;
+  color: var(--muted);
+  max-width: 280px;
+  margin: 0 auto 24px;
+  line-height: 1.5;
+}
+
+@keyframes fadeSlideUp {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeSlideDown {
+  0% { opacity: 0; transform: translateY(-20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
