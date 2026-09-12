@@ -162,10 +162,16 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const nextItem = plan.items[0];
   const nextEx = nextItem ? getManifest(nextItem.exerciseId) : null;
   const nextHtml = nextEx ? `
-    <div class="surface next-card">
-      <h3>Следующий шаг</h3>
-      <p class="next-name">${nextEx.name}</p>
-      <p class="muted">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
+    <div class="surface next-card" style="margin-top: 24px; border: 2px solid var(--primary); background: rgba(var(--primary-rgb), 0.05);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <div style="font-weight: 600; color: var(--primary); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;">Следующий шаг</div>
+          <h3 style="margin: 0;">${nextEx.name}</h3>
+          <p class="muted" style="margin: 4px 0 0 0;">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
+        </div>
+        <div style="font-size: 2rem; opacity: 0.8;">🧠</div>
+      </div>
+      <button id="btn-next-action" class="btn-primary" style="width: 100%;">Начать упражнение</button>
     </div>
   ` : '';
 
@@ -224,7 +230,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
     <div class="result-actions">
       <button id="btn-share" class="btn-secondary" style="display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right:8px; vertical-align: middle;"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>Поделиться</button>
-      <button id="btn-done" class="btn-primary">Готово</button>
+      <button id="btn-done" class="${nextEx ? 'btn-secondary' : 'btn-primary'}">${nextEx ? 'На главную' : 'Готово'}</button>
     </div>
   `;
 
@@ -235,6 +241,11 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   playSessionCue(leveledUp || unlocked.length > 0 ? 'celebrate' : 'ritual');
 
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
+  content.querySelector('#btn-next-action')?.addEventListener('click', () => {
+    if (nextItem) {
+      navigateTo('session', { mode: 'normal', items: [nextItem] });
+    }
+  });
   content.querySelector('#btn-share')?.addEventListener('click', async () => {
     try {
       await shareSessionCard({
