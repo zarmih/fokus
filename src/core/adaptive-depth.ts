@@ -10,6 +10,12 @@ import {
   type RitualCatalogEntry,
   type RitualPlan
 } from './ritual-targeter';
+import {
+  computeMasteryDecay,
+  type MasteryDecaySnapshot,
+  type MasteryHint
+} from './mastery-decay';
+import { getLocale, type Locale } from './i18n';
 
 export {
   computeAbilityTrajectory,
@@ -46,6 +52,28 @@ export {
   MAX_SLOTS
 } from './ritual-targeter';
 export type { RitualPlan, RitualSlot, RitualReason, RitualCatalogEntry } from './ritual-targeter';
+
+export {
+  computeMasteryDecay,
+  applyReprobeBias,
+  scheduleReprobes,
+  sparkFromReprobe,
+  masteryEvidence,
+  decayConfidence,
+  classifyBand,
+  BAND_DUE,
+  BAND_HELD,
+  HALF_LIFE_DAYS,
+  MIN_IDLE_DAYS_DUE,
+  MASTERY_SETTINGS_COPY
+} from './mastery-decay';
+export type {
+  MasteryDecaySnapshot,
+  MasteryHint,
+  ExerciseMasteryCard,
+  ReprobeProposal,
+  MasteryBand
+} from './mastery-decay';
 
 export interface AbilityTrendChip {
   label: string;
@@ -85,11 +113,14 @@ export function describeAdaptiveDepth(params: {
   primaryGoal?: string;
   now?: number;
   rng?: () => number;
+  locale?: Locale;
 }): {
   trajectory: AbilityTrajectory;
   ritual: RitualPlan | null;
   chip: AbilityTrendChip | null;
   why: string | null;
+  reprobe: MasteryDecaySnapshot;
+  reprobeHint: MasteryHint | null;
 } {
   const catalog = params.catalog || [];
   const catalogRefs: CatalogDomainRef[] = catalog.map((c) => ({
@@ -113,10 +144,25 @@ export function describeAdaptiveDepth(params: {
     rng: params.rng,
     trajectory
   });
+  const reprobe = computeMasteryDecay({
+    catalog: catalog.map((c) => ({
+      id: c.manifest.id,
+      domain: c.manifest.domain,
+      name: c.manifest.name,
+      skills: c.manifest.skills
+    })),
+    sessions: params.sessions,
+    states: params.states,
+    skills: params.skills,
+    now: params.now,
+    locale: params.locale || getLocale()
+  });
   return {
     trajectory,
     ritual,
     chip: abilityTrendChip(trajectory),
-    why: ritual?.why || null
+    why: ritual?.why || null,
+    reprobe,
+    reprobeHint: reprobe.hint
   };
 }

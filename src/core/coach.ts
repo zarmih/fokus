@@ -2,6 +2,7 @@ import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from
 import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
 import { assessRetention, sparkFromRetention } from './retention';
+import { sparkFromReprobe, type MasteryDecaySnapshot } from './mastery-decay';
 
 export interface CoachSpark {
   title: string;
@@ -66,6 +67,8 @@ export function getDailySpark(params: {
   now?: Date;
   /** Optional Phase 3 field — ignored when the program PR is not merged. */
   shieldCharges?: number;
+  /** G21: optional mastery re-probe snapshot. Ignored when empty. */
+  reprobe?: MasteryDecaySnapshot | null;
 }): CoachSpark {
   const {
     domains,
@@ -78,7 +81,8 @@ export function getDailySpark(params: {
     primaryGoal,
     focusDomains,
     now,
-    shieldCharges
+    shieldCharges,
+    reprobe
   } = params;
 
   if (!calibrated) {
@@ -149,6 +153,9 @@ export function getDailySpark(params: {
       };
     }
   }
+
+  const fromReprobe = sparkFromReprobe(reprobe);
+  if (fromReprobe) return fromReprobe;
 
   const fi = computeFokusIndex(domains);
   const weakest = [...fi.byDomain].filter((d) => d.ready).sort((a, b) => a.value - b.value)[0];

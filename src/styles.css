@@ -1265,6 +1265,15 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   line-height: 1.4;
   margin: 0 0 14px;
 }
+.reprobe-hint {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.4;
+  margin: 0 0 14px;
+}
+.adaptive-note.mastery-note {
+  margin-top: 10px;
+}
 .adaptive-note {
   font-size: 13px;
   color: var(--muted);
@@ -1956,11 +1965,11 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   .play-board { transform: none; }
   .fx-enter, .instruction-card, .result-hero, .staggered-block, .shell-content,
   .workout-card.fx-enter, .stat-pill.fx-enter,
-  .ability-trend-chip, .ritual-why {
+  .ability-trend-chip, .ritual-why, .reprobe-hint {
     animation-name: fxFade !important;
   }
   .fx-celebrate, .level-up, .workout-card.done.fx-celebrate,
-  .ability-trend-chip, .ritual-why {
+  .ability-trend-chip, .ritual-why, .reprobe-hint {
     animation-name: fxFade !important;
   }
   .fx-celebrate::after, .ritual-fill, .quest-title.done, .streak-badge.has-streak,

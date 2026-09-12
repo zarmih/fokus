@@ -236,3 +236,49 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
 });
+
+test('today shows a re-probe due hint for an idle trainer without rewriting weekly copy', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  p.sessionLengthSec = 300;
+  storage.setProfile(p);
+  storage.setDomains([
+    { domain: 'memory', value: 640, trend: 0, updatedAt: new Date().toISOString() },
+    { domain: 'attention', value: 700, trend: 0, updatedAt: new Date().toISOString() }
+  ]);
+  const day = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
+  const item = { exerciseId: 'grid-memory', level: 6, accuracy: 0.93, avgRtMs: 750, score: 80, difficultyBefore: 6 };
+  storage.addSession({
+    id: 'old-1',
+    startedAt: day(18),
+    finishedAt: day(18),
+    durationSec: 300,
+    items: [item]
+  });
+  storage.addSession({
+    id: 'old-2',
+    startedAt: day(16),
+    finishedAt: day(16),
+    durationSec: 300,
+    items: [item]
+  });
+  storage.addDaySummary({
+    date: day(16).slice(0, 10),
+    totalScore: 80,
+    domainDeltas: { memory: 2 },
+    streak: 2,
+    skipped: false
+  });
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  const hint = app.querySelector('.reprobe-hint');
+  expect(hint).toBeTruthy();
+  expect(hint?.getAttribute('data-reprobe')).toBe('due');
+  expect(hint?.getAttribute('role')).toBe('status');
+  expect(app.textContent).toMatch(/Пора освежить/);
+  expect(app.textContent).toMatch(/Матрица/);
+  expect(app.textContent).not.toMatch(/IQ|NeuroScore|Wikium|Elevate|Lumosity/i);
+  expect(app.textContent).not.toMatch(/Итоги недели|недельный обзор/i);
+});

@@ -5,6 +5,7 @@
 ## Слои
 - **core** (`src/core/`): Работа с профилем, историей, хранилищем (`storage.ts`, `offline-sync.ts`) и глобальными утилитами (аудио, типы). Ничего не знает о UI. Локальные данные версионируются и переносятся файлом (см. `OFFLINE_SYNC_G6.md`).
 - **engine** (`src/core/engine/`): Adaptive Engine v2 — вектор способностей (EWMA + Bayesian-lite), IRT-выбор сложности, spaced-слоты ритуала, мягкая перекалибровка. Чистый TS, без DOM. UI ходит через `adaptive-plan.ts`.
+- **mastery decay** (`src/core/mastery-decay.ts`): уверенность по тренажёру и затухание по календарным дням; предлагает мягкий повтор, не задаёт сложность. Подробности — `ADAPTIVE_MASTERY_G21.md`.
 - **soundscape** (`src/core/soundscape.ts` + `audio.ts` + `haptics.ts`): Именованный граф Web Audio-сигналов (tap/hit/miss/combo/ritual/celebrate), мастер-громкость, mute и опциональная вибрация. Подробности — `SOUNDSCAPE_G12.md`.
 - **ui** (`src/ui/`): Экраны (сессия, прогресс, настройки) и компоненты-обёртки. Не содержит логики конкретных игр.
 - **session** (`src/ui/screens/session.ts`): Оркестратор тренировки. Запускает упражнения из реестра, собирает метрики (`avgRtMs`, `accuracy`), начисляет очки и обновляет `history`.
