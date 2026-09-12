@@ -107,6 +107,9 @@ import cueBounceModule from './cue-bounce';
 import railChaseModule from './rail-chase';
 import shardHoldModule from './shard-hold';
 import flipAgendaModule from './flip-agenda';
+import orbitTapModule from './orbit-tap';
+import glyphStashModule from './glyph-stash';
+import axisSwapModule from './axis-swap';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -216,5 +219,8 @@ export const registry: ExerciseModule[] = [
   cueBounceModule,
   railChaseModule,
   shardHoldModule,
-  flipAgendaModule
+  flipAgendaModule,
+  orbitTapModule,
+  glyphStashModule,
+  axisSwapModule
 ];

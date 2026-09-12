@@ -53,6 +53,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'axis-swap',
+      name: 'Смена оси',
+      domain: 'flexibility',
+      skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Правило: ГОРИЗОНТАЛЬ (Влево/Вправо) или ВЕРТИКАЛЬ (Вверх/Вниз). Укажите положение точки относительно центра.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'balance-scales',
       name: 'Равновесие',
       domain: 'logic',
@@ -343,6 +353,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'glyph-stash',
+      name: 'Тайник глифов',
+      domain: 'memory',
+      skills: ['visual_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните расположение глифов. Когда они исчезнут, выберите все ячейки, где они были.'
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
       id: 'go-no-go',
       name: 'Go / No-Go',
       domain: 'attention',
@@ -579,6 +599,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['visual_scanning', 'selective_attention', 'processing_speed'] as ExerciseManifest['skills'],
       instruction: 'Найди элемент, который отличается от остальных.',
       metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'orbit-tap',
+      name: 'Орбита',
+      domain: 'attention',
+      skills: ['selective_attention', 'divided_attention'] as ExerciseManifest['skills'],
+      instruction: 'Нажмите ТАП (или пробел), когда ЗЕЛЁНАЯ цель проходит через жёлтые ворота. Ложные тапы штрафуются.'
+      metricModel: 'timing-precision'
     }
   },
   {
