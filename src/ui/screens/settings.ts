@@ -69,7 +69,7 @@ export function renderSettings(container: HTMLElement) {
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Уведомления</h3>
       <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Разрешить уведомления</button>
-      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
+      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Мягкое напоминание в</div>
       <div class="segmented" id="reminder-segmented" role="radiogroup" aria-label="Напоминание">
         <button type="button" role="radio" data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}" aria-checked="${profile.reminderHour === 8 ? 'true' : 'false'}">08:00</button>
         <button type="button" role="radio" data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}" aria-checked="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'true' : 'false'}">09:00</button>
@@ -77,7 +77,7 @@ export function renderSettings(container: HTMLElement) {
         <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
         <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
       </div>
-      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Напоминание работает только на вашем устройстве. Мы заботимся о вашем фокусе и никогда не пришлём рекламу.</div>
     </div>
 
     <div class="surface">
@@ -90,8 +90,8 @@ export function renderSettings(container: HTMLElement) {
 
     <div class="surface quality-explainer">
       <h3 style="margin-bottom: 16px;">Качество сессии и восстановление</h3>
-      <p>Качество ритуала — не IQ и не «балл мозга». Fokus считает, насколько чисто прошёл подход: точность, стабильность времени реакции, уместность сложности, завершённость и обрывы.</p>
-      <p>После плотных дней или просадки качества экран «Сегодня» может предложить короче и другую область. Это подсказка нагрузки, не диагноз.</p>
+      <p>Оценка качества — это показатель вашей включённости, а не IQ и не «балл мозга». Мы учитываем стабильность темпа, точность и то, насколько комфортно вам далась сложность.</p>
+      <p>В периоды высокой усталости или стресса Fokus может мягко предложить более короткую сессию, чтобы поберечь ваш ресурс. Отдых — такая же важная часть прогресса.</p>
       <label style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="recovery-toggle" ${profile.recoveryHints !== false ? 'checked' : ''} />
         Подсказывать восстановление на экране «Сегодня»
@@ -100,7 +100,7 @@ export function renderSettings(container: HTMLElement) {
 
     ${profile.probeSnapshot ? `
     <div class="surface probe-summary">
-      <h3 style="margin-bottom: 8px;">Стартовая оценка</h3>
+      <h3 style="margin-bottom: 8px;">Ваш стартовый профиль</h3>
       <p class="muted" style="margin-bottom: 12px;">${abilityCaption(profile.probeSnapshot)}</p>
       ${profile.probeSnapshot.domains.filter((d) => d.probed).map((d) => `
         <div class="delta-row">
@@ -112,16 +112,16 @@ export function renderSettings(container: HTMLElement) {
     </div>
     ` : profile.onboarded && !profile.calibrated ? `
     <div class="surface">
-      <h3 style="margin-bottom: 8px;">Калибровка</h3>
-      <p class="muted" style="margin-bottom: 12px;">Короткий зонд ещё не пройден. Это не IQ — только стартовая сложность.</p>
-      <button id="btn-recalibrate" class="btn-primary" type="button" style="width: 100%;">Пройти калибровку</button>
+      <h3 style="margin-bottom: 12px;">Ваши данные под защитой</h3>
+      <p class="privacy-copy" style="margin-bottom: 12px; color: var(--muted); line-height: 1.5;">В Fokus нет аккаунтов, облачных хранилищ и рекламных трекеров. Весь ваш прогресс бережно хранится только на этом устройстве. Никто, кроме вас, не имеет к нему доступа.</p>
+      <button id="btn-recalibrate" class="btn-primary" type="button" style="width: 100%;">Начать калибровку</button>
     </div>
     ` : ''}
 
-    <div class="surface">
     <div class="surface" id="sync-health">
       <h3 style="margin-bottom: 16px;">Данные</h3>
       <div id="sync-health-meta" style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;"></div>
+      <p class="privacy-copy" style="font-size: 13px; color: var(--muted); margin-bottom: 16px; line-height: 1.5;">Все тренировки и настройки бережно хранятся локально на вашем устройстве. Вы можете в любой момент экспортировать их или перенести на другое устройство.</p>
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <button id="btn-export" class="btn-primary" type="button" style="flex: 1;">Экспорт</button>
         <button id="btn-import" class="btn-secondary" type="button" style="flex: 1;">Импорт</button>

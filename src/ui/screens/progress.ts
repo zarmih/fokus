@@ -60,7 +60,7 @@ export function renderProgress(container: HTMLElement) {
 
   let historyHtml = '';
   if (history.length === 0) {
-    historyHtml = '<p style="color: var(--muted); text-align: center; margin: 24px 0;">Нет истории тренировок</p>';
+    historyHtml = '<div class="empty-state" style="text-align: center; padding: 32px 0; color: var(--muted);"><div style="font-size: 24px; margin-bottom: 12px; opacity: 0.5;">🌱</div><h3 style="margin-bottom: 8px; color: var(--text);">Пока нет истории сессий</h3><p style="font-size: 14px; max-width: 280px; margin: 0 auto;">Пройдите первую тренировку, чтобы увидеть здесь свой прогресс. Fokus бережно сохранит каждый ваш шаг.</p></div>';
   } else {
     historyHtml = history.map(h => {
       const d = new Date(h.date);
@@ -147,7 +147,7 @@ export function renderProgress(container: HTMLElement) {
     `;
   }).join('');
 
-  if (!profileHtml) profileHtml = '<p style="color: var(--muted); font-size: 13px;">Данные собираются...</p>';
+  if (!profileHtml) profileHtml = '<div class="empty-state" style="text-align: center; padding: 24px; border: 1px dashed var(--line); border-radius: 12px; color: var(--muted); margin-bottom: 16px;"><h3 style="margin-bottom: 8px; color: var(--text);">Профиль формируется</h3><p style="font-size: 13px;">Fokus нужно ещё немного данных, чтобы объективно оценить ваши сильные стороны и зоны роста.</p></div>';
 
   const exStates = storage.getExerciseStates();
   const sessions = storage.getSessions();
@@ -303,7 +303,7 @@ export function renderProgress(container: HTMLElement) {
     <div class="fi-hero empty">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+        <div class="fi-meta">Индекс рассчитывается. Продолжайте регулярные тренировки, чтобы мы собрали полную картину.</div>
         ${sparkHtml}
       </div>
     </div>
@@ -323,7 +323,7 @@ export function renderProgress(container: HTMLElement) {
           </div>`;
         }).join('')}
       </div>
-      <p class="intel-rhythm">${intel.adherence.currentStreak > 0 ? `сейчас ${intel.adherence.currentStreak}` : 'серия начнётся с сегодняшней сессии'}${nextMile ? ` · дальше ${nextMile.days}` : ''}</p>
+      <p class="intel-rhythm">${intel.adherence.currentStreak > 0 ? `сейчас ${intel.adherence.currentStreak}` : 'первый шаг к новой привычке — начните сегодня'}${nextMile ? ` · следующая веха: ${nextMile.days} дней` : ''}</p>
     </div>
   ` : '';
 

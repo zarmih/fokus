@@ -87,8 +87,8 @@ export function renderTrainers(container: HTMLElement) {
 
   content.innerHTML = `
     <div class="today-head">
-      <h2>Каталог тренажёров</h2>
-      <p class="today-date">${catalog.length} упражнений. Практика без влияния на Fokus Index.</p>
+      <h2>Свободная практика</h2>
+      <p class="today-date">${catalog.length} упражнений. Тренируйтесь в своём темпе — результаты здесь не влияют на ваш Fokus Index.</p>
     </div>
     <div class="domain-filters">
       ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button" aria-pressed="${i === 0 ? 'true' : 'false'}">${f.name}</button>`).join('')}

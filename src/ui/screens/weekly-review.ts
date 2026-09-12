@@ -4,117 +4,11 @@ import { renderShell } from '../shell';
 import { navigateTo } from '../router';
 import { transferCardFromStorage } from '../components/transfer-card';
 import { planForNow } from '../../core/adaptive-plan';
-import { buildCoachIntel, type CoachIntel, type HistoryWindow } from '../../core/coach-intel';
-import { renderIndexSparkline } from '../components/charts';
-import { domainLabel } from '../../core/labels';
 import { getLocale, t } from '../../core/i18n';
 import { buildWeeklyReport } from '../../core/weekly-report';
 import { renderWeeklyG18 } from '../components/weekly-report-view';
 import { shareWeeklyCard } from '../components/weekly-share-card';
 import { setScreenTitle } from '../a11y';
-
-function ruDay(iso: string): string {
-  const d = new Date(iso.slice(0, 10) + 'T12:00:00Z');
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
-}
-
-export function renderIntelPanel(intel: CoachIntel): string {
-  if (!intel.ready) return '';
-
-  const sparkCount = intel.sparkline.points.filter((p) => p.value != null).length;
-  const sparkHtml =
-    sparkCount >= 2
-      ? renderIndexSparkline(intel.sparkline)
-      : `<p class="intel-empty">Fokus Index появится на графике после нескольких дней с данными по областям.</p>`;
-
-  const pb = intel.personalBest;
-  const pbHtml = pb
-    ? `<span class="intel-pb${pb.isLatest ? ' now' : ''}">рекорд ${pb.value} · ${ruDay(pb.date)}</span>`
-    : '';
-
-  const domainHtml = intel.domains
-    .map((d) => {
-      const delta =
-        d.windowDelta == null || !d.ready
-          ? ''
-          : d.windowDelta > 8
-            ? `+${d.windowDelta}`
-            : d.windowDelta < -8
-              ? `${d.windowDelta}`
-              : '→';
-      const weak = intel.weakDomainId === d.id;
-      return `<div class="intel-domain${d.ready ? '' : ' dim'}${weak ? ' weak' : ''}">
-        <span class="intel-domain-name">${domainLabel(d.id)}</span>
-        <span class="intel-domain-val">${d.ready ? Math.round(d.current) : '—'}</span>
-        <span class="intel-domain-d">${delta}</span>
-      </div>`;
-    })
-    .join('');
-
-  const a = intel.adherence;
-  const rhythm =
-    a.comeback
-      ? `возврат после ${a.gapDays} дн.`
-      : a.currentStreak > 0
-        ? `серия ${a.currentStreak}`
-        : 'серия не активна';
-
-  const mileHtml = intel.milestones
-    .map((m) => {
-      const state = m.reached ? 'reached' : a.currentStreak > 0 && m.days === intel.milestones.find((x) => !x.reached)?.days ? 'next' : '';
-      return `<div class="intel-mile ${state}">
-        <div class="intel-mile-mark">${m.reached ? '●' : '○'}</div>
-        <div class="intel-mile-n">${m.days}</div>
-        <div class="intel-mile-l">дней</div>
-      </div>`;
-    })
-    .join('');
-
-  const tipsHtml = intel.tips.length
-    ? `<div class="intel-card coach-card">
-        <div class="intel-kicker">Коуч недели</div>
-        <ul class="intel-tips">
-          ${intel.tips
-            .map(
-              (t) => `<li>
-                <div class="intel-tip-title">${t.title}</div>
-                <div class="intel-tip-body">${t.body}</div>
-              </li>`
-            )
-            .join('')}
-        </ul>
-      </div>`
-    : '';
-
-  return `
-    <section class="intel-block" data-window="${intel.window}">
-      <div class="intel-windows" role="tablist" aria-label="Окно истории Fokus Index">
-        <button type="button" class="intel-win${intel.window === 14 ? ' active' : ''}" id="intel-win-14" data-window="14">14 дней</button>
-        <button type="button" class="intel-win${intel.window === 30 ? ' active' : ''}" id="intel-win-30" data-window="30">30 дней</button>
-      </div>
-
-      <div class="intel-card">
-        <div class="intel-card-head">
-          <div>
-            <div class="intel-kicker">Fokus Index</div>
-            <div class="intel-delta">${intel.sparkline.deltaLabel}</div>
-          </div>
-          ${pbHtml}
-        </div>
-        <div class="intel-spark-wrap">${sparkHtml}</div>
-        <div class="intel-domains">${domainHtml}</div>
-      </div>
-
-      <div class="intel-card">
-        <div class="intel-kicker">Ритм</div>
-        <p class="intel-rhythm">${a.playedDays} из ${a.window} дней · ${rhythm}</p>
-        <div class="intel-miles" aria-label="Вехи серии 7, 14 и 30 дней">${mileHtml}</div>
-      </div>
-
-      ${tipsHtml}
-    </section>
-  `;
-}
 
 function catalogDomainMap(): Record<string, string> {
   const map: Record<string, string> = {};
@@ -124,9 +18,8 @@ function catalogDomainMap(): Record<string, string> {
   return map;
 }
 
-export function renderWeeklyReview(container: HTMLElement, opts?: { window?: HistoryWindow }) {
+export function renderWeeklyReview(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress', hideNav: true });
-  const historyWindow: HistoryWindow = opts?.window === 30 ? 30 : 14;
   const locale = getLocale();
   setScreenTitle(t('weekly.title', undefined, locale));
 
@@ -142,112 +35,9 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     locale
   });
 
-  const weekAgoStr = `${report.from}T00:00:00.000Z`;
-  const sessions = allSessions.filter(s => s.startedAt >= weekAgoStr);
-
   const totalSessions = report.glance.sessions;
-  const activeDays = report.glance.activeDays;
-  const totalExercises = report.glance.exercises;
   const g18 = renderWeeklyG18(report);
 
-  let atAGlanceHtml = '';
-  if (totalSessions === 0) {
-    atAGlanceHtml = `
-      <div class="surface" style="text-align: center; padding: 32px 16px;">
-        <h3 style="margin-bottom: 8px;">${t('weekly.empty_title', undefined, locale)}</h3>
-        <p style="color: var(--muted); margin: 0;">${t('weekly.empty_body', undefined, locale)}</p>
-      </div>
-    `;
-  } else {
-    atAGlanceHtml = `
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
-        <div class="surface" style="text-align: center; padding: 16px 8px;">
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${activeDays}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">${t('weekly.days', undefined, locale)}</div>
-        </div>
-        <div class="surface" style="text-align: center; padding: 16px 8px;">
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalSessions}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">${t('weekly.sessions', undefined, locale)}</div>
-        </div>
-        <div class="surface" style="text-align: center; padding: 16px 8px;">
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalExercises}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">${t('weekly.exercises', undefined, locale)}</div>
-        </div>
-      </div>
-    `;
-  }
-
-  // WHAT CHANGED
-  const exerciseDeltas = new Map<string, { mBefore: number, mAfter: number, dBefore: number, dAfter: number, conf: number }>();
-  
-  sessions.forEach(s => {
-    s.items.forEach(item => {
-      if (!exerciseDeltas.has(item.exerciseId)) {
-        exerciseDeltas.set(item.exerciseId, {
-          mBefore: item.masteryBefore || 0,
-          mAfter: item.masteryAfter || 0,
-          dBefore: item.difficultyBefore || item.level,
-          dAfter: item.difficultyAfter || item.level,
-          conf: item.confidenceAfter || 0
-        });
-      } else {
-        const current = exerciseDeltas.get(item.exerciseId)!;
-        current.mAfter = item.masteryAfter || current.mAfter;
-        current.dAfter = item.difficultyAfter || current.dAfter;
-        current.conf = item.confidenceAfter || current.conf;
-      }
-    });
-  });
-
-  const changedFacts: string[] = [];
-  let sortedDeltas = Array.from(exerciseDeltas.entries()).map(([id, data]) => {
-    return {
-      id,
-      name: getManifest(id)?.name || id,
-      mDelta: data.mAfter - data.mBefore,
-      dDelta: data.dAfter - data.dBefore,
-      conf: data.conf,
-      mAfter: data.mAfter
-    };
-  }).filter(d => d.conf >= 20); // Need evidence (>= 3 attempts)
-
-  sortedDeltas.sort((a, b) => b.mDelta - a.mDelta);
-
-  if (sortedDeltas.length > 0) {
-    const best = sortedDeltas[0];
-    if (best.mDelta > 0) {
-      changedFacts.push(`Уровень освоения <strong>${best.name}</strong> вырос на ${best.mDelta}.`);
-    }
-    const hardest = [...sortedDeltas].sort((a, b) => b.dDelta - a.dDelta)[0];
-    if (hardest && hardest.dDelta > 0 && hardest.id !== best.id) {
-      changedFacts.push(`Fokus повысил сложность в <strong>${hardest.name}</strong> на ${hardest.dDelta.toFixed(1)}.`);
-    }
-    const plateau = sortedDeltas.find(d => d.mDelta === 0 && d.mAfter > 50);
-    if (plateau && changedFacts.length < 3) {
-      changedFacts.push(`Результат в <strong>${plateau.name}</strong> стабилен, навык закрепляется.`);
-    }
-  }
-
-  let whatChangedHtml = '';
-  if (changedFacts.length > 0) {
-    whatChangedHtml = `
-      <div class="surface" style="margin-bottom: 24px;">
-        <h3 style="margin-bottom: 16px;">${t('weekly.changed_title', undefined, locale)}</h3>
-        <ul style="padding-left: 16px; margin: 0; color: var(--text); font-size: 14px; line-height: 1.5;">
-          ${changedFacts.map(f => `<li style="margin-bottom: 8px;">${f}</li>`).join('')}
-        </ul>
-      </div>
-    `;
-  } else if (totalSessions > 0) {
-    whatChangedHtml = `
-      <div class="surface" style="margin-bottom: 24px;">
-        <h3 style="margin-bottom: 12px;">${t('weekly.changed_title', undefined, locale)}</h3>
-        <p style="color: var(--muted); margin: 0; font-size: 14px;">${t('weekly.changed_empty', undefined, locale)}</p>
-      </div>
-    `;
-  }
-
-  const domains = storage.getDomains();
   const insightHtml = totalSessions > 0 ? transferCardFromStorage({ prefer: 'week' }) : '';
 
   const profile = storage.getProfile();
@@ -272,14 +62,6 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
       `;
     }
   }
-  
-  const intel = buildCoachIntel({
-    summaries: allSummaries,
-    domains,
-    window: historyWindow,
-    asOf: now.toISOString()
-  });
-  const intelHtml = renderIntelPanel(intel);
 
   content.innerHTML = `
     <div class="week-report" role="region" aria-label="${t('weekly.a11y_report', undefined, locale)}">
@@ -291,10 +73,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
       </div>
     </div>
     
-    ${atAGlanceHtml}
     ${g18.head}
-    ${intelHtml}
-    ${whatChangedHtml}
     ${insightHtml}
     ${nextStepHtml}
     ${g18.share}
@@ -305,12 +84,6 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     navigateTo('progress');
   });
 
-  content.querySelector('#intel-win-14')?.addEventListener('click', () => {
-    renderWeeklyReview(container, { window: 14 });
-  });
-  content.querySelector('#intel-win-30')?.addEventListener('click', () => {
-    renderWeeklyReview(container, { window: 30 });
-  });
   content.querySelector('#btn-week-share')?.addEventListener('click', () => {
     void shareWeeklyCard(report);
   });

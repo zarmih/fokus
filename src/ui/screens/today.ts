@@ -193,7 +193,7 @@ export function renderToday(container: HTMLElement) {
     <div class="workout-card recal-card">
       <div class="workout-kicker">Мягкая перекалибровка</div>
       <h3>Обновить оценку</h3>
-      <p>${recal.summary || 'Короткая сверка, чтобы сложность снова попала в зону вызова. Серия не сбрасывается.'}</p>
+      <p>${recal.summary || 'Небольшая сверка, чтобы нагрузка оставалась комфортной и развивающей. Ваша серия не прервётся.'}</p>
       <div class="recal-actions">
         <button id="btn-recal" class="btn-primary" type="button">Пройти (~90 сек)</button>
         <button id="btn-recal-later" class="btn-secondary" type="button">Позже</button>
@@ -202,21 +202,22 @@ export function renderToday(container: HTMLElement) {
   ` : '';
 
   let actionHtml = '';
+  const trendChipHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
       <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
-        <h3>Калибровка уровня</h3>
-        <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
+        <h3>Знакомство с Fokus</h3>
+        <p>Пройдите пару коротких упражнений (около минуты каждое), чтобы мы определили вашу стартовую форму. Это поможет нам собирать идеальные тренировки именно для вас.</p>
+        <button id="btn-start" class="btn-primary" type="button">Начать калибровку</button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
       <div class="workout-card done fx-celebrate">
         <div class="workout-kicker">Сегодня</div>
-        <h3>План выполнен</h3>
-        <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
+        <h3>Отличная работа</h3>
+        <p>Вы завершили тренировку дня! Дополнительная сессия не испортит статистику, но лучший эффект для закрепления навыков даст качественный отдых до завтра.</p>
         <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
@@ -315,8 +316,8 @@ export function renderToday(container: HTMLElement) {
       modal.className = 'modal-root';
       modal.innerHTML = `
         <div class="surface modal-card">
-          <h3 id="ls-title">Как вы сегодня?</h3>
-          <p class="modal-lead">Необязательно. Помогает увидеть связь сна и результата.</p>
+          <h3 id="ls-title">Как ваше самочувствие?</h3>
+          <p class="modal-lead">Эти данные остаются только у вас. Мы используем их, чтобы понять, как сон и нагрузка влияют на ваши результаты.</p>
           <div class="modal-field">
             <div class="modal-label">Сон</div>
             <div class="seg-row">

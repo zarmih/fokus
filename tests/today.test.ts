@@ -23,7 +23,7 @@ test('today shows calibration CTA before first session', () => {
 
   const app = document.getElementById('app')!;
   renderToday(app);
-  expect(app.textContent).toMatch(/Калибровка/);
+  expect(app.textContent).toMatch(/Знакомство/);
   expect(app.textContent).toMatch(/Коуч/);
   expect(app.querySelector('#btn-start')).toBeTruthy();
   expect(app.querySelector('.workout-card.fx-enter')).toBeTruthy();
