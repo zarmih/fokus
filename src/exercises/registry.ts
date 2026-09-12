@@ -122,6 +122,9 @@ import prismFlipModule from './prism-flip';
 import waveLockModule from './wave-lock';
 import gridStashModule from './grid-stash';
 import rulePivotModule from './rule-pivot';
+import crestTapModule from './crest-tap';
+import pouchSpanModule from './pouch-span';
+import rubricFlipModule from './rubric-flip';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -246,5 +249,8 @@ export const registry: ExerciseModule[] = [
   prismFlipModule,
   waveLockModule,
   gridStashModule,
-  rulePivotModule
+  rulePivotModule,
+  crestTapModule,
+  pouchSpanModule,
+  rubricFlipModule
 ];

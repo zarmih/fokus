@@ -183,6 +183,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'crest-tap',
+      name: 'Гребень',
+      domain: 'attention',
+      skills: ['reaction_speed', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Нажмите кнопку в тот момент, когда пульсирующий круг достигает МАКСИМАЛЬНОГО размера. Избегайте ранних нажатий.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'crowd-probe',
       name: 'Толпа',
       domain: 'attention',
@@ -743,6 +753,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'pouch-span',
+      name: 'Мешочки',
+      domain: 'memory',
+      skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните, в каком мешочке спрятан каждый предмет. Затем найдите мешочек с заданным предметом.'
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
       id: 'prism-flip',
       name: 'Призма',
       domain: 'flexibility',
@@ -819,6 +839,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['reaction_speed'] as ExerciseManifest['skills'],
       instruction: 'Внимательно следите за пульсацией. Когда она закончится, повторите ритм, нажимая на круг.'
       metricModel: 'timing-precision'
+    }
+  },
+  {
+    manifest: {
+      id: 'rubric-flip',
+      name: 'Рубрика',
+      domain: 'flexibility',
+      skills: ['task_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Сортируйте фигуру по указанному правилу (Цвет, Форма или Размер). Будьте внимательны: правило внезапно меняется!'
+      metricModel: 'speed-accuracy'
     }
   },
   {
