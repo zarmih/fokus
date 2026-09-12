@@ -95,6 +95,9 @@ import relationChainModule from './relation-chain';
 import pulseGapModule from './pulse-gap';
 import setShiftModule from './set-shift';
 import crowdProbeModule from './crowd-probe';
+import lagEchoModule from './lag-echo';
+import zoneGuardModule from './zone-guard';
+import signFlipModule from './sign-flip';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -192,5 +195,8 @@ export const registry: ExerciseModule[] = [
   relationChainModule,
   pulseGapModule,
   setShiftModule,
-  crowdProbeModule
+  crowdProbeModule,
+  lagEchoModule,
+  zoneGuardModule,
+  signFlipModule
 ];

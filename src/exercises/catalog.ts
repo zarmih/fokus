@@ -323,6 +323,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'lag-echo',
+      name: 'Эхо с задержкой',
+      domain: 'memory',
+      skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните последовательность вспышек. Подождите, пока пройдет задержка, а затем повторите последовательность.'
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
       id: 'location-recall',
       name: 'Позиция',
       domain: 'memory',
@@ -743,6 +753,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'sign-flip',
+      name: 'Смена знака',
+      domain: 'flexibility',
+      skills: ['inhibition', 'task_switching'] as ExerciseManifest['skills'],
+      instruction: 'Решайте пример. Будьте внимательны: иногда знак операции внезапно меняется на противоположный! Отвечайте по актуальному знаку.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'size-compare',
       name: 'Масштаб',
       domain: 'logic',
@@ -958,6 +978,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'memory',
       skills: ['working_memory', 'sustained_attention'] as ExerciseManifest['skills'],
       instruction: 'Запомните пары связанных объектов. Затем для предложенного объекта выберите его пару.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'zone-guard',
+      name: 'Страж зоны',
+      domain: 'attention',
+      skills: ['sustained_attention', 'selective_attention'] as ExerciseManifest['skills'],
+      instruction: 'Защищайте центр от красных объектов! Нажимайте только на красные угрозы и пропускайте остальные.'
       metricModel: 'speed-accuracy'
     }
   },
