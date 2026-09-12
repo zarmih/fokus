@@ -175,9 +175,18 @@ export function renderToday(container: HTMLElement) {
 
   const quests = getDailyQuests();
   const questsHtml = `
+    <div id="btn-awards" class="surface" style="cursor: pointer; padding: 16px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(56, 189, 248, 0.1) 100%); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 16px; transition: transform 0.2s, box-shadow 0.2s;" role="button" tabindex="0">
+      <div>
+        <div style="font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="var(--accent)"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          Зал Славы
+        </div>
+      </div>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--muted)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
+    </div>
     <div class="surface quests-card">
       <h3>Квесты дня <span class="xp-pill">+50 XP</span></h3>
-      ${quests.map(q => {
+      ${quests.map((q: any) => {
         const pct = Math.min(100, (q.progress / q.target) * 100);
         return `
           <div class="quest-row">
@@ -325,6 +334,10 @@ export function renderToday(container: HTMLElement) {
   });
   const workout = content.querySelector('.workout-card') as HTMLElement | null;
   if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
+
+  content.querySelector('#btn-awards')?.addEventListener('click', () => {
+    navigateTo('awards');
+  });
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {

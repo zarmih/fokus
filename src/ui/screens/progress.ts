@@ -61,9 +61,16 @@ export function renderProgress(container: HTMLElement) {
           </div>
         `).join('')}
       </div>
+    <div id="btn-awards-progress" class="surface" style="margin-top: 24px; cursor: pointer; padding: 20px; display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(56, 189, 248, 0.1) 100%); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 16px; transition: transform 0.2s, box-shadow 0.2s;" role="button" tabindex="0">
+      <div>
+        <div style="font-size: 18px; font-weight: 700; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="var(--accent)"><path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+          Зал Славы
+        </div>
+        <div style="font-size: 13px; color: var(--text); opacity: 0.8;">Достижения, XP и Квесты</div>
+      </div>
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="var(--muted)"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/></svg>
     </div>
-    
-    <div id="achievements-section" style="margin-top: 24px;"></div>
   `;
 
   let historyHtml = '';
@@ -197,29 +204,8 @@ export function renderProgress(container: HTMLElement) {
       `;
     }
   }
-
-  // Render achievements
-  import('../../core/achievements').then(({ ACHIEVEMENTS_DEF }) => {
-    const achSection = content.querySelector('#achievements-section');
-    if (achSection) {
-      const userAchievements = profile.achievements || [];
-      if (userAchievements.length > 0) {
-        let html = '<h3 style="margin-bottom: 16px;">Достижения</h3><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px;">';
-        userAchievements.forEach(id => {
-          const def = ACHIEVEMENTS_DEF.find(a => a.id === id);
-          if (def) {
-            html += `
-              <div class="surface" style="padding: 12px 8px; text-align: center; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);">
-                <div style="font-size: 32px; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.4));">${def.icon}</div>
-                <div style="font-size: 11px; font-weight: 700; line-height: 1.1;">${def.name}</div>
-              </div>
-            `;
-          }
-        });
-        html += '</div>';
-        achSection.innerHTML = html;
-      }
-    }
+  content.querySelector('#btn-awards-progress')?.addEventListener('click', () => {
+    import('../router').then(({ navigateTo }) => navigateTo('awards'));
   });
 
   const legendHtml = `
