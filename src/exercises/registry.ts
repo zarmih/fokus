@@ -86,6 +86,9 @@ import orderRecallModule from './order-recall';
 import trailMakeModule from './trail-make';
 import matrixCompleteModule from './matrix-complete';
 import pairBindModule from './pair-bind';
+import vigilProbeModule from './vigil-probe';
+import stackSpanModule from './stack-span';
+import ruleInduceModule from './rule-induce';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -174,5 +177,8 @@ export const registry: ExerciseModule[] = [
   orderRecallModule,
   trailMakeModule,
   matrixCompleteModule,
-  pairBindModule
+  pairBindModule,
+  vigilProbeModule,
+  stackSpanModule,
+  ruleInduceModule
 ];

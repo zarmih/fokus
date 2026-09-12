@@ -603,6 +603,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'rule-induce',
+      name: 'Поиск правила',
+      domain: 'logic',
+      skills: ['pattern_recognition', 'logical_reasoning'] as ExerciseManifest['skills'],
+      instruction: 'Изучите примеры и поймите, по какому правилу карточки попадают в Группу А или Б. Затем распределите новую карточку.'
+      metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
       id: 'same-different',
       name: 'Близнецы',
       domain: 'speed',
@@ -723,6 +733,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'stack-span',
+      name: 'Глубина стека',
+      domain: 'memory',
+      skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
+      instruction: 'Запоминайте элементы, добавляемые в стек. Следите за операциями удаления. Ответьте на вопрос о состоянии стека.'
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
       id: 'stroop',
       name: 'Чернила',
       domain: 'flexibility',
@@ -818,6 +838,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       domain: 'flexibility',
       skills: ['recall', 'cognitive_flexibility'] as ExerciseManifest['skills'],
       instruction: 'Назовите как можно больше ЖИВОТНЫХ за отведенное время. Нажмите "Говорить" и произносите слова чётко.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'vigil-probe',
+      name: 'Бдительность',
+      domain: 'attention',
+      skills: ['sustained_attention', 'processing_speed'] as ExerciseManifest['skills'],
+      instruction: 'Нажимайте кнопку только тогда, когда появляется целевой объект. Пропускайте все остальные.'
       metricModel: 'speed-accuracy'
     }
   },
