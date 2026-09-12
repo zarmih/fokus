@@ -21,7 +21,8 @@ import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, bandLabel } from '../../core/retention';
-import { enterStage } from '../../core/motion';
+import { enterStage, ritualHaloProgress } from '../../core/motion';
+import { t } from '../../core/i18n';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
 export function renderToday(container: HTMLElement) {
@@ -187,6 +188,23 @@ export function renderToday(container: HTMLElement) {
   ` : '';
 
   const quests = getDailyQuests();
+  const halo = ritualHaloProgress({
+    calibrated: !!profile.calibrated,
+    playedToday,
+    quests
+  });
+  const haloClass = halo.state === 'off'
+    ? ''
+    : ` has-halo${halo.state === 'done' ? ' is-settled' : ''}`;
+  const haloStyle = halo.state === 'off' ? '' : ` style="--halo: ${halo.value}"`;
+  const haloAria = halo.state === 'off'
+    ? ''
+    : halo.state === 'done'
+      ? t('today.halo_done')
+      : halo.value > 0.15
+        ? t('today.halo_progress', { pct: Math.round(halo.value * 100) })
+        : t('today.halo_ready');
+  const haloLabel = haloAria ? `<span class="sr-only">${haloAria}</span>` : '';
   const questsHtml = `
     <div class="surface quests-card">
       <h3>Квесты дня <span class="xp-pill">+50 XP</span></h3>
@@ -244,7 +262,8 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate">
+      <div class="workout-card done fx-celebrate${haloClass}"${haloStyle}>
+        ${haloLabel}
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         ${trendChipHtml}
@@ -257,7 +276,8 @@ export function renderToday(container: HTMLElement) {
       ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter">
+      <div class="workout-card fx-enter${haloClass}"${haloStyle}>
+        ${haloLabel}
         <div class="workout-kicker">Мягкий возврат</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
         <div class="workout-chips">${compositionHtml}</div>
@@ -267,7 +287,8 @@ export function renderToday(container: HTMLElement) {
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}${haloClass}"${haloStyle}>
+        ${haloLabel}
         <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         ${trendChipHtml}

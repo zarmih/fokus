@@ -72,21 +72,31 @@
   --glass: rgba(255, 255, 255, 0.8);
 }
 
-/* Motion tokens — see UX_MOTION_G2.md. Theme-independent. */
+/* Motion tokens — see UX_MOTION_G2.md and MOTION_UX_G22.md. Theme-independent. */
 :root {
   --motion-instant: 80ms;
   --motion-fast: 150ms;
+  --motion-pulse: 180ms;
   --motion-base: 240ms;
+  --motion-exit: 240ms;
+  --motion-handoff: 320ms;
   --motion-slow: 400ms;
   --motion-ritual: 640ms;
+  --motion-halo: 1600ms;
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-exit: cubic-bezier(0.4, 0, 1, 1);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-press: cubic-bezier(0.22, 0.9, 0.28, 1.18);
+  --ease-handoff: cubic-bezier(0.33, 1, 0.32, 1);
   --motion-travel: 12px;
+  --motion-travel-handoff: 8px;
   --motion-press-y: 6px;
   --motion-press-s: 0.97;
+  --motion-scale-miss: 0.985;
+  --motion-scale-enter: 0.97;
+  --motion-scale-exit: 0.98;
+  --motion-scale-pulse: 1.018;
 }
 
 body {
@@ -742,8 +752,16 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   z-index: 2;
   pointer-events: none;
 }
-.play-stage.pulse-ok, .play-stage.fx-ok { animation: stageOk var(--motion-slow) var(--ease-spring); }
-.play-stage.pulse-bad, .play-stage.fx-bad { animation: stageBad var(--motion-base) var(--ease-standard); }
+.play-stage.pulse-ok, .play-stage.fx-ok {
+  animation:
+    stageOk var(--motion-slow) var(--ease-spring),
+    fxPulseOk var(--motion-pulse) var(--ease-spring);
+}
+.play-stage.pulse-bad, .play-stage.fx-bad {
+  animation:
+    stageBad var(--motion-base) var(--ease-standard),
+    fxPulseMiss var(--motion-pulse) var(--ease-standard);
+}
 
 @keyframes skyDrift {
   from { background-position: 0 0, 0 0, 0 0; }
@@ -1863,10 +1881,10 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   animation: fxEnter var(--motion-slow) var(--ease-enter) both;
 }
 .fx-ok {
-  animation: fxOk var(--motion-slow) var(--ease-spring);
+  animation: fxOk var(--motion-slow) var(--ease-spring), fxPulseOk var(--motion-pulse) var(--ease-spring);
 }
 .fx-bad {
-  animation: fxBad var(--motion-base) var(--ease-standard);
+  animation: fxBad var(--motion-base) var(--ease-standard), fxPulseMiss var(--motion-pulse) var(--ease-standard);
 }
 .fx-celebrate {
   position: relative;
@@ -1939,24 +1957,141 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 }
 .filter-chip:active { transform: scale(0.96); }
 
+/* ========== Motion G22 — session transitions, pulses, ritual halo ========== */
+@keyframes fxPulseOk {
+  0% { transform: scale(1); }
+  40% { transform: scale(var(--motion-scale-pulse)); }
+  100% { transform: scale(1); }
+}
+@keyframes fxPulseMiss {
+  0% { transform: scale(1); }
+  35% { transform: scale(var(--motion-scale-miss)); }
+  100% { transform: scale(1); }
+}
+@keyframes fxSessionEnter {
+  from { opacity: 0; transform: scale(var(--motion-scale-enter)) translateY(var(--motion-travel)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fxSessionExit {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: scale(var(--motion-scale-exit)); }
+}
+@keyframes fxHandoffEnter {
+  from { opacity: 0; transform: translateX(var(--motion-travel-handoff)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fxHandoffRecap {
+  from { opacity: 0; transform: translateY(calc(var(--motion-travel-handoff) * -1)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes haloBreathe {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.72; }
+}
+
+.fx-pulse-ok {
+  animation: fxPulseOk var(--motion-pulse) var(--ease-spring);
+}
+.fx-pulse-miss {
+  animation: fxPulseMiss var(--motion-pulse) var(--ease-standard);
+}
+.fx-session-enter {
+  animation: fxSessionEnter var(--motion-slow) var(--ease-enter) both;
+}
+.fx-session-exit {
+  animation: fxSessionExit var(--motion-exit) var(--ease-exit) both;
+  pointer-events: none;
+}
+.fx-handoff .instruction-card.fx-handoff-enter,
+.instruction-card.fx-handoff-enter {
+  animation: fxHandoffEnter var(--motion-handoff) var(--ease-handoff) both;
+}
+.block-recap.fx-handoff-recap {
+  animation: fxHandoffRecap var(--motion-handoff) var(--ease-handoff) both;
+}
+
+.workout-card.has-halo {
+  position: relative;
+  isolation: isolate;
+}
+.workout-card.has-halo::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: calc(var(--radius) + 5px);
+  padding: 2px;
+  pointer-events: none;
+  z-index: 0;
+  background: conic-gradient(
+    from 160deg,
+    var(--accent) 0 calc(var(--halo, 0.14) * 1turn),
+    color-mix(in srgb, var(--accent) 18%, transparent) calc(var(--halo, 0.14) * 1turn)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.55;
+  animation: haloBreathe var(--motion-halo) var(--ease-standard) infinite;
+}
+.workout-card.has-halo > *:not(.sr-only) {
+  position: relative;
+  z-index: 1;
+}
+.workout-card.has-halo.is-settled::before,
+.workout-card.done.has-halo::before {
+  animation: none;
+  opacity: 0.42;
+}
+
+/* G17 focus mode: quieter decorative motion; G17 owns html.focus-mode */
+html.focus-mode .fx-session-enter,
+html.focus-mode .fx-handoff-enter,
+html.focus-mode .instruction-card.fx-handoff-enter,
+html.focus-mode .block-recap.fx-handoff-recap {
+  animation-name: fxFade;
+  animation-duration: var(--motion-fast);
+}
+html.focus-mode .fx-session-exit {
+  animation-duration: var(--motion-fast);
+}
+html.focus-mode .workout-card.has-halo::before {
+  animation: none;
+}
+html.focus-mode .timer-ring-fill {
+  transition: stroke-dashoffset var(--motion-base) var(--ease-standard);
+}
+
 /* Preferential reduced-motion: keep opacity/state, drop travel, loops, shake */
 @media (prefers-reduced-motion: reduce) {
   :root {
     --motion-instant: 0ms;
     --motion-fast: 0ms;
+    --motion-pulse: 90ms;
     --motion-base: 90ms;
+    --motion-exit: 90ms;
+    --motion-handoff: 90ms;
     --motion-slow: 90ms;
     --motion-ritual: 90ms;
+    --motion-halo: 0ms;
     --motion-travel: 0px;
+    --motion-travel-handoff: 0px;
     --motion-press-y: 0px;
     --motion-press-s: 1;
+    --motion-scale-miss: 1;
+    --motion-scale-enter: 1;
+    --motion-scale-exit: 1;
+    --motion-scale-pulse: 1;
   }
   html { scroll-behavior: auto; }
   .play-sky, .play-orbs i, .mic-orb.live, .rot-piece { animation: none !important; }
   .play-board { transform: none; }
   .fx-enter, .instruction-card, .result-hero, .staggered-block, .shell-content,
   .workout-card.fx-enter, .stat-pill.fx-enter,
-  .ability-trend-chip, .ritual-why {
+  .ability-trend-chip, .ritual-why,
+  .fx-session-enter, .fx-session-exit, .fx-handoff-enter, .fx-handoff-recap,
+  .instruction-card.fx-handoff-enter, .block-recap.fx-handoff-recap {
     animation-name: fxFade !important;
   }
   .fx-celebrate, .level-up, .workout-card.done.fx-celebrate,
@@ -1964,15 +2099,16 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
     animation-name: fxFade !important;
   }
   .fx-celebrate::after, .ritual-fill, .quest-title.done, .streak-badge.has-streak,
-  .stat-pill.has-streak, .count-overlay.is-tick, .play-combo.on {
+  .stat-pill.has-streak, .count-overlay.is-tick, .play-combo.on,
+  .workout-card.has-halo::before {
     animation: none !important;
     transition: none !important;
   }
   .ritual-fill { transform: none; }
-  .fx-bad, .play-stage.pulse-bad, .play-stage.fx-bad {
+  .fx-bad, .play-stage.pulse-bad, .play-stage.fx-bad, .fx-pulse-miss {
     animation-name: fxFlashBad !important;
   }
-  .fx-ok, .play-stage.pulse-ok, .play-stage.fx-ok {
+  .fx-ok, .play-stage.pulse-ok, .play-stage.fx-ok, .fx-pulse-ok {
     animation-name: fxFlashOk !important;
     outline: 2px solid transparent;
   }
@@ -2149,6 +2285,15 @@ input, textarea, .onboard-input {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     background: var(--bg-elev);
+  }
+  .workout-card.has-halo::before {
+    animation: none;
+    background: none;
+    -webkit-mask: none;
+    mask: none;
+    padding: 0;
+    border: 2px solid var(--accent);
+    opacity: 1;
   }
 }
 
@@ -2382,12 +2527,21 @@ input, textarea, .onboard-input {
 html[data-motion="reduce"] {
   --motion-instant: 0ms;
   --motion-fast: 0ms;
+  --motion-pulse: 90ms;
   --motion-base: 90ms;
+  --motion-exit: 90ms;
+  --motion-handoff: 90ms;
   --motion-slow: 90ms;
   --motion-ritual: 90ms;
+  --motion-halo: 0ms;
   --motion-travel: 0px;
+  --motion-travel-handoff: 0px;
   --motion-press-y: 0px;
   --motion-press-s: 1;
+  --motion-scale-miss: 1;
+  --motion-scale-enter: 1;
+  --motion-scale-exit: 1;
+  --motion-scale-pulse: 1;
   scroll-behavior: auto;
 }
 html[data-motion="reduce"] .play-sky,
@@ -2409,7 +2563,13 @@ html[data-motion="reduce"] .workout-card.fx-enter,
 html[data-motion="reduce"] .stat-pill.fx-enter,
 html[data-motion="reduce"] .fx-celebrate,
 html[data-motion="reduce"] .level-up,
-html[data-motion="reduce"] .workout-card.done.fx-celebrate {
+html[data-motion="reduce"] .workout-card.done.fx-celebrate,
+html[data-motion="reduce"] .fx-session-enter,
+html[data-motion="reduce"] .fx-session-exit,
+html[data-motion="reduce"] .fx-handoff-enter,
+html[data-motion="reduce"] .fx-handoff-recap,
+html[data-motion="reduce"] .instruction-card.fx-handoff-enter,
+html[data-motion="reduce"] .block-recap.fx-handoff-recap {
   animation-name: fxFade !important;
 }
 html[data-motion="reduce"] .fx-celebrate::after,
@@ -2418,14 +2578,17 @@ html[data-motion="reduce"] .quest-title.done,
 html[data-motion="reduce"] .streak-badge.has-streak,
 html[data-motion="reduce"] .stat-pill.has-streak,
 html[data-motion="reduce"] .count-overlay.is-tick,
-html[data-motion="reduce"] .play-combo.on { animation: none !important; }
+html[data-motion="reduce"] .play-combo.on,
+html[data-motion="reduce"] .workout-card.has-halo::before { animation: none !important; }
 html[data-motion="reduce"] .ritual-fill { transform: none; }
 html[data-motion="reduce"] .fx-bad,
 html[data-motion="reduce"] .play-stage.pulse-bad,
-html[data-motion="reduce"] .play-stage.fx-bad { animation-name: fxFlashBad !important; }
+html[data-motion="reduce"] .play-stage.fx-bad,
+html[data-motion="reduce"] .fx-pulse-miss { animation-name: fxFlashBad !important; }
 html[data-motion="reduce"] .fx-ok,
 html[data-motion="reduce"] .play-stage.pulse-ok,
-html[data-motion="reduce"] .play-stage.fx-ok {
+html[data-motion="reduce"] .play-stage.fx-ok,
+html[data-motion="reduce"] .fx-pulse-ok {
   animation-name: fxFlashOk !important;
   outline: 2px solid transparent;
 }

@@ -25,7 +25,18 @@ import type { ProbeOutcome } from '../../core/calibration';
 import type { SessionItem } from '../../core/types';
 import { announce, bindDialog, setScreenTitle } from '../a11y';
 import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
-import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
+import { t } from '../../core/i18n';
+import {
+  afterMotion,
+  applyFeedback,
+  enterSession,
+  enterStage,
+  exitStage,
+  handoffStage,
+  isFocusModeActive,
+  playSessionCue,
+  replayClass
+} from '../../core/motion';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
   const {items, mode = 'normal'} = params;
@@ -43,8 +54,19 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let isPaused = false;
   let currentCleanup: any = null;
   let fatigueCounter = 0;
+  let motionTimer = 0;
+  const plannedDuration = sessionBudget;
+  let sessionEntered = false;
 
   const content = renderShell(container, { active: 'today', hideNav: true });
+  content.dataset.focus = isFocusModeActive() ? 'on' : 'off';
+
+  const clearMotionTimer = () => {
+    if (motionTimer) {
+      clearTimeout(motionTimer);
+      motionTimer = 0;
+    }
+  };
 
   const renderCurrent = () => {
     if (currentIndex >= items.length || timeLeft <= 0) {
@@ -99,12 +121,20 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const last = sessionResults[sessionResults.length - 1];
     const lastEx = last ? getManifest(last.exerciseId) : null;
     const lastBanner = last && lastEx ? `
-      <div class="block-recap fx-enter ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}" aria-live="polite">
+      <div class="block-recap fx-enter fx-handoff-recap ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}" aria-live="polite">
         ${lastEx.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
       </div>
     ` : '';
 
-    content.dataset.sessionPhase = 'intro';
+    content.dataset.sessionPhase = last ? 'handoff' : 'intro';
+    content.dataset.focus = isFocusModeActive() ? 'on' : 'off';
+    if (!sessionEntered) {
+      enterSession(content);
+      sessionEntered = true;
+    } else if (last) {
+      handoffStage(content);
+      announce(t('session.handoff'));
+    }
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
@@ -116,7 +146,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <div class="session-block-info">${mode === 'calibration' ? `Зонд · блок ${currentIndex + 1}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>
       </div>
       ${lastBanner}
-      <div class="instruction-card fx-enter" id="instruction-card">
+      <div class="instruction-card fx-enter${last ? ' fx-handoff-enter' : ''}" id="instruction-card">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
@@ -129,6 +159,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     document.getElementById('btn-back')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
+      clearMotionTimer();
       clearInterval(timerInterval);
       if (mode === 'normal' && sessionResults.length > 0) {
         persistAbandonedSession();
@@ -160,6 +191,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
+      clearMotionTimer();
+      sessionEntered = false;
       timeLeft = mode === 'calibration' ? PROBE_BUDGET_SEC : isProbe ? items.length * 30 : sessionBudget;
       probeOutcomes.length = 0;
       const t = document.getElementById('session-timer');
@@ -347,7 +380,25 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           }
           
           currentIndex++;
-          renderCurrent();
+          const more = currentIndex < items.length && timeLeft > 0;
+          if (more) {
+            content.dataset.sessionPhase = 'handoff';
+            handoffStage(content);
+            clearMotionTimer();
+            motionTimer = afterMotion('handoff', () => {
+              motionTimer = 0;
+              renderCurrent();
+            });
+          } else {
+            content.dataset.sessionPhase = 'exit';
+            exitStage(content);
+            announce(t('session.closing'));
+            clearMotionTimer();
+            motionTimer = afterMotion('exit', () => {
+              motionTimer = 0;
+              renderCurrent();
+            });
+          }
         };
 
         cleanupFn = exDispatch.render(container, state!.difficulty, onBlockEnd, isTimeUp);
@@ -395,6 +446,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
   const finishSession = () => {
     if (currentCleanup) currentCleanup();
+    clearMotionTimer();
     clearInterval(timerInterval);
     
     if (mode === 'calibration') {

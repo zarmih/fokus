@@ -93,3 +93,5 @@ JS/тесты: `html[data-motion="reduce"]` через `applyMotionPreference()`
 - `src/ui/shell.ts`, `src/main.ts`
 - `src/exercises/stage.ts` — тот же `playCue` и `prefersReducedMotion` (без новых упражнений)
 - `tests/motion.test.ts`, `tests/audio.test.ts`
+
+Session enter/exit, between-exercise handoff, micro-pulses and the Today ritual halo live in **MOTION_UX_G22.md**. G22 extends these tokens; it does not replace them.
