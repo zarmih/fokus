@@ -324,6 +324,10 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   background: none;
   border: none;
   font-family: inherit;
+  border-radius: 12px;
+}
+.tab-item:active {
+  transform: scale(0.92);
 }
 .tab-item.active { color: var(--accent); }
 .tab-item.active::before {
@@ -2127,6 +2131,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .segmented button:focus-visible,
 .btn-primary:focus-visible,
 .btn-secondary:focus-visible,
+.streak-badge:focus-visible,
 .btn-tiny:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
