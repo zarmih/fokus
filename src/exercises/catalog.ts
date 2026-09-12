@@ -373,6 +373,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'mirror-pick',
+      name: 'Зеркальное отражение',
+      domain: 'flexibility',
+      skills: ['spatial_reasoning', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Среди предложенных вариантов найдите правильное зеркальное отражение показанной фигуры.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'missing-operator',
       name: 'Знак',
       domain: 'logic',
@@ -463,6 +473,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'order-recall',
+      name: 'Порядок',
+      domain: 'memory',
+      skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
+      instruction: 'Запомните последовательность символов. После их исчезновения выберите их в том же порядке.'
+      metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
       id: 'pairs',
       name: 'Пары',
       domain: 'memory',
@@ -549,6 +569,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['reaction_speed', 'selective_attention'] as ExerciseManifest['skills'],
       instruction: 'Нажмите кнопку ровно в тот момент, когда движущийся объект окажется в зоне перехвата.',
       metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'rhythm-tap',
+      name: 'Ритм',
+      domain: 'speed',
+      skills: ['reaction_speed'] as ExerciseManifest['skills'],
+      instruction: 'Внимательно следите за пульсацией. Когда она закончится, повторите ритм, нажимая на круг.'
+      metricModel: 'timing-precision'
     }
   },
   {
