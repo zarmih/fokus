@@ -55,7 +55,7 @@ export function maybeNotify(): void {
   }
 
   const n = new Notification('Fokus', {
-    body: 'Пять минут на внимание и память. Серия ждёт.',
+    body: 'Мягкое напоминание: 5 минут для себя. Fokus ждёт.',
     icon: `${import.meta.env.BASE_URL}icon.svg`,
     tag: 'fokus-daily'
   });

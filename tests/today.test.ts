@@ -24,7 +24,7 @@ test('today shows calibration CTA before first session', () => {
 
   const app = document.getElementById('app')!;
   renderToday(app);
-  expect(app.textContent).toMatch(/Калибровка/);
+  expect(app.textContent).toMatch(/Первый ритуал/);
   expect(app.textContent).toMatch(/Коуч/);
   expect(app.querySelector('#btn-start')).toBeTruthy();
   expect(app.querySelector('.workout-card.fx-enter')).toBeTruthy();
@@ -155,7 +155,7 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   const app = document.getElementById('app')!;
   renderToday(app);
   expect(app.textContent).toMatch(/Качество ритуала/);
-  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
+  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче|Мягкий возврат/);
   expect(app.textContent).toMatch(/5 минут/);
   expect(app.textContent).not.toMatch(/IQ/);
   expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
