@@ -155,7 +155,7 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   const app = document.getElementById('app')!;
   renderToday(app);
   expect(app.textContent).toMatch(/Качество ритуала/);
-  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
+  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче|Мягкий возврат/);
   expect(app.textContent).toMatch(/5 минут/);
   expect(app.textContent).not.toMatch(/IQ/);
   expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();

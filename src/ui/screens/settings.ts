@@ -186,8 +186,8 @@ export function renderSettings(container: HTMLElement) {
     </div>
 
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">Уведомления</h3>
-      <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Разрешить уведомления</button>
+      <h3 style="margin-bottom: 16px;">Мягкие напоминания</h3>
+      <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Включить soft-return пинги</button>
       <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
       <div class="segmented" id="reminder-segmented" role="radiogroup" aria-label="Напоминание">
         <button type="button" role="radio" data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}" aria-checked="${profile.reminderHour === 8 ? 'true' : 'false'}">08:00</button>
@@ -196,7 +196,7 @@ export function renderSettings(container: HTMLElement) {
         <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
         <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
       </div>
-      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Только если вы не заходили сегодня. Без спама и серверов — вы всегда можете их отключить.</div>
     </div>
 
     <div class="surface">
@@ -372,16 +372,16 @@ export function renderSettings(container: HTMLElement) {
   const btnNotif = document.getElementById('btn-notifications');
   if (btnNotif) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      btnNotif.textContent = 'Уведомления включены';
+      btnNotif.textContent = 'Напоминания активны';
       (btnNotif as HTMLButtonElement).disabled = true;
     }
     btnNotif.addEventListener('click', () => {
       if ('Notification' in window) {
         Notification.requestPermission().then(perm => {
           if (perm === 'granted') {
-            btnNotif.textContent = 'Уведомления включены';
+            btnNotif.textContent = 'Напоминания активны';
             (btnNotif as HTMLButtonElement).disabled = true;
-            new Notification('Fokus', { body: 'Отлично! Теперь вы не пропустите тренировку.' });
+            new Notification('Fokus', { body: 'Спасибо! Будем мягко напоминать о тренировках.' });
             import('../../core/reminders').then(m => m.scheduleLocalReminder());
           } else {
             alert('Разрешение не получено.');
