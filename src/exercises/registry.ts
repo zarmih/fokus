@@ -98,6 +98,9 @@ import crowdProbeModule from './crowd-probe';
 import lagEchoModule from './lag-echo';
 import zoneGuardModule from './zone-guard';
 import signFlipModule from './sign-flip';
+import haloTraceModule from './halo-trace';
+import gateTapModule from './gate-tap';
+import dualLabelModule from './dual-label';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -198,5 +201,8 @@ export const registry: ExerciseModule[] = [
   crowdProbeModule,
   lagEchoModule,
   zoneGuardModule,
-  signFlipModule
+  signFlipModule,
+  haloTraceModule,
+  gateTapModule,
+  dualLabelModule
 ];

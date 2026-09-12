@@ -213,6 +213,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'dual-label',
+      name: 'Двойная метка',
+      domain: 'flexibility',
+      skills: ['task_switching', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Ориентируйтесь на верхнюю метку. Если "ФОРМА" — выбирайте форму, если "СЛОВО" — ориентируйтесь на значение слова.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'emotion-match',
       name: 'Эмоции',
       domain: 'attention',
@@ -293,6 +303,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'gate-tap',
+      name: 'Тап у ворот',
+      domain: 'attention',
+      skills: ['sustained_attention', 'response_inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Нажимайте на цель только тогда, когда ворота ОТКРЫТЫ. Штраф за пропуск или нажатие в закрытые ворота.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'go-no-go',
       name: 'Go / No-Go',
       domain: 'attention',
@@ -309,6 +329,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['visual_memory', 'spatial_memory', 'working_memory'] as ExerciseManifest['skills'],
       instruction: 'Запомни подсвеченные клетки и отметь их. Порядок не важен.',
       metricModel: 'memory-span'
+    }
+  },
+  {
+    manifest: {
+      id: 'halo-trace',
+      name: 'След ореола',
+      domain: 'memory',
+      skills: ['spatial_memory', 'sequential_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните последовательность вспыхивающих ореолов и повторите её.'
+      metricModel: 'sequence-accuracy'
     }
   },
   {
