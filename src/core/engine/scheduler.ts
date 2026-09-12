@@ -129,7 +129,7 @@ export const SLOT_LABEL: Record<RitualSlotKind, string> = {
 };
 
 export const SLOT_REASON: Record<RitualSlotKind, string> = {
-  overdue: 'Интервал вышел — пора повторить',
-  due: 'Слот дня — в зоне роста',
-  fresh: 'Новый стимул — расширяем карту'
+  overdue: 'Давно не тренировали этот навык',
+  due: 'Оптимальное время для закрепления',
+  fresh: 'Новый вызов для мозга'
 };

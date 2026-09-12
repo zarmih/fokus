@@ -117,15 +117,15 @@ export function buildTrainingPlan(params: {
       if (state) {
         const hoursSincePlayed = (Date.now() - new Date(state.lastPlayedAt).getTime()) / (1000 * 60 * 60);
         if (hoursSincePlayed < 12) {
-          repetitionPenalty = 50;
+          repetitionPenalty = 80;
         } else if (hoursSincePlayed < 48) {
-          repetitionPenalty = 20;
+          repetitionPenalty = 40;
         } else if (hoursSincePlayed > 168) {
           novelty = 15;
         }
         
         if ((state.consecutivePlateau || 0) >= 3) {
-          plateauPenalty = 30; // Encourage breaking plateau by doing a different exercise
+          plateauPenalty = 40; // Encourage breaking plateau by doing a different exercise
         }
       } else {
         novelty = 20;
@@ -133,7 +133,7 @@ export function buildTrainingPlan(params: {
 
       let sessionBalance = 0;
       if (selectedDomains.has(manifest.domain)) {
-        sessionBalance = -40;
+        sessionBalance = -100;
       }
       
       if (selectedExerciseIds.has(manifest.id)) {
@@ -145,25 +145,25 @@ export function buildTrainingPlan(params: {
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
       
-      let reason = 'Сбалансированная тренировка';
+      let reason = 'Для баланса с другими задачами';
       if (maintenance > 0 && skillNeed < 5) {
-        reason = `Поддержание освоенного навыка`;
+        reason = `Поддержание формы`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {
-        reason = `Смена контекста для прорыва`;
+        reason = `Смена фокуса для прорыва`;
       } else if (neglected > 0) {
-        reason = `Забытый навык`;
+        reason = `Давно не тренировали этот навык`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Ваша цель и зона роста`;
+        reason = `Идеально ложится на вашу цель и слабую зону`;
       } else if (goalAlignment > 0) {
-        reason = `Работа над вашей целью`;
+        reason = `Главная цель на сегодня`;
       } else if (weaknessPriority > 0) {
-        reason = `Укрепление слабой области`;
+        reason = `Подтягиваем слабую зону`;
       } else if (weeklyFocus > 0) {
-        reason = `Фокус недели`;
+        reason = `Фокус этой недели`;
       } else if (skillNeed > 10) {
-        reason = `Развитие отстающего навыка`;
+        reason = `Тренировка отстающего навыка`;
       } else if (novelty > 0) {
-        reason = `Новое испытание`;
+        reason = `Новый вызов для мозга`;
       }
 
       return {

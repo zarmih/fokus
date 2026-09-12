@@ -106,7 +106,7 @@ describe('Cognitive Engine Closed Loop', () => {
     // User A should get a memory exercise due to weaknessPriority
     const exA = registry.find(r => r.manifest.id === planA.items[0].exerciseId)!;
     expect(exA.manifest.domain).toBe('memory');
-    expect(planA.items[0].reason).toContain('Укрепление слабой области');
+    expect(planA.items[0].reason).toContain('Подтягиваем слабую зону');
 
     // User B should NOT get memory as their primary weakness, likely something else
     const exB = registry.find(r => r.manifest.id === planB.items[0].exerciseId)!;
@@ -121,7 +121,7 @@ describe('Cognitive Engine Closed Loop', () => {
     let states = user.storage.getExerciseStates();
     let state = states.find(s => s.exerciseId === exId)!;
     state.consecutivePlateau = 3;
-    state.lastPlayedAt = new Date(Date.now() - 48*60*60*1000).toISOString();
+    state.lastPlayedAt = new Date(Date.now() - 24*60*60*1000).toISOString();
     user.storage.setExerciseStates(states);
     
     // Check plateau flag
@@ -150,7 +150,7 @@ describe('Cognitive Engine Closed Loop', () => {
     const plan = user.buildPlan();
     const item = plan.items.find(i => registry.find(r => r.manifest.id === i.exerciseId)?.manifest.skills.includes('visual_memory'));
     expect(item).toBeDefined();
-    expect(item!.reason).toBe('Забытый навык');
+    expect(item!.reason).toBe('Давно не тренировали этот навык');
   });
 
   test('Mastery Causal Test: Confidence caps mastery, stability preserves it', () => {
