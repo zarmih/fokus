@@ -22,7 +22,8 @@ const screenLoaders: Record<string, () => Promise<ScreenFn>> = {
   settings: () => import('./ui/screens/settings').then((m) => m.renderSettings),
   trainers: () => import('./ui/screens/trainers').then((m) => m.renderTrainers),
   'weekly-review': () => import('./ui/screens/weekly-review').then((m) => m.renderWeeklyReview),
-  program: () => import('./ui/screens/program').then((m) => m.renderProgram)
+  program: () => import('./ui/screens/program').then((m) => m.renderProgram),
+  awards: () => import('./ui/screens/awards').then((m) => m.renderAwards)
 };
 
 function showFatal(app: HTMLElement, title: string, err: unknown) {
