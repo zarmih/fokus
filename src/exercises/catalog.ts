@@ -313,6 +313,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'flare-pick',
+      name: 'Вспышка',
+      domain: 'attention',
+      skills: ['selective_attention', 'inhibition'] as ExerciseManifest['skills'],
+      instruction: 'Следите за тусклыми точками. Нажимайте на точку ТОЛЬКО в момент её яркой вспышки. Не нажимайте в другое время.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'flash-cards',
       name: 'Где же он?',
       domain: 'memory',
@@ -539,6 +549,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['working_memory', 'sustained_attention'] as ExerciseManifest['skills'],
       instruction: 'Следи за фигурой на экране И за буквой, которую произносит диктор. Жми соответствующие кнопки, если фигура или буква совпадает с той, что была N шагов назад.',
       metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'nest-span',
+      name: 'Гнёзда',
+      domain: 'memory',
+      skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните, в каких гнездах лежат предметы. Затем распределите предметы по своим местам.'
+      metricModel: 'memory-span'
     }
   },
   {
@@ -999,6 +1019,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['logical_reasoning', 'mental_calculation'] as ExerciseManifest['skills'],
       instruction: 'Определите ИТОГОВОЕ время после прибавления или вычитания указанных часов и минут.',
       metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
+      id: 'token-warp',
+      name: 'Сдвиг жетона',
+      domain: 'flexibility',
+      skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Сортируйте фигуры по текущему правилу (Цвет или Форма). Внимание: правило может внезапно измениться!'
+      metricModel: 'speed-accuracy'
     }
   },
   {

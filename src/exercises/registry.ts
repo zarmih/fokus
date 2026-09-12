@@ -110,6 +110,9 @@ import flipAgendaModule from './flip-agenda';
 import orbitTapModule from './orbit-tap';
 import glyphStashModule from './glyph-stash';
 import axisSwapModule from './axis-swap';
+import flarePickModule from './flare-pick';
+import nestSpanModule from './nest-span';
+import tokenWarpModule from './token-warp';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -222,5 +225,8 @@ export const registry: ExerciseModule[] = [
   flipAgendaModule,
   orbitTapModule,
   glyphStashModule,
-  axisSwapModule
+  axisSwapModule,
+  flarePickModule,
+  nestSpanModule,
+  tokenWarpModule
 ];
