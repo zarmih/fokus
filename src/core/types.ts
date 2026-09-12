@@ -55,6 +55,8 @@ export interface Profile {
   createdAt: string;
   sessionLengthSec: number;
   calibrated?: boolean;
+  programPhase?: number; // Phase 2: current program level/phase
+  programStartDate?: string;
   onboarded?: boolean;
   theme?: 'dark' | 'light';
   soundOn: boolean;
@@ -88,6 +90,20 @@ export interface Profile {
   needsRecalibration?: boolean;
   recalibrationSnoozedUntil?: string | null;
   engineVersion?: number;
+  programDay?: number;
+  programWeek?: number;
+  shieldCharges?: number;
+  shieldLastUsed?: string;
+  weeklyGoal?: { domain: string; startIso: string; target: number; progress: number };
+  seriesGoalDays?: number;
+  seriesGoalStartedAt?: string;
+  activeSession?: {
+    items: SessionItem[];
+    planItems: { exerciseId: string }[];
+    timeLeft: number;
+    startedAt: string;
+    domainDeltas: Record<string, number>;
+  };
 }
 
 export interface SkillIndex {
