@@ -119,129 +119,145 @@ export function renderSettings(container: HTMLElement) {
       ${renderContinuityHint(snap, 'settings')}
     </div>
     
-    <div class="surface" style="margin-top: 24px;">
-      <h3 style="margin-bottom: 16px;">Длительность сессии</h3>
-      <div class="segmented" id="duration-segmented" role="radiogroup" aria-label="Длительность сессии">
-        <button type="button" role="radio" data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 300 ? 'true' : 'false'}">5 мин</button>
-        <button type="button" role="radio" data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 480 ? 'true' : 'false'}">8 мин</button>
-        <button type="button" role="radio" data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 720 ? 'true' : 'false'}">12 мин</button>
-      </div>
-    </div>
-    
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Главная цель</h3>
-      <div class="segmented" id="goal-segmented" role="radiogroup" aria-label="Главная цель" style="display: flex; flex-wrap: wrap; gap: 8px;">
-        <button type="button" role="radio" data-val="balance" class="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'active' : ''}" aria-checked="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'true' : 'false'}">Баланс</button>
-        <button type="button" role="radio" data-val="memory" class="${profile.primaryGoal === 'memory' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'memory' ? 'true' : 'false'}">Память</button>
-        <button type="button" role="radio" data-val="attention" class="${profile.primaryGoal === 'attention' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'attention' ? 'true' : 'false'}">Внимание</button>
-        <button type="button" role="radio" data-val="speed" class="${profile.primaryGoal === 'speed' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'speed' ? 'true' : 'false'}">Скорость</button>
-        <button type="button" role="radio" data-val="flexibility" class="${profile.primaryGoal === 'flexibility' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'flexibility' ? 'true' : 'false'}">Гибкость</button>
-        <button type="button" role="radio" data-val="logic" class="${profile.primaryGoal === 'logic' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'logic' ? 'true' : 'false'}">Логика</button>
-      </div>
-    </div>
-    
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">${ADAPTIVE_SETTINGS_COPY.title}</h3>
-      ${settingsChip}
-      <p class="adaptive-note">${ADAPTIVE_SETTINGS_COPY.body}</p>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Тема</h3>
-      <div class="segmented" id="theme-segmented" role="radiogroup" aria-label="Тема">
-        <button type="button" role="radio" data-val="light" class="${profile.theme === 'light' ? 'active' : ''}" aria-checked="${profile.theme === 'light' ? 'true' : 'false'}">Светлая</button>
-        <button type="button" role="radio" data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}" aria-checked="${profile.theme === 'dark' || !profile.theme ? 'true' : 'false'}">Тёмная</button>
-      </div>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Язык / Language</h3>
-      <div class="segmented" id="lang-segmented" role="radiogroup" aria-label="Language">
-        <button type="button" role="radio" data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}" aria-checked="${!profile.language || profile.language === 'ru' ? 'true' : 'false'}">Русский</button>
-        <button type="button" role="radio" data-val="en" class="${profile.language === 'en' ? 'active' : ''}" aria-checked="${profile.language === 'en' ? 'true' : 'false'}">English</button>
-      </div>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Звук</h3>
-      <label style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
-        ${t('settings.sound')}
-      </label>
-      <label class="sound-volume-row" for="sound-volume">
-        <span>${t('settings.volume')}</span>
-        <input type="range" id="sound-volume" min="0" max="100" step="1" value="${Math.round(clampVolume(profile.soundVolume) * 100)}" ${profile.soundOn ? '' : 'disabled'} />
-        <span id="sound-volume-value">${Math.round(clampVolume(profile.soundVolume) * 100)}%</span>
-      </label>
-      <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
-        <input type="checkbox" id="haptics-toggle" ${profile.hapticsOn !== false ? 'checked' : ''} />
-        ${t('settings.haptics')}
-      </label>
-    </div>
-
-    <div class="surface" id="install-container" style="display: none;">
-      <h3 style="margin-bottom: 16px;">Установка</h3>
-      <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
-      <div style="font-size: 11px; color: var(--muted); text-align: center;">Для быстрого доступа без браузера</div>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Уведомления</h3>
-      <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Разрешить уведомления</button>
-      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
-      <div class="segmented" id="reminder-segmented" role="radiogroup" aria-label="Напоминание">
-        <button type="button" role="radio" data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}" aria-checked="${profile.reminderHour === 8 ? 'true' : 'false'}">08:00</button>
-        <button type="button" role="radio" data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}" aria-checked="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'true' : 'false'}">09:00</button>
-        <button type="button" role="radio" data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}" aria-checked="${profile.reminderHour === 12 ? 'true' : 'false'}">12:00</button>
-        <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
-        <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
-      </div>
-      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Перед сессией</h3>
-      <label style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="lifestyle-toggle" ${profile.skipLifestylePrompt ? 'checked' : ''} />
-        Не спрашивать про сон и стресс
-      </label>
-    </div>
-
-    <div class="surface quality-explainer">
-      <h3 style="margin-bottom: 16px;">Качество сессии и восстановление</h3>
-      <p>Качество ритуала — не IQ и не «балл мозга». Fokus считает, насколько чисто прошёл подход: точность, стабильность времени реакции, уместность сложности, завершённость и обрывы.</p>
-      <p>После плотных дней или просадки качества экран «Сегодня» может предложить короче и другую область. Это подсказка нагрузки, не диагноз.</p>
-      <label style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="recovery-toggle" ${profile.recoveryHints !== false ? 'checked' : ''} />
-        Подсказывать восстановление на экране «Сегодня»
-      </label>
-    </div>
-
-    ${profile.probeSnapshot ? `
-    <div class="surface probe-summary">
-      <h3 style="margin-bottom: 8px;">Стартовая оценка</h3>
-      <p class="muted" style="margin-bottom: 12px;">${abilityCaption(profile.probeSnapshot)}</p>
-      ${profile.probeSnapshot.domains.filter((d) => d.probed).map((d) => `
-        <div class="delta-row">
-          <span>${domainLabel(d.domain)}</span>
-          <span>ур. ${d.startLevel.toFixed(1)} · ${precisionLabel(d.precision)}</span>
+    <section class="settings-group" aria-labelledby="group-training">
+      <h3 id="group-training" style="margin: 32px 0 16px; font-size: 13px; text-transform: uppercase; color: var(--accent); letter-spacing: 0.1em;">Тренировка</h3>
+      
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">Длительность сессии</h3>
+        <div class="segmented" id="duration-segmented" role="radiogroup" aria-label="Длительность сессии">
+          <button type="button" role="radio" data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 300 ? 'true' : 'false'}">5 мин</button>
+          <button type="button" role="radio" data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 480 ? 'true' : 'false'}">8 мин</button>
+          <button type="button" role="radio" data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 720 ? 'true' : 'false'}">12 мин</button>
         </div>
-      `).join('')}
-      <button id="btn-recalibrate" class="btn-secondary" type="button" style="width: 100%; margin-top: 16px;">Повторить калибровку (~90 сек)</button>
-    </div>
-    ` : profile.onboarded && !profile.calibrated ? `
-    <div class="surface">
-      <h3 style="margin-bottom: 8px;">Калибровка</h3>
-      <p class="muted" style="margin-bottom: 12px;">Короткий зонд ещё не пройден. Это не IQ — только стартовая сложность.</p>
-      <button id="btn-recalibrate" class="btn-primary" type="button" style="width: 100%;">Пройти калибровку</button>
-    </div>
-    ` : ''}
+      </div>
+      
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">Главная цель</h3>
+        <div class="segmented" id="goal-segmented" role="radiogroup" aria-label="Главная цель" style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <button type="button" role="radio" data-val="balance" class="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'active' : ''}" aria-checked="${!profile.primaryGoal || profile.primaryGoal === 'balance' ? 'true' : 'false'}">Баланс</button>
+          <button type="button" role="radio" data-val="memory" class="${profile.primaryGoal === 'memory' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'memory' ? 'true' : 'false'}">Память</button>
+          <button type="button" role="radio" data-val="attention" class="${profile.primaryGoal === 'attention' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'attention' ? 'true' : 'false'}">Внимание</button>
+          <button type="button" role="radio" data-val="speed" class="${profile.primaryGoal === 'speed' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'speed' ? 'true' : 'false'}">Скорость</button>
+          <button type="button" role="radio" data-val="flexibility" class="${profile.primaryGoal === 'flexibility' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'flexibility' ? 'true' : 'false'}">Гибкость</button>
+          <button type="button" role="radio" data-val="logic" class="${profile.primaryGoal === 'logic' ? 'active' : ''}" aria-checked="${profile.primaryGoal === 'logic' ? 'true' : 'false'}">Логика</button>
+        </div>
+      </div>
+      
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">${ADAPTIVE_SETTINGS_COPY.title}</h3>
+        ${settingsChip}
+        <p class="adaptive-note">${ADAPTIVE_SETTINGS_COPY.body}</p>
+      </div>
 
-    ${privacyPanelHtml(storage.inventory())}
-    
-    ${transferCardFromStorage({ prefer: 'guide' })}
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">Перед сессией</h3>
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="lifestyle-toggle" ${profile.skipLifestylePrompt ? 'checked' : ''} />
+          Не спрашивать про сон и стресс
+        </label>
+      </div>
 
-    <div class="disclaimer">
+      <div class="surface quality-explainer">
+        <h3 style="margin-bottom: 16px;">Качество сессии и восстановление</h3>
+        <p>Качество ритуала — не IQ и не «балл мозга». Fokus считает, насколько чисто прошёл подход: точность, стабильность времени реакции, уместность сложности, завершённость и обрывы.</p>
+        <p>После плотных дней или просадки качества экран «Сегодня» может предложить короче и другую область. Это подсказка нагрузки, не диагноз.</p>
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="recovery-toggle" ${profile.recoveryHints !== false ? 'checked' : ''} />
+          Подсказывать восстановление на экране «Сегодня»
+        </label>
+      </div>
+
+      ${profile.probeSnapshot ? `
+      <div class="surface probe-summary">
+        <h3 style="margin-bottom: 8px;">Стартовая оценка</h3>
+        <p class="muted" style="margin-bottom: 12px;">${abilityCaption(profile.probeSnapshot)}</p>
+        ${profile.probeSnapshot.domains.filter((d) => d.probed).map((d) => `
+          <div class="delta-row">
+            <span>${domainLabel(d.domain)}</span>
+            <span>ур. ${d.startLevel.toFixed(1)} · ${precisionLabel(d.precision)}</span>
+          </div>
+        `).join('')}
+        <button id="btn-recalibrate" class="btn-secondary" type="button" style="width: 100%; margin-top: 16px;">Повторить калибровку (~90 сек)</button>
+      </div>
+      ` : profile.onboarded && !profile.calibrated ? `
+      <div class="surface">
+        <h3 style="margin-bottom: 8px;">Калибровка</h3>
+        <p class="muted" style="margin-bottom: 12px;">Короткий зонд ещё не пройден. Это не IQ — только стартовая сложность.</p>
+        <button id="btn-recalibrate" class="btn-primary" type="button" style="width: 100%;">Пройти калибровку</button>
+      </div>
+      ` : ''}
+    </section>
+
+    <section class="settings-group" aria-labelledby="group-a11y">
+      <h3 id="group-a11y" style="margin: 32px 0 16px; font-size: 13px; text-transform: uppercase; color: var(--accent); letter-spacing: 0.1em;">Интерфейс и спец. возможности (a11y)</h3>
+      
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">Тема</h3>
+        <div class="segmented" id="theme-segmented" role="radiogroup" aria-label="Тема">
+          <button type="button" role="radio" data-val="light" class="${profile.theme === 'light' ? 'active' : ''}" aria-checked="${profile.theme === 'light' ? 'true' : 'false'}">Светлая</button>
+          <button type="button" role="radio" data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}" aria-checked="${profile.theme === 'dark' || !profile.theme ? 'true' : 'false'}">Тёмная</button>
+        </div>
+      </div>
+
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">Язык / Language</h3>
+        <div class="segmented" id="lang-segmented" role="radiogroup" aria-label="Language">
+          <button type="button" role="radio" data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}" aria-checked="${!profile.language || profile.language === 'ru' ? 'true' : 'false'}">Русский</button>
+          <button type="button" role="radio" data-val="en" class="${profile.language === 'en' ? 'active' : ''}" aria-checked="${profile.language === 'en' ? 'true' : 'false'}">English</button>
+        </div>
+      </div>
+
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">Звук и вибрация</h3>
+        <label style="display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
+          ${t('settings.sound')}
+        </label>
+        <label class="sound-volume-row" for="sound-volume">
+          <span>${t('settings.volume')}</span>
+          <input type="range" id="sound-volume" min="0" max="100" step="1" value="${Math.round(clampVolume(profile.soundVolume) * 100)}" ${profile.soundOn ? '' : 'disabled'} />
+          <span id="sound-volume-value">${Math.round(clampVolume(profile.soundVolume) * 100)}%</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+          <input type="checkbox" id="haptics-toggle" ${profile.hapticsOn !== false ? 'checked' : ''} />
+          ${t('settings.haptics')}
+        </label>
+      </div>
+
+      <div class="surface" id="install-container" style="display: none;">
+        <h3 style="margin-bottom: 16px;">Установка приложения</h3>
+        <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
+        <div style="font-size: 11px; color: var(--muted); text-align: center;">Для быстрого доступа без браузера</div>
+      </div>
+    </section>
+
+    <section class="settings-group" aria-labelledby="group-notif">
+      <h3 id="group-notif" style="margin: 32px 0 16px; font-size: 13px; text-transform: uppercase; color: var(--accent); letter-spacing: 0.1em;">Уведомления</h3>
+      
+      <div class="surface">
+        <h3 style="margin-bottom: 16px;">Мягкие напоминания</h3>
+        <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Включить soft-return пинги</button>
+        <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
+        <div class="segmented" id="reminder-segmented" role="radiogroup" aria-label="Напоминание">
+          <button type="button" role="radio" data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}" aria-checked="${profile.reminderHour === 8 ? 'true' : 'false'}">08:00</button>
+          <button type="button" role="radio" data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}" aria-checked="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'true' : 'false'}">09:00</button>
+          <button type="button" role="radio" data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}" aria-checked="${profile.reminderHour === 12 ? 'true' : 'false'}">12:00</button>
+          <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
+          <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
+        </div>
+        <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Только если вы не заходили сегодня. Без спама и серверов — вы всегда можете их отключить.</div>
+      </div>
+    </section>
+
+    <section class="settings-group" aria-labelledby="group-privacy">
+      <h3 id="group-privacy" style="margin: 32px 0 16px; font-size: 13px; text-transform: uppercase; color: var(--accent); letter-spacing: 0.1em;">Приватность и данные</h3>
+      
+      ${privacyPanelHtml(storage.inventory())}
+      
+      ${transferCardFromStorage({ prefer: 'guide' })}
+    </section>
+
+    <div class="disclaimer" style="margin-top: 32px;">
       Fokus — тренажёр для поддержания когнитивного тонуса. Не является медицинским изделием. Не предназначен для лечения или диагностики.
     </div>
   `;
@@ -372,16 +388,16 @@ export function renderSettings(container: HTMLElement) {
   const btnNotif = document.getElementById('btn-notifications');
   if (btnNotif) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      btnNotif.textContent = 'Уведомления включены';
+      btnNotif.textContent = 'Напоминания активны';
       (btnNotif as HTMLButtonElement).disabled = true;
     }
     btnNotif.addEventListener('click', () => {
       if ('Notification' in window) {
         Notification.requestPermission().then(perm => {
           if (perm === 'granted') {
-            btnNotif.textContent = 'Уведомления включены';
+            btnNotif.textContent = 'Напоминания активны';
             (btnNotif as HTMLButtonElement).disabled = true;
-            new Notification('Fokus', { body: 'Отлично! Теперь вы не пропустите тренировку.' });
+            new Notification('Fokus', { body: 'Спасибо! Будем мягко напоминать о тренировках.' });
             import('../../core/reminders').then(m => m.scheduleLocalReminder());
           } else {
             alert('Разрешение не получено.');

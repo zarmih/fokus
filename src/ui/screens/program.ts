@@ -66,9 +66,9 @@ export function renderProgram(container: HTMLElement) {
     hero = `
       <div class="workout-card">
         <div class="workout-kicker">Шаг 1</div>
-        <h3>Калибровка уровня</h3>
+        <h3>Первый ритуал</h3>
         <p>Три коротких блока. После этого Fokus соберёт персональный ритуал на ~15 минут.</p>
-        <button id="btn-calibrate" class="btn-primary" type="button">Начать калибровку</button>
+        <button id="btn-calibrate" class="btn-primary" type="button">Начать первый ритуал</button>
       </div>
     `;
   } else if (showRecal) {
