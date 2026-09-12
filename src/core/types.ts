@@ -55,7 +55,7 @@ export interface Profile {
   createdAt: string;
   sessionLengthSec: number;
   calibrated?: boolean;
-  programPhase?: number; // Phase 2: current program level/phase
+  programPhase?: number;
   programStartDate?: string;
   onboarded?: boolean;
   theme?: 'dark' | 'light';
@@ -67,14 +67,18 @@ export interface Profile {
   language?: string;
   achievements?: string[];
   shieldCharges?: number;
+  shieldLastUsed?: string;
   locale: 'ru';
   schemaVersion: number;
   xp?: number;
   primaryGoal?: string; // e.g. 'memory', 'attention', 'speed', 'flexibility', 'logic' or 'balance'
-  programDay?: number; // 1 to 7
+  programDay?: number;
   programWeek?: number;
   needsRecalibration?: boolean;
   recalibrationPostponed?: boolean;
+  recalibrationSnoozedUntil?: string | null;
+  lastCalibrationAt?: string;
+  engineVersion?: number;
   quests?: any[];
   questsDate?: string;
   lastLifestyle?: { sleep: string | null; stress: string | null; date: string };
@@ -87,18 +91,6 @@ export interface Profile {
   probeSnapshot?: ProbeSnapshot;
   firstWeekPlan?: FirstWeekPlan;
   transferTipCursor?: number;
-  /** Present if a Phase 2 program PR is merged; G7 does not own this field. */
-  programPhase?: number;
-  programStartDate?: string;
-  /** ISO time of last (re)calibration. Used by the v2 engine stale trigger. */
-  lastCalibrationAt?: string;
-  needsRecalibration?: boolean;
-  recalibrationSnoozedUntil?: string | null;
-  engineVersion?: number;
-  programDay?: number;
-  programWeek?: number;
-  shieldCharges?: number;
-  shieldLastUsed?: string;
   weeklyGoal?: { domain: string; startIso: string; target: number; progress: number };
   seriesGoalDays?: number;
   seriesGoalStartedAt?: string;

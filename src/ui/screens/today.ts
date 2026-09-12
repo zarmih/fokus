@@ -37,6 +37,7 @@ export function renderToday(container: HTMLElement) {
   const streak = snap.streak.current;
   const skippedYesterday = snap.streak.openMisses === 1;
   let yesterdayScore = 0;
+  const gapDays = snap.streak.openMisses;
   if (snap.streak.status === 'open' && ds.length > 0) {
     yesterdayScore = Math.round(ds[ds.length - 1].totalScore);
   }
@@ -93,8 +94,8 @@ export function renderToday(container: HTMLElement) {
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
-  const prevFi = previousFokusIndex(ds, new Date().toISOString());
-  const fiDelta = indexDelta(fi.value, prevFi);
+  const prevFi = previousFokusIndex(ds, new Date().toISOString(), 7);
+  const fiDelta = indexDelta(fi.value, prevFi, 7);
 
   const focusText = plan.focusDomains.length > 0
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
@@ -159,6 +160,15 @@ export function renderToday(container: HTMLElement) {
   }
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
+  if (gapDays >= 2 && !playedToday) {
+    insights.unshift({
+      title: 'С возвращением',
+      description: 'Исследования показывают, что восстановление после паузы укрепляет нейронные связи. Fokus подобрал мягкий старт для сегодняшней сессии.',
+      confidence: 'high',
+      type: 'milestone',
+      priority: 1
+    });
+  }
   const topInsight = insights[0];
   const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
     <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
