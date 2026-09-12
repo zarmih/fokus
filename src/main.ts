@@ -8,7 +8,9 @@ import { unlockAudio } from './core/audio';
 import { initInstallPrompt } from './pwa-install';
 import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
+import { initOfflineBanner } from './ui/components/offline-banner';
 
+initOfflineBanner();
 initInstallPrompt();
 
 type ScreenFn = (el: HTMLElement, params?: any) => void;
@@ -25,10 +27,17 @@ const screenLoaders: Record<string, () => Promise<ScreenFn>> = {
 };
 
 function showFatal(app: HTMLElement, title: string, err: unknown) {
-  const message = err && typeof err === 'object' && 'message' in err ? String((err as Error).message) : String(err);
-  app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
-    <h3>${title}</h3>
-    <p>${message}</p>
+  const isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+  const finalTitle = isOffline ? 'Офлайн режим' : title;
+  
+  let finalMessage = err && typeof err === 'object' && 'message' in err ? String((err as Error).message) : String(err);
+  if (isOffline) {
+    finalMessage = 'Отсутствует подключение к сети. Экран не загружен, но ваши данные в безопасности локально.';
+  }
+
+  app.innerHTML = `<div style="padding: 20px; color: ${isOffline ? 'var(--muted, #888)' : '#f44336'}; text-align: center;">
+    <h3>${finalTitle}</h3>
+    <p>${finalMessage}</p>
   </div>`;
   console.error(err);
 }
