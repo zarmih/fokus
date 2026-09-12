@@ -125,6 +125,7 @@ export function renderSettings(container: HTMLElement) {
         <button type="button" role="radio" data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 300 ? 'true' : 'false'}">5 мин</button>
         <button type="button" role="radio" data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 480 ? 'true' : 'false'}">8 мин</button>
         <button type="button" role="radio" data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 720 ? 'true' : 'false'}">12 мин</button>
+        <button type="button" role="radio" data-val="900" class="${profile.sessionLengthSec === 900 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 900 ? 'true' : 'false'}">15 мин</button>
       </div>
     </div>
     
@@ -197,6 +198,16 @@ export function renderSettings(container: HTMLElement) {
         <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
       </div>
       <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
+    </div>
+
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Цель серии (дней)</h3>
+      <div class="segmented" id="series-goal-segmented">
+        <button data-val="0" class="${!profile.seriesGoalDays ? 'active' : ''}">Нет</button>
+        <button data-val="7" class="${profile.seriesGoalDays === 7 ? 'active' : ''}">7</button>
+        <button data-val="14" class="${profile.seriesGoalDays === 14 ? 'active' : ''}">14</button>
+        <button data-val="30" class="${profile.seriesGoalDays === 30 ? 'active' : ''}">30</button>
+      </div>
     </div>
 
     <div class="surface">
@@ -366,6 +377,24 @@ export function renderSettings(container: HTMLElement) {
       p.reminderHour = raw === 'off' ? null : parseInt(raw || '9', 10);
       storage.setProfile(p);
       import('../../core/reminders').then(m => m.scheduleLocalReminder());
+    });
+  });
+
+  const sgbtns = content.querySelectorAll('#series-goal-segmented button');
+  sgbtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sgbtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const val = parseInt((btn as HTMLElement).dataset.val || '0', 10);
+      const p = storage.getProfile();
+      if (val === 0) {
+        delete p.seriesGoalDays;
+        delete p.seriesGoalStartedAt;
+      } else {
+        p.seriesGoalDays = val;
+        p.seriesGoalStartedAt = new Date().toISOString();
+      }
+      storage.setProfile(p);
     });
   });
 

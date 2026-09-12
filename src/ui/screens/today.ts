@@ -105,10 +105,13 @@ export function renderToday(container: HTMLElement) {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
     const slot = item.slot ? SLOT_LABEL[item.slot] : '';
-    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
-      <span>${r?.name}</span>
-      ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 4px; height: auto; border-radius: 12px;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
+        <span style="font-weight: 600;">${r?.name}</span>
+        ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
+      </div>
+      <div style="font-size: 11px; opacity: 0.85; line-height: 1.2;">${item.reason}</div>
     </div>`;
   }).join('');
 
@@ -293,6 +296,10 @@ export function renderToday(container: HTMLElement) {
     <div class="dashboard-widgets">
       <div class="stat-row">
         ${renderStreakChip(snap, 'pill')}
+        <div class="stat-pill">
+          <div class="stat-num">${streak}${profile.seriesGoalDays ? ` <span style="font-size: 16px; opacity: 0.5;">/ ${profile.seriesGoalDays}</span>` : ''}</div>
+          <div class="stat-lbl">${profile.seriesGoalDays ? 'цель серии' : (streak === 0 ? 'начни серию' : 'дней подряд')}</div>
+        </div>
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
           <div class="stat-lbl">${leagueName(lvl.currentLevel)}</div>

@@ -75,7 +75,7 @@ export interface ImportResult {
 const defaultProfile: Profile = {
   name: 'User',
   createdAt: new Date().toISOString(),
-  sessionLengthSec: 300,
+  sessionLengthSec: 900,
   soundOn: true,
   soundVolume: 1,
   hapticsOn: true,

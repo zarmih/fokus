@@ -32,7 +32,7 @@ beforeEach(() => {
 
 test('storage defaults', () => {
   const p = storage.getProfile();
-  expect(p.sessionLengthSec).toBe(300);
+  expect(p.sessionLengthSec).toBe(900);
   expect(p.soundOn).toBe(true);
   expect(p.soundVolume).toBe(1);
   expect(p.hapticsOn).toBe(true);
@@ -59,8 +59,7 @@ test('storage export/import roundtrip', () => {
   backend.removeItem(BACKUP_KEY);
   backend.removeItem(SNAPSHOT_KEY);
   const s2 = new Storage(backend as any);
-  expect(s2.getProfile().sessionLengthSec).toBe(300);
-
+  expect(s2.getProfile().sessionLengthSec).toBe(900); // defaults
   s2.importJson(json);
   expect(s2.getProfile().sessionLengthSec).toBe(720);
 });
@@ -227,7 +226,7 @@ test('corrupt live blob is restored from bak', () => {
   backend.setItem(STORAGE_KEY, '{this is not json');
   const s2 = new Storage(backend as any);
   expect(s2.getProfile().name).toBe('First');
-  expect(s2.getProfile().sessionLengthSec).toBe(300);
+  expect(s2.getProfile().sessionLengthSec).toBe(900);
 });
 
 test('quota failure leaves previous live state', () => {
