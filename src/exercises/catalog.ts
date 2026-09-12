@@ -73,6 +73,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'change-spot',
+      name: 'Найди отличие',
+      domain: 'attention',
+      skills: ['visual_scanning', 'sustained_attention'] as ExerciseManifest['skills'],
+      instruction: 'Запомните объекты. Через мгновение один объект изменится, исчезнет или появится новый. Нажмите на то, что изменилось.'
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'clock-reading',
       name: 'Время',
       domain: 'logic',
@@ -593,6 +603,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'relation-chain',
+      name: 'Цепочка связей',
+      domain: 'logic',
+      skills: ['logical_reasoning', 'pattern_recognition'] as ExerciseManifest['skills'],
+      instruction: 'Проанализируйте утверждения и ответьте на вопрос. Будьте внимательны к логическим цепочкам.'
+      metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
       id: 'rhythm-tap',
       name: 'Ритм',
       domain: 'speed',
@@ -779,6 +799,16 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       skills: ['mental_calculation', 'logical_reasoning'] as ExerciseManifest['skills'],
       instruction: 'Вычислите значение символа по уравнениям и решите финальный пример.',
       metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
+      id: 'tally-update',
+      name: 'Обновление счёта',
+      domain: 'memory',
+      skills: ['working_memory', 'sustained_attention'] as ExerciseManifest['skills'],
+      instruction: 'Считайте количество появляющихся фигур каждой формы. Когда появится вопрос, выберите правильное число или лидирующую форму.'
+      metricModel: 'memory-span'
     }
   },
   {

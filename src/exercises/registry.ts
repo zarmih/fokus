@@ -89,6 +89,9 @@ import pairBindModule from './pair-bind';
 import vigilProbeModule from './vigil-probe';
 import stackSpanModule from './stack-span';
 import ruleInduceModule from './rule-induce';
+import changeSpotModule from './change-spot';
+import tallyUpdateModule from './tally-update';
+import relationChainModule from './relation-chain';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -180,5 +183,8 @@ export const registry: ExerciseModule[] = [
   pairBindModule,
   vigilProbeModule,
   stackSpanModule,
-  ruleInduceModule
+  ruleInduceModule,
+  changeSpotModule,
+  tallyUpdateModule,
+  relationChainModule
 ];
