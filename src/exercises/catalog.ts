@@ -811,6 +811,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'symbol-recall',
+      name: 'Символьная память',
+      domain: 'memory',
+      skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
+      metricModel: 'memory-span',
+      instruction: 'Запомните набор символов. Затем укажите, был ли показанный символ в изначальном наборе.'
+    }
+  },
+  {
+    manifest: {
+      id: 'dual-match',
+      name: 'Двойной анализ',
+      domain: 'attention',
+      skills: ['divided_attention', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Следите за двумя панелями. Если слева КРУГ, а справа КРАСНЫЙ цвет — нажимайте МАТЧ. Иначе — НЕТ.'
+    }
+  },
+  {
+    manifest: {
+      id: 'traffic-light',
+      name: 'Светофор',
+      domain: 'flexibility',
+      skills: ['rule_switching', 'inhibition'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Слово ИДИ — нажимайте. Слово СТОП — не нажимайте. Если есть пунктирная рамка, правила меняются наоборот!'
+    }
+  }
 ];
 
 export function getManifest(id: string): ExerciseManifest | undefined {
