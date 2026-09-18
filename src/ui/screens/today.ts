@@ -261,19 +261,19 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Мягкий возврат</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
+        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Дневной ритуал'}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   }
