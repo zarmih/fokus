@@ -71,6 +71,6 @@ test('today shows Fokus Index and workout after calibration', () => {
   renderToday(app);
   expect(app.textContent).toMatch(/Михаил/);
   expect(app.textContent).toMatch(/Fokus Index/);
-  expect(app.textContent).toMatch(/Тренировка дня/);
-  expect(app.textContent).toMatch(/Начать сессию/);
+  expect(app.textContent).toMatch(/Ритуал дня/);
+  expect(app.textContent).toMatch(/Начать ритуал/);
 });

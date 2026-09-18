@@ -17,6 +17,9 @@ import { enterStage } from '../../core/motion';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
+  const prefersReducedMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+  const fxEnter = prefersReducedMotion ? '' : 'fx-enter';
+  const fxCelebrate = prefersReducedMotion ? '' : 'fx-celebrate';
   const profile = storage.getProfile();
   const lvl = getLevelProgress(profile.xp || 0);
   const greetName = profile.displayName || (profile.name !== 'User' ? profile.name : '');
@@ -168,7 +171,7 @@ export function renderToday(container: HTMLElement) {
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card fx-enter">
+      <div class="workout-card ${fxEnter}">
         <div class="workout-kicker">Первый шаг</div>
         <h3>Калибровка уровня</h3>
         <p>Три коротких блока, около 90 секунд. После этого Fokus соберёт персональную сессию.</p>
@@ -177,7 +180,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate">
+      <div class="workout-card done ${fxCelebrate}">
         <div class="workout-kicker">Сегодня</div>
         <h3>План выполнен</h3>
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
@@ -186,11 +189,11 @@ export function renderToday(container: HTMLElement) {
     `;
   } else {
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Тренировка дня</div>
+      <div class="workout-card ${fxEnter}">
+        <div class="workout-kicker">Ритуал дня</div>
         <h3>${Math.floor(profile.sessionLengthSec / 60)} минут · ${focusText}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   }
@@ -209,7 +212,7 @@ export function renderToday(container: HTMLElement) {
 
     <div class="dashboard-widgets">
       <div class="stat-row">
-        <div class="stat-pill fx-enter ${streak > 0 ? 'has-streak' : ''}">
+        <div class="stat-pill ${fxEnter} ${streak > 0 ? 'has-streak' : ''}">
           <div class="stat-num">${streak}</div>
           <div class="stat-lbl">${streak === 0 ? 'начни серию' : 'дней подряд'}</div>
         </div>
@@ -260,7 +263,7 @@ export function renderToday(container: HTMLElement) {
     renderToday(container);
   });
   const workout = content.querySelector('.workout-card') as HTMLElement | null;
-  if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
+  if (workout && !workout.classList.contains('fx-celebrate') && !prefersReducedMotion) enterStage(workout);
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
@@ -294,7 +297,7 @@ export function renderToday(container: HTMLElement) {
               <button class="btn-ls-stress btn-secondary" data-val="high" type="button">Высокий</button>
             </div>
           </div>
-          <button id="btn-ls-done" class="btn-primary" type="button">Начать тренировку</button>
+          <button id="btn-ls-done" class="btn-primary" type="button">Начать ритуал</button>
           <button id="btn-ls-skip" class="btn-secondary" type="button">Пропустить</button>
         </div>
       `;
