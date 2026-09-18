@@ -59,7 +59,7 @@ export function renderToday(container: HTMLElement) {
 
   const focusText = plan.focusDomains.length > 0
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
-    : 'Сбалансированная тренировка';
+    : 'Сбалансированный ритуал';
 
   const compositionHtml = plan.items.map((item, index) => {
     const r = registry.find(x => x.manifest.id === item.exerciseId);
@@ -122,6 +122,14 @@ export function renderToday(container: HTMLElement) {
           <div class="fi-meta">${fiDelta.label} · ${fi.coverage} из 5 областей</div>
         </div>
         <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 180, max: 1200 })}</div>
+        <div class="fi-domains-list" style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; max-width: 300px; opacity: 0.8;">
+          ${fi.byDomain.map(d => `
+            <div style="font-size: 13px; display: flex; justify-content: space-between;">
+              <span>${domainLabel(d.id)}</span>
+              <span style="font-weight: 600;">${d.value}</span>
+            </div>
+          `).join('')}
+        </div>
       </div>
     `;
   }
@@ -261,7 +269,7 @@ export function renderToday(container: HTMLElement) {
               <button class="btn-ls-stress btn-secondary" data-val="high" type="button">Высокий</button>
             </div>
           </div>
-          <button id="btn-ls-done" class="btn-primary" type="button">Начать тренировку</button>
+          <button id="btn-ls-done" class="btn-primary" type="button">Начать ритуал</button>
           <button id="btn-ls-skip" class="btn-secondary" type="button">Пропустить</button>
         </div>
       `;
