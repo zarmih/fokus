@@ -870,9 +870,38 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy',
       instruction: 'Среди 4 чисел найдите и нажмите на САМОЕ БОЛЬШОЕ.'
     }
+  },
+  {
+    manifest: {
+      id: 'az-number-grid',
+      name: 'Сетка Чисел AZ',
+      domain: 'attention',
+      skills: ['visual_scanning', 'sustained_attention'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Нажимайте на числа по порядку, начиная с 1.'
+    }
+  },
+  {
+    manifest: {
+      id: 'az-color-match',
+      name: 'Цветовое Совпадение AZ',
+      domain: 'memory',
+      skills: ['working_memory', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Совпадает ли цвет с предыдущим? Влево - ДА, Вправо - НЕТ.'
+    }
+  },
+  {
+    manifest: {
+      id: 'az-shape-shift',
+      name: 'Смена Формы AZ',
+      domain: 'flexibility',
+      skills: ['task_switching', 'visual_scanning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Если форма изменилась - жми Вверх, если осталась прежней - жми Вниз.'
+    }
   }
 ];
-
 export function getManifest(id: string): ExerciseManifest | undefined {
   return catalog.find((c) => c.manifest.id === id)?.manifest;
 }

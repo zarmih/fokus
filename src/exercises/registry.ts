@@ -89,6 +89,9 @@ import mirrorMatchModule from './mirror-match';
 import ayColorPulseModule from './ay-color-pulse';
 import ayShapeShiftModule from './ay-shape-shift';
 import ayNumberGridModule from './ay-number-grid';
+import azNumberGridModule from './az-number-grid';
+import azColorMatchModule from './az-color-match';
+import azShapeShiftModule from './az-shape-shift';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -180,5 +183,8 @@ export const registry: ExerciseModule[] = [
   mirrorMatchModule,
   ayColorPulseModule,
   ayShapeShiftModule,
-  ayNumberGridModule
+  ayNumberGridModule,
+  azNumberGridModule,
+  azColorMatchModule,
+  azShapeShiftModule
 ];
