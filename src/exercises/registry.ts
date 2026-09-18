@@ -83,6 +83,9 @@ import numberSeriesModule from './number-series';
 import emberLaneModule from './ember-lane';
 import vaultSpanModule from './vault-span';
 import helixFlipModule from './helix-flip';
+import wordLengthSortModule from './word-length-sort';
+import targetShadeModule from './target-shade';
+import mirrorMatchModule from './mirror-match';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -168,5 +171,8 @@ export const registry: ExerciseModule[] = [
   numberSeriesModule,
   emberLaneModule,
   vaultSpanModule,
-  helixFlipModule
+  helixFlipModule,
+  wordLengthSortModule,
+  targetShadeModule,
+  mirrorMatchModule
 ];

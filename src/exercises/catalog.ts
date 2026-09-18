@@ -811,6 +811,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'word-length-sort',
+      name: 'По длине слов',
+      domain: 'speed',
+      skills: ['processing_speed', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Нажимайте на слова в порядке возрастания их длины (от самого короткого к самому длинному).',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'target-shade',
+      name: 'Точный оттенок',
+      domain: 'attention',
+      skills: ['visual_scanning', 'sustained_attention'] as ExerciseManifest['skills'],
+      instruction: 'Сверху показан целевой цвет. Найдите среди вариантов снизу тот, который совпадает с ним в точности.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'mirror-match',
+      name: 'Зеркальное отражение',
+      domain: 'logic',
+      skills: ['spatial_reasoning', 'pattern_recognition'] as ExerciseManifest['skills'],
+      instruction: 'Сверху показан узор. Выберите снизу тот вариант, который является его точным зеркальным отражением (по горизонтали).',
+      metricModel: 'speed-accuracy'
+    }
+  }
 ];
 
 export function getManifest(id: string): ExerciseManifest | undefined {
