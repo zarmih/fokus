@@ -76,6 +76,16 @@ export function renderTrainers(container: HTMLElement) {
     `;
   }).join('');
 
+  if (catalog.length === 0) {
+    gridHtml = `
+      <div class="catalog-empty" style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; border-radius: 16px; background: rgba(255,255,255,0.02);">
+        <div style="font-size: 48px; opacity: 0.5; margin-bottom: 16px;">📭</div>
+        <h3 style="margin-bottom: 8px; color: var(--text); font-size: 18px; font-weight: 600;">Тренажёры в разработке</h3>
+        <p style="color: var(--muted); font-size: 14px; max-width: 320px; margin: 0 auto; line-height: 1.5;">Здесь появятся упражнения для развития когнитивных навыков. Возвращайтесь позже!</p>
+      </div>
+    `;
+  }
+
   const filters = [
     { id: 'all', name: 'Все' },
     { id: 'attention', name: 'Внимание' },
@@ -106,10 +116,30 @@ export function renderTrainers(container: HTMLElement) {
         c.classList.toggle('active', on);
         c.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
+      let visibleCount = 0;
       content.querySelectorAll('.trainer-card').forEach(card => {
         const match = dom === 'all' || (card as HTMLElement).dataset.domain === dom;
         card.classList.toggle('is-hidden', !match);
+        if (match) visibleCount++;
       });
+
+      let emptyMsg = content.querySelector('.filter-empty') as HTMLElement;
+      if (visibleCount === 0 && catalog.length > 0) {
+        if (!emptyMsg) {
+          emptyMsg = document.createElement('div');
+          emptyMsg.className = 'filter-empty';
+          emptyMsg.style.cssText = 'grid-column: 1 / -1; text-align: center; padding: 40px 20px; border-radius: 12px; background: rgba(255,255,255,0.02); margin-top: 16px;';
+          emptyMsg.innerHTML = `
+            <div style="font-size: 40px; margin-bottom: 12px; opacity: 0.4;">🔍</div>
+            <h3 style="color: var(--text); margin-bottom: 8px; font-size: 16px; font-weight: 600;">Ничего не найдено</h3>
+            <p style="font-size: 14px; color: var(--muted);">В этой категории пока нет доступных тренажёров.</p>
+          `;
+          content.querySelector('.trainers-grid')?.appendChild(emptyMsg);
+        }
+        emptyMsg.style.display = 'block';
+      } else if (emptyMsg) {
+        emptyMsg.style.display = 'none';
+      }
     });
   });
 
