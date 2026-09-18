@@ -132,6 +132,7 @@ export interface RitualPlan {
   items: RitualItem[];
   targetBlocks: number;
   mix: RitualSlotKind[];
+  why?: string;
 }
 
 export interface RecalibrationDecision {

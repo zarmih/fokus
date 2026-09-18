@@ -50,6 +50,7 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
   const selectedIds = new Set<string>();
   const selectedDomains: DomainId[] = [];
   const items: RitualItem[] = [];
+  let anyExplored = false;
 
   mix.forEach((wanted) => {
     const ranked = scoreCatalog({
@@ -61,7 +62,11 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
       selectedDomains,
       goal
     });
-    const chosen = pickWithExplore(ranked, rng);
+    const pick = pickWithExplore(ranked, rng);
+    if (!pick) return;
+    const { chosen, explored } = pick;
+    if (explored) anyExplored = true;
+    if (explored) chosen.reason = 'Разведчик: альтернативный тренажёр';
     if (!chosen) return;
     selectedIds.add(chosen.exerciseId);
     selectedDomains.push(chosen.domain);
@@ -76,7 +81,28 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
     });
   });
 
-  return { focusDomains: focus, items, targetBlocks, mix };
+  const why = composeWhy(focus, items.length > 0, anyExplored);
+
+  return { focusDomains: focus, items, targetBlocks, mix, why };
+}
+
+function composeWhy(focusDomains: DomainId[], hasItems: boolean, explored: boolean): string {
+  if (!hasItems) return '';
+  const domainLabel = (id: string): string => {
+    const labels: Record<string, string> = {
+      attention: 'Внимание', memory: 'Память', speed: 'Скорость', flexibility: 'Гибкость', logic: 'Логика'
+    };
+    return labels[id] || id;
+  };
+
+  if (focusDomains.length > 0) {
+    const names = focusDomains.map(domainLabel).join(' и ');
+    if (explored) {
+      return `Сегодня опираемся на «${names}» и оставляем один слот на разведку.`;
+    }
+    return `Сегодня опираемся на «${names}»: это самая актуальная зона роста по последним сессиям.`;
+  }
+  return 'Сбалансированный ритуал: слабая область, свежесть и небольшой запас на разведку.';
 }
 
 function focusDomains(model: AbilityModel, goal: string): DomainId[] {
@@ -201,11 +227,11 @@ function reasonFor(args: {
   return 'Сбалансированная тренировка';
 }
 
-function pickWithExplore(ranked: ScoredCandidate[], rng: () => number): ScoredCandidate | null {
+function pickWithExplore(ranked: ScoredCandidate[], rng: () => number): { chosen: ScoredCandidate; explored: boolean } | null {
   const live = ranked.filter((c) => c.score > -500).sort((a, b) => b.score - a.score);
   if (live.length === 0) return null;
-  if (live.length > 1 && rng() < 0.08 && live[0].score - live[1].score < 12) {
-    return live[1];
+  if (live.length > 1 && rng() < 0.12 && live[0].score - live[1].score < 15) {
+    return { chosen: live[1], explored: true };
   }
-  return live[0];
+  return { chosen: live[0], explored: false };
 }
