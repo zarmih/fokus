@@ -88,7 +88,7 @@ export function renderTrainers(container: HTMLElement) {
   content.innerHTML = `
     <div class="today-head">
       <h2>Каталог тренажёров</h2>
-      <p class="today-date">${catalog.length} упражнений. Практика без влияния на Fokus Index.</p>
+      <p class="today-date">${catalog.length > 0 ? `Доступно ${catalog.length} упражнений. Свободная практика без влияния на Fokus Index.` : 'Архив тренажёров в данный момент недоступен.'}</p>
     </div>
     <div class="domain-filters">
       ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button" aria-pressed="${i === 0 ? 'true' : 'false'}">${f.name}</button>`).join('')}
@@ -96,7 +96,18 @@ export function renderTrainers(container: HTMLElement) {
     <div class="trainers-grid">
       ${gridHtml}
     </div>
+    <div id="trainers-empty-state" class="${catalog.length === 0 ? '' : 'is-hidden'}" style="text-align: center; padding: 60px 20px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 16px;">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5;">
+        <path d="M21 21L15.0001 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div style="font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 4px;">Нейронная тишина</div>
+        <div style="font-size: 14px; max-width: 280px; margin: 0 auto; line-height: 1.5;">В этом когнитивном кластере пока нет доступных алгоритмов. Попробуйте сменить вектор развития.</div>
+      </div>
+    </div>
   `;
+
+  const emptyState = content.querySelector('#trainers-empty-state') as HTMLElement;
 
   content.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
@@ -106,10 +117,21 @@ export function renderTrainers(container: HTMLElement) {
         c.classList.toggle('active', on);
         c.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
+      
+      let visibleCount = 0;
       content.querySelectorAll('.trainer-card').forEach(card => {
         const match = dom === 'all' || (card as HTMLElement).dataset.domain === dom;
         card.classList.toggle('is-hidden', !match);
+        if (match) visibleCount++;
       });
+      
+      if (emptyState) {
+        if (visibleCount === 0) {
+          emptyState.classList.remove('is-hidden');
+        } else {
+          emptyState.classList.add('is-hidden');
+        }
+      }
     });
   });
 
