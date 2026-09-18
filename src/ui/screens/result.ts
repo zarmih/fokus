@@ -161,11 +161,24 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
   const nextItem = plan.items[0];
   const nextEx = nextItem ? getManifest(nextItem.exerciseId) : null;
+  const feedbackHtml = isCalibration || isRecalibration ? '' : `
+    <div class="surface feedback-card" id="feedback-card">
+      <h3>Как прошла тренировка?</h3>
+      <div class="feedback-actions" style="display: flex; gap: 8px; margin-top: 12px;">
+        <button class="btn-secondary btn-feedback" data-val="hard">Тяжело</button>
+        <button class="btn-secondary btn-feedback" data-val="normal">Нормально</button>
+        <button class="btn-secondary btn-feedback" data-val="easy">Легко</button>
+      </div>
+      <p class="muted feedback-thanks" style="display: none; margin-top: 12px;">Спасибо за отзыв! Он поможет настроить сложность.</p>
+    </div>
+  `;
+
   const nextHtml = nextEx ? `
     <div class="surface next-card">
       <h3>Следующий шаг</h3>
       <p class="next-name">${nextEx.name}</p>
       <p class="muted">${nextItem.reason}${nextItem.slot ? ' · ' + SLOT_LABEL[nextItem.slot] : ''}</p>
+      <button id="btn-next-step" class="btn-primary" style="margin-top: 16px; width: 100%;">Начать ${nextEx.name}</button>
     </div>
   ` : '';
 
@@ -220,6 +233,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       ${itemsHtml}
     </div>
 
+    ${feedbackHtml}
     ${nextHtml}
 
     <div class="result-actions">
@@ -235,6 +249,28 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   playSessionCue(leveledUp || unlocked.length > 0 ? 'celebrate' : 'ritual');
 
   content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
+  
+  content.querySelector('#btn-next-step')?.addEventListener('click', () => {
+    navigateTo('session', { mode: 'normal', items: plan.items, durationSec: profile.sessionLengthSec || 300 });
+  });
+
+  content.querySelectorAll('.btn-feedback').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const target = e.currentTarget as HTMLElement;
+      content.querySelectorAll('.btn-feedback').forEach(b => {
+        b.classList.remove('btn-primary');
+        b.classList.add('btn-secondary');
+      });
+      target.classList.remove('btn-secondary');
+      target.classList.add('btn-primary');
+      
+      const thanks = content.querySelector('.feedback-thanks') as HTMLElement;
+      if (thanks) {
+        thanks.style.display = 'block';
+      }
+    });
+  });
+
   content.querySelector('#btn-share')?.addEventListener('click', async () => {
     try {
       await shareSessionCard({
