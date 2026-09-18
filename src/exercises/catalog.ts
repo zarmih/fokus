@@ -840,6 +840,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       instruction: 'Сверху показан узор. Выберите снизу тот вариант, который является его точным зеркальным отражением (по горизонтали).',
       metricModel: 'speed-accuracy'
     }
+  },
+  {
+    manifest: {
+      id: 'ay-color-pulse',
+      name: 'Цветовой пульс',
+      domain: 'speed',
+      skills: ['reaction_speed', 'selective_attention'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Нажимайте на фигуру ТОЛЬКО когда появляется КРАСНЫЙ цвет.'
+    }
+  },
+  {
+    manifest: {
+      id: 'ay-shape-shift',
+      name: 'Сдвиг форм',
+      domain: 'attention',
+      skills: ['pattern_recognition', 'sustained_attention'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Если фигуры ОДИНАКОВЫЕ — жмите "Одинаковые". Если РАЗНЫЕ — "Разные".'
+    }
+  },
+  {
+    manifest: {
+      id: 'ay-number-grid',
+      name: 'Числовая сетка',
+      domain: 'speed',
+      skills: ['visual_scanning', 'numerical_processing'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Среди 4 чисел найдите и нажмите на САМОЕ БОЛЬШОЕ.'
+    }
   }
 ];
 

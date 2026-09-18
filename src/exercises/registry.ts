@@ -86,6 +86,9 @@ import helixFlipModule from './helix-flip';
 import wordLengthSortModule from './word-length-sort';
 import targetShadeModule from './target-shade';
 import mirrorMatchModule from './mirror-match';
+import ayColorPulseModule from './ay-color-pulse';
+import ayShapeShiftModule from './ay-shape-shift';
+import ayNumberGridModule from './ay-number-grid';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -174,5 +177,8 @@ export const registry: ExerciseModule[] = [
   helixFlipModule,
   wordLengthSortModule,
   targetShadeModule,
-  mirrorMatchModule
+  mirrorMatchModule,
+  ayColorPulseModule,
+  ayShapeShiftModule,
+  ayNumberGridModule
 ];
