@@ -18,12 +18,12 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
 
   const rings = [0.33, 0.66, 1].map((t) => {
     const pts = slices.map((_, i) => toPoint(i, radius * t).join(',')).join(' ');
-    return `<polygon points="${pts}" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.7"/>`;
+    return `<polygon points="${pts}" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.15"/>`;
   }).join('');
 
   const axes = slices.map((_, i) => {
     const [x, y] = toPoint(i, radius);
-    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)" stroke-width="1"/>`;
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)" stroke-width="1" opacity="0.15"/>`;
   }).join('');
 
   const valuePts = slices.map((s, i) => {
@@ -32,10 +32,11 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
   }).join(' ');
 
   const dots = slices.map((s, i) => {
-    const t = s.ready ? Math.max(0.08, Math.min(1, s.value / max)) : 0.08;
+    if (!s.ready) return '';
+    const t = Math.max(0.08, Math.min(1, s.value / max));
     const [x, y] = toPoint(i, radius * t);
     const color = DOMAIN_COLORS[s.id] || 'var(--accent)';
-    return `<circle cx="${x}" cy="${y}" r="4" fill="${s.ready ? color : 'var(--muted)'}" />`;
+    return `<circle cx="${x}" cy="${y}" r="4" fill="${color}" />`;
   }).join('');
 
   const labels = slices.map((s, i) => {
