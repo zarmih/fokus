@@ -23,6 +23,7 @@ import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, bandLabel } from '../../core/retention';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
+import { calendarDayKey } from '../../core/streak';
 
 export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
@@ -68,6 +69,12 @@ export function renderToday(container: HTMLElement) {
   const biased = applyGentleReturnBias(plan, snap.ritual, catalogHints);
   plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
   const ritualDuration = Math.min(ritual.snapshot.durationSec, durationSec);
+
+  const todaySessions = sessions.filter((s) => calendarDayKey(s.startedAt, snap.timeZone) === todayStr);
+  const playedDurationSec = todaySessions.reduce((acc, s) => acc + (s.durationSec || 0), 0);
+  const remainingSec = Math.max(0, ritualDuration - playedDurationSec);
+  const isFinished = playedToday && remainingSec === 0;
+
   const recal = ritual.recalibration;
   const depth = describeAdaptiveDepth({
     sessions,
@@ -242,7 +249,7 @@ export function renderToday(container: HTMLElement) {
         <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
       </div>
     `;
-  } else if (playedToday) {
+  } else if (isFinished) {
     actionHtml = `
       <div class="workout-card done fx-celebrate">
         <div class="workout-kicker">Сегодня</div>
@@ -261,19 +268,25 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Мягкий возврат</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   } else {
     const rest = ritual.snapshot.gate.active;
+    const isResume = playedDurationSec > 0 && remainingSec > 0;
+    const kicker = rest ? 'Сегодня легче' : 'Дневной ритуал';
+    const cta = isResume ? 'Продолжить' : 'Начать ритуал';
+    const remainingMins = Math.max(1, Math.floor(remainingSec / 60));
+    const durationText = isResume ? `Осталось ${remainingMins} мин` : `${Math.floor(ritualDuration / 60)} минут`;
+
     actionHtml = `
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
+        <div class="workout-kicker">${kicker}</div>
+        <h3>${durationText} · ${focusText}</h3>
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">${cta}</button>
       </div>
     `;
   }
@@ -354,11 +367,11 @@ export function renderToday(container: HTMLElement) {
           })
         });
       } else {
-        navigateTo('session', { mode: 'normal', items: plan.items, durationSec: ritualDuration });
+        navigateTo('session', { mode: 'normal', items: plan.items, durationSec: remainingSec > 0 ? remainingSec : ritualDuration });
       }
     };
 
-    if (!playedToday && profile.calibrated && !profile.skipLifestylePrompt) {
+    if (!isFinished && profile.calibrated && !profile.skipLifestylePrompt) {
       const modal = document.createElement('div');
       modal.className = 'modal-root';
       modal.innerHTML = `
