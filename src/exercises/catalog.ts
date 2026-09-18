@@ -1321,6 +1321,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'aw-color-drift',
+      name: 'Цветовой дрейф',
+      domain: 'attention',
+      skills: ['sustained_attention', 'reaction_speed'] as any,
+      metricModel: 'speed-accuracy',
+      instruction: 'Нажимайте на круг, когда он меняет цвет. Игнорируйте плавные изменения.'
+    }
+  },
+  {
+    manifest: {
+      id: 'aw-shape-pulse',
+      name: 'Пульс фигур',
+      domain: 'memory',
+      skills: ['visual_memory', 'working_memory'] as any,
+      metricModel: 'memory-span',
+      instruction: 'Запомните последовательность пульсирующих фигур и воспроизведите её.'
+    }
+  },
+  {
+    manifest: {
+      id: 'aw-logic-gate',
+      name: 'Логический шлюз',
+      domain: 'logic',
+      skills: ['logical_reasoning', 'processing_speed'] as any,
+      metricModel: 'speed-accuracy',
+      instruction: 'Если фигура КРУГ — жмите ВЛЕВО. Если КВАДРАТ — ВПРАВО. НО если фон КРАСНЫЙ, правила меняются наоборот!'
+    }
+  },
 ];
 
 export function getManifest(id: string): ExerciseManifest | undefined {

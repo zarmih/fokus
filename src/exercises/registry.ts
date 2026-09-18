@@ -132,6 +132,10 @@ import cacheSpanModule from './cache-span';
 import beaconRailModule from './beacon-rail';
 import motifFlipModule from './motif-flip';
 
+import awColorDriftModule from './aw-color-drift';
+import awShapePulseModule from './aw-shape-pulse';
+import awLogicGateModule from './aw-logic-gate';
+
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
   oddOneModule,
@@ -265,4 +269,7 @@ export const registry: ExerciseModule[] = [
   cacheSpanModule,
   beaconRailModule,
   motifFlipModule
+  ,awColorDriftModule,
+  awShapePulseModule,
+  awLogicGateModule
 ];
