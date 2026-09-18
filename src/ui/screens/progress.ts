@@ -121,17 +121,16 @@ export function renderProgress(container: HTMLElement) {
     
     // Find skills for this domain
     const dSkillNames = Array.from(domainSkills.get(d.id) || []);
-    const dSkills = skills.filter(s => dSkillNames.includes(s.skill)).sort((a,b) => b.value - a.value);
+    const dSkills = skills.filter(s => dSkillNames.includes(s.skill) && s.confidence >= 10).sort((a,b) => b.value - a.value);
     
     const skillsListHtml = dSkills.map(s => {
       const displayVal = Math.round(s.value);
-      const isReliable = s.confidence >= 10;
-      const pct = isReliable ? Math.min(100, Math.max(0, displayVal / 15)) : 0;
+      const pct = Math.min(100, Math.max(0, displayVal / 15));
       const trendStr = s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '→';
       const trendColor = s.trend > 0 ? 'var(--ok)' : s.trend < 0 ? 'var(--danger)' : 'var(--muted)';
       const skillName = skillLabel(s.skill);
       
-      const valueText = isReliable ? `<span style="color: ${trendColor}; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
+      const valueText = `<span style="color: ${trendColor}; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>`;
       
       return `
         <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid var(--line);">
@@ -139,11 +138,11 @@ export function renderProgress(container: HTMLElement) {
             <span style="text-transform: capitalize; color: var(--text); opacity: 0.9;">${skillName}</span>
             <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div></div>
-          ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
+          <div class="scale-track" style="height: 4px; opacity: 1; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div></div>
+          <div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
-          </div>` : ''}
+          </div>
         </div>
       `;
     }).join('');
@@ -230,9 +229,9 @@ export function renderProgress(container: HTMLElement) {
 
   const legendHtml = `
     <div class="legend-box">
-      <div style="margin-bottom: 6px;"><strong>Форма (Performance)</strong> — как вы справляетесь прямо сейчас.</div>
-      <div style="margin-bottom: 6px;"><strong>Освоение (Mastery)</strong> — насколько навык устойчиво закреплён.</div>
-      <div><strong>Уверенность (Confidence)</strong> — насколько Fokus уверен в оценке.</div>
+      <div style="margin-bottom: 6px;"><strong>Форма</strong> — как вы справляетесь прямо сейчас.</div>
+      <div style="margin-bottom: 6px;"><strong>Освоение</strong> — насколько навык устойчиво закреплён.</div>
+      <div><strong>Уверенность</strong> — насколько Fokus уверен в оценке.</div>
     </div>
   `;
 
