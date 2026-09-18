@@ -66,7 +66,7 @@ export function getDailySpark(params: {
   now?: Date;
   /** Optional Phase 3 field — ignored when the program PR is not merged. */
   shieldCharges?: number;
-}): CoachSpark {
+}): CoachSpark | null {
   const {
     domains,
     daySummaries,
@@ -170,11 +170,7 @@ export function getDailySpark(params: {
     };
   }
 
-  return {
-    title: 'Короткий ритуал',
-    body: 'Тренируем конкретные задачи. Перенос в жизнь скромный — зато привычка внимания остаётся.',
-    tone: 'science'
-  };
+  return null;
 }
 
 export { getWeeklyDomainTips } from './coach-intel';
