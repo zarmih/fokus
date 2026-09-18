@@ -495,14 +495,6 @@ function buildTips(
     });
   }
 
-  if (tips.length === 0 && intel.ready) {
-    tips.push({
-      kind: 'science',
-      title: 'Короткий ритуал',
-      body: 'Тренируем конкретные задачи. Перенос в жизнь скромный — зато привычка внимания остаётся.',
-      tone: 'science'
-    });
-  }
 
   const domain = tips.filter((t) => t.kind === 'domain');
   const rest = tips.filter((t) => t.kind !== 'domain');
