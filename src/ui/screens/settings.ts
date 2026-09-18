@@ -119,15 +119,7 @@ export function renderSettings(container: HTMLElement) {
       ${renderContinuityHint(snap, 'settings')}
     </div>
     
-    <div class="surface" style="margin-top: 24px;">
-      <h3 style="margin-bottom: 16px;">Длительность сессии</h3>
-      <div class="segmented" id="duration-segmented" role="radiogroup" aria-label="Длительность сессии">
-        <button type="button" role="radio" data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 300 ? 'true' : 'false'}">5 мин</button>
-        <button type="button" role="radio" data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 480 ? 'true' : 'false'}">8 мин</button>
-        <button type="button" role="radio" data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 720 ? 'true' : 'false'}">12 мин</button>
-        <button type="button" role="radio" data-val="900" class="${profile.sessionLengthSec === 900 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 900 ? 'true' : 'false'}">15 мин</button>
-      </div>
-    </div>
+    <h3 style="margin: 32px 0 12px 12px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Тренировки</h3>
     
     <div class="surface">
       <h3 style="margin-bottom: 16px;">Главная цель</h3>
@@ -142,62 +134,13 @@ export function renderSettings(container: HTMLElement) {
     </div>
     
     <div class="surface">
-      <h3 style="margin-bottom: 16px;">${ADAPTIVE_SETTINGS_COPY.title}</h3>
-      ${settingsChip}
-      <p class="adaptive-note">${ADAPTIVE_SETTINGS_COPY.body}</p>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Тема</h3>
-      <div class="segmented" id="theme-segmented" role="radiogroup" aria-label="Тема">
-        <button type="button" role="radio" data-val="light" class="${profile.theme === 'light' ? 'active' : ''}" aria-checked="${profile.theme === 'light' ? 'true' : 'false'}">Светлая</button>
-        <button type="button" role="radio" data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}" aria-checked="${profile.theme === 'dark' || !profile.theme ? 'true' : 'false'}">Тёмная</button>
+      <h3 style="margin-bottom: 16px;">Длительность сессии</h3>
+      <div class="segmented" id="duration-segmented" role="radiogroup" aria-label="Длительность сессии">
+        <button type="button" role="radio" data-val="300" class="${profile.sessionLengthSec === 300 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 300 ? 'true' : 'false'}">5 мин</button>
+        <button type="button" role="radio" data-val="480" class="${profile.sessionLengthSec === 480 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 480 ? 'true' : 'false'}">8 мин</button>
+        <button type="button" role="radio" data-val="720" class="${profile.sessionLengthSec === 720 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 720 ? 'true' : 'false'}">12 мин</button>
+        <button type="button" role="radio" data-val="900" class="${profile.sessionLengthSec === 900 ? 'active' : ''}" aria-checked="${profile.sessionLengthSec === 900 ? 'true' : 'false'}">15 мин</button>
       </div>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Язык / Language</h3>
-      <div class="segmented" id="lang-segmented" role="radiogroup" aria-label="Language">
-        <button type="button" role="radio" data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}" aria-checked="${!profile.language || profile.language === 'ru' ? 'true' : 'false'}">Русский</button>
-        <button type="button" role="radio" data-val="en" class="${profile.language === 'en' ? 'active' : ''}" aria-checked="${profile.language === 'en' ? 'true' : 'false'}">English</button>
-      </div>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Звук</h3>
-      <label style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
-        ${t('settings.sound')}
-      </label>
-      <label class="sound-volume-row" for="sound-volume">
-        <span>${t('settings.volume')}</span>
-        <input type="range" id="sound-volume" min="0" max="100" step="1" value="${Math.round(clampVolume(profile.soundVolume) * 100)}" ${profile.soundOn ? '' : 'disabled'} />
-        <span id="sound-volume-value">${Math.round(clampVolume(profile.soundVolume) * 100)}%</span>
-      </label>
-      <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
-        <input type="checkbox" id="haptics-toggle" ${profile.hapticsOn !== false ? 'checked' : ''} />
-        ${t('settings.haptics')}
-      </label>
-    </div>
-
-    <div class="surface" id="install-container" style="display: none;">
-      <h3 style="margin-bottom: 16px;">Установка</h3>
-      <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
-      <div style="font-size: 11px; color: var(--muted); text-align: center;">Для быстрого доступа без браузера</div>
-    </div>
-
-    <div class="surface">
-      <h3 style="margin-bottom: 16px;">Уведомления</h3>
-      <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Разрешить уведомления</button>
-      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
-      <div class="segmented" id="reminder-segmented" role="radiogroup" aria-label="Напоминание">
-        <button type="button" role="radio" data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}" aria-checked="${profile.reminderHour === 8 ? 'true' : 'false'}">08:00</button>
-        <button type="button" role="radio" data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}" aria-checked="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'true' : 'false'}">09:00</button>
-        <button type="button" role="radio" data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}" aria-checked="${profile.reminderHour === 12 ? 'true' : 'false'}">12:00</button>
-        <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
-        <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
-      </div>
-      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
     </div>
 
     <div class="surface">
@@ -218,15 +161,7 @@ export function renderSettings(container: HTMLElement) {
       </label>
     </div>
 
-    <div class="surface quality-explainer">
-      <h3 style="margin-bottom: 16px;">Качество сессии и восстановление</h3>
-      <p>Качество ритуала — не IQ и не «балл мозга». Fokus считает, насколько чисто прошёл подход: точность, стабильность времени реакции, уместность сложности, завершённость и обрывы.</p>
-      <p>После плотных дней или просадки качества экран «Сегодня» может предложить короче и другую область. Это подсказка нагрузки, не диагноз.</p>
-      <label style="display: flex; align-items: center; gap: 8px;">
-        <input type="checkbox" id="recovery-toggle" ${profile.recoveryHints !== false ? 'checked' : ''} />
-        Подсказывать восстановление на экране «Сегодня»
-      </label>
-    </div>
+    <h3 style="margin: 32px 0 12px 12px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Сложность и адаптация</h3>
 
     ${profile.probeSnapshot ? `
     <div class="surface probe-summary">
@@ -247,6 +182,81 @@ export function renderSettings(container: HTMLElement) {
       <button id="btn-recalibrate" class="btn-primary" type="button" style="width: 100%;">Пройти калибровку</button>
     </div>
     ` : ''}
+
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">${ADAPTIVE_SETTINGS_COPY.title}</h3>
+      ${settingsChip}
+      <p class="adaptive-note">${ADAPTIVE_SETTINGS_COPY.body}</p>
+    </div>
+
+    <div class="surface quality-explainer">
+      <h3 style="margin-bottom: 16px;">Качество сессии и восстановление</h3>
+      <p>Качество ритуала — не IQ и не «балл мозга». Fokus считает, насколько чисто прошёл подход: точность, стабильность времени реакции, уместность сложности, завершённость и обрывы.</p>
+      <p>После плотных дней или просадки качества экран «Сегодня» может предложить короче и другую область. Это подсказка нагрузки, не диагноз.</p>
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="recovery-toggle" ${profile.recoveryHints !== false ? 'checked' : ''} />
+        Подсказывать восстановление на экране «Сегодня»
+      </label>
+    </div>
+
+    <h3 style="margin: 32px 0 12px 12px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Внешний вид и звук</h3>
+
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Тема</h3>
+      <div class="segmented" id="theme-segmented" role="radiogroup" aria-label="Тема">
+        <button type="button" role="radio" data-val="light" class="${profile.theme === 'light' ? 'active' : ''}" aria-checked="${profile.theme === 'light' ? 'true' : 'false'}">Светлая</button>
+        <button type="button" role="radio" data-val="dark" class="${profile.theme === 'dark' || !profile.theme ? 'active' : ''}" aria-checked="${profile.theme === 'dark' || !profile.theme ? 'true' : 'false'}">Тёмная</button>
+      </div>
+    </div>
+
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Язык / Language</h3>
+      <div class="segmented" id="lang-segmented" role="radiogroup" aria-label="Language">
+        <button type="button" role="radio" data-val="ru" class="${!profile.language || profile.language === 'ru' ? 'active' : ''}" aria-checked="${!profile.language || profile.language === 'ru' ? 'true' : 'false'}">Русский</button>
+        <button type="button" role="radio" data-val="en" class="${profile.language === 'en' ? 'active' : ''}" aria-checked="${profile.language === 'en' ? 'true' : 'false'}">English</button>
+      </div>
+    </div>
+
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Звук и отклик</h3>
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
+        ${t('settings.sound')}
+      </label>
+      <label class="sound-volume-row" for="sound-volume">
+        <span>${t('settings.volume')}</span>
+        <input type="range" id="sound-volume" min="0" max="100" step="1" value="${Math.round(clampVolume(profile.soundVolume) * 100)}" ${profile.soundOn ? '' : 'disabled'} />
+        <span id="sound-volume-value">${Math.round(clampVolume(profile.soundVolume) * 100)}%</span>
+      </label>
+      <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px;">
+        <input type="checkbox" id="haptics-toggle" ${profile.hapticsOn !== false ? 'checked' : ''} />
+        ${t('settings.haptics')}
+      </label>
+    </div>
+
+    <h3 style="margin: 32px 0 12px 12px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Уведомления и доступ</h3>
+
+    <div class="surface">
+      <h3 style="margin-bottom: 16px;">Уведомления</h3>
+      <button id="btn-notifications" class="btn-secondary" type="button" style="width: 100%;">Разрешить уведомления</button>
+      <div style="font-size: 13px; color: var(--muted); margin: 12px 0 8px;">Напоминание в</div>
+      <div class="segmented" id="reminder-segmented" role="radiogroup" aria-label="Напоминание">
+        <button type="button" role="radio" data-val="8" class="${profile.reminderHour === 8 ? 'active' : ''}" aria-checked="${profile.reminderHour === 8 ? 'true' : 'false'}">08:00</button>
+        <button type="button" role="radio" data-val="9" class="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'active' : ''}" aria-checked="${profile.reminderHour === 9 || profile.reminderHour === undefined ? 'true' : 'false'}">09:00</button>
+        <button type="button" role="radio" data-val="12" class="${profile.reminderHour === 12 ? 'active' : ''}" aria-checked="${profile.reminderHour === 12 ? 'true' : 'false'}">12:00</button>
+        <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
+        <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
+      </div>
+      <div style="font-size: 11px; color: var(--muted); margin-top: 8px; text-align: center;">Локальное напоминание, пока приложение установлено. Без сервера и без рекламы.</div>
+    </div>
+
+    <div class="surface" id="install-container" style="display: none;">
+      <h3 style="margin-bottom: 16px;">Установка</h3>
+      <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;">Установить Fokus на телефон / ПК</button>
+      <div style="font-size: 11px; color: var(--muted); text-align: center;">Для быстрого доступа без браузера</div>
+    </div>
+
+    <h3 style="margin: 32px 0 12px 12px; font-size: 13px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Данные и резервные копии</h3>
 
     ${privacyPanelHtml(storage.inventory())}
     
