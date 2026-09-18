@@ -108,6 +108,37 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     }
   };
 
+  let oppReady = false;
+  let meReady = false;
+  let oppRematch = false;
+  let meRematch = false;
+
+  const checkStart = () => {
+    if (oppReady && meReady) {
+      startCountdown();
+    }
+  };
+
+  const resetBoard = () => {
+    exContainer.innerHTML = '';
+    exContainer.appendChild(overlay);
+    overlay.style.display = 'flex';
+    overlay.textContent = 'Ожидание...';
+    myPoints = 0;
+    oppPoints = 0;
+    updateBars();
+    timerEl.textContent = '--:--';
+  };
+
+  const checkRematch = () => {
+    if (oppRematch && meRematch) {
+      oppRematch = false;
+      meRematch = false;
+      resetBoard();
+      startCountdown();
+    }
+  };
+
   const endDuel = (didIWin: boolean, reason: 'target' | 'time' | 'draw' = 'target') => {
     sessionActive = false;
     if (cleanup) cleanup();
@@ -123,21 +154,53 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     const color = draw ? 'var(--accent)' : didIWin ? 'var(--ok)' : 'var(--danger)';
     
     exContainer.innerHTML = `
-      <div style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
-        <h2 style="color: ${color}; margin-bottom: 16px;">${title}</h2>
-        <div style="font-size: 24px; font-weight: 700; margin-bottom: 32px;">Счет: ${myPoints} - ${oppPoints}</div>
-        <button id="btn-back" class="btn-primary" type="button">Вернуться</button>
+      <div class="duel-readout" style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; animation: fadeIn 0.3s ease-out;">
+        <div style="font-size: 64px; margin-bottom: 16px;">${draw ? '🤝' : didIWin ? '🏆' : '💀'}</div>
+        <h2 style="color: ${color}; margin-bottom: 8px; font-size: 32px; letter-spacing: -0.02em;">${title}</h2>
+        <p style="color: var(--muted); margin-bottom: 32px; font-size: 16px;">${reason === 'time' ? 'Время вышло' : reason === 'draw' ? 'Равная битва' : 'Цель достигнута'}</p>
+        
+        <div style="display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 40px; padding: 24px; background: var(--surface-hover); border-radius: 16px;">
+          <div style="text-align: center;">
+            <div style="font-size: 14px; color: var(--muted); margin-bottom: 8px;">Вы</div>
+            <div style="font-size: 48px; font-weight: 800; color: ${didIWin ? 'var(--ok)' : 'var(--text)'};">${myPoints}</div>
+          </div>
+          <div style="font-size: 24px; color: var(--muted); font-weight: 300;">:</div>
+          <div style="text-align: center;">
+            <div style="font-size: 14px; color: var(--muted); margin-bottom: 8px;">Оппонент</div>
+            <div style="font-size: 48px; font-weight: 800; color: ${!didIWin && !draw ? 'var(--danger)' : 'var(--text)'};">${oppPoints}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 16px; justify-content: center;">
+          <button id="btn-back" class="btn-secondary" type="button" style="flex: 1;">Выйти</button>
+          <button id="btn-rematch" class="btn-primary" type="button" style="flex: 1;">Реванш</button>
+        </div>
+        <div id="rematch-status" style="margin-top: 16px; font-size: 14px; color: var(--muted); height: 20px;"></div>
       </div>
     `;
     
     exContainer.querySelector('#btn-back')?.addEventListener('click', () => {
       navigateTo('duel');
     });
+
+    exContainer.querySelector('#btn-rematch')?.addEventListener('click', (e) => {
+      const btn = e.target as HTMLButtonElement;
+      btn.disabled = true;
+      btn.textContent = 'Ожидание...';
+      meRematch = true;
+      params.p2p.send({ type: 'REMATCH' });
+      const rStatus = exContainer.querySelector('#rematch-status');
+      if (rStatus && !oppRematch) {
+        rStatus.textContent = 'Ожидание оппонента...';
+      }
+      checkRematch();
+    });
   };
 
   params.p2p.onMessage = (msg: any) => {
-    if (msg.type === 'START') {
-      startCountdown();
+    if (msg.type === 'READY') {
+      oppReady = true;
+      checkStart();
     } else if (msg.type === 'UPDATE') {
       oppPoints = msg.points;
       updateBars();
@@ -147,6 +210,13 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     } else if (msg.type === 'TIMEUP') {
       if (myPoints === oppPoints) endDuel(false, 'draw');
       else endDuel(myPoints > oppPoints, 'time');
+    } else if (msg.type === 'REMATCH') {
+      oppRematch = true;
+      const rStatus = exContainer.querySelector('#rematch-status');
+      if (rStatus) {
+        rStatus.textContent = 'Оппонент хочет реванш!';
+      }
+      checkRematch();
     }
   };
 
@@ -228,11 +298,21 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     mountExercise();
   };
 
-  if (params.isHost) {
-    // Host waits 2 seconds to make sure channel is fully stable, then sends start
-    setTimeout(() => {
-      params.p2p.send({ type: 'START' });
-      startCountdown();
-    }, 2000);
-  }
+  const initResource = () => {
+    if (!exRender) {
+      loadExercise('math-sprint').then((mod) => {
+        exRender = mod.render;
+        meReady = true;
+        params.p2p.send({ type: 'READY' });
+        checkStart();
+      }).catch(() => {});
+    } else {
+      meReady = true;
+      params.p2p.send({ type: 'READY' });
+      checkStart();
+    }
+  };
+
+  // Wait a small tick to ensure connection is stable before sending READY handshake
+  setTimeout(initResource, 500);
 }
