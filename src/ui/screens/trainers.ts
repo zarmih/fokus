@@ -64,13 +64,17 @@ export function renderTrainers(container: HTMLElement) {
 
     return `
       <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-domain="${ex.manifest.domain}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}">
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div class="trainer-header-row">
           <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
-          <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="32" height="32" alt="" decoding="async" loading="lazy" style="border-radius: 8px;">
+          <div class="trainer-icon-wrap">
+            <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="24" height="24" alt="" decoding="async" loading="lazy">
+          </div>
         </div>
         <div class="trainer-name">${ex.manifest.name}</div>
         <div class="trainer-instruction">${ex.manifest.instruction}</div>
-        <div class="trainer-level">Ур. ${lvl}</div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; width: 100%;">
+          <div class="trainer-level">Ур. ${lvl}</div>
+        </div>
         ${intelHtml}
       </button>
     `;
@@ -86,9 +90,9 @@ export function renderTrainers(container: HTMLElement) {
   ];
 
   content.innerHTML = `
-    <div class="today-head">
-      <h2>Каталог тренажёров</h2>
-      <p class="today-date">${catalog.length} упражнений. Практика без влияния на Fokus Index.</p>
+    <div class="today-head" style="margin-bottom: 24px;">
+      <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px;">Каталог</h2>
+      <p class="today-date" style="opacity: 0.7;">${catalog.length} упражнений. Практика без влияния на Fokus Index.</p>
     </div>
     <div class="domain-filters">
       ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button" aria-pressed="${i === 0 ? 'true' : 'false'}">${f.name}</button>`).join('')}

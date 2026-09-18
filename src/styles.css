@@ -439,75 +439,150 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 /* Trainers Grid */
 .trainers-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+  margin-top: 8px;
 }
 .domain-filters {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   overflow-x: auto;
-  padding-bottom: 4px;
-  margin-bottom: 16px;
+  padding: 4px 4px 12px 4px;
+  margin: 0 -4px 16px -4px;
   scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 .domain-filters::-webkit-scrollbar { display: none; }
 .filter-chip {
   flex: 0 0 auto;
-  border: 1px solid var(--line);
-  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
   color: var(--muted);
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
+  transition: all var(--motion-fast) var(--ease-standard);
+  backdrop-filter: blur(8px);
+}
+.filter-chip:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
 }
 .filter-chip.active {
-  background: var(--accent);
-  color: var(--btn-text);
-  border-color: transparent;
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+  box-shadow: 0 4px 12px rgba(255,255,255,0.15);
 }
 .trainer-card {
-  background: var(--surface);
-  backdrop-filter: blur(16px);
-  border-radius: 18px;
-  padding: 16px;
+  position: relative;
+  background: linear-gradient(160deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-height: 148px;
+  min-height: 180px;
   cursor: pointer;
-  border: 1px solid var(--line);
-  box-shadow: 0 10px 0 rgba(0,0,0,0.16), 0 14px 24px rgba(0,0,0,0.18);
-  transition: transform var(--motion-fast) var(--ease-press), box-shadow var(--motion-fast) var(--ease-standard);
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 8px 24px rgba(0,0,0,0.2);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
   text-align: left;
   font-family: inherit;
   color: inherit;
   width: 100%;
-  content-visibility: auto;
-  contain-intrinsic-size: 0 180px;
+  overflow: hidden;
   touch-action: manipulation;
 }
-.trainer-card:hover { transform: translateY(-4px); }
+.trainer-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 100%;
+  background: radial-gradient(circle at top right, var(--domain-color, rgba(255,255,255,0.1)) 0%, transparent 60%);
+  opacity: 0.15;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+.trainer-card:hover { 
+  transform: translateY(-6px) scale(1.02); 
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.15), 0 12px 32px rgba(0,0,0,0.3);
+  border-color: rgba(255,255,255,0.15);
+}
+.trainer-card:hover::before {
+  opacity: 0.3;
+}
 .trainer-card:active,
 .trainer-card.is-pressed {
-  transform: translateY(var(--motion-press-y)) scale(var(--motion-press-s));
-  box-shadow: 0 4px 0 rgba(0,0,0,0.16);
+  transform: translateY(2px) scale(0.98);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 4px 12px rgba(0,0,0,0.2);
+  transition: all 0.1s ease;
 }
-.trainer-card.dom-attention { box-shadow: 0 10px 0 rgba(37, 99, 235, 0.25), 0 14px 24px rgba(0,0,0,0.18); }
-.trainer-card.dom-memory { box-shadow: 0 10px 0 rgba(168, 85, 247, 0.25), 0 14px 24px rgba(0,0,0,0.18); }
-.trainer-card.dom-speed { box-shadow: 0 10px 0 rgba(249, 115, 22, 0.25), 0 14px 24px rgba(0,0,0,0.18); }
-.trainer-card.dom-flexibility { box-shadow: 0 10px 0 rgba(6, 182, 212, 0.25), 0 14px 24px rgba(0,0,0,0.18); }
-.trainer-card.dom-logic { box-shadow: 0 10px 0 rgba(234, 179, 8, 0.25), 0 14px 24px rgba(0,0,0,0.18); }
+.trainer-card.dom-attention { --domain-color: var(--dom-attention); }
+.trainer-card.dom-memory { --domain-color: var(--dom-memory); }
+.trainer-card.dom-speed { --domain-color: var(--dom-speed); }
+.trainer-card.dom-flexibility { --domain-color: var(--dom-flexibility); }
+.trainer-card.dom-logic { --domain-color: var(--dom-logic); }
 .trainer-card.is-hidden { display: none; }
-.trainer-domain { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px;}
-.trainer-card.dom-attention .trainer-domain { color: var(--dom-attention); }
-.trainer-card.dom-memory .trainer-domain { color: var(--dom-memory); }
-.trainer-card.dom-speed .trainer-domain { color: var(--dom-speed); }
-.trainer-card.dom-flexibility .trainer-domain { color: var(--dom-flexibility); }
-.trainer-card.dom-logic .trainer-domain { color: var(--dom-logic); }
-.trainer-name { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
-.trainer-level { font-size: 13px; color: var(--muted); font-weight: 600; margin-top: auto; }
+.trainer-domain { 
+  font-size: 10px; 
+  font-weight: 700; 
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+  margin-bottom: 12px;
+  color: var(--domain-color, var(--text));
+}
+.trainer-name { 
+  font-size: 18px; 
+  font-weight: 700; 
+  color: var(--text); 
+  margin-bottom: 8px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+.trainer-instruction { 
+  font-size: 13px; 
+  color: rgba(255,255,255,0.6); 
+  line-height: 1.5; 
+  margin-bottom: 16px;
+  display: -webkit-box; 
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical; 
+  overflow: hidden;
+}
+.trainer-level { 
+  font-size: 12px; 
+  color: var(--text);
+  background: rgba(255,255,255,0.1);
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-weight: 600; 
+  margin-top: auto;
+  align-self: flex-start;
+  backdrop-filter: blur(4px);
+}
+.trainer-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+}
+.trainer-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.trainer-icon-wrap img {
+  width: 24px;
+  height: 24px;
+}
 
 /* Session */
 .session-header {
