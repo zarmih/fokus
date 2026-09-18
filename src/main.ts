@@ -9,6 +9,7 @@ import { initInstallPrompt } from './pwa-install';
 import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
 import { safeError } from './core/log';
+import { renderOfflineBanner } from './ui/components/offline-banner';
 
 initInstallPrompt();
 
@@ -37,6 +38,8 @@ function showFatal(app: HTMLElement, title: string, err: unknown) {
 document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
   if (!app) return;
+
+  renderOfflineBanner(document.body);
 
   const unlock = () => unlockAudio();
   window.addEventListener('pointerdown', unlock, { once: true });
