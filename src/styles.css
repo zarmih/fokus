@@ -591,6 +591,24 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   animation: fxCountTick var(--motion-fast) var(--ease-spring);
 }
 
+/* Settings Groups */
+.settings-group-header {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  margin: 24px 0 12px 8px;
+}
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.settings-group .surface {
+  margin-bottom: 0;
+}
+
 /* Settings Segmented */
 .segmented {
   display: flex;
