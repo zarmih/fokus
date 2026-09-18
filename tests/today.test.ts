@@ -136,12 +136,14 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   p.sessionLengthSec = 720;
   storage.setProfile(p);
 
+  const now = new Date();
   for (let i = 0; i < 4; i++) {
-    const day = String(7 + i).padStart(2, '0');
+    const d = new Date(now.getTime() - (4 - i) * 86400000);
+    const dateStr = d.toISOString().slice(0, 10);
     storage.addSession({
       id: `hard-${i}`,
-      startedAt: `2026-09-${day}T18:00:00.000Z`,
-      finishedAt: `2026-09-${day}T18:12:00.000Z`,
+      startedAt: `${dateStr}T18:00:00.000Z`,
+      finishedAt: `${dateStr}T18:12:00.000Z`,
       durationSec: 700,
       plannedDurationSec: 720,
       items: [

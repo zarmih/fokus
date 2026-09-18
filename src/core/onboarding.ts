@@ -35,13 +35,13 @@ export interface TransferTip {
   body: string;
 }
 
-/** Modest, original copy. Not a claim of far transfer or IQ change. */
+/** Modest, original copy. Not a claim of far transfer. */
 export const TRANSFER_TIPS: TransferTip[] = [
   {
     id: 'memory-list',
     domain: 'memory',
     title: 'Память в быту',
-    body: 'Список из пяти пунктов легче удержать, если повторить его вслух один раз. Это ближе к рабочей памяти, чем к «тренировке IQ».'
+    body: 'Список из пяти пунктов легче удержать, если повторить его вслух один раз. Это ближе к рабочей памяти.'
   },
   {
     id: 'attention-return',
@@ -282,7 +282,7 @@ export function pickTransferTip(input: {
 export function abilityCaption(snapshot: ProbeSnapshot): string {
   const probed = snapshot.domains.filter((d) => d.probed).length;
   const label = precisionLabel(snapshot.overallPrecision);
-  return `${probed} из 5 областей · ${label}. Это не IQ и не сравнение с другими.`;
+  return `${probed} из 5 областей · ${label}. Без сравнения с другими.`;
 }
 
 export function firstWeekPreviewLines(plan: FirstWeekPlan): string[] {

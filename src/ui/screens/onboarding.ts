@@ -35,7 +35,7 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 1 ? `
           <div class="onboard-mark">Fokus</div>
           <h1>Что для вас важнее?</h1>
-          <p class="onboard-lead">Без обещаний прокачать IQ — только честный прогресс и адаптивная сложность.</p>
+          <p class="onboard-lead">Только честный прогресс и адаптивная сложность.</p>
           <div class="goal-grid" role="group" aria-label="Главная цель">
             ${GOAL_COPY.map((g) => `
               <button class="goal-card ${selectedGoal === g.id ? 'active' : ''}" data-goal="${g.id}" type="button" aria-pressed="${selectedGoal === g.id ? 'true' : 'false'}">
