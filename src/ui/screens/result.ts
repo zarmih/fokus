@@ -148,7 +148,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
   content.innerHTML = `
     <div class="result-hero" style="animation: popIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;">
-      <div class="result-kicker">${isCalibration ? 'Профиль готов' : 'Тренировка завершена'}</div>
+      <div class="result-kicker">${isCalibration ? 'Профиль готов' : 'Дневной ритуал завершен'}</div>
       <div class="result-big"><span class="xp-counter">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
       <div class="muted">${isCalibration ? 'стартовая оценка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>

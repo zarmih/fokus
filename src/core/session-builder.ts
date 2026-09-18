@@ -108,7 +108,7 @@ export function buildTrainingPlan(params: {
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
       
-      let reason = 'Сбалансированная тренировка';
+      let reason = 'Сбалансированный ритуал';
       if (maintenance > 0 && skillNeed < 5) {
         reason = `Поддержание освоенного навыка`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {
