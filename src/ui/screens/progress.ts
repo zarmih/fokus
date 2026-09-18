@@ -317,7 +317,7 @@ export function renderProgress(container: HTMLElement) {
     <div class="fi-hero empty">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+        <div class="fi-meta">Индекс формируется. Тренируйтесь регулярно, чтобы открыть ваш когнитивный профиль.</div>
         ${sparkHtml}
       </div>
     </div>
