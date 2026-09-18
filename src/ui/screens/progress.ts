@@ -139,7 +139,7 @@ export function renderProgress(container: HTMLElement) {
             <span style="text-transform: capitalize; color: var(--text); opacity: 0.9;">${skillName}</span>
             <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div></div>
+          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id});"></div></div>
           ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
