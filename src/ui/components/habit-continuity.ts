@@ -156,7 +156,7 @@ function renderSettingsHint(snap: ContinuitySnapshot): string {
   const cap = streakChipCaption(snap.streak);
   const weeklyLine = snap.weekly.sufficient
     ? `Сейчас ${scoreText(snap.weekly.score)} из 1 (${snap.weekly.completedDays} из ${snap.weekly.eligibleDays} дней).`
-    : 'Индекс появится после четырёх дней с первой сессии.';
+    : 'Индекс ритма появится после четырёх дней с вашей первой тренировки — дайте себе время на старт.';
 
   return `
     <div class="continuity-hint continuity-hint-settings" role="region" aria-label="Как устроены серия и непрерывность">
