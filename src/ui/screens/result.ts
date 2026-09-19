@@ -161,32 +161,91 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
   const nextItem = plan.items[0];
   const nextEx = nextItem ? getManifest(nextItem.exerciseId) : null;
-  const isAssessment = isCalibration || isRecalibration;
-  
-  let nextHtml = '';
-  if (isAssessment) {
-    nextHtml = `
-      <div class="surface next-card" style="text-align: center; padding: 32px 24px; border: 1px solid var(--accent-glow); position: relative; overflow: hidden; margin-top: 24px;">
-        <div style="position: absolute; inset: 0; background: radial-gradient(circle at top right, var(--accent-glow), transparent 70%); pointer-events: none;"></div>
-        <div style="position: relative; z-index: 1;">
-          <div style="font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;">Оценка завершена</div>
-          <h3 style="font-size: 24px; margin-bottom: 12px;">Всё готово</h3>
-          <p class="muted" style="margin-bottom: 24px; font-size: 15px; line-height: 1.5;">Fokus собрал данные. Ваш профиль готов к полноценным тренировкам.</p>
-          <button id="btn-next-action" class="btn-primary" style="margin: 0; box-shadow: 0 8px 24px var(--accent-glow);">Перейти к плану</button>
-        </div>
-      </div>
-    `;
-  } else if (nextEx) {
-    nextHtml = `
-      <div class="surface next-card" style="padding: 24px; border: 1px solid var(--accent-glow); position: relative; overflow: hidden; margin-top: 24px;">
-        <div style="position: absolute; top: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, var(--accent), var(--accent-2));"></div>
-        <div style="font-size: 12px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px;">Что дальше</div>
-        <h3 style="font-size: 20px; margin-bottom: 8px;">${nextEx.name}</h3>
-        <p class="muted" style="margin-bottom: 20px; font-size: 14px; line-height: 1.5;">${nextItem.reason}${nextItem.slot ? ' · <span style="opacity: 0.7;">' + SLOT_LABEL[nextItem.slot] + '</span>' : ''}</p>
-        <button id="btn-next-action" class="btn-primary" style="margin: 0; box-shadow: 0 8px 24px var(--accent-glow);">Продолжить серию</button>
-      </div>
-    `;
+
+  const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+  const noData = session.items.length === 0;
+  const isEarlyExit = !noData && session.items.length <= 2 && !isCalibration && !isRecalibration;
+  const isWeak = !noData && avgAcc < 70;
+  const isSuccess = !noData && avgAcc >= 85;
+
+  let primaryActionId = 'done';
+  let primaryActionLabel = 'Готово';
+  let primaryActionReason = '';
+  let secondaryActionId = '';
+  let secondaryActionLabel = '';
+
+  if (noData) {
+    primaryActionLabel = 'На главную';
+    primaryActionReason = 'Нет данных о тренировке';
+  } else if (isOffline) {
+    primaryActionLabel = 'Готово';
+    primaryActionReason = 'Офлайн (результаты сохранены)';
+  } else if (isCalibration || isRecalibration) {
+    primaryActionLabel = 'Завершить оценку';
+    primaryActionReason = 'Профиль обновлен';
+  } else if (isEarlyExit) {
+    primaryActionId = 'next_skill';
+    primaryActionLabel = nextEx ? `Дальше: ${nextEx.name}` : 'Продолжить';
+    primaryActionReason = 'Короткая разминка, можно ещё';
+    secondaryActionId = 'done';
+    secondaryActionLabel = 'Вернуться позже';
+  } else if (isWeak) {
+    primaryActionId = 'done';
+    primaryActionLabel = 'Сделать перерыв';
+    primaryActionReason = 'Точность просела, мозгу нужен отдых';
+    secondaryActionId = 'repeat';
+    secondaryActionLabel = 'Повторить (ещё раз)';
+  } else if (isSuccess) {
+    if (nextEx) {
+      primaryActionId = 'next_skill';
+      primaryActionLabel = `Дальше: ${nextEx.name}`;
+      primaryActionReason = nextItem?.reason || 'Отличный ритм, идём дальше';
+      secondaryActionId = 'done';
+      secondaryActionLabel = 'На сегодня всё';
+    } else {
+      primaryActionLabel = 'Готово';
+      primaryActionReason = 'План выполнен идеально';
+    }
+  } else {
+    if (nextEx) {
+      primaryActionId = 'next_skill';
+      primaryActionLabel = `Дальше: ${nextEx.name}`;
+      primaryActionReason = nextItem?.reason || 'Рабочий темп, можно продолжить';
+      secondaryActionId = 'done';
+      secondaryActionLabel = 'Закончить';
+    } else {
+      primaryActionLabel = 'Готово';
+      primaryActionReason = 'План выполнен';
+    }
   }
+
+  const nextActionHtml = `
+    <div class="surface next-action-card">
+      <h3 class="visually-hidden">Следующий шаг</h3>
+      <p class="muted" style="margin-bottom: 12px; font-weight: 500;">${primaryActionReason}</p>
+      <div class="result-actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button id="btn-primary-action" class="btn-primary" data-action="${primaryActionId}">${primaryActionLabel}</button>
+        ${secondaryActionId ? `<button id="btn-secondary-action" class="btn-secondary" data-action="${secondaryActionId}">${secondaryActionLabel}</button>` : ''}
+        <button id="btn-share" class="btn-secondary" style="display:flex; align-items:center; justify-content:center;" aria-label="Поделиться">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right:8px; vertical-align: middle;" aria-hidden="true"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+          Поделиться
+        </button>
+      </div>
+    </div>
+  `;
+
+  const feedbackHtml = (!isCalibration && !isRecalibration && !noData && !isOffline) ? `
+    <div class="surface feedback-loop-card" aria-label="Обратная связь">
+      <h3>Как прошла тренировка?</h3>
+      <p class="muted">Поможет точнее подбирать сложность (необязательно).</p>
+      <div class="feedback-options" style="display:flex; gap:8px; margin-top:12px; flex-wrap: wrap;" role="group" aria-label="Оценка сложности">
+        <button class="btn-secondary btn-feedback" data-val="easy">Слишком легко</button>
+        <button class="btn-secondary btn-feedback" data-val="good">В самый раз</button>
+        <button class="btn-secondary btn-feedback" data-val="hard">Слишком сложно</button>
+      </div>
+      <div id="feedback-thanks" style="display:none; color: var(--ok); margin-top:12px; font-weight: 500;" role="status">Спасибо! Учтём в следующем плане.</div>
+    </div>
+  ` : '';
 
   const unlocked = (params.unlocked || [])
     .map(id => ACHIEVEMENTS_DEF.find(a => a.id === id))
@@ -239,12 +298,8 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       ${itemsHtml}
     </div>
 
-    ${nextHtml}
-
-    <div class="result-actions">
-      <button id="btn-share" class="btn-secondary" style="display:flex; align-items:center; justify-content:center;"><svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right:8px; vertical-align: middle;"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>Поделиться</button>
-      <button id="btn-done" class="btn-secondary">На главную</button>
-    </div>
+    ${feedbackHtml}
+    ${nextActionHtml}
   `;
 
   const hero = content.querySelector('#result-hero') as HTMLElement | null;
@@ -253,14 +308,33 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   if (xpEl) animateCount(xpEl, totalScore);
   playSessionCue(leveledUp || unlocked.length > 0 ? 'celebrate' : 'ritual');
 
-  content.querySelector('#btn-done')?.addEventListener('click', () => navigateTo('today'));
-  
-  content.querySelector('#btn-next-action')?.addEventListener('click', () => {
-    if (isAssessment) {
-      navigateTo('today');
+  const handleAction = (actionId: string) => {
+    if (actionId === 'repeat') {
+      navigateTo('session', { mode: 'normal', items: session.items.map(i => ({ exerciseId: i.exerciseId })), durationSec: 300 });
     } else {
-      navigateTo('session', { mode: 'normal', items: plan.items, durationSec: profile.sessionLengthSec || 300 });
+      navigateTo('today');
     }
+  };
+
+  content.querySelector('#btn-primary-action')?.addEventListener('click', (e) => {
+    handleAction((e.currentTarget as HTMLElement).dataset.action || 'done');
+  });
+  content.querySelector('#btn-secondary-action')?.addEventListener('click', (e) => {
+    handleAction((e.currentTarget as HTMLElement).dataset.action || 'done');
+  });
+
+  const feedbackButtons = content.querySelectorAll('.btn-feedback');
+  feedbackButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const val = (e.currentTarget as HTMLElement).dataset.val;
+      const p = storage.getProfile();
+      (p as any).lastFeedback = { val, date: new Date().toISOString() };
+      storage.setProfile(p);
+
+      feedbackButtons.forEach(b => (b as HTMLElement).style.display = 'none');
+      const thanks = content.querySelector('#feedback-thanks') as HTMLElement | null;
+      if (thanks) thanks.style.display = 'block';
+    });
   });
 
   content.querySelector('#btn-share')?.addEventListener('click', async () => {
