@@ -13,8 +13,6 @@ export const MOTION = {
 
 export type MotionCue = AudioCue;
 
-import { storage } from './storage';
-
 export function prefersReducedMotion(): boolean {
   if (typeof window === 'undefined') return false;
   try {
