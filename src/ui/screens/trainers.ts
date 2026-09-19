@@ -77,24 +77,32 @@ export function renderTrainers(container: HTMLElement) {
   }).join('');
 
   const filters = [
-    { id: 'all', name: 'Все' },
-    { id: 'attention', name: 'Внимание' },
-    { id: 'memory', name: 'Память' },
-    { id: 'speed', name: 'Скорость' },
-    { id: 'flexibility', name: 'Гибкость' },
-    { id: 'logic', name: 'Логика' }
+    { id: 'all', name: 'Все', count: catalog.length },
+    { id: 'attention', name: 'Внимание', count: catalog.filter(c => c.manifest.domain === 'attention').length },
+    { id: 'memory', name: 'Память', count: catalog.filter(c => c.manifest.domain === 'memory').length },
+    { id: 'speed', name: 'Скорость', count: catalog.filter(c => c.manifest.domain === 'speed').length },
+    { id: 'flexibility', name: 'Гибкость', count: catalog.filter(c => c.manifest.domain === 'flexibility').length },
+    { id: 'logic', name: 'Логика', count: catalog.filter(c => c.manifest.domain === 'logic').length }
   ];
 
   content.innerHTML = `
-    <div class="today-head">
-      <h2>Каталог тренажёров</h2>
-      <p class="today-date">${catalog.length} упражнений. Практика без влияния на Fokus Index.</p>
+    <div class="catalog-header">
+      <h2>Библиотека нейротренажёров</h2>
+      <p class="catalog-subtitle">Свободная практика для развития когнитивных навыков. Результаты тренировок здесь не влияют на глобальный Fokus Index.</p>
     </div>
     <div class="domain-filters">
-      ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button" aria-pressed="${i === 0 ? 'true' : 'false'}">${f.name}</button>`).join('')}
+      ${filters.map((f, i) => `<button class="filter-chip ${i === 0 ? 'active' : ''}" data-dom="${f.id}" type="button" aria-pressed="${i === 0 ? 'true' : 'false'}">
+        <span class="filter-name">${f.name}</span>
+        <span class="filter-count">${f.count}</span>
+      </button>`).join('')}
     </div>
     <div class="trainers-grid">
       ${gridHtml}
+      <div class="catalog-empty is-hidden" id="catalog-empty">
+        <div class="catalog-empty-icon">🧠</div>
+        <h3>В этой категории пока пусто</h3>
+        <p>Мы активно разрабатываем новые нейротренажёры. Попробуйте выбрать другую категорию.</p>
+      </div>
     </div>
   `;
 
@@ -106,10 +114,18 @@ export function renderTrainers(container: HTMLElement) {
         c.classList.toggle('active', on);
         c.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
+      
+      let visibleCount = 0;
       content.querySelectorAll('.trainer-card').forEach(card => {
         const match = dom === 'all' || (card as HTMLElement).dataset.domain === dom;
         card.classList.toggle('is-hidden', !match);
+        if (match) visibleCount++;
       });
+      
+      const emptyState = content.querySelector('#catalog-empty');
+      if (emptyState) {
+        emptyState.classList.toggle('is-hidden', visibleCount > 0);
+      }
     });
   });
 

@@ -131,6 +131,9 @@ import frameSwapModule from './frame-swap';
 import cacheSpanModule from './cache-span';
 import beaconRailModule from './beacon-rail';
 import motifFlipModule from './motif-flip';
+import colorCipherModule from './color-cipher';
+import memoryHoneycombModule from './memory-honeycomb';
+import globalLocalModule from './global-local';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -264,5 +267,8 @@ export const registry: ExerciseModule[] = [
   frameSwapModule,
   cacheSpanModule,
   beaconRailModule,
-  motifFlipModule
+  motifFlipModule,
+  colorCipherModule,
+  memoryHoneycombModule,
+  globalLocalModule
 ];
