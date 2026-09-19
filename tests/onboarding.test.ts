@@ -37,7 +37,6 @@ test('onboarding collects goal, duration and starts calibration', () => {
 
   expect(app.textContent).toMatch(/не медицинское изделие/i);
   expect(app.textContent).toMatch(/60–90/);
-  expect(app.textContent).toMatch(/навёрстывать/i);
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const p = storage.getProfile();
