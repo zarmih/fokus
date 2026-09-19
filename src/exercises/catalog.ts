@@ -1321,6 +1321,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'color-cipher',
+      name: 'Цветовой Шифр',
+      domain: 'logic',
+      skills: ['logical_reasoning', 'numerical_processing'] as ExerciseManifest['skills'],
+      instruction: 'Примените правила цветов к стартовому числу слева направо. Выберите правильный ответ.',
+      metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
+      id: 'memory-honeycomb',
+      name: 'Соты Памяти',
+      domain: 'memory',
+      skills: ['spatial_memory', 'visual_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните подсвеченные соты и воспроизведите их расположение.',
+      metricModel: 'capacity'
+    }
+  },
+  {
+    manifest: {
+      id: 'global-local',
+      name: 'Глобальный Фокус',
+      domain: 'attention',
+      skills: ['selective_attention', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Определите большую или маленькую фигуру (букву) в зависимости от задания.',
+      metricModel: 'speed-accuracy'
+    }
+  }
 ];
 
 export function getManifest(id: string): ExerciseManifest | undefined {
