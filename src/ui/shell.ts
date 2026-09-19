@@ -4,6 +4,7 @@ import { navigateTo } from './router';
 import { t } from '../core/i18n';
 import { focusMain, setScreenTitle } from './a11y';
 import { streakAriaLabel } from './components/habit-continuity';
+import { syncQueue, type SyncStatus } from '../core/offline-sync';
 
 export function renderShell(container: HTMLElement, params: {active: 'today' | 'program' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
   const snap = loadContinuitySnapshot(storage);
@@ -47,12 +48,10 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
         <img src="${import.meta.env.BASE_URL}art/logo-fokus.svg" width="24" height="24" alt="">
         Fokus
       </div>
-      <div class="top-bar-right">
-        <div class="sync-indicator" id="shell-sync-indicator" aria-live="polite"></div>
-        <div class="streak-badge habit-chip${streak > 0 ? ' has-streak' : ''}" data-status="${snap.streak.status}" aria-label="${streakLabel}" title="${streakLabel}">
-          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
-          ${streak}
-        </div>
+      <div id="top-sync-indicator" class="sync-indicator" aria-live="polite"></div>
+      <div class="streak-badge habit-chip${streak > 0 ? ' has-streak' : ''}" data-status="${snap.streak.status}" aria-label="${streakLabel}" title="${streakLabel}">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
+        ${streak}
       </div>
     </header>
   `;
@@ -71,24 +70,42 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
     container.querySelector('#tab-progress')?.addEventListener('click', () => navigateTo('progress'));
     container.querySelector('#tab-duel')?.addEventListener('click', () => navigateTo('duel'));
     container.querySelector('#tab-settings')?.addEventListener('click', () => navigateTo('settings'));
+  }
 
-    const syncIndicator = container.querySelector('#shell-sync-indicator') as HTMLElement;
-    if (syncIndicator) {
-      const updateSyncUI = () => {
-        if (!navigator.onLine) {
-          syncIndicator.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-label="Офлайн"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4c-1.48 0-2.85.43-4.01 1.17l1.46 1.46C10.21 6.23 11.08 6 12 6c3.04 0 5.5 2.46 5.5 5.5v.5H19c1.66 0 3 1.34 3 3 0 1.13-.64 2.11-1.56 2.62l1.45 1.45C23.16 18.16 24 16.68 24 15c0-2.64-2.05-4.78-4.65-4.96zM3 5.27l2.75 2.74C3.56 9.04 2 10.95 2 13c0 2.76 2.24 5 5 5h11.73l2 2 1.27-1.27L4.27 4 3 5.27zM7.73 10l8 8H7c-1.66 0-3-1.34-3-3 0-1.55 1.16-2.83 2.66-2.97L7.73 10z"/></svg>';
-          syncIndicator.className = 'sync-indicator offline';
-          syncIndicator.setAttribute('title', 'Офлайн (сохраняется локально)');
-        } else {
-          syncIndicator.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-label="Синхронизировано"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>';
-          syncIndicator.className = 'sync-indicator online';
-          syncIndicator.setAttribute('title', 'Данные сохранены');
-        }
-      };
-      window.addEventListener('online', updateSyncUI);
-      window.addEventListener('offline', updateSyncUI);
-      updateSyncUI();
-    }
+  const indicator = container.querySelector('#top-sync-indicator') as HTMLElement;
+  if (indicator) {
+    const updateIndicator = (status: SyncStatus) => {
+      indicator.className = `sync-indicator visible ${status.state}`;
+      if (status.state === 'offline') {
+        indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7L12 21.5 23.64 7zM12 4.5c4.7 0 8.35 2.22 9.53 3.03L12 19 2.47 7.53C3.65 6.72 7.3 4.5 12 4.5z"/></svg> Офлайн';
+      } else if (status.state === 'queued') {
+        indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg> Сохранено локально';
+      } else if (status.state === 'syncing') {
+        indicator.innerHTML = 'Синхронизация...';
+      } else if (status.state === 'error') {
+        indicator.innerHTML = 'Ошибка';
+      } else if (status.state === 'online') {
+        indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg> Синхронизировано';
+        // fade out after 2 seconds
+        setTimeout(() => {
+          if (indicator.classList.contains('online')) {
+            indicator.classList.remove('visible');
+          }
+        }, 2000);
+      } else {
+        indicator.classList.remove('visible');
+      }
+    };
+    
+    // Initial state
+    updateIndicator(syncQueue.getStatus());
+    
+    // Listen for changes
+    const onChange = (e: Event) => updateIndicator((e as CustomEvent<SyncStatus>).detail);
+    syncQueue.addEventListener('change', onChange);
+    
+    // Cleanup on container replace (simplistic but works for this SPA if needed)
+    // In our architecture, shell is re-rendered on navigation.
   }
 
   queueMicrotask(() => focusMain());

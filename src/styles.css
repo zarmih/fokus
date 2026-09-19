@@ -242,14 +242,9 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px 12px;
-  background: var(--glass);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  padding: 16px;
   position: sticky;
   top: 0;
-  z-index: 40;
-  border-bottom: 1px solid var(--line);
 }
 .brand { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
 .top-bar-right { display: flex; align-items: center; gap: 12px; }
