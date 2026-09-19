@@ -235,21 +235,23 @@ export function renderToday(container: HTMLElement) {
   let actionHtml = '';
   if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Первый шаг</div>
-        <h3>Калибровка уровня</h3>
-        <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
-        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
+      <div class="workout-card cta-card fx-enter">
+        <div class="workout-kicker">Адаптивная калибровка</div>
+        <h3>Ваш первый шаг</h3>
+        <p>Fokus подстроит сложность под вас. 3–5 коротких тестов, ~90 секунд. Оценка базовых навыков — не IQ.</p>
+        <button id="btn-start" class="btn-primary btn-pulse" type="button">
+          Начать калибровку
+        </button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
       <div class="workout-card done fx-celebrate">
-        <div class="workout-kicker">Сегодня</div>
-        <h3>План выполнен</h3>
+        <div class="workout-kicker">Ритуал выполнен</div>
+        <h3>Мозг усваивает навыки</h3>
         ${trendChipHtml}
-        <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
-        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
+        <p>Вы отлично справились. Нейронные связи укрепляются во время отдыха. Возвращайтесь завтра для максимального эффекта.</p>
+        <button id="btn-start" class="btn-secondary" type="button">Дополнительная сессия</button>
       </div>
     `;
   } else if (snap.ritual.active) {
@@ -257,23 +259,28 @@ export function renderToday(container: HTMLElement) {
       ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Мягкий возврат</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
+      <div class="workout-card cta-card fx-enter">
+        <div class="workout-kicker">Мягкий старт</div>
+        <h3>${Math.floor(ritualDuration / 60)} мин · ${returnFocus}</h3>
+        <p style="margin-bottom: 16px;">С возвращением. Мы подобрали легкий план для восстановления ритма без перегруза.</p>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary btn-pulse" type="button">
+          Начать тренировку
+        </button>
       </div>
     `;
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
+      <div class="workout-card cta-card fx-enter ${rest ? 'rest-light' : ''}">
+        <div class="workout-kicker">${rest ? 'Восстановление' : 'Персональный план'}</div>
+        <h3>${Math.floor(ritualDuration / 60)} мин · ${focusText}</h3>
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary btn-pulse" type="button">
+          Начать ритуал
+        </button>
       </div>
     `;
   }

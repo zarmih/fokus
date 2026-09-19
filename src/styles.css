@@ -2517,6 +2517,56 @@ html[data-motion="reduce"] .trainer-card { transition-duration: 0ms; }
   font-size: 16px;
 }
 
+/* Premium CTA */
+.cta-card {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--accent-glow) 0%, rgba(15, 23, 42, 0.4) 100%);
+  border: 1px solid var(--accent-glow);
+  box-shadow: 0 16px 32px var(--accent-glow-light), inset 0 2px 0 rgba(255, 255, 255, 0.1);
+  padding: 24px;
+}
+.cta-card::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0.15;
+  pointer-events: none;
+}
+.cta-card h3 {
+  font-size: 22px;
+  margin-bottom: 12px;
+  letter-spacing: -0.01em;
+}
+
+.btn-pulse {
+  position: relative;
+  overflow: hidden;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  padding: 18px 24px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+  box-shadow: 0 8px 0 var(--accent-shadow), 0 14px 24px var(--accent-glow), inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+.btn-pulse::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 50%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shine 4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+@keyframes shine {
+  0% { left: -100%; }
+  20% { left: 200%; }
+  100% { left: 200%; }
+}
+
 /* Catalog Polish */
 .catalog-header {
   margin-bottom: 24px;
