@@ -145,6 +145,12 @@ export function buildTrainingPlan(params: {
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
       
+      const domainStates = states.filter(s => {
+        const m = catalog.find(c => c.manifest.id === s.exerciseId);
+        return m && m.manifest.domain === manifest.domain;
+      });
+      const isSparse = domainStates.length < 3;
+
       let reason = 'Сбалансированная тренировка';
       if (maintenance > 0 && skillNeed < 5) {
         reason = `Поддержание освоенного навыка`;
@@ -153,11 +159,11 @@ export function buildTrainingPlan(params: {
       } else if (neglected > 0) {
         reason = `Забытый навык`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Ваша цель и зона роста`;
+        reason = isSparse ? `Ваша цель (идёт сбор данных)` : `Ваша цель и зона роста`;
       } else if (goalAlignment > 0) {
         reason = `Работа над вашей целью`;
       } else if (weaknessPriority > 0) {
-        reason = `Укрепление слабой области`;
+        reason = isSparse ? `Калибровка области (мало данных)` : `Укрепление слабой области`;
       } else if (weeklyFocus > 0) {
         reason = `Фокус недели`;
       } else if (skillNeed > 10) {

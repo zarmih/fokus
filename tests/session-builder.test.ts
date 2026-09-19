@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { buildSession } from '../src/core/session-builder';
+import { buildSession, buildTrainingPlan } from '../src/core/session-builder';
 
 test('buildSession 5 min logic with 6 domains', () => {
   const catalog = [
@@ -33,4 +33,50 @@ test('buildSession 5 min logic with 6 domains', () => {
   Object.values(counts).forEach(count => {
     expect(count as number).toBeLessThan(3);
   });
+});
+
+
+
+test('sparse history triggers correct weak-domain bias copy', () => {
+  const catalog = [
+    { manifest: { id: 'a1', domain: 'A', skills: [] } },
+    { manifest: { id: 'b1', domain: 'B', skills: [] } }
+  ];
+  const plan = buildTrainingPlan({
+    durationSec: 300,
+    catalog: catalog as any,
+    domains: [
+      { domain: 'A', value: 100, updatedAt: '' },
+      { domain: 'B', value: 200, updatedAt: '' }
+    ],
+    skills: [],
+    states: [],
+    primaryGoal: 'balance'
+  });
+  
+  expect(plan.items[0].reason).toContain('Калибровка области (мало данных)');
+});
+
+test('sufficient history triggers normal weak-domain bias copy', () => {
+  const catalog = [
+    { manifest: { id: 'a1', domain: 'A', skills: [] } },
+    { manifest: { id: 'b1', domain: 'B', skills: [] } }
+  ];
+  const plan = buildTrainingPlan({
+    durationSec: 300,
+    catalog: catalog as any,
+    domains: [
+      { domain: 'A', value: 100, updatedAt: '' },
+      { domain: 'B', value: 200, updatedAt: '' }
+    ],
+    skills: [],
+    states: [
+      { exerciseId: 'a1', level: 1, difficulty: 1, performance: 100, lastPlayedAt: '', lastAccuracy: 1, attempts: 1 },
+      { exerciseId: 'a1', level: 1, difficulty: 1, performance: 100, lastPlayedAt: '', lastAccuracy: 1, attempts: 1 },
+      { exerciseId: 'a1', level: 1, difficulty: 1, performance: 100, lastPlayedAt: '', lastAccuracy: 1, attempts: 1 }
+    ],
+    primaryGoal: 'balance'
+  });
+  
+  expect(plan.items[0].reason).toContain('Укрепление слабой области');
 });

@@ -61,6 +61,21 @@ export function renderProgram(container: HTMLElement) {
     `;
   }).join('');
 
+  const focusDomainsText = plan.focusDomains && plan.focusDomains.length > 0 
+    ? plan.focusDomains.map(d => domainLabel(d as DomainId)).join(' и ')
+    : '';
+  
+  const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.observations < 3);
+
+  let coachMessage = 'Оптимальная сложность для поддержания формы и тонуса. Слоты: повторение, слот дня, новый стимул.';
+  if (focusDomainsText) {
+    if (isSparse) {
+      coachMessage = `Фокус на: ${focusDomainsText}. Идёт сбор данных — пока мы калибруем вашу форму, предлагаем сбалансированные нагрузки.`;
+    } else {
+      coachMessage = `Фокус на: ${focusDomainsText}. Мы сделали акцент на ваших зонах роста, чтобы тренировка дала максимальный эффект.`;
+    }
+  }
+
   let hero = '';
   if (!profile.calibrated) {
     hero = `
@@ -97,7 +112,7 @@ export function renderProgram(container: HTMLElement) {
       <div class="workout-card">
         <div class="workout-kicker">Неделя ${weekIndex} · День ${dayIndex}/7</div>
         <h3>${Math.round((profile.sessionLengthSec || 900) / 60)} минут · персональный ритуал</h3>
-        <p class="muted">Слоты: просроченное повторение, слот дня, новый стимул. Сложность — зона вызова (IRT).</p>
+        <p class="muted coach-rationale">${coachMessage}</p>
         <button id="btn-program-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
