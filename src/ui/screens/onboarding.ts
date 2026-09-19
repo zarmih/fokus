@@ -28,7 +28,7 @@ export function renderOnboarding(container: HTMLElement) {
     });
 
     container.innerHTML = `
-      <div class="onboard">
+      <main class="onboard" role="main">
         <div class="sr-only" aria-live="polite">Шаг ${step} из ${totalSteps}</div>
         <div class="onboard-dots" role="progressbar" aria-valuemin="1" aria-valuemax="${totalSteps}" aria-valuenow="${step}" aria-label="Шаг ${step} из ${totalSteps}">
           ${Array.from({ length: totalSteps }, (_, i) => `<span class="${i + 1 <= step ? 'on' : ''}"></span>`).join('')}
@@ -87,7 +87,7 @@ export function renderOnboarding(container: HTMLElement) {
           ${step > 1 ? `<button id="btn-back" class="btn-secondary" type="button">Назад</button>` : ''}
           <button id="btn-next" class="btn-primary" type="button">${step === 5 ? 'Начать калибровку' : 'Продолжить'}</button>
         </div>
-      </div>
+      </main>
     `;
 
     const heading = container.querySelector('h1') as HTMLElement | null;
