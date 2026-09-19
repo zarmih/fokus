@@ -24,7 +24,7 @@ test('today shows calibration CTA before first session', () => {
 
   const app = document.getElementById('app')!;
   renderToday(app);
-  expect(app.textContent).toMatch(/калибровка/i);
+  expect(app.textContent).toMatch(/Калибровка/);
   expect(app.textContent).toMatch(/Коуч/);
   expect(app.querySelector('#btn-start')).toBeTruthy();
   expect(app.querySelector('.workout-card.fx-enter')).toBeTruthy();
@@ -109,8 +109,8 @@ test('today shows Fokus Index and workout after calibration', () => {
   renderToday(app);
   expect(app.textContent).toMatch(/Михаил/);
   expect(app.textContent).toMatch(/Fokus Index/);
-  expect(app.textContent).toMatch(/Персональный план/);
-  expect(app.textContent).toMatch(/Начать ритуал/);
+  expect(app.textContent).toMatch(/Тренировка дня/);
+  expect(app.textContent).toMatch(/Начать сессию/);
   expect(app.textContent).not.toMatch(/Качество ритуала/);
   expect(app.textContent).not.toMatch(/балл мозга/i);
   expect(app.textContent).toMatch(/Непрерывность/);
@@ -156,7 +156,7 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   renderToday(app);
   expect(app.textContent).toMatch(/Качество ритуала/);
   expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
-  expect(app.textContent).toMatch(/5 мин/);
+  expect(app.textContent).toMatch(/5 минут/);
   expect(app.textContent).not.toMatch(/IQ/);
   expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
 });
@@ -230,9 +230,29 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
 
   const app = document.getElementById('app')!;
   renderToday(app);
-  expect(app.textContent).toMatch(/Мягкий старт/);
-  expect(app.textContent).toMatch(/5 мин/);
-  expect(app.textContent).not.toMatch(/Персональный план/);
+  expect(app.textContent).toMatch(/Мягкий возврат/);
+  expect(app.textContent).toMatch(/5 минут/);
+  expect(app.textContent).not.toMatch(/Тренировка дня/);
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
+});
+
+test('today shows offline fallback when offline', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+  
+  const originalOnLine = navigator.onLine;
+  Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+  
+  try {
+    const app = document.getElementById('app')!;
+    renderToday(app);
+    expect(app.textContent).toMatch(/Офлайн/);
+    expect(app.textContent).toMatch(/Нет подключения/);
+    expect(app.querySelector('#btn-retry')).toBeTruthy();
+  } finally {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: originalOnLine });
+  }
 });
