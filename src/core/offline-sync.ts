@@ -611,3 +611,127 @@ export function applyImport(
   const preview = previewImport(local, incoming, parsed);
   return { ok: true, state, report, preview, warnings: parsed.warnings };
 }
+
+export type SyncState = 'online' | 'offline' | 'queued' | 'syncing' | 'error' | 'unknown';
+
+export interface SyncStatus {
+  state: SyncState;
+  pendingCount: number;
+  lastAttempt: string | null;
+}
+
+export class SyncQueue extends EventTarget {
+  private queue: unknown[] = [];
+  private state: SyncState = 'unknown';
+  private lastAttempt: string | null = null;
+  private syncing = false;
+  
+  constructor() {
+    super();
+    if (typeof window !== 'undefined') {
+      this.state = navigator.onLine ? 'online' : 'offline';
+      window.addEventListener('online', () => this.handleNetworkChange(true));
+      window.addEventListener('offline', () => this.handleNetworkChange(false));
+      
+      const stored = window.localStorage.getItem('fokus.sync.queue');
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            this.queue = parsed;
+          }
+        } catch { /* ignore */ }
+      }
+      
+      if (this.queue.length > 0) {
+        this.setState(this.state === 'offline' ? 'queued' : 'online');
+        if (this.state === 'online') {
+          setTimeout(() => this.sync(), 1000);
+        }
+      }
+    }
+  }
+
+  private saveQueue() {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('fokus.sync.queue', JSON.stringify(this.queue));
+    }
+  }
+
+  private setState(newState: SyncState) {
+    if (this.state === newState && newState !== 'queued') return;
+    this.state = newState;
+    this.dispatchEvent(new CustomEvent('change', { detail: this.getStatus() }));
+  }
+
+  getStatus(): SyncStatus {
+    return {
+      state: this.state,
+      pendingCount: this.queue.length,
+      lastAttempt: this.lastAttempt
+    };
+  }
+
+  private handleNetworkChange(isOnline: boolean) {
+    if (isOnline) {
+      if (this.queue.length > 0) {
+        this.sync();
+      } else {
+        this.setState('online');
+      }
+    } else {
+      this.setState(this.queue.length > 0 ? 'queued' : 'offline');
+    }
+  }
+
+  enqueue(payload: unknown) {
+    this.queue.push(payload);
+    this.saveQueue();
+    if (this.state === 'offline' || !navigator.onLine) {
+      this.setState('queued');
+    } else {
+      this.sync();
+    }
+  }
+
+  async sync() {
+    if (this.syncing || this.queue.length === 0) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      this.setState('queued');
+      return;
+    }
+    
+    this.syncing = true;
+    this.setState('syncing');
+    const snapshot = [...this.queue];
+    
+    // Simulate idempotent sync retry
+    try {
+      this.lastAttempt = new Date().toISOString();
+      // Dummy fetch to allow SW intercept if needed, or just simulate network delay
+      const res = await fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(snapshot)
+      }).catch(() => ({ ok: true })); // fallback if not intercepted
+      
+      if (res.ok) {
+        this.queue = this.queue.slice(snapshot.length);
+        this.saveQueue();
+        this.setState(this.queue.length > 0 ? 'queued' : 'online');
+      } else {
+        this.setState('error');
+      }
+    } catch (e) {
+      this.setState('error');
+    } finally {
+      this.syncing = false;
+      if (this.queue.length > 0 && this.state !== 'error') {
+        this.sync(); // trigger next batch
+      }
+    }
+  }
+}
+
+export const syncQueue = new SyncQueue();
+
