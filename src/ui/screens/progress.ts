@@ -56,16 +56,16 @@ export function renderProgress(container: HTMLElement) {
       </div>
   `;
   if (activeDays === 0) {
-    chartHtml += `<p style="color: var(--muted); margin: 0; font-size: 13px;">Недостаточно данных для графика активности. Пройдите первую сессию.</p></div>`;
+    chartHtml += `<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px;">Недостаточно данных для графика активности. Завершите первую сессию, чтобы увидеть статистику.</p></div></div>`;
   } else {
     chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
-      <div class="bar-chart">
+      <div class="bar-chart" role="figure" aria-label="График активности за последние 7 дней. Сумма очков: ${weeklyScore}">
         ${bars.map(b => `
-          <div class="bar-wrap">
-            ${b.score > 0 ? `<div class="bar-value">${b.score}</div>` : ''}
-            <div class="bar ${b.score > 0 ? 'has-data' : ''}" style="height: ${b.pct}%"></div>
-            <div class="bar-label">${b.label}</div>
+          <div class="bar-wrap" role="group" aria-label="${b.label}: ${b.score} очков">
+            ${b.score > 0 ? `<div class="bar-value" aria-hidden="true">${b.score}</div>` : ''}
+            <div class="bar ${b.score > 0 ? 'has-data' : ''}" style="height: ${b.pct}%" aria-hidden="true"></div>
+            <div class="bar-label" aria-hidden="true">${b.label}</div>
           </div>
         `).join('')}
       </div>
@@ -157,7 +157,7 @@ export function renderProgress(container: HTMLElement) {
 
     const emptyStateHtml = dSkills.length === 0 ? `
       <div style="padding: 12px 0 4px; text-align: center; color: var(--muted); font-size: 12px;">
-        Тренируйтесь, чтобы открыть навыки
+        Пройдите сессии для калибровки навыков
       </div>
     ` : '';
 
@@ -176,7 +176,7 @@ export function renderProgress(container: HTMLElement) {
   }).join('');
 
   if (!profileHtml) {
-    profileHtml = '<p style="color: var(--muted); font-size: 13px;">Недостаточно данных. Пройдите больше упражнений из разных областей, чтобы сформировать когнитивный профиль.</p>';
+    profileHtml = '<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных. Пройдите больше упражнений из разных областей, чтобы сформировать профиль навыков.</p></div>';
   }
 
   const exStates = storage.getExerciseStates();
@@ -384,14 +384,16 @@ export function renderProgress(container: HTMLElement) {
       )}
     </div>` : `
     <div class="surface" style="margin-bottom: 24px;">
-      <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
-      <p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных для анализа. Отмечайте качество сна после тренировок.</p>
+      <h3 style="margin-bottom: 16px;">Влияние сна на результаты</h3>
+      <div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
+        <p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных для анализа. Отмечайте качество сна после тренировок (минимум 2 сессии).</p>
+      </div>
     </div>`;
 
   content.innerHTML = `
     <div class="today-head">
       <h2>Статистика</h2>
-      <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
+      <p class="today-date">Профиль ваших навыков и аналитика результатов.</p>
     </div>
     ${habitHtml}
     ${fiHtml}
@@ -411,7 +413,7 @@ export function renderProgress(container: HTMLElement) {
       ${historyHtml}
     </div>
 
-    <h3 style="margin: 32px 0 16px 0;">Когнитивный профиль</h3>
+    <h3 style="margin: 32px 0 16px 0;">Профиль навыков</h3>
     ${legendHtml}
     ${profileHtml}
   `;

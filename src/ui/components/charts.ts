@@ -47,7 +47,7 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
   }).join('');
 
   return `
-    <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Когнитивный профиль: ${slices.map((s) => `${domainLabel(s.id)} ${s.ready ? Math.round(s.value) : 'нет данных'}`).join(', ')}">
+    <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Профиль навыков: ${slices.map((s) => `${domainLabel(s.id)} ${s.ready ? Math.round(s.value) : 'нет данных'}`).join(', ')}">
       ${rings}
       ${axes}
       ${hasData ? `<polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2" opacity="0.8"/>` : `<polygon points="${valuePts}" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4" opacity="0.5"/>`}
@@ -145,12 +145,15 @@ export function renderScatterPlot(data: {x: number, y: number}[], xLabel: string
   }).join('');
 
   return `
-    <svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;overflow:visible;">
+    <svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;overflow:visible;" role="img" aria-label="Диаграмма рассеяния: зависимость результата от сна. По оси X: ${xLabel}, по оси Y: ${yLabel}">
+      <!-- Оси -->
       <line x1="${padX}" y1="${height-padY}" x2="${width}" y2="${height-padY}" stroke="var(--line)" stroke-width="1" />
       <line x1="${padX}" y1="0" x2="${padX}" y2="${height-padY}" stroke="var(--line)" stroke-width="1" />
-      ${points}
+      <!-- Подписи осей -->
       <text x="${width/2}" y="${height}" text-anchor="middle" fill="var(--muted)" font-size="10">${xLabel}</text>
       <text x="10" y="${height/2}" text-anchor="middle" transform="rotate(-90 10 ${height/2})" fill="var(--muted)" font-size="10">${yLabel}</text>
+      <!-- Точки данных -->
+      ${points}
     </svg>
   `;
 }
