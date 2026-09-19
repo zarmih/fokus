@@ -5,7 +5,7 @@ import { applyTheme } from './ui/theme';
 import { initI18n } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 import { unlockAudio } from './core/audio';
-import { initInstallPrompt } from './pwa-install';
+import { initInstallPrompt, showUpdateBanner } from './pwa-install';
 import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
 import { safeError } from './core/log';
@@ -47,7 +47,27 @@ document.addEventListener('DOMContentLoaded', () => {
       if (import.meta.env.PROD) {
         navigator.serviceWorker
           .register(`${import.meta.env.BASE_URL}sw.js`)
+          .then((reg) => {
+            reg.addEventListener('updatefound', () => {
+              const newWorker = reg.installing;
+              if (newWorker) {
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                    showUpdateBanner(reg);
+                  }
+                });
+              }
+            });
+          })
           .catch((err) => safeError('SW reg failed', err));
+
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
+        });
       } else {
         navigator.serviceWorker.getRegistrations().then((regs) => {
           regs.forEach((r) => r.unregister());
