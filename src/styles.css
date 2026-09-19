@@ -7,7 +7,7 @@
   --surface-2: rgba(255, 255, 255, 0.08);
   --line: rgba(255, 255, 255, 0.1);
   --text: #F8FAFC;
-  --muted: #94A3B8;
+  --muted: #CBD5E1;
   --accent: #8B5CF6;
   --accent-hover: #A78BFA;
   --accent-shadow: #5B21B6;
@@ -46,7 +46,7 @@
   --surface-2: #E2E8F0;
   --line: rgba(15, 23, 42, 0.08);
   --text: #0F172A;
-  --muted: #64748B;
+  --muted: #475569;
   --accent: #7C3AED;
   --accent-hover: #6D28D9;
   --accent-shadow: #4C1D95;
@@ -1981,6 +1981,47 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   }
   .stroop-word, .eq-3d, .tile-3d, .grid-cell, .oo-btn { animation: none !important; }
 }
+
+:root.reduce-motion {
+  --motion-instant: 0ms;
+  --motion-fast: 0ms;
+  --motion-base: 90ms;
+  --motion-slow: 90ms;
+  --motion-ritual: 90ms;
+  --motion-travel: 0px;
+  --motion-press-y: 0px;
+  --motion-press-s: 1;
+  scroll-behavior: auto;
+}
+:root.reduce-motion .play-sky, :root.reduce-motion .play-orbs i, :root.reduce-motion .mic-orb.live, :root.reduce-motion .rot-piece { animation: none !important; }
+:root.reduce-motion .play-board { transform: none; }
+:root.reduce-motion .fx-enter, :root.reduce-motion .instruction-card, :root.reduce-motion .result-hero, :root.reduce-motion .staggered-block, :root.reduce-motion .shell-content,
+:root.reduce-motion .workout-card.fx-enter, :root.reduce-motion .stat-pill.fx-enter,
+:root.reduce-motion .ability-trend-chip, :root.reduce-motion .ritual-why {
+  animation-name: fxFade !important;
+}
+:root.reduce-motion .fx-celebrate, :root.reduce-motion .level-up, :root.reduce-motion .workout-card.done.fx-celebrate,
+:root.reduce-motion .ability-trend-chip, :root.reduce-motion .ritual-why {
+  animation-name: fxFade !important;
+}
+:root.reduce-motion .fx-celebrate::after, :root.reduce-motion .ritual-fill, :root.reduce-motion .quest-title.done, :root.reduce-motion .streak-badge.has-streak,
+:root.reduce-motion .stat-pill.has-streak, :root.reduce-motion .count-overlay.is-tick, :root.reduce-motion .play-combo.on {
+  animation: none !important;
+  transition: none !important;
+}
+:root.reduce-motion .ritual-fill { transform: none; }
+:root.reduce-motion .fx-bad, :root.reduce-motion .play-stage.pulse-bad, :root.reduce-motion .play-stage.fx-bad {
+  animation-name: fxFlashBad !important;
+}
+:root.reduce-motion .fx-ok, :root.reduce-motion .play-stage.pulse-ok, :root.reduce-motion .play-stage.fx-ok {
+  animation-name: fxFlashOk !important;
+  outline: 2px solid transparent;
+}
+:root.reduce-motion .press-physics, :root.reduce-motion .trainer-card {
+  transition-duration: 0ms;
+}
+:root.reduce-motion .stroop-word, :root.reduce-motion .eq-3d, :root.reduce-motion .tile-3d, :root.reduce-motion .grid-cell, :root.reduce-motion .oo-btn { animation: none !important; }
+
 
 /* G9 transfer insights — no extra motion; global reduced-motion already covers transitions */
 .transfer-card {
