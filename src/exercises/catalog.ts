@@ -1321,6 +1321,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'dominant-color',
+      name: 'Преобладающий цвет',
+      domain: 'attention',
+      skills: ['visual_scanning', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Выберите цвет, которого больше всего на экране.'
+    }
+  },
+  {
+    manifest: {
+      id: 'vowel-count',
+      name: 'Счет гласных',
+      domain: 'flexibility',
+      skills: ['selective_attention', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Сосчитайте количество гласных букв в слове.'
+    }
+  },
+  {
+    manifest: {
+      id: 'shape-equation',
+      name: 'Фигурная математика',
+      domain: 'logic',
+      skills: ['working_memory', 'logical_reasoning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Решите уравнение с фигурами.'
+    }
+  }
 ];
 
 export function getManifest(id: string): ExerciseManifest | undefined {

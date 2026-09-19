@@ -131,6 +131,9 @@ import frameSwapModule from './frame-swap';
 import cacheSpanModule from './cache-span';
 import beaconRailModule from './beacon-rail';
 import motifFlipModule from './motif-flip';
+import dominantColorModule from './dominant-color';
+import vowelCountModule from './vowel-count';
+import shapeEquationModule from './shape-equation';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -264,5 +267,8 @@ export const registry: ExerciseModule[] = [
   frameSwapModule,
   cacheSpanModule,
   beaconRailModule,
-  motifFlipModule
+  motifFlipModule,
+  dominantColorModule,
+  vowelCountModule,
+  shapeEquationModule
 ];
