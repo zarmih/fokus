@@ -1,5 +1,7 @@
 import { playCue, type AudioCue } from './audio';
-
+import { vibrateForCue } from './haptics';
+import { detectReducedMotion, readSoundPrefs } from './soundscape';
+import { storage } from './storage';
 /** Durations in ms — keep in sync with `--motion-*` in styles.css */
 export const MOTION = {
   instant: 80,
@@ -11,10 +13,14 @@ export const MOTION = {
 
 export type MotionCue = AudioCue;
 
+import { storage } from './storage';
+
 export function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  if (typeof window === 'undefined') return false;
   try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const p = storage.getProfile();
+    if (p.reducedMotion === true) return true;
+    return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   } catch {
     return false;
   }
@@ -45,7 +51,8 @@ export function applyFeedback(el: HTMLElement, ok: boolean): void {
     el.classList.add(ok ? 'pulse-ok' : 'pulse-bad');
   }
   try {
-    navigator.vibrate?.(ok ? 12 : 24);
+    const prefs = readSoundPrefs(storage.getProfile(), detectReducedMotion());
+    vibrateForCue(ok ? 'hit' : 'miss', prefs);
   } catch {
     /* ignore */
   }

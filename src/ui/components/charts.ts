@@ -18,14 +18,16 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
 
   const rings = [0.33, 0.66, 1].map((t) => {
     const pts = slices.map((_, i) => toPoint(i, radius * t).join(',')).join(' ');
-    return `<polygon points="${pts}" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.7"/>`;
+    return `<polygon points="${pts}" fill="none" stroke="var(--line)" stroke-width="1" opacity="0.4"/>`;
   }).join('');
 
   const axes = slices.map((_, i) => {
     const [x, y] = toPoint(i, radius);
-    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)" stroke-width="1"/>`;
+    return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)" stroke-width="1" opacity="0.4"/>`;
   }).join('');
 
+  const hasData = slices.some(s => s.ready);
+  
   const valuePts = slices.map((s, i) => {
     const t = s.ready ? Math.max(0.08, Math.min(1, s.value / max)) : 0.08;
     return toPoint(i, radius * t).join(',');
@@ -35,20 +37,20 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
     const t = s.ready ? Math.max(0.08, Math.min(1, s.value / max)) : 0.08;
     const [x, y] = toPoint(i, radius * t);
     const color = DOMAIN_COLORS[s.id] || 'var(--accent)';
-    return `<circle cx="${x}" cy="${y}" r="4" fill="${s.ready ? color : 'var(--muted)'}" />`;
+    return `<circle cx="${x}" cy="${y}" r="${s.ready ? '4' : '2.5'}" fill="${s.ready ? color : 'var(--muted)'}" opacity="${s.ready ? '1' : '0.5'}" />`;
   }).join('');
 
   const labels = slices.map((s, i) => {
     const [x, y] = toPoint(i, radius + 26);
     const anchor = x < cx - 8 ? 'end' : x > cx + 8 ? 'start' : 'middle';
-    return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="var(--muted)" font-size="11" font-weight="600">${domainLabel(s.id)}</text>`;
+    return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="var(--muted)" font-size="11" font-weight="${s.ready ? '600' : '400'}" opacity="${s.ready ? '1' : '0.6'}">${domainLabel(s.id)}</text>`;
   }).join('');
 
   return `
     <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Когнитивный профиль: ${slices.map((s) => `${domainLabel(s.id)} ${s.ready ? Math.round(s.value) : 'нет данных'}`).join(', ')}">
       ${rings}
       ${axes}
-      <polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2"/>
+      ${hasData ? `<polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2" opacity="0.8"/>` : `<polygon points="${valuePts}" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4" opacity="0.5"/>`}
       ${dots}
       ${labels}
     </svg>

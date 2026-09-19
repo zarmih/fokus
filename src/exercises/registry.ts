@@ -131,6 +131,12 @@ import frameSwapModule from './frame-swap';
 import cacheSpanModule from './cache-span';
 import beaconRailModule from './beacon-rail';
 import motifFlipModule from './motif-flip';
+import dominantColorModule from './dominant-color';
+import vowelCountModule from './vowel-count';
+import shapeEquationModule from './shape-equation';
+import colorCipherModule from './color-cipher';
+import memoryHoneycombModule from './memory-honeycomb';
+import globalLocalModule from './global-local';
 import timeEstimationModule from './time-estimation';
 import wordUnscrambleModule from './word-unscramble';
 import colorFrequencyModule from './color-frequency';
@@ -268,6 +274,12 @@ export const registry: ExerciseModule[] = [
   cacheSpanModule,
   beaconRailModule,
   motifFlipModule,
+  dominantColorModule,
+  vowelCountModule,
+  shapeEquationModule,
+  colorCipherModule,
+  memoryHoneycombModule,
+  globalLocalModule,
   timeEstimationModule,
   wordUnscrambleModule,
   colorFrequencyModule

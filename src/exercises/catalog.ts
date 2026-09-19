@@ -1323,6 +1323,66 @@ export const catalog: { manifest: ExerciseManifest }[] = [
   },
   {
     manifest: {
+      id: 'dominant-color',
+      name: 'Преобладающий цвет',
+      domain: 'attention',
+      skills: ['visual_scanning', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Выберите цвет, которого больше всего на экране.'
+    }
+  },
+  {
+    manifest: {
+      id: 'vowel-count',
+      name: 'Счет гласных',
+      domain: 'flexibility',
+      skills: ['selective_attention', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Сосчитайте количество гласных букв в слове.'
+    }
+  },
+  {
+    manifest: {
+      id: 'shape-equation',
+      name: 'Фигурная математика',
+      domain: 'logic',
+      skills: ['working_memory', 'logical_reasoning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Решите уравнение с фигурами.'
+    }
+  },
+  {
+    manifest: {
+      id: 'color-cipher',
+      name: 'Цветовой Шифр',
+      domain: 'logic',
+      skills: ['logical_reasoning', 'numerical_processing'] as ExerciseManifest['skills'],
+      instruction: 'Примените правила цветов к стартовому числу слева направо. Выберите правильный ответ.',
+      metricModel: 'logic-correctness'
+    }
+  },
+  {
+    manifest: {
+      id: 'memory-honeycomb',
+      name: 'Соты Памяти',
+      domain: 'memory',
+      skills: ['spatial_memory', 'visual_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните подсвеченные соты и воспроизведите их расположение.',
+      metricModel: 'capacity'
+    }
+  },
+  {
+    manifest: {
+      id: 'global-local',
+      name: 'Глобальный Фокус',
+      domain: 'attention',
+      skills: ['selective_attention', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Определите большую или маленькую фигуру (букву) в зависимости от задания.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
       id: 'time-estimation',
       name: 'Чувство времени',
       domain: 'attention',
