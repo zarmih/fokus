@@ -252,6 +252,15 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   border-bottom: 1px solid var(--line);
 }
 .brand { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+.top-bar-right { display: flex; align-items: center; gap: 12px; }
+.sync-indicator {
+  display: flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  transition: all var(--motion-standard) ease-out;
+}
+.sync-indicator.online { color: var(--accent); background: var(--accent-glow-light); }
+.sync-indicator.offline { color: #ff9800; background: rgba(255, 152, 0, 0.1); }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 .streak-badge {
   display: inline-flex;
   align-items: center;
