@@ -137,6 +137,9 @@ import shapeEquationModule from './shape-equation';
 import colorCipherModule from './color-cipher';
 import memoryHoneycombModule from './memory-honeycomb';
 import globalLocalModule from './global-local';
+import timeEstimationModule from './time-estimation';
+import wordUnscrambleModule from './word-unscramble';
+import colorFrequencyModule from './color-frequency';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -276,5 +279,8 @@ export const registry: ExerciseModule[] = [
   shapeEquationModule,
   colorCipherModule,
   memoryHoneycombModule,
-  globalLocalModule
+  globalLocalModule,
+  timeEstimationModule,
+  wordUnscrambleModule,
+  colorFrequencyModule
 ];
