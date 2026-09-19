@@ -28,9 +28,9 @@ export function renderQualityCard(snapshot: RecoverySnapshot, opts?: { detailed?
   if (!last && snapshot.qualities.length === 0) {
     if (!opts?.detailed) return '';
     return `
-      <section class="quality-card tone-steady" role="region" aria-label="Качество ритуала. Появится после первой сессии.">
+      <section class="quality-card tone-steady" role="region" aria-label="Качество ритуала. Накапливаем данные.">
         <div class="quality-kicker">Качество ритуала</div>
-        <p class="quality-hint">Появится после первой сессии — это не балл способностей, а то, насколько чисто прошёл подход.</p>
+        <p class="quality-hint">Здесь будет оценка фокуса и чистоты прохождения. Фокус начнёт собирать её после вашей первой полной сессии.</p>
       </section>
     `;
   }
