@@ -102,7 +102,7 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
       : '';
 
   if (streak.status === 'empty') {
-    return `После нескольких дней здесь появится ритм привычки: серия подряд и оценка 0–1. Это не IQ и не «возраст мозга».${zoneNote}`;
+    return `Здесь появится индекс вашего ритма. Пройдите несколько сессий, чтобы Fokus смог его рассчитать — мы оцениваем регулярность, а не «возраст мозга».${zoneNote}`;
   }
 
   if (streak.status === 'soft_return') {
@@ -156,7 +156,7 @@ function renderSettingsHint(snap: ContinuitySnapshot): string {
   const cap = streakChipCaption(snap.streak);
   const weeklyLine = snap.weekly.sufficient
     ? `Сейчас ${scoreText(snap.weekly.score)} из 1 (${snap.weekly.completedDays} из ${snap.weekly.eligibleDays} дней).`
-    : 'Индекс появится после четырёх дней с первой сессии.';
+    : 'Индекс ритма появится после четырёх дней с вашей первой тренировки — дайте себе время на старт.';
 
   return `
     <div class="continuity-hint continuity-hint-settings" role="region" aria-label="Как устроены серия и непрерывность">
