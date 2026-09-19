@@ -27,7 +27,7 @@ function familiarPhrase(ritual: GentleReturn): string {
 export function streakAriaLabel(streak: DayStreak): string {
   if (streak.status === 'empty') return 'Серии пока нет';
   if (streak.status === 'soft_return') {
-    return `Пауза ${streak.openMisses} ${daysWord(streak.openMisses)}. Серия считается заново — без штрафа.`;
+    return `Пауза ${streak.openMisses} ${daysWord(streak.openMisses)}. Возвращайтесь в ритм без штрафа.`;
   }
   if (streak.status === 'fresh_start') return 'Новый заход. Серия начнётся с сегодняшней сессии';
   if (streak.status === 'returned') {
@@ -107,15 +107,15 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
 
   if (streak.status === 'soft_return') {
     const miss = `${ritual.openMisses} ${daysWord(ritual.openMisses)}`;
-    return `Пауза ${miss} — обычная история. Сегодня ${familiarPhrase(ritual)}, без навёрстывания и без «заморозки серии».${zoneNote}`;
+    return `Пауза ${miss} — это нормально. Серия прервалась честно, но навык остался. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы легко вернуться в ритм.${zoneNote}`;
   }
 
   if (streak.status === 'fresh_start') {
-    return `Новый заход. Серия считает только дни подряд — короткий перерыв её обнуляет, но ничего не «штрафует».${zoneNote}`;
+    return `Новый заход. Перерыв обнуляет счётчик серии, но не ваш навык. Следующий шаг: пройдите сегодняшнюю сессию, чтобы вернуть ритм.${zoneNote}`;
   }
 
   if (streak.status === 'returned') {
-    return `С возвращением. Серия снова с ${streak.current} — честный отсчёт, без купленной заморозки.${zoneNote}`;
+    return `С возвращением! Серия снова ${streak.current} — честный отсчёт, без купленной заморозки. Продолжайте в своём темпе.${zoneNote}`;
   }
 
   if (weekly.sufficient) {
