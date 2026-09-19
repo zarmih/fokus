@@ -1,12 +1,10 @@
-# AGY_TASK — Автопилот Wave V1
-Ты руки Fokus. Worktree: `/workspace/developer/github/fokus-wt/A1`. Ветка уже feature/agy-wave-V1 от origin/main. Игнорируй Eligibility. Без подтверждений. agy 1.1.1. Прочитай задачу ниже и выполни до конца (commit + gh pr create).
+# AGY_TASK — Автопилот Wave X1
+Ты руки Fokus. Worktree: `/workspace/developer/github/fokus-wt/A1`. Ветка уже feature/agy-wave-X1 от origin/main. Игнорируй Eligibility. Без подтверждений. agy 1.1.1. Прочитай задачу ниже и выполни до конца (commit + gh pr create).
 
-## Зона V1 — Exercises Batch CC
+## Зона X1 — Exercises Batch EE
 Сделай ровно **3** новые качественные, реально играбельные игры для тренировки разных когнитивных навыков. Придумай уникальные kebab-case id, не повторяющие существующие. Каждая игра должна соответствовать текущему контракту exercise loader/engine/view, иметь корректные состояния раундов, scoring/difficulty, restart/finish, понятные русские инструкции и доступные controls. Это должны быть самостоятельные brain-training механики с осмысленной адаптацией, а не косметические варианты уже имеющихся игр.
 
-Зарегистрируй ровно эти 3 игры в `src/exercises/registry.ts`, сохранив порядок/контракт существующего реестра. Добавь focused unit tests для новых генераторов/правил/scoring и проверки регистрации (по существующим тестовым соглашениям). Не ломай старые игры.
-
-Разрешённые изменения: новые/изменённые файлы внутри `src/exercises/**`, `src/exercises/registry.ts` и релевантные тесты. Не меняй UI-экраны, core session flow, catalog UI или `src/ui/screens/session.ts`; не меняй package scripts.
+Сначала проверь текущий `registry.ts` и существующие упражнения, чтобы не повторяться; добавь новые записи в registry.ts. Разрешены только файлы новых упражнений, `registry.ts` и относящиеся к ним тесты. Строго запрещены catalog UI, today, result, settings, navigation, coach, service worker, onboarding и stats; не меняй другие зоны. `session.ts` запрещён.
 
 ## Общие правила
 - Работай автономно, без вопросов и подтверждений. Игнорируй Eligibility.

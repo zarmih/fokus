@@ -1410,6 +1410,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       instruction: 'Вам покажут поле с разноцветными точками. Выберите цвет, которого больше всего.',
       metricModel: 'speed-accuracy'
     }
+  },
+  {
+    manifest: {
+      id: 'letter-shift',
+      name: 'Сдвиг букв',
+      domain: 'logic',
+      skills: ['mental_calculation', 'working_memory'] as ExerciseManifest['skills'],
+      instruction: 'Определите, какая буква получится, если сдвинуть заданную букву по алфавиту на указанное число шагов. Используйте мышь или цифры 1-4.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'angle-match',
+      name: 'Сравнение углов',
+      domain: 'logic',
+      skills: ['spatial_reasoning', 'pattern_recognition'] as ExerciseManifest['skills'],
+      instruction: 'Сравните углы между линиями в двух кругах. Если углы одинаковые (независимо от поворота), нажмите "Равны", иначе "Разные". Используйте стрелки Влево (Равны) и Вправо (Разные).',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'color-band',
+      name: 'Цветовые полосы',
+      domain: 'flexibility',
+      skills: ['selective_attention', 'inhibition', 'task_switching'] as ExerciseManifest['skills'],
+      instruction: 'Прочитайте слово и укажите цвет соответствующей полосы (ВЕРХ, СРЕДИНА или НИЗ), игнорируя цвет самого текста. Используйте цифры 1-4 или мышь.',
+      metricModel: 'speed-accuracy'
+    }
   }
 ];
 
