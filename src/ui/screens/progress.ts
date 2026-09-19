@@ -310,6 +310,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
         ${pbNote}
         ${sparkHtml}
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
       </div>
       <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
@@ -319,6 +320,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
         ${sparkHtml}
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
       </div>
     </div>
   ` : '';

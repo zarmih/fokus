@@ -97,7 +97,7 @@ test('sparkline maps min/max, gaps stay null, personal best flagged', () => {
   expect(spark.min).toBe(400);
   expect(spark.max).toBe(430);
   expect(spark.delta).toBe(30);
-  expect(spark.deltaLabel).toContain('+30');
+  expect(spark.deltaLabel).toBe('мало данных');
   expect(spark.points[0].t).toBe(0);
   expect(spark.points[2].t).toBe(1);
   expect(spark.points[0].y).toBe(1);

@@ -201,8 +201,8 @@ export function reconstructDomainSnapshots(
   return buckets;
 }
 
-function windowDeltaLabel(delta: number | null, window: HistoryWindow): string {
-  if (delta === null) return 'мало данных';
+function windowDeltaLabel(delta: number | null, window: HistoryWindow, samples: number): string {
+  if (delta === null || samples < 3) return 'мало данных';
   if (Math.abs(delta) <= 8) return `на уровне ${window} дней`;
   if (delta > 0) return `+${delta} за ${window} дней`;
   return `${delta} за ${window} дней`;
@@ -251,7 +251,7 @@ export function buildSparkline(days: IndexDay[], window: HistoryWindow): Sparkli
     first,
     last,
     delta,
-    deltaLabel: windowDeltaLabel(delta, window),
+    deltaLabel: windowDeltaLabel(delta, window, numbered.length),
     personalBestIndex: pbIndex
   };
 }
