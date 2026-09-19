@@ -138,9 +138,9 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
 
   if (totalSessions === 0) {
     atAGlanceHtml = `
-      <div class="surface" style="text-align: center; padding: 32px 16px; margin-bottom: 24px;">
-        <h3 style="margin-bottom: 8px;">Недостаточно данных</h3>
-        <p style="color: var(--muted); margin: 0; font-size: 14px;">На этой неделе не было тренировок. Fokus собирает данные, чтобы сформировать отчёт.</p>
+      <div class="surface wr-empty-state">
+        <h3 class="wr-empty-title">Недостаточно данных</h3>
+        <p class="wr-empty-desc">На этой неделе не было тренировок. Fokus собирает данные, чтобы сформировать отчёт.</p>
       </div>
     `;
   } else {
@@ -175,21 +175,21 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     summaryText = `За эту неделю вы провели ${totalSessions} ${totalSessions === 1 ? 'сессию' : (totalSessions >= 2 && totalSessions <= 4) ? 'сессии' : 'сессий'}, охватив ${totalExercises} ${totalExercises === 1 ? 'упражнение' : (totalExercises >= 2 && totalExercises <= 4) ? 'упражнения' : 'упражнений'}.${topDomainText} Средняя точность выполнения составила ${avgAcc}%.`;
 
     atAGlanceHtml = `
-      <div class="surface" style="margin-bottom: 24px;">
-        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--text);">${summaryText}</p>
-      </div>
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
-        <div class="surface" style="text-align: center; padding: 16px 8px;">
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${activeDays}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Дней</div>
+      <section class="surface wr-summary" aria-label="Сводка недели">
+        <p class="wr-summary-text">${summaryText}</p>
+      </section>
+      <div class="wr-stats-grid" aria-label="Статистика тренировок">
+        <div class="surface wr-stat">
+          <div class="wr-stat-val">${activeDays}</div>
+          <div class="wr-stat-label">Дней</div>
         </div>
-        <div class="surface" style="text-align: center; padding: 16px 8px;">
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalSessions}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Сессий</div>
+        <div class="surface wr-stat">
+          <div class="wr-stat-val">${totalSessions}</div>
+          <div class="wr-stat-label">Сессий</div>
         </div>
-        <div class="surface" style="text-align: center; padding: 16px 8px;">
-          <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${totalExercises}</div>
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase;">Упражнений</div>
+        <div class="surface wr-stat">
+          <div class="wr-stat-val">${totalExercises}</div>
+          <div class="wr-stat-label">Упражнений</div>
         </div>
       </div>
     `;
@@ -249,19 +249,19 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   let whatChangedHtml = '';
   if (changedFacts.length > 0) {
     whatChangedHtml = `
-      <div class="surface" style="margin-bottom: 24px;">
-        <h3 style="margin-bottom: 16px;">Что изменилось</h3>
-        <ul style="padding-left: 16px; margin: 0; color: var(--text); font-size: 14px; line-height: 1.5;">
-          ${changedFacts.map(f => `<li style="margin-bottom: 8px;">${f}</li>`).join('')}
+      <section class="surface wr-section" aria-labelledby="wr-changed-title">
+        <h3 id="wr-changed-title" class="wr-section-title">Что изменилось</h3>
+        <ul class="wr-changed-list">
+          ${changedFacts.map(f => `<li>${f}</li>`).join('')}
         </ul>
-      </div>
+      </section>
     `;
   } else if (totalSessions > 0) {
     whatChangedHtml = `
-      <div class="surface" style="margin-bottom: 24px;">
-        <h3 style="margin-bottom: 12px;">Что изменилось</h3>
-        <p style="color: var(--muted); margin: 0; font-size: 14px;">Пока недостаточно подтверждённых изменений. Fokus продолжает калибровку ваших навыков.</p>
-      </div>
+      <section class="surface wr-section" aria-labelledby="wr-changed-title">
+        <h3 id="wr-changed-title" class="wr-section-title">Что изменилось</h3>
+        <p class="wr-empty-desc">Пока недостаточно подтверждённых изменений. Fokus продолжает калибровку ваших навыков.</p>
+      </section>
     `;
   }
 
@@ -282,16 +282,16 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     const nextEx = getManifest(nextItem.exerciseId);
     if (nextEx) {
       nextStepHtml = `
-        <div class="surface" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);">
-          <h3 style="margin-bottom: 16px;">Следующий шаг</h3>
-          <div style="display: flex; align-items: center; justify-content: space-between;">
-            <div>
-              <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${nextEx.name}</div>
-              <div style="font-size: 13px; color: var(--text); opacity: 0.8;">${nextItem.reason}</div>
+        <section class="surface wr-section wr-next-step" aria-labelledby="wr-next-title">
+          <h3 id="wr-next-title" class="wr-section-title">Следующий шаг</h3>
+          <div class="wr-next-content">
+            <div class="wr-next-info">
+              <div class="wr-next-name">${nextEx.name}</div>
+              <div class="wr-next-reason">${nextItem.reason}</div>
             </div>
-            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" alt="" width="40" height="40" style="border-radius: 8px; opacity: 0.9;">
+            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" alt="Иконка упражнения ${nextEx.name}" width="40" height="40" class="wr-next-icon">
           </div>
-        </div>
+        </section>
       `;
     }
   }
@@ -308,13 +308,13 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   const intelHtml = renderIntelPanel(intel);
 
   content.innerHTML = `
-    <div style="display: flex; align-items: center; margin-bottom: 24px;">
-      <button id="btn-back" class="btn-tiny" style="margin-right: 16px; margin-bottom: 0;">← Назад</button>
-      <div>
-        <h2 style="margin: 0; font-size: 20px;">Итоги недели</h2>
-        <div style="color: var(--muted); font-size: 12px; margin-top: 4px;">${periodStr}</div>
+    <header class="wr-header">
+      <button id="btn-back" class="btn-tiny wr-btn-back" aria-label="Вернуться назад">← Назад</button>
+      <div class="wr-header-titles">
+        <h2 class="wr-title">Итоги недели</h2>
+        <div class="wr-period">${periodStr}</div>
       </div>
-    </div>
+    </header>
     
     ${atAGlanceHtml}
     ${intelHtml}

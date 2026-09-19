@@ -2695,3 +2695,144 @@ html[data-motion="reduce"] .trainer-card { transition-duration: 0ms; }
 @keyframes fadeIn {
   to { opacity: 1; }
 }
+
+/* Weekly Review */
+.wr-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.wr-btn-back {
+  margin-right: 16px;
+  margin-bottom: 0;
+}
+.wr-header-titles {
+  display: flex;
+  flex-direction: column;
+}
+.wr-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+}
+.wr-period {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.wr-section {
+  margin-bottom: 24px;
+  padding: 16px;
+}
+.wr-section-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.wr-empty-state {
+  text-align: center;
+  padding: 32px 16px;
+  margin-bottom: 24px;
+}
+.wr-empty-title {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+.wr-empty-desc {
+  color: var(--muted);
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.wr-summary {
+  padding: 16px;
+  margin-bottom: 24px;
+}
+.wr-summary-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.wr-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+.wr-stat {
+  text-align: center;
+  padding: 16px 8px;
+}
+.wr-stat-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.wr-stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.wr-changed-list {
+  padding-left: 16px;
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.wr-changed-list li {
+  margin-bottom: 8px;
+}
+.wr-changed-list li:last-child {
+  margin-bottom: 0;
+}
+.wr-changed-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.wr-next-step {
+  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+  border: 1px solid var(--line);
+}
+[data-theme="light"] .wr-next-step {
+  background: linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0) 100%);
+}
+.wr-next-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.wr-next-info {
+  display: flex;
+  flex-direction: column;
+}
+.wr-next-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.wr-next-reason {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.8;
+  line-height: 1.4;
+}
+.wr-next-icon {
+  border-radius: 8px;
+  opacity: 0.9;
+  flex-shrink: 0;
+}
