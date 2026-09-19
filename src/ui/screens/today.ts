@@ -52,45 +52,64 @@ export function renderToday(container: HTMLElement) {
     ? weekRitual.ritualDay.durationSec
     : profile.sessionLengthSec;
   const durationSec = ritualDurationSec(baseDuration, snap.ritual);
-  const ritual = planWithRecovery({
-    durationSec,
-    catalog,
-    domains,
-    skills,
-    states,
-    primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal,
-    sessions,
-    daySummaries: ds,
-    recoveryHintsEnabled: profile.recoveryHints !== false
-  });
-  let plan = ritual.plan;
-  const catalogHints = catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain }));
-  const biased = applyGentleReturnBias(plan, snap.ritual, catalogHints);
-  plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
-  const ritualDuration = Math.min(ritual.snapshot.durationSec, durationSec);
-  const recal = ritual.recalibration;
-  const depth = describeAdaptiveDepth({
-    sessions,
-    domains,
-    skills,
-    states,
-    catalog,
-    durationSec: ritualDuration,
-    primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal
-  });
+  let plan: { items: any[]; focusDomains: string[] } = { items: [], focusDomains: [] };
+  let ritualDuration = durationSec;
+  let recal: any = { probe: [] as any[], forced: false, summary: '' };
+  let depth = { chip: null as any, why: null as string | null, ritual: null as any };
+  let ritual: any = null;
+  let errorState = false;
+  let noPlanState = false;
+
+  try {
+    ritual = planWithRecovery({
+      durationSec,
+      catalog,
+      domains,
+      skills,
+      states,
+      primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal,
+      sessions,
+      daySummaries: ds,
+      recoveryHintsEnabled: profile.recoveryHints !== false
+    });
+    plan = ritual.plan;
+    const catalogHints = catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain }));
+    const biased = applyGentleReturnBias(plan as any, snap.ritual, catalogHints);
+    plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
+    ritualDuration = Math.min(ritual.snapshot.durationSec, durationSec);
+    recal = ritual.recalibration;
+    depth = describeAdaptiveDepth({
+      sessions,
+      domains,
+      skills,
+      states,
+      catalog,
+      durationSec: ritualDuration,
+      primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal
+    });
+    if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
+      plan.items = depth.ritual.items.map((s: any) => ({
+        exerciseId: s.exerciseId,
+        reason: s.reasonLabel
+      }));
+      plan.focusDomains = depth.ritual.focusDomains;
+    }
+    
+    if (plan.items.length === 0) {
+      noPlanState = true;
+    }
+  } catch (err) {
+    console.error('Plan generation error:', err);
+    errorState = true;
+  }
+
   const trendChipHtml = depth.chip
     ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
     : '';
   const ritualWhyHtml = depth.why
     ? `<p class="ritual-why">${depth.why}</p>`
     : '';
-  if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
-    (plan as { items: { exerciseId: string; reason?: string }[]; focusDomains: string[] }).items = depth.ritual.items.map((s) => ({
-      exerciseId: s.exerciseId,
-      reason: s.reasonLabel
-    }));
-    (plan as { focusDomains: string[] }).focusDomains = depth.ritual.focusDomains;
-  }
+
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
@@ -104,7 +123,7 @@ export function renderToday(container: HTMLElement) {
   const compositionHtml = plan.items.map((item, index) => {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
-    const slot = item.slot ? SLOT_LABEL[item.slot] : '';
+    const slot = item.slot ? SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL] : '';
     return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 4px; height: auto; border-radius: 12px;">
       <div style="display: flex; align-items: center; gap: 6px;">
         <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
@@ -233,7 +252,27 @@ export function renderToday(container: HTMLElement) {
   ` : '';
 
   let actionHtml = '';
-  if (!profile.calibrated) {
+  const isLoading = catalog.length === 0;
+
+  if (isLoading) {
+    actionHtml = `
+      <div class="workout-card loading-state">
+        <div class="workout-kicker">Загрузка</div>
+        <h3>Собираем план...</h3>
+        <p>Fokus анализирует вашу активность.</p>
+        <button class="btn-primary" type="button" disabled>Подождите</button>
+      </div>
+    `;
+  } else if (errorState) {
+    actionHtml = `
+      <div class="workout-card error-state">
+        <div class="workout-kicker">Ошибка</div>
+        <h3>Что-то пошло не так</h3>
+        <p>Не удалось составить персональную сессию. Попробуйте обновить страницу.</p>
+        <button id="btn-retry" class="btn-secondary" type="button">Обновить</button>
+      </div>
+    `;
+  } else if (!profile.calibrated) {
     actionHtml = `
       <div class="workout-card fx-enter">
         <div class="workout-kicker">Первый шаг</div>
@@ -252,6 +291,15 @@ export function renderToday(container: HTMLElement) {
         <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
+  } else if (noPlanState) {
+    actionHtml = `
+      <div class="workout-card done fx-enter">
+        <div class="workout-kicker">Отдых</div>
+        <h3>На сегодня всё</h3>
+        <p>Fokus рекомендует полный отдых или пока нет подходящих упражнений.</p>
+        <button class="btn-secondary" type="button" disabled>Сессия недоступна</button>
+      </div>
+    `;
   } else if (snap.ritual.active) {
     const returnFocus = plan.focusDomains.length > 0
       ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
@@ -265,7 +313,7 @@ export function renderToday(container: HTMLElement) {
       </div>
     `;
   } else {
-    const rest = ritual.snapshot.gate.active;
+    const rest = ritual?.snapshot?.gate?.active;
     actionHtml = `
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
         <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
@@ -286,7 +334,7 @@ export function renderToday(container: HTMLElement) {
 
     ${heroHtml}
 
-    ${renderQualityCard(ritual.snapshot)}
+    ${ritual ? renderQualityCard(ritual.snapshot) : ''}
     ${recalHtml}
 
     ${actionHtml}
@@ -333,7 +381,7 @@ export function renderToday(container: HTMLElement) {
       { exerciseId: 'odd-one' },
       { exerciseId: 'grid-memory' },
       { exerciseId: 'stroop' }
-    ]).map((p) => ({ exerciseId: p.exerciseId }));
+    ]).map((p: any) => ({ exerciseId: p.exerciseId }));
     navigateTo('session', { mode: 'recalibration', items });
   });
   content.querySelector('#btn-recal-later')?.addEventListener('click', () => {
@@ -343,6 +391,10 @@ export function renderToday(container: HTMLElement) {
   const workout = content.querySelector('.workout-card') as HTMLElement | null;
   if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
 
+  content.querySelector('#btn-retry')?.addEventListener('click', () => {
+    window.location.reload();
+  });
+  
   content.querySelector('#btn-start')?.addEventListener('click', () => {
     const startSession = () => {
       if (!profile.calibrated) {
