@@ -310,6 +310,18 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   z-index: 100;
   padding: 0 4px;
 }
+.tab-list {
+  display: flex;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  justify-content: space-around;
+}
+.tab-list li {
+  display: flex;
+  flex: 1;
+}
 .tab-item {
   position: relative;
   display: flex;
