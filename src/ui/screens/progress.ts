@@ -183,6 +183,7 @@ export function renderProgress(container: HTMLElement) {
   const sessions = storage.getSessions();
   const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
   const insightHtml = transferCardFromStorage({ prefer: 'week' });
+  const guideHtml = transferCardFromStorage({ prefer: 'guide' });
 
   // Next Step Block
   
@@ -416,6 +417,10 @@ export function renderProgress(container: HTMLElement) {
     <h3 style="margin: 32px 0 16px 0;">Профиль навыков</h3>
     ${legendHtml}
     ${profileHtml}
+    
+    <div style="margin-top: 32px;">
+      ${guideHtml}
+    </div>
   `;
 
   content.querySelector('#btn-weekly-review')?.addEventListener('click', () => {
