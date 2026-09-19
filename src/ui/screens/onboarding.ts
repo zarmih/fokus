@@ -27,6 +27,8 @@ export function renderOnboarding(container: HTMLElement) {
       startDate: new Date().toISOString()
     });
 
+    const isNextDisabled = step === 4 && displayName.trim().length === 0;
+
     container.innerHTML = `
       <div class="onboard">
         <div class="sr-only" aria-live="polite">Шаг ${step} из ${totalSteps}</div>
@@ -36,16 +38,16 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 1 ? `
           <div class="onboard-mark">Fokus</div>
           <h1>Пять минут для ясного ума</h1>
-          <p class="onboard-lead">Короткий ритуал, адаптивная сложность и честный прогресс — без пустых обещаний «прокачать IQ».</p>
+          <p class="onboard-lead">Короткий ритуал, адаптивная сложность и честный прогресс — без пустых обещаний.</p>
           <ul class="onboard-points">
-            <li><strong>Научный фундамент</strong> — Строп, n-back, Корси и Познер вместо казуальных аркад.</li>
+            <li><strong>Научный фундамент</strong> — проверенные когнитивные задачи вместо казуальных аркад.</li>
             <li><strong>Сложность под вас</strong> — алгоритм подстраивается под ваши успехи в реальном времени.</li>
-            <li><strong>Честная аналитика</strong> — Fokus Index и точный профиль по 5 когнитивным областям.</li>
+            <li><strong>Честная аналитика</strong> — точный профиль по 5 когнитивным областям без иллюзий «прокачки IQ».</li>
           </ul>
         ` : ''}
         ${step === 2 ? `
           <h1>Главная цель</h1>
-          <p class="onboard-lead">Это задаёт фокус ежедневной сессии. Вы сможете изменить цель позже.</p>
+          <p class="onboard-lead">Выберите фокус ежедневной сессии. Вы сможете изменить цель позже.</p>
           <div class="goal-grid" role="group" aria-label="Главная цель">
             ${GOAL_COPY.map((g) => `
               <button class="goal-card ${selectedGoal === g.id ? 'active' : ''}" data-goal="${g.id}" type="button" aria-pressed="${selectedGoal === g.id ? 'true' : 'false'}">
@@ -66,26 +68,26 @@ export function renderOnboarding(container: HTMLElement) {
         ` : ''}
         ${step === 4 ? `
           <h1>Как к вам обращаться?</h1>
-          <p class="onboard-lead">Имя никуда не передаётся и остаётся только на вашем устройстве.</p>
+          <p class="onboard-lead">Имя сохраняется только на вашем устройстве.</p>
           <label class="sr-only" for="onboard-name">Имя или ник</label>
-          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Имя или ник" autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
+          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Введите имя..." autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
         ` : ''}
         ${step === 5 ? `
           <h1>Как это работает</h1>
           <ol class="onboard-steps">
             <li><strong>Калибровка (60–90 сек).</strong> Узнаем ваш стартовый уровень в памяти, внимании, логике, скорости и гибкости.</li>
-            <li><strong>Первая неделя.</strong> Мягкий старт. Постепенный разгон до ${selectedMin} минут в день. Один пропуск прощается, навёрстывать не придётся.</li>
+            <li><strong>Первая неделя.</strong> Мягкий старт. Постепенный разгон до ${selectedMin} минут в день. Один пропуск прощается.</li>
             <li><strong>Честный подход.</strong> Мы тренируем конкретные навыки. Никакой магии, это не медицинское изделие.</li>
           </ol>
           <div class="onboard-week" aria-label="План первой недели">
             ${weekPreview.days.map((d) => `<span class="week-pill ${d.day === 1 ? 'on' : ''}">${d.day}</span>`).join('')}
           </div>
           <p class="onboard-week-caption">${firstWeekPreviewLines(weekPreview)[0]} → ${firstWeekPreviewLines(weekPreview)[6]}</p>
-          <p class="onboard-note">Перенос навыков на повседневную жизнь скромный и индивидуальный.</p>
         ` : ''}
-        <div class="onboard-actions">
-          ${step > 1 ? `<button id="btn-back" class="btn-secondary" type="button">Назад</button>` : ''}
-          <button id="btn-next" class="btn-primary" type="button">${step === 5 ? 'Начать калибровку' : 'Продолжить'}</button>
+        <div class="onboard-actions" style="display: flex; gap: 8px;">
+          ${step > 1 ? `<button id="btn-back" class="btn-secondary" type="button" aria-label="Назад" style="flex: 0 0 auto; padding: 16px 20px;">←</button>` : ''}
+          ${step === 4 ? `<button id="btn-skip" class="btn-secondary" type="button" style="flex: 1;">Пропустить</button>` : ''}
+          <button id="btn-next" class="btn-primary" type="button" style="flex: 2;" ${isNextDisabled ? 'disabled' : ''}>${step === 5 ? 'Начать калибровку' : 'Продолжить'}</button>
         </div>
       </div>
     `;
@@ -118,6 +120,23 @@ export function renderOnboarding(container: HTMLElement) {
     const nameInput = container.querySelector('#onboard-name') as HTMLInputElement | null;
     nameInput?.addEventListener('input', () => {
       displayName = nameInput.value.trim();
+      const nextBtn = container.querySelector('#btn-next') as HTMLButtonElement | null;
+      if (nextBtn) {
+        nextBtn.disabled = displayName.length === 0;
+      }
+    });
+
+    nameInput?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && displayName.trim().length > 0) {
+        step++;
+        render();
+      }
+    });
+
+    container.querySelector('#btn-skip')?.addEventListener('click', () => {
+      displayName = '';
+      step++;
+      render();
     });
 
     container.querySelector('#btn-next')?.addEventListener('click', () => {

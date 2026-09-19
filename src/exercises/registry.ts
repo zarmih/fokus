@@ -140,6 +140,9 @@ import globalLocalModule from './global-local';
 import timeEstimationModule from './time-estimation';
 import wordUnscrambleModule from './word-unscramble';
 import colorFrequencyModule from './color-frequency';
+import letterShiftModule from './letter-shift';
+import angleMatchModule from './angle-match';
+import colorBandModule from './color-band';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -282,5 +285,8 @@ export const registry: ExerciseModule[] = [
   globalLocalModule,
   timeEstimationModule,
   wordUnscrambleModule,
-  colorFrequencyModule
+  colorFrequencyModule,
+  letterShiftModule,
+  angleMatchModule,
+  colorBandModule
 ];
