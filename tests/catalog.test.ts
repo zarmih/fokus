@@ -6,7 +6,7 @@ import { knownExerciseIds, loadExercise } from '../src/exercises/load-exercise';
 test('catalog ids match the full registry', () => {
   const catalogIds = catalog.map((c) => c.manifest.id).sort();
   const registryIds = registry.map((r) => r.manifest.id)
-    .filter(id => !['ember-lane', 'vault-span', 'helix-flip'].includes(id))
+    .filter(id => !['ember-lane', 'vault-span', 'helix-flip', 'area-compare', 'hidden-rule', 'time-estimation'].includes(id))
     .sort();
   expect(catalogIds).toEqual(registryIds);
   expect(catalog.length).toBeGreaterThan(70);

@@ -92,6 +92,9 @@ import ayNumberGridModule from './ay-number-grid';
 import azNumberGridModule from './az-number-grid';
 import azColorMatchModule from './az-color-match';
 import azShapeShiftModule from './az-shape-shift';
+import areaCompareModule from './area-compare';
+import hiddenRuleModule from './hidden-rule';
+import timeEstimationModule from './time-estimation';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -186,5 +189,8 @@ export const registry: ExerciseModule[] = [
   ayNumberGridModule,
   azNumberGridModule,
   azColorMatchModule,
-  azShapeShiftModule
+  azShapeShiftModule,
+  areaCompareModule,
+  hiddenRuleModule,
+  timeEstimationModule
 ];
