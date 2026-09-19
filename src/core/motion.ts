@@ -1,5 +1,7 @@
 import { playCue, type AudioCue } from './audio';
-
+import { vibrateForCue } from './haptics';
+import { detectReducedMotion, readSoundPrefs } from './soundscape';
+import { storage } from './storage';
 /** Durations in ms — keep in sync with `--motion-*` in styles.css */
 export const MOTION = {
   instant: 80,
@@ -45,7 +47,8 @@ export function applyFeedback(el: HTMLElement, ok: boolean): void {
     el.classList.add(ok ? 'pulse-ok' : 'pulse-bad');
   }
   try {
-    navigator.vibrate?.(ok ? 12 : 24);
+    const prefs = readSoundPrefs(storage.getProfile(), detectReducedMotion());
+    vibrateForCue(ok ? 'hit' : 'miss', prefs);
   } catch {
     /* ignore */
   }
