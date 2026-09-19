@@ -198,7 +198,7 @@ p { margin: 0 0 16px; line-height: 1.6; color: var(--muted); }
   box-shadow: var(--shadow);
 }
 .btn-primary:active, .btn-secondary:active, .btn-danger:active { 
-  transform: scale(0.96); 
+  transform: translateY(var(--motion-press-y)) scale(var(--motion-press-s)); 
   box-shadow: var(--shadow-sm); 
 }
 .btn-primary { 
@@ -210,7 +210,6 @@ p { margin: 0 0 16px; line-height: 1.6; color: var(--muted); }
   background: var(--accent-hover);
 }
 .btn-primary:active {
-  transform: translateY(6px) scale(0.99);
   box-shadow: 0 2px 0 var(--accent-shadow);
 }
 .btn-secondary { 
@@ -329,7 +328,14 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   border: none;
   font-family: inherit;
 }
+.tab-item:active {
+  transform: translateY(var(--motion-press-y)) scale(var(--motion-press-s));
+}
 .tab-item.active { color: var(--accent); }
+@keyframes tabIndicatorPop {
+  0% { transform: translateX(-50%) scaleX(0.2); opacity: 0; }
+  100% { transform: translateX(-50%) scaleX(1); opacity: 1; }
+}
 .tab-item.active::before {
   content: '';
   position: absolute;
@@ -341,6 +347,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   background: var(--accent);
   border-radius: 99px;
   box-shadow: 0 0 10px var(--accent);
+  animation: tabIndicatorPop var(--motion-fast) var(--ease-spring) both;
 }
 .tab-item svg { width: 22px; height: 22px; fill: currentColor; }
 
@@ -1862,6 +1869,20 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   50% { box-shadow: 0 0 16px var(--accent-glow); transform: scale(1.05); }
   100% { box-shadow: 0 0 0 0 transparent; transform: scale(1); }
 }
+@keyframes fxSkeleton {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.skeleton {
+  background: var(--surface-2);
+  border-radius: var(--radius);
+  animation: fxSkeleton calc(var(--motion-slow) * 4) infinite var(--ease-standard);
+  pointer-events: none;
+}
+.empty-state, .catalog-empty, .intel-empty, .duel-empty {
+  animation: fxEnter var(--motion-slow) var(--ease-enter) both;
+}
 
 .fx-enter {
   animation: fxEnter var(--motion-slow) var(--ease-enter) both;
@@ -1960,7 +1981,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   .play-board { transform: none; }
   .fx-enter, .instruction-card, .result-hero, .staggered-block, .shell-content,
   .workout-card.fx-enter, .stat-pill.fx-enter,
-  .ability-trend-chip, .ritual-why {
+  .ability-trend-chip, .ritual-why, .empty-state, .catalog-empty, .intel-empty, .duel-empty {
     animation-name: fxFade !important;
   }
   .fx-celebrate, .level-up, .workout-card.done.fx-celebrate,
@@ -1968,7 +1989,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
     animation-name: fxFade !important;
   }
   .fx-celebrate::after, .ritual-fill, .quest-title.done, .streak-badge.has-streak,
-  .stat-pill.has-streak, .count-overlay.is-tick, .play-combo.on {
+  .stat-pill.has-streak, .count-overlay.is-tick, .play-combo.on, .skeleton {
     animation: none !important;
     transition: none !important;
   }
@@ -2001,7 +2022,8 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 :root.reduce-motion .play-board { transform: none; }
 :root.reduce-motion .fx-enter, :root.reduce-motion .instruction-card, :root.reduce-motion .result-hero, :root.reduce-motion .staggered-block, :root.reduce-motion .shell-content,
 :root.reduce-motion .workout-card.fx-enter, :root.reduce-motion .stat-pill.fx-enter,
-:root.reduce-motion .ability-trend-chip, :root.reduce-motion .ritual-why {
+:root.reduce-motion .ability-trend-chip, :root.reduce-motion .ritual-why,
+:root.reduce-motion .empty-state, :root.reduce-motion .catalog-empty, :root.reduce-motion .intel-empty, :root.reduce-motion .duel-empty {
   animation-name: fxFade !important;
 }
 :root.reduce-motion .fx-celebrate, :root.reduce-motion .level-up, :root.reduce-motion .workout-card.done.fx-celebrate,
@@ -2009,7 +2031,8 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   animation-name: fxFade !important;
 }
 :root.reduce-motion .fx-celebrate::after, :root.reduce-motion .ritual-fill, :root.reduce-motion .quest-title.done, :root.reduce-motion .streak-badge.has-streak,
-:root.reduce-motion .stat-pill.has-streak, :root.reduce-motion .count-overlay.is-tick, :root.reduce-motion .play-combo.on {
+:root.reduce-motion .stat-pill.has-streak, :root.reduce-motion .count-overlay.is-tick, :root.reduce-motion .play-combo.on,
+:root.reduce-motion .skeleton {
   animation: none !important;
   transition: none !important;
 }
