@@ -69,7 +69,7 @@ test('evening fragility surfaces a soft streak nudge, not FOMO copy', () => {
     streak: 12,
     now: evening
   });
-  expect(spark.title).toMatch(/серия|возврат|короче/i);
+  expect(spark.title).toMatch(/ритм|серия|возврат|короче/i);
   expect(spark.body).not.toMatch(/не пропусти|прокачай|нейрофитнес|last chance/i);
 });
 

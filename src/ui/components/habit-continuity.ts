@@ -102,20 +102,20 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
       : '';
 
   if (streak.status === 'empty') {
-    return `После нескольких дней здесь появится ритм привычки: серия подряд и оценка 0–1. Это не IQ и не «возраст мозга».${zoneNote}`;
+    return `После нескольких дней здесь появится ритм привычки: серия подряд и оценка 0–1. Fokus показывает честный прогресс, а не нарисованный «возраст мозга».${zoneNote}`;
   }
 
   if (streak.status === 'soft_return') {
     const miss = `${ritual.openMisses} ${daysWord(ritual.openMisses)}`;
-    return `Пауза ${miss} — обычная история. Сегодня ${familiarPhrase(ritual)}, без навёрстывания и без «заморозки серии».${zoneNote}`;
+    return `Пауза ${miss} — нормальная часть процесса. Сегодня ${familiarPhrase(ritual)}, чтобы плавно вернуться в ритм.${zoneNote}`;
   }
 
   if (streak.status === 'fresh_start') {
-    return `Новый заход. Серия считает только дни подряд — короткий перерыв её обнуляет, но ничего не «штрафует».${zoneNote}`;
+    return `Новый старт. Честный счётчик обнулился, но ваш наработанный навык остался с вами.${zoneNote}`;
   }
 
   if (streak.status === 'returned') {
-    return `С возвращением. Серия снова с ${streak.current} — честный отсчёт, без купленной заморозки.${zoneNote}`;
+    return `С возвращением. Серия снова ${streak.current} — честный отсчёт, никаких платных заморозок.${zoneNote}`;
   }
 
   if (weekly.sufficient) {

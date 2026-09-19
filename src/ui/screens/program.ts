@@ -95,9 +95,9 @@ export function renderProgram(container: HTMLElement) {
   } else {
     hero = `
       <div class="workout-card">
-        <div class="workout-kicker">Неделя ${weekIndex} · День ${dayIndex}/7</div>
-        <h3>${Math.round((profile.sessionLengthSec || 900) / 60)} минут · персональный ритуал</h3>
-        <p class="muted">Слоты: просроченное повторение, слот дня, новый стимул. Сложность — зона вызова (IRT).</p>
+        <div class="workout-kicker">Тренировочная неделя ${weekIndex} · День ${dayIndex}/7</div>
+        <h3>${Math.round((profile.sessionLengthSec || 900) / 60)} минут · Персональный ритуал</h3>
+        <p class="muted">Регулярность важнее марафонов. Слоты подобраны в зоне оптимальной трудности для честного прогресса.</p>
         <button id="btn-program-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
