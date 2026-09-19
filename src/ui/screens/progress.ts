@@ -32,12 +32,14 @@ export function renderProgress(container: HTMLElement) {
   const bars = [];
   const today = new Date();
   
+  let activeDays = 0;
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(today.getDate() - i);
     const dStr = d.toISOString().split('T')[0];
     const summary = ds.find(x => x.date.startsWith(dStr));
     const score = Math.round(summary ? summary.totalScore : 0);
+    if (score > 0) activeDays++;
     weeklyScore += score;
     bars.push({
       label: d.toLocaleDateString('ru-RU', {weekday: 'short'}),
@@ -46,12 +48,17 @@ export function renderProgress(container: HTMLElement) {
     });
   }
 
-  const chartHtml = `
+  let chartHtml = `
     <div class="surface" style="padding: 24px;">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
         <h3 style="margin: 0;">Активность (Неделя)</h3>
         <button id="btn-weekly-review" class="btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 12px; border-radius: 12px; width: auto;">Итоги</button>
       </div>
+  `;
+  if (activeDays === 0) {
+    chartHtml += `<p style="color: var(--muted); margin: 0; font-size: 13px;">Недостаточно данных для графика активности. Пройдите первую сессию.</p></div>`;
+  } else {
+    chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
       <div class="bar-chart">
         ${bars.map(b => `
@@ -62,10 +69,10 @@ export function renderProgress(container: HTMLElement) {
           </div>
         `).join('')}
       </div>
-    </div>
+    </div>`;
+  }
     
-    <div id="achievements-section" style="margin-top: 24px;"></div>
-  `;
+  chartHtml += `<div id="achievements-section" style="margin-top: 24px;"></div>`;
 
   let historyHtml = '';
   if (history.length === 0) {
@@ -161,7 +168,9 @@ export function renderProgress(container: HTMLElement) {
     `;
   }).join('');
 
-  if (!profileHtml) profileHtml = '<p style="color: var(--muted); font-size: 13px;">Данные собираются...</p>';
+  if (!profileHtml) {
+    profileHtml = '<p style="color: var(--muted); font-size: 13px;">Недостаточно данных. Пройдите больше упражнений из разных областей, чтобы сформировать когнитивный профиль.</p>';
+  }
 
   const exStates = storage.getExerciseStates();
   const sessions = storage.getSessions();
@@ -317,7 +326,7 @@ export function renderProgress(container: HTMLElement) {
     <div class="fi-hero empty">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+        <div class="fi-meta">Недостаточно данных по областям. Продолжайте короткие сессии для калибровки.</div>
         ${sparkHtml}
       </div>
     </div>
@@ -355,6 +364,23 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  const sleepData = ds.filter(d => d.lifestyle?.sleep && d.totalScore > 0);
+  const sleepHtml = sleepData.length >= 2 ? `
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
+      ${renderScatterPlot(
+        sleepData.map(d => ({
+          x: d.lifestyle!.sleep === 'high' ? 9 : d.lifestyle!.sleep === 'normal' ? 7 : 5,
+          y: d.totalScore
+        })),
+        'Сон (часы)', 'Очки'
+      )}
+    </div>` : `
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
+      <p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных для анализа. Отмечайте качество сна после тренировок.</p>
+    </div>`;
+
   content.innerHTML = `
     <div class="today-head">
       <h2>Статистика</h2>
@@ -369,16 +395,7 @@ export function renderProgress(container: HTMLElement) {
     ${weeklyGoalHtml}
     ${nextStepHtml}
     
-    <div class="surface" style="margin-bottom: 24px;">
-      <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
-      ${renderScatterPlot(
-        ds.filter(d => d.lifestyle?.sleep && d.totalScore > 0).map(d => ({
-          x: d.lifestyle!.sleep === 'high' ? 9 : d.lifestyle!.sleep === 'normal' ? 7 : 5,
-          y: d.totalScore
-        })),
-        'Сон (часы)', 'Очки'
-      )}
-    </div>
+    ${sleepHtml}
 
     ${chartHtml}
     

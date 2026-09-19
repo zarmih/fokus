@@ -134,15 +134,50 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   const totalExercises = exercisesPlayed.size;
 
   let atAGlanceHtml = '';
+  let summaryText = '';
+
   if (totalSessions === 0) {
     atAGlanceHtml = `
-      <div class="surface" style="text-align: center; padding: 32px 16px;">
+      <div class="surface" style="text-align: center; padding: 32px 16px; margin-bottom: 24px;">
         <h3 style="margin-bottom: 8px;">Недостаточно данных</h3>
-        <p style="color: var(--muted); margin: 0;">На этой неделе не было тренировок. Fokus собирает данные, чтобы сформировать отчёт.</p>
+        <p style="color: var(--muted); margin: 0; font-size: 14px;">На этой неделе не было тренировок. Fokus собирает данные, чтобы сформировать отчёт.</p>
       </div>
     `;
   } else {
+    // Calculate average accuracy
+    let totalItems = 0;
+    let totalAcc = 0;
+    sessions.forEach(s => {
+      s.items.forEach(i => {
+        totalItems++;
+        totalAcc += i.accuracy;
+      });
+    });
+    const avgAcc = totalItems > 0 ? Math.round((totalAcc / totalItems) * 100) : 0;
+    
+    // Most trained domain
+    const domainsPlayed: Record<string, number> = {};
+    sessions.forEach(s => {
+      s.items.forEach(i => {
+        const manifest = getManifest(i.exerciseId);
+        if (manifest) {
+          domainsPlayed[manifest.domain] = (domainsPlayed[manifest.domain] || 0) + 1;
+        }
+      });
+    });
+    
+    let topDomainText = '';
+    if (Object.keys(domainsPlayed).length > 0) {
+      const topDomain = Object.keys(domainsPlayed).sort((a,b) => domainsPlayed[b] - domainsPlayed[a])[0];
+      topDomainText = ` Основной фокус был на области «${domainLabel(topDomain)}».`;
+    }
+
+    summaryText = `За эту неделю вы провели ${totalSessions} ${totalSessions === 1 ? 'сессию' : (totalSessions >= 2 && totalSessions <= 4) ? 'сессии' : 'сессий'}, охватив ${totalExercises} ${totalExercises === 1 ? 'упражнение' : (totalExercises >= 2 && totalExercises <= 4) ? 'упражнения' : 'упражнений'}.${topDomainText} Средняя точность выполнения составила ${avgAcc}%.`;
+
     atAGlanceHtml = `
+      <div class="surface" style="margin-bottom: 24px;">
+        <p style="margin: 0; font-size: 14px; line-height: 1.5; color: var(--text);">${summaryText}</p>
+      </div>
       <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px;">
         <div class="surface" style="text-align: center; padding: 16px 8px;">
           <div style="font-size: 24px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${activeDays}</div>
