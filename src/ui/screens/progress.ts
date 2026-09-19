@@ -134,12 +134,12 @@ export function renderProgress(container: HTMLElement) {
       const valueText = isReliable ? `<span style="color: ${trendColor}; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
       
       return `
-        <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid var(--line);">
+        <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid ${isReliable ? 'var(--line)' : 'rgba(255,255,255,0.05)'};">
           <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
-            <span style="text-transform: capitalize; color: var(--text); opacity: 0.9;">${skillName}</span>
+            <span style="text-transform: capitalize; color: var(--text); opacity: ${isReliable ? '0.9' : '0.6'};">${skillName}</span>
             <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div></div>
+          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);">${isReliable ? `<div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div>` : `<div style="width: 100%; height: 100%; background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px);"></div>`}</div>
           ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
@@ -148,15 +148,22 @@ export function renderProgress(container: HTMLElement) {
       `;
     }).join('');
 
+    const emptyStateHtml = dSkills.length === 0 ? `
+      <div style="padding: 12px 0 4px; text-align: center; color: var(--muted); font-size: 12px;">
+        Тренируйтесь, чтобы открыть навыки
+      </div>
+    ` : '';
+
     const isWeakest = d.id === weakestDomainId && dScore > 0;
     return `
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); position: relative;">
         ${isWeakest ? `<div style="position: absolute; top: -10px; right: 16px; background: var(--dom-${d.id}); color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Фокус внимания</div>` : ''}
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${dSkills.length > 0 ? '12px' : '0'};">
-          <div style="font-weight: 700; font-size: 16px; color: var(--dom-${d.id});">${domainLabel(d.id)}</div>
-          <div style="font-size: 18px; font-weight: 800;">${dScore}</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${(dSkills.length > 0 || dScore === 0) ? '12px' : '0'};">
+          <div style="font-weight: 700; font-size: 16px; color: ${dScore > 0 ? `var(--dom-${d.id})` : 'var(--muted)'}; opacity: ${dScore > 0 ? '1' : '0.6'};">${domainLabel(d.id)}</div>
+          <div style="font-size: 18px; font-weight: 800; color: ${dScore > 0 ? 'inherit' : 'var(--muted)'};">${dScore > 0 ? dScore : '—'}</div>
         </div>
         ${skillsListHtml}
+        ${emptyStateHtml}
       </div>
     `;
   }).join('');
