@@ -134,6 +134,9 @@ import motifFlipModule from './motif-flip';
 import dominantColorModule from './dominant-color';
 import vowelCountModule from './vowel-count';
 import shapeEquationModule from './shape-equation';
+import colorCipherModule from './color-cipher';
+import memoryHoneycombModule from './memory-honeycomb';
+import globalLocalModule from './global-local';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -270,5 +273,8 @@ export const registry: ExerciseModule[] = [
   motifFlipModule,
   dominantColorModule,
   vowelCountModule,
-  shapeEquationModule
+  shapeEquationModule,
+  colorCipherModule,
+  memoryHoneycombModule,
+  globalLocalModule
 ];
