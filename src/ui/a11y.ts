@@ -29,7 +29,13 @@ export function announce(message: string, politeness: 'polite' | 'assertive' = '
   });
 }
 
+import { storage } from '../core/storage';
+
 export function prefersReducedMotion(): boolean {
+  try {
+    const p = storage.getProfile();
+    if (p.reducedMotion === true) return true;
+  } catch {}
   return typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 }
 

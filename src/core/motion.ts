@@ -11,10 +11,14 @@ export const MOTION = {
 
 export type MotionCue = AudioCue;
 
+import { storage } from './storage';
+
 export function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+  if (typeof window === 'undefined') return false;
   try {
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const p = storage.getProfile();
+    if (p.reducedMotion === true) return true;
+    return !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   } catch {
     return false;
   }
