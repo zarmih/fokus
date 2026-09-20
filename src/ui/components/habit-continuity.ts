@@ -27,7 +27,7 @@ function familiarPhrase(ritual: GentleReturn): string {
 export function streakAriaLabel(streak: DayStreak): string {
   if (streak.status === 'empty') return 'Серии пока нет';
   if (streak.status === 'soft_return') {
-    return `Пауза ${streak.openMisses} ${daysWord(streak.openMisses)}. Серия считается заново — без штрафа.`;
+    return `Пауза ${streak.openMisses} ${daysWord(streak.openMisses)}. Возвращайтесь в ритм без штрафа.`;
   }
   if (streak.status === 'fresh_start') return 'Новый заход. Серия начнётся с сегодняшней сессии';
   if (streak.status === 'returned') {
@@ -102,20 +102,20 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
       : '';
 
   if (streak.status === 'empty') {
-    return `После нескольких дней здесь появится ритм привычки: серия подряд и оценка 0–1. Fokus показывает честный прогресс, а не нарисованный «возраст мозга».${zoneNote}`;
+    return `После нескольких дней здесь появится ритм привычки: серия подряд и оценка 0–1. Это не IQ и не «возраст мозга».${zoneNote}`;
   }
 
   if (streak.status === 'soft_return') {
     const miss = `${ritual.openMisses} ${daysWord(ritual.openMisses)}`;
-    return `Пауза ${miss} — нормальная часть процесса. Сегодня ${familiarPhrase(ritual)}, чтобы плавно вернуться в ритм.${zoneNote}`;
+    return `Пауза ${miss} — это нормально. Серия прервалась честно, но навык остался. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы легко вернуться в ритм.${zoneNote}`;
   }
 
   if (streak.status === 'fresh_start') {
-    return `Новый старт. Честный счётчик обнулился, но ваш наработанный навык остался с вами.${zoneNote}`;
+    return `Новый заход. Перерыв обнуляет счётчик серии, но не ваш навык. Следующий шаг: пройдите сегодняшнюю сессию, чтобы вернуть ритм.${zoneNote}`;
   }
 
   if (streak.status === 'returned') {
-    return `С возвращением. Серия снова ${streak.current} — честный отсчёт, никаких платных заморозок.${zoneNote}`;
+    return `С возвращением! Серия снова ${streak.current} — честный отсчёт, без купленной заморозки. Продолжайте в своём темпе.${zoneNote}`;
   }
 
   if (weekly.sufficient) {
@@ -156,7 +156,7 @@ function renderSettingsHint(snap: ContinuitySnapshot): string {
   const cap = streakChipCaption(snap.streak);
   const weeklyLine = snap.weekly.sufficient
     ? `Сейчас ${scoreText(snap.weekly.score)} из 1 (${snap.weekly.completedDays} из ${snap.weekly.eligibleDays} дней).`
-    : 'Индекс ритма появится после четырёх дней с вашей первой тренировки — дайте себе время на старт.';
+    : 'Индекс появится после четырёх дней с первой сессии.';
 
   return `
     <div class="continuity-hint continuity-hint-settings" role="region" aria-label="Как устроены серия и непрерывность">
