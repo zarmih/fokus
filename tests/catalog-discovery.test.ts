@@ -1,6 +1,7 @@
 import { expect, test, describe, beforeEach, afterEach } from 'vitest';
 import { renderTrainers } from '../src/ui/screens/trainers';
 import { storage } from '../src/core/storage';
+import { catalog } from '../src/exercises/catalog';
 
 describe('Catalog Discovery', () => {
   let container: HTMLElement;
@@ -16,62 +17,28 @@ describe('Catalog Discovery', () => {
     document.body.removeChild(container);
   });
 
-  test('renders search and filters', () => {
+  test('renders domain chips with honest counts (no All wall)', () => {
     renderTrainers(container);
-    const search = container.querySelector('.catalog-search') as HTMLInputElement;
-    const selects = container.querySelectorAll('.catalog-select');
-    expect(search).toBeTruthy();
-    expect(selects.length).toBeGreaterThanOrEqual(4);
+    const chips = Array.from(container.querySelectorAll('.filter-chip')) as HTMLElement[];
+    expect(chips.length).toBeGreaterThan(0);
+    expect(chips.some((c) => c.textContent?.includes('Все'))).toBe(false);
+    expect(chips[0].classList.contains('active')).toBe(true);
+    expect(container.querySelector('#catalog-count-label')).toBeTruthy();
   });
 
-  test('search filters exercises and preserves focus/DOM by toggling is-hidden', () => {
+  test('domain chip toggles groups and updates count', () => {
     renderTrainers(container);
-    const search = container.querySelector('.catalog-search') as HTMLInputElement;
-    
-    // We expect initial render to show some cards in the active wrap
-    let activeWrap = container.querySelector('.catalog-group-wrap:not(.is-hidden)') as HTMLElement;
-    let cards = activeWrap.querySelectorAll('.trainer-card');
-    const initialVisible = Array.from(cards).filter(c => !c.parentElement!.classList.contains('is-hidden')).length;
-    expect(initialVisible).toBeGreaterThan(0);
-    
-    // Type something that matches nothing
-    search.value = 'zzzzzzzzzzzzzzzz';
-    search.dispatchEvent(new Event('input'));
-    
-    cards = activeWrap.querySelectorAll('.trainer-card');
-    const visibleAfterSearch = Array.from(cards).filter(c => !c.parentElement!.classList.contains('is-hidden')).length;
-    expect(visibleAfterSearch).toBe(0);
-
-    const empty = container.querySelector('.catalog-empty') as HTMLElement;
-    expect(empty.classList.contains('is-hidden')).toBe(false);
-
-    // Reset
-    const reset = container.querySelector('.catalog-reset') as HTMLButtonElement;
-    reset.click();
-    expect(search.value).toBe('');
-    
-    cards = activeWrap.querySelectorAll('.trainer-card');
-    const visibleAfterReset = Array.from(cards).filter(c => !c.parentElement!.classList.contains('is-hidden')).length;
-    expect(visibleAfterReset).toBe(initialVisible);
-  });
-
-  test('groups exercises correctly', () => {
-    renderTrainers(container);
-    const groupSelect = container.querySelector('[data-filter="group"]') as HTMLSelectElement;
-    
-    // Default is domain
-    expect(groupSelect.value).toBe('domain');
-    let activeWrap = container.querySelector('.catalog-group-wrap-domain') as HTMLElement;
-    expect(activeWrap.classList.contains('is-hidden')).toBe(false);
-
-    // Switch to format
-    groupSelect.value = 'format';
-    groupSelect.dispatchEvent(new Event('change'));
-    
-    activeWrap = container.querySelector('.catalog-group-wrap-format') as HTMLElement;
-    expect(activeWrap.classList.contains('is-hidden')).toBe(false);
-    
-    const domainWrap = container.querySelector('.catalog-group-wrap-domain') as HTMLElement;
-    expect(domainWrap.classList.contains('is-hidden')).toBe(true);
+    const chips = Array.from(container.querySelectorAll('.filter-chip')) as HTMLElement[];
+    if (chips.length < 2) return;
+    const second = chips[1];
+    const domainId = second.dataset.dom!;
+    const expected = catalog.filter((e) => e.manifest.domain === domainId).length;
+    second.click();
+    expect(second.classList.contains('active')).toBe(true);
+    expect(container.querySelector('#catalog-count-label')?.textContent).toContain(`${expected} упражнений`);
+    container.querySelectorAll('.domain-group').forEach((g) => {
+      const el = g as HTMLElement;
+      expect(el.classList.contains('is-hidden')).toBe(el.dataset.group !== domainId);
+    });
   });
 });
