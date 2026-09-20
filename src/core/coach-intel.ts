@@ -201,8 +201,8 @@ export function reconstructDomainSnapshots(
   return buckets;
 }
 
-function windowDeltaLabel(delta: number | null, window: HistoryWindow): string {
-  if (delta === null) return 'накапливаем данные';
+function windowDeltaLabel(delta: number | null, window: HistoryWindow, samples: number): string {
+  if (delta === null || samples < 3) return 'мало данных';
   if (Math.abs(delta) <= 8) return `на уровне ${window} дней`;
   if (delta > 0) return `+${delta} за ${window} дней`;
   return `${delta} за ${window} дней`;
@@ -251,7 +251,7 @@ export function buildSparkline(days: IndexDay[], window: HistoryWindow): Sparkli
     first,
     last,
     delta,
-    deltaLabel: windowDeltaLabel(delta, window),
+    deltaLabel: windowDeltaLabel(delta, window, numbered.length),
     personalBestIndex: pbIndex
   };
 }
@@ -426,14 +426,14 @@ function buildTips(
     tips.push({
       kind: 'milestone',
       title: `${justHit.days} дней подряд`,
-      body: 'Отличный ритм. Ваша нервная система начинает привыкать к регулярной когнитивной нагрузке — продолжаем в том же темпе.',
+      body: 'Регулярность важнее интенсивности: короткая сессия каждый день сильнее редких длинных.',
       tone: 'habit'
     });
   } else if (adherence.currentStreak >= 7 && !adherence.comeback) {
     tips.push({
       kind: 'streak',
-      title: `${adherence.currentStreak} дней в ритме`,
-      body: 'Стабильная серия. Если чувствуете усталость, лучше пройти лёгкую сессию, чем прерывать полезную привычку.',
+      title: `${adherence.currentStreak} дней подряд`,
+      body: 'Серия на месте. Fokus уже умеет прощать один пропуск — не разменивайте ритм на марафон.',
       tone: 'habit'
     });
   }
@@ -498,8 +498,8 @@ function buildTips(
   if (tips.length === 0 && intel.ready) {
     tips.push({
       kind: 'science',
-      title: 'Контекст и регулярность',
-      body: 'Мозг адаптируется под знакомые нагрузки. Короткие, но частые сессии дают более стойкий эффект, чем редкие марафоны.',
+      title: 'Короткий ритуал',
+      body: 'Тренируем конкретные задачи. Перенос в жизнь скромный — зато привычка внимания остаётся.',
       tone: 'science'
     });
   }
@@ -597,17 +597,5 @@ export function buildCoachIntel(input: {
     weakDomainId: ready ? weakDomainId : null
   };
 
-  return {
-    ...intel,
-    tips: ready
-      ? buildTips(intel, asOf)
-      : [
-          {
-            kind: 'science',
-            title: 'Начинаем собирать данные',
-            body: 'Здесь появится аналитика вашего ритма и сильных сторон. Пройдите несколько сессий, чтобы Fokus выявил закономерности.',
-            tone: 'start'
-          }
-        ]
-  };
+  return { ...intel, tips: ready ? buildTips(intel, asOf) : [] };
 }

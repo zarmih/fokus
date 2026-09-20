@@ -271,19 +271,19 @@ export function renderToday(container: HTMLElement) {
         <h3 id="cta-return-title">${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
         <p>Рады возвращению. Мы подобрали мягкий старт, чтобы плавно войти в ритм.</p>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}" role="region" aria-labelledby="cta-today-title">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
+        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Дневной ритуал'}</div>
         <h3 id="cta-today-title">${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   }
