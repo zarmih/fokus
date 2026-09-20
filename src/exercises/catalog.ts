@@ -2,7 +2,7 @@ import type { ExerciseManifest } from './contract';
 
 /** Manifest-only catalog. Exercise engines load on demand via `loadExercise`. */
 export const catalog: { manifest: ExerciseManifest }[] = [
-  {
+{
     manifest: {
       id: 'alphanumeric-sort',
       name: 'Символика',
@@ -12,7 +12,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'anchor-drift',
       name: 'Дрейф якоря',
@@ -22,7 +22,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'arcade-shooter',
       name: 'Космический стрелок',
@@ -31,7 +31,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       instruction: 'Управляйте кораблем, чтобы сбивать летящие сверху цели. Промах снижает точность!'
     }
   },
-  {
+{
     manifest: {
       id: 'arrow-swipe',
       name: 'Свайп',
@@ -41,7 +41,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'avatar-names',
       name: 'Имена',
@@ -51,7 +51,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'axis-swap',
       name: 'Смена оси',
@@ -61,7 +61,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'balance-scales',
       name: 'Равновесие',
@@ -71,7 +71,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'beacon-rail',
       name: 'Маяк-рельс',
@@ -81,7 +81,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'timing-precision'
     }
   },
-  {
+{
     manifest: {
       id: 'beacon-snap',
       name: 'Маяк',
@@ -91,7 +91,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'timing-precision'
     }
   },
-  {
+{
     manifest: {
       id: 'cache-span',
       name: 'Кэш',
@@ -101,7 +101,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'catch-the-color',
       name: 'Цветолов',
@@ -111,7 +111,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'category-sort',
       name: 'Сортировка',
@@ -121,7 +121,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'change-spot',
       name: 'Найди отличие',
@@ -131,7 +131,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'clock-reading',
       name: 'Время',
@@ -141,7 +141,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'color-burst',
       name: 'Вспышка',
@@ -151,7 +151,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'color-sequence',
       name: 'Эхо',
@@ -161,7 +161,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'color-shape-switch',
       name: 'Цвет-Форма',
@@ -171,7 +171,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'color-sort',
       name: 'Сортировщик',
@@ -181,7 +181,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'context-switch',
       name: 'Хамелеон',
@@ -191,7 +191,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'corsi',
       name: 'Блоки Корси',
@@ -201,7 +201,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'crest-tap',
       name: 'Гребень',
@@ -211,7 +211,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'crowd-probe',
       name: 'Толпа',
@@ -221,7 +221,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'cue-bounce',
       name: 'Отскок правила',
@@ -231,7 +231,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'direction-match',
       name: 'Вектор',
@@ -241,7 +241,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'direction-memory',
       name: 'Стрелки',
@@ -251,7 +251,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'direction-switch',
       name: 'Стрелочник',
@@ -261,7 +261,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'dot-ratio',
       name: 'Глазомер',
@@ -271,7 +271,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'dot-span',
       name: 'Путь Следопыта',
@@ -281,7 +281,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'dual-label',
       name: 'Двойная метка',
@@ -291,7 +291,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'emotion-match',
       name: 'Эмоции',
@@ -301,7 +301,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'equation-balance',
       name: 'Математические Весы',
@@ -311,7 +311,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'even-odd',
       name: 'Двойное Дно',
@@ -321,7 +321,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'expression-compare',
       name: 'Дуэль Чисел',
@@ -331,7 +331,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'find-pair',
       name: 'Двойник',
@@ -341,7 +341,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'flanker-task',
       name: 'Стая',
@@ -351,7 +351,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'flare-pick',
       name: 'Вспышка',
@@ -361,7 +361,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'flash-cards',
       name: 'Где же он?',
@@ -371,7 +371,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'flip-agenda',
       name: 'Смена повестки',
@@ -381,7 +381,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'focus-circle',
       name: 'Снайпер',
@@ -391,7 +391,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'frame-swap',
       name: 'Смена кадра',
@@ -401,7 +401,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'gate-tap',
       name: 'Тап у ворот',
@@ -411,7 +411,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'glyph-stash',
       name: 'Тайник глифов',
@@ -421,7 +421,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'go-no-go',
       name: 'Go / No-Go',
@@ -431,7 +431,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'grid-memory',
       name: 'Матрица',
@@ -441,7 +441,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'grid-stash',
       name: 'Сетка-тайник',
@@ -451,7 +451,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'halo-trace',
       name: 'След ореола',
@@ -461,7 +461,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'sequence-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'imposter-search',
       name: 'Самозванец',
@@ -471,7 +471,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'lag-echo',
       name: 'Эхо с задержкой',
@@ -481,7 +481,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'lens-swap',
       name: 'Смена линзы',
@@ -491,7 +491,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'location-recall',
       name: 'Позиция',
@@ -501,7 +501,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'mask-span',
       name: 'Маска-спан',
@@ -511,7 +511,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'math-chains',
       name: 'Калькулятор',
@@ -521,7 +521,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'math-sign-switch',
       name: 'Знак Числа',
@@ -531,7 +531,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'math-sprint',
       name: 'Арифметика',
@@ -541,7 +541,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'math-switch',
       name: 'Смена Знака',
@@ -551,7 +551,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'matrix-complete',
       name: 'Матрицы',
@@ -561,7 +561,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'mental-rotation',
       name: 'Ментальная ротация',
@@ -571,7 +571,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'meteorites',
       name: 'Метеориты',
@@ -581,7 +581,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'mirror-pick',
       name: 'Зеркальное отражение',
@@ -591,7 +591,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'missing-operator',
       name: 'Знак',
@@ -601,7 +601,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'motif-flip',
       name: 'Смена мотива',
@@ -611,7 +611,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'moving-targets',
       name: 'Слежение',
@@ -621,7 +621,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'n-back',
       name: 'Dual N-Back',
@@ -631,7 +631,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'nest-span',
       name: 'Гнёзда',
@@ -641,7 +641,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'number-code',
       name: 'Код',
@@ -651,7 +651,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'number-memory',
       name: 'Числовой Код',
@@ -661,7 +661,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'number-pyramid',
       name: 'Пирамида',
@@ -671,7 +671,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'number-series',
       name: 'Ряд',
@@ -681,7 +681,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'number-sort',
       name: 'Быстрая Сортировка',
@@ -691,7 +691,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'odd-one',
       name: 'Лишний',
@@ -701,7 +701,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'orbit-tap',
       name: 'Орбита',
@@ -711,7 +711,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'timing-precision'
     }
   },
-  {
+{
     manifest: {
       id: 'order-recall',
       name: 'Порядок',
@@ -721,7 +721,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'pair-bind',
       name: 'Связь пар',
@@ -731,7 +731,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'pairs',
       name: 'Пары',
@@ -741,7 +741,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'parity-magnitude',
       name: 'Магнитуда',
@@ -751,7 +751,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'path-finder',
       name: 'Лабиринт',
@@ -761,7 +761,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'path-recall',
       name: 'Траектория',
@@ -771,7 +771,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'pattern-next',
       name: 'Ряд',
@@ -781,7 +781,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'posner',
       name: 'Скрытое внимание (Posner)',
@@ -791,7 +791,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'pouch-span',
       name: 'Мешочки',
@@ -801,7 +801,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'prism-flip',
       name: 'Призма',
@@ -811,7 +811,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'pulley',
       name: 'Шкив',
@@ -821,7 +821,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'pulse-gap',
       name: 'Пропуск пульса',
@@ -831,7 +831,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'timing-precision'
     }
   },
-  {
+{
     manifest: {
       id: 'pulse-rail',
       name: 'Пульс-рельс',
@@ -841,7 +841,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'rail-chase',
       name: 'Гонка по рельсам',
@@ -851,7 +851,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'rapid-sorting',
       name: 'Живое-Неживое',
@@ -861,7 +861,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'reaction-strike',
       name: 'Перехват',
@@ -871,7 +871,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'relation-chain',
       name: 'Цепочка связей',
@@ -881,7 +881,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'rhythm-tap',
       name: 'Ритм',
@@ -891,7 +891,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'timing-precision'
     }
   },
-  {
+{
     manifest: {
       id: 'rubric-flip',
       name: 'Рубрика',
@@ -901,7 +901,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'rule-induce',
       name: 'Поиск правила',
@@ -911,7 +911,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'rule-pivot',
       name: 'Поворот правила',
@@ -921,7 +921,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'same-different',
       name: 'Близнецы',
@@ -931,7 +931,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'schulte',
       name: 'Таблицы Шульте',
@@ -941,7 +941,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'sequence',
       name: 'Цепочка',
@@ -951,7 +951,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'sequence-reverse',
       name: 'Реверс',
@@ -961,7 +961,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'set-shift',
       name: 'Смена установки',
@@ -971,7 +971,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'shape-count',
       name: 'Счётчик',
@@ -981,7 +981,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'shape-name',
       name: 'Ассоциации',
@@ -991,7 +991,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'shape-position',
       name: 'Архивариус',
@@ -1001,7 +1001,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'shard-hold',
       name: 'Осколки',
@@ -1011,7 +1011,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'shell-game',
       name: 'Напёрстки',
@@ -1021,7 +1021,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'sign-flip',
       name: 'Смена знака',
@@ -1031,7 +1031,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'size-compare',
       name: 'Масштаб',
@@ -1041,7 +1041,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'slot-span',
       name: 'Ячейки',
@@ -1051,7 +1051,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'spark-lane',
       name: 'Искра',
@@ -1061,7 +1061,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'spatial-match',
       name: 'Шаблон',
@@ -1071,7 +1071,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'spatial-speed',
       name: 'Радар',
@@ -1081,7 +1081,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'split-attention',
       name: 'Двойной Контроль',
@@ -1091,7 +1091,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'stack-span',
       name: 'Глубина стека',
@@ -1101,7 +1101,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'stroop',
       name: 'Чернила',
@@ -1111,7 +1111,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'swings',
       name: 'Качели',
@@ -1121,7 +1121,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'timing-precision'
     }
   },
-  {
+{
     manifest: {
       id: 'switch-rule',
       name: 'Смена правила',
@@ -1131,7 +1131,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'symbol-math',
       name: 'Тайный Шифр',
@@ -1141,7 +1141,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'tally-update',
       name: 'Обновление счёта',
@@ -1151,7 +1151,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'target-sum',
       name: 'Сумматор',
@@ -1161,7 +1161,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'time-math',
       name: 'Хронометр',
@@ -1171,7 +1171,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'token-warp',
       name: 'Сдвиг жетона',
@@ -1181,7 +1181,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'trail-make',
       name: 'Связь точек',
@@ -1191,7 +1191,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'tray-span',
       name: 'Подносы',
@@ -1201,7 +1201,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'memory-span'
     }
   },
-  {
+{
     manifest: {
       id: 'unique-color',
       name: 'Одиночка',
@@ -1211,7 +1211,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'unique-feature',
       name: 'Исключение',
@@ -1221,7 +1221,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'vault-span',
       name: 'Хранилище',
@@ -1231,7 +1231,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'capacity'
     }
   },
-  {
+{
     manifest: {
       id: 'verbal-fluency',
       name: 'Вербальная беглость',
@@ -1241,7 +1241,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'vigil-probe',
       name: 'Бдительность',
@@ -1251,7 +1251,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'visual-search',
       name: 'Зоркий Глаз',
@@ -1261,7 +1261,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'vowel-consonant',
       name: 'Алфавит',
@@ -1271,7 +1271,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'wave-lock',
       name: 'Волна',
@@ -1281,7 +1281,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'timing-precision'
     }
   },
-  {
+{
     manifest: {
       id: 'weight-analysis',
       name: 'Тяжеловес',
@@ -1291,7 +1291,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'logic-correctness'
     }
   },
-  {
+{
     manifest: {
       id: 'word-cascade',
       name: 'Дежавю',
@@ -1301,7 +1301,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'word-pairs',
       name: 'Связки',
@@ -1311,7 +1311,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-  {
+{
     manifest: {
       id: 'zone-guard',
       name: 'Страж зоны',
@@ -1321,8 +1321,258 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
-];
+{
+    manifest: {
+      id: 'dominant-color',
+      name: 'Преобладающий цвет',
+      domain: 'attention',
+      skills: ['visual_scanning', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Выберите цвет, которого больше всего на экране.'
+    }
+  },
+{
+    manifest: {
+      id: 'vowel-count',
+      name: 'Счет гласных',
+      domain: 'flexibility',
+      skills: ['selective_attention', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Сосчитайте количество гласных букв в слове.'
+    }
+  },
+{
+    manifest: {
+      id: 'shape-equation',
+      name: 'Фигурная математика',
+      domain: 'logic',
+      skills: ['working_memory', 'logical_reasoning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Решите уравнение с фигурами.'
+    }
+  },
+{
+    manifest: {
+      id: 'color-cipher',
+      name: 'Цветовой Шифр',
+      domain: 'logic',
+      skills: ['logical_reasoning', 'numerical_processing'] as ExerciseManifest['skills'],
+      instruction: 'Примените правила цветов к стартовому числу слева направо. Выберите правильный ответ.',
+      metricModel: 'logic-correctness'
+    }
+  },
+{
+    manifest: {
+      id: 'memory-honeycomb',
+      name: 'Соты Памяти',
+      domain: 'memory',
+      skills: ['spatial_memory', 'visual_memory'] as ExerciseManifest['skills'],
+      instruction: 'Запомните подсвеченные соты и воспроизведите их расположение.',
+      metricModel: 'capacity'
+    }
+  },
+{
+    manifest: {
+      id: 'global-local',
+      name: 'Глобальный Фокус',
+      domain: 'attention',
+      skills: ['selective_attention', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Определите большую или маленькую фигуру (букву) в зависимости от задания.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'time-estimation',
+      name: 'Чувство времени',
+      domain: 'attention',
+      skills: ['sustained_attention'] as ExerciseManifest['skills'],
+      instruction: 'Запомните целевое время. Нажмите "Старт", отсчитайте время про себя, затем нажмите "Стоп".',
+      metricModel: 'timing-precision'
+    }
+  },
+{
+    manifest: {
+      id: 'word-unscramble',
+      name: 'Анаграммы',
+      domain: 'logic',
+      skills: ['logical_reasoning', 'processing_speed'] as ExerciseManifest['skills'],
+      instruction: 'Составьте правильное слово из предложенных букв, нажимая на них в правильном порядке.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'color-frequency',
+      name: 'Доминирующий цвет',
+      domain: 'attention',
+      skills: ['selective_attention', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Вам покажут поле с разноцветными точками. Выберите цвет, которого больше всего.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'letter-shift',
+      name: 'Сдвиг букв',
+      domain: 'logic',
+      skills: ['mental_calculation', 'working_memory'] as ExerciseManifest['skills'],
+      instruction: 'Определите, какая буква получится, если сдвинуть заданную букву по алфавиту на указанное число шагов. Используйте мышь или цифры 1-4.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'angle-match',
+      name: 'Сравнение углов',
+      domain: 'logic',
+      skills: ['spatial_reasoning', 'pattern_recognition'] as ExerciseManifest['skills'],
+      instruction: 'Сравните углы между линиями в двух кругах. Если углы одинаковые (независимо от поворота), нажмите "Равны", иначе "Разные". Используйте стрелки Влево (Равны) и Вправо (Разные).',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'color-band',
+      name: 'Цветовые полосы',
+      domain: 'flexibility',
+      skills: ['selective_attention', 'inhibition', 'task_switching'] as ExerciseManifest['skills'],
+      instruction: 'Прочитайте слово и укажите цвет соответствующей полосы (ВЕРХ, СРЕДИНА или НИЗ), игнорируя цвет самого текста. Используйте цифры 1-4 или мышь.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'ay-color-pulse',
+      name: 'Цветовой пульс',
+      domain: 'speed',
+      skills: ['reaction_speed', 'selective_attention'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Нажимайте на фигуру ТОЛЬКО когда появляется КРАСНЫЙ цвет.'
+    }
+  },
+{
+    manifest: {
+      id: 'ay-number-grid',
+      name: 'Числовая сетка',
+      domain: 'speed',
+      skills: ['visual_scanning', 'numerical_processing'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Среди 4 чисел найдите и нажмите на САМОЕ БОЛЬШОЕ.'
+    }
+  },
+{
+    manifest: {
+      id: 'ay-shape-shift',
+      name: 'Сдвиг форм',
+      domain: 'attention',
+      skills: ['pattern_recognition', 'sustained_attention'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Если фигуры ОДИНАКОВЫЕ — жмите "Одинаковые". Если РАЗНЫЕ — "Разные".'
+    }
+  },
+{
+    manifest: {
+      id: 'az-color-match',
+      name: 'Цветовое Совпадение AZ',
+      domain: 'memory',
+      skills: ['working_memory', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Совпадает ли цвет с предыдущим? Влево - ДА, Вправо - НЕТ.'
+    }
+  },
+{
+    manifest: {
+      id: 'az-number-grid',
+      name: 'Сетка Чисел AZ',
+      domain: 'attention',
+      skills: ['visual_scanning', 'sustained_attention'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Нажимайте на числа по порядку, начиная с 1.'
+    }
+  },
+{
+    manifest: {
+      id: 'az-shape-shift',
+      name: 'Смена Формы AZ',
+      domain: 'flexibility',
+      skills: ['task_switching', 'visual_scanning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Если форма изменилась - жми Вверх, если осталась прежней - жми Вниз.'
+    }
+  },
+{
+    manifest: {
+      id: 'mirror-match',
+      name: 'Зеркальное отражение',
+      domain: 'logic',
+      skills: ['spatial_reasoning', 'pattern_recognition'] as ExerciseManifest['skills'],
+      instruction: 'Сверху показан узор. Выберите снизу тот вариант, который является его точным зеркальным отражением (по горизонтали).',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'target-shade',
+      name: 'Точный оттенок',
+      domain: 'attention',
+      skills: ['visual_scanning', 'sustained_attention'] as ExerciseManifest['skills'],
+      instruction: 'Сверху показан целевой цвет. Найдите среди вариантов снизу тот, который совпадает с ним в точности.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'word-length-sort',
+      name: 'По длине слов',
+      domain: 'speed',
+      skills: ['processing_speed', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Нажимайте на слова в порядке возрастания их длины (от самого короткого к самому длинному).',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'area-compare',
+      name: 'Сравнение площадей',
+      domain: 'logic',
+      skills: ['spatial_reasoning', 'pattern_recognition'] as ExerciseManifest['skills'],
+      instruction: 'Нажмите на фигуру, площадь которой больше.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'hidden-rule',
+      name: 'Скрытые правила',
+      domain: 'flexibility',
+      skills: ['rule_switching', 'cognitive_flexibility'] as ExerciseManifest['skills'],
+      instruction: 'Сортируйте фигуру влево или вправо. Правило (цвет или форма) неизвестно и периодически меняется.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+{
+    manifest: {
+      id: 'ember-lane',
+      name: 'Угольная Тропа',
+      domain: 'memory',
+      skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      metricModel: 'memory-span',
+      instruction: 'Запомни последовательность вспыхивающих угольков и повтори её.'
+    }
+  },
+{
+    manifest: {
+      id: 'helix-flip',
+      name: 'Вращение Правил',
+      domain: 'flexibility',
+      skills: ['cognitive_flexibility', 'rule_switching', 'reaction_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Сравни две фигуры по текущему правилу (Цвет или Форма). Правило может внезапно измениться!'
+    }
+  }
 
+];
 export function getManifest(id: string): ExerciseManifest | undefined {
   return catalog.find((c) => c.manifest.id === id)?.manifest;
 }

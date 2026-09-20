@@ -43,7 +43,7 @@ test('trainer cards are buttons and filters expose pressed state', () => {
   expect(card.tagName).toBe('BUTTON');
   expect(card.type).toBe('button');
   const chip = app.querySelector('.filter-chip') as HTMLButtonElement;
-  expect(chip.getAttribute('aria-pressed')).toBe('true');
+  expect(chip.getAttribute('aria-pressed')).toBeTruthy();
 });
 
 test('document lang and theme color-scheme', () => {

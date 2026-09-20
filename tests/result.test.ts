@@ -49,8 +49,8 @@ test('renderResult Mastery Progression UI v1 - basic provenance', () => {
   expect(html).toContain('📈 Растёт'); // progression boundaries up
   
   // Next-step provenance (engine v2 reasons, with legacy-heuristic fallback)
-  expect(html).toContain('Следующий шаг');
-  expect(html).toMatch(/Интервал вышел|Слот дня|Новый стимул|слабой области|цели|Сбалансированная|отстающего навыка|Забытый навык/);
+  expect(html).toContain('Дальше:');
+  expect(html).toMatch(/Интервал|Слот|стимул|области|цели|Сбалансированная|навыка|Забытый|Рабочий темп|Короткая разминка/);
 });
 
 test('renderResult - mastery delta zero / plateau / low confidence', () => {
@@ -145,4 +145,114 @@ test('renderResult - legacy / empty state (stale snapshot fallback)', () => {
   expect(html).toContain('Н/Д'); // No fake precision
   expect(html).toContain('(=)');
   expect(html).toContain('🔄 Калибровка'); // Calibrating for legacy
+});
+
+test('renderResult - V6 Next Action - Weak result (suggests repeat/rest)', () => {
+  const container = document.getElementById('app')!;
+  const session: Session = {
+    id: 'test-session-weak',
+    startedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
+    durationSec: 300,
+    items: [
+      { exerciseId: 'stroop', level: 2, accuracy: 0.4, avgRtMs: 2000, score: 10 } as SessionItem,
+      { exerciseId: 'grid-memory', level: 2, accuracy: 0.4, avgRtMs: 2000, score: 10 } as SessionItem,
+      { exerciseId: 'math-sprint', level: 2, accuracy: 0.4, avgRtMs: 2000, score: 10 } as SessionItem,
+    ]
+  };
+
+  renderResult(container, { session });
+  const html = container.innerHTML;
+  expect(html).toContain('Сделать перерыв');
+  expect(html).toContain('Точность просела, мозгу нужен отдых');
+  expect(html).toContain('Повторить (ещё раз)');
+});
+
+test('renderResult - V6 Next Action - Early exit (short session)', () => {
+  const container = document.getElementById('app')!;
+  const session: Session = {
+    id: 'test-session-short',
+    startedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
+    durationSec: 60,
+    items: [
+      { exerciseId: 'stroop', level: 2, accuracy: 0.9, avgRtMs: 1000, score: 30 } as SessionItem
+    ]
+  };
+
+  renderResult(container, { session });
+  const html = container.innerHTML;
+  expect(html).toContain('Дальше:');
+  expect(html).toContain('Короткая разминка, можно ещё');
+  expect(html).toContain('Вернуться позже');
+});
+
+test('renderResult - V6 Next Action - Success', () => {
+  const container = document.getElementById('app')!;
+  const session: Session = {
+    id: 'test-session-success',
+    startedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
+    durationSec: 300,
+    items: [
+      { exerciseId: 'stroop', level: 2, accuracy: 0.9, avgRtMs: 1000, score: 30 } as SessionItem,
+      { exerciseId: 'grid-memory', level: 2, accuracy: 0.9, avgRtMs: 1000, score: 30 } as SessionItem,
+      { exerciseId: 'math-sprint', level: 2, accuracy: 0.9, avgRtMs: 1000, score: 30 } as SessionItem,
+    ]
+  };
+
+  renderResult(container, { session });
+  const html = container.innerHTML;
+  expect(html).toContain('Дальше:');
+});
+
+test('renderResult - V6 Next Action - No Data', () => {
+  const container = document.getElementById('app')!;
+  const session: Session = {
+    id: 'test-session-empty',
+    startedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
+    durationSec: 0,
+    items: []
+  };
+
+  renderResult(container, { session });
+  const html = container.innerHTML;
+  expect(html).toContain('На главную');
+  expect(html).toContain('Нет данных о тренировке');
+  expect(html).not.toContain('Как прошла тренировка?'); // No feedback on empty session
+});
+
+test('renderResult - V6 Feedback Loop interactions', () => {
+  const container = document.getElementById('app')!;
+  const session: Session = {
+    id: 'test-session-feedback',
+    startedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
+    durationSec: 300,
+    items: [
+      { exerciseId: 'stroop', level: 2, accuracy: 0.8, avgRtMs: 1000, score: 30 } as SessionItem
+    ]
+  };
+
+  renderResult(container, { session });
+  
+  const buttons = container.querySelectorAll('.btn-feedback');
+  expect(buttons.length).toBe(3);
+  
+  const easyBtn = Array.from(buttons).find(b => (b as HTMLElement).dataset.val === 'easy') as HTMLButtonElement;
+  expect(easyBtn).toBeDefined();
+  
+  easyBtn.click();
+  
+  const p = storage.getProfile();
+  expect((p as any).lastFeedback.val).toBe('easy');
+  expect((p as any).lastFeedback.date).toBeDefined();
+  
+  const thanks = container.querySelector('#feedback-thanks') as HTMLElement;
+  expect(thanks.style.display).toBe('block');
+  
+  buttons.forEach(b => {
+    expect((b as HTMLElement).style.display).toBe('none');
+  });
 });

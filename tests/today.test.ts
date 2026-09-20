@@ -236,3 +236,23 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
 });
+
+test('today shows offline fallback when offline', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+  
+  const originalOnLine = navigator.onLine;
+  Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+  
+  try {
+    const app = document.getElementById('app')!;
+    renderToday(app);
+    expect(app.textContent).toMatch(/Офлайн/);
+    expect(app.textContent).toMatch(/Нет подключения/);
+    expect(app.querySelector('#btn-retry')).toBeTruthy();
+  } finally {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: originalOnLine });
+  }
+});

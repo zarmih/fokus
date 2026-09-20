@@ -64,6 +64,7 @@ export interface Profile {
   soundVolume?: number;
   /** Optional Vibration API hooks. Default true when omitted. */
   hapticsOn?: boolean;
+  reducedMotion?: boolean;
   language?: string;
   achievements?: string[];
   shieldCharges?: number;

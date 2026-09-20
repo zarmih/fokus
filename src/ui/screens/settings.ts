@@ -164,6 +164,14 @@ export function renderSettings(container: HTMLElement) {
     </div>
 
     <div class="surface">
+      <h3 style="margin-bottom: 16px;">Доступность</h3>
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="reduced-motion-toggle" ${profile.reducedMotion ? 'checked' : ''} />
+        Меньше анимаций
+      </label>
+    </div>
+
+    <div class="surface">
       <h3 style="margin-bottom: 16px;">Звук</h3>
       <label style="display: flex; align-items: center; gap: 8px;">
         <input type="checkbox" id="sound-toggle" ${profile.soundOn ? 'checked' : ''} />
@@ -339,6 +347,13 @@ export function renderSettings(container: HTMLElement) {
         location.reload();
       });
     });
+  });
+
+  document.getElementById('reduced-motion-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.reducedMotion = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+    import('../../core/motion').then(m => m.applyMotionPreference());
   });
 
   import('../../pwa-install').then(({ deferredPrompt }) => {

@@ -32,12 +32,14 @@ export function renderProgress(container: HTMLElement) {
   const bars = [];
   const today = new Date();
   
+  let activeDays = 0;
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(today.getDate() - i);
     const dStr = d.toISOString().split('T')[0];
     const summary = ds.find(x => x.date.startsWith(dStr));
     const score = Math.round(summary ? summary.totalScore : 0);
+    if (score > 0) activeDays++;
     weeklyScore += score;
     bars.push({
       label: d.toLocaleDateString('ru-RU', {weekday: 'short'}),
@@ -46,26 +48,31 @@ export function renderProgress(container: HTMLElement) {
     });
   }
 
-  const chartHtml = `
+  let chartHtml = `
     <div class="surface" style="padding: 24px;">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
         <h3 style="margin: 0;">Активность (Неделя)</h3>
         <button id="btn-weekly-review" class="btn-secondary" style="margin: 0; padding: 6px 12px; font-size: 12px; border-radius: 12px; width: auto;">Итоги</button>
       </div>
+  `;
+  if (activeDays === 0) {
+    chartHtml += `<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px;">Недостаточно данных для графика активности. Завершите первую сессию, чтобы увидеть статистику.</p></div></div>`;
+  } else {
+    chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
-      <div class="bar-chart">
+      <div class="bar-chart" role="figure" aria-label="График активности за последние 7 дней. Сумма очков: ${weeklyScore}">
         ${bars.map(b => `
-          <div class="bar-wrap">
-            ${b.score > 0 ? `<div class="bar-value">${b.score}</div>` : ''}
-            <div class="bar ${b.score > 0 ? 'has-data' : ''}" style="height: ${b.pct}%"></div>
-            <div class="bar-label">${b.label}</div>
+          <div class="bar-wrap" role="group" aria-label="${b.label}: ${b.score} очков">
+            ${b.score > 0 ? `<div class="bar-value" aria-hidden="true">${b.score}</div>` : ''}
+            <div class="bar ${b.score > 0 ? 'has-data' : ''}" style="height: ${b.pct}%" aria-hidden="true"></div>
+            <div class="bar-label" aria-hidden="true">${b.label}</div>
           </div>
         `).join('')}
       </div>
-    </div>
+    </div>`;
+  }
     
-    <div id="achievements-section" style="margin-top: 24px;"></div>
-  `;
+  chartHtml += `<div id="achievements-section" style="margin-top: 24px;"></div>`;
 
   let historyHtml = '';
   if (history.length === 0) {
@@ -134,12 +141,12 @@ export function renderProgress(container: HTMLElement) {
       const valueText = isReliable ? `<span style="color: ${trendColor}; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
       
       return `
-        <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid var(--line);">
+        <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid ${isReliable ? 'var(--line)' : 'rgba(255,255,255,0.05)'};">
           <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
-            <span style="text-transform: capitalize; color: var(--text); opacity: 0.9;">${skillName}</span>
+            <span style="text-transform: capitalize; color: var(--text); opacity: ${isReliable ? '0.9' : '0.6'};">${skillName}</span>
             <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div></div>
+          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);">${isReliable ? `<div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div>` : `<div style="width: 100%; height: 100%; background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px);"></div>`}</div>
           ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
@@ -148,20 +155,29 @@ export function renderProgress(container: HTMLElement) {
       `;
     }).join('');
 
+    const emptyStateHtml = dSkills.length === 0 ? `
+      <div style="padding: 12px 0 4px; text-align: center; color: var(--muted); font-size: 12px;">
+        Пройдите сессии для калибровки навыков
+      </div>
+    ` : '';
+
     const isWeakest = d.id === weakestDomainId && dScore > 0;
     return `
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); position: relative;">
         ${isWeakest ? `<div style="position: absolute; top: -10px; right: 16px; background: var(--dom-${d.id}); color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Фокус внимания</div>` : ''}
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${dSkills.length > 0 ? '12px' : '0'};">
-          <div style="font-weight: 700; font-size: 16px; color: var(--dom-${d.id});">${domainLabel(d.id)}</div>
-          <div style="font-size: 18px; font-weight: 800;">${dScore}</div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${(dSkills.length > 0 || dScore === 0) ? '12px' : '0'};">
+          <div style="font-weight: 700; font-size: 16px; color: ${dScore > 0 ? `var(--dom-${d.id})` : 'var(--muted)'}; opacity: ${dScore > 0 ? '1' : '0.6'};">${domainLabel(d.id)}</div>
+          <div style="font-size: 18px; font-weight: 800; color: ${dScore > 0 ? 'inherit' : 'var(--muted)'};">${dScore > 0 ? dScore : '—'}</div>
         </div>
         ${skillsListHtml}
+        ${emptyStateHtml}
       </div>
     `;
   }).join('');
 
-  if (!profileHtml) profileHtml = '<p style="color: var(--muted); font-size: 13px;">Данные собираются...</p>';
+  if (!profileHtml) {
+    profileHtml = '<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных. Пройдите больше упражнений из разных областей, чтобы сформировать профиль навыков.</p></div>';
+  }
 
   const exStates = storage.getExerciseStates();
   const sessions = storage.getSessions();
@@ -318,7 +334,7 @@ export function renderProgress(container: HTMLElement) {
     <div class="fi-hero empty">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям — продолжайте короткие сессии.</div>
+        <div class="fi-meta">Недостаточно данных по областям. Продолжайте короткие сессии для калибровки.</div>
         ${sparkHtml}
         <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
       </div>
@@ -357,10 +373,29 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  const sleepData = ds.filter(d => d.lifestyle?.sleep && d.totalScore > 0);
+  const sleepHtml = sleepData.length >= 2 ? `
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
+      ${renderScatterPlot(
+        sleepData.map(d => ({
+          x: d.lifestyle!.sleep === 'high' ? 9 : d.lifestyle!.sleep === 'normal' ? 7 : 5,
+          y: d.totalScore
+        })),
+        'Сон (часы)', 'Очки'
+      )}
+    </div>` : `
+    <div class="surface" style="margin-bottom: 24px;">
+      <h3 style="margin-bottom: 16px;">Влияние сна на результаты</h3>
+      <div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
+        <p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных для анализа. Отмечайте качество сна после тренировок (минимум 2 сессии).</p>
+      </div>
+    </div>`;
+
   content.innerHTML = `
     <div class="today-head">
       <h2>Статистика</h2>
-      <p class="today-date">Когнитивный профиль и аналитика вовлечённости.</p>
+      <p class="today-date">Профиль ваших навыков и аналитика результатов.</p>
     </div>
     ${habitHtml}
     ${fiHtml}
@@ -371,16 +406,7 @@ export function renderProgress(container: HTMLElement) {
     ${weeklyGoalHtml}
     ${nextStepHtml}
     
-    <div class="surface" style="margin-bottom: 24px;">
-      <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
-      ${renderScatterPlot(
-        ds.filter(d => d.lifestyle?.sleep && d.totalScore > 0).map(d => ({
-          x: d.lifestyle!.sleep === 'high' ? 9 : d.lifestyle!.sleep === 'normal' ? 7 : 5,
-          y: d.totalScore
-        })),
-        'Сон (часы)', 'Очки'
-      )}
-    </div>
+    ${sleepHtml}
 
     ${chartHtml}
     
@@ -389,7 +415,7 @@ export function renderProgress(container: HTMLElement) {
       ${historyHtml}
     </div>
 
-    <h3 style="margin: 32px 0 16px 0;">Когнитивный профиль</h3>
+    <h3 style="margin: 32px 0 16px 0;">Профиль навыков</h3>
     ${legendHtml}
     ${profileHtml}
   `;
