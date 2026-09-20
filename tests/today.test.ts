@@ -112,8 +112,8 @@ test('today shows Fokus Index and workout after calibration', () => {
   renderToday(app);
   expect(app.textContent).toMatch(/Михаил/);
   expect(app.textContent).toMatch(/Fokus Index/);
-  expect(app.textContent).toMatch(/Дневной ритуал/);
-  expect(app.textContent).toMatch(/Начать ритуал/);
+  expect(app.textContent).toMatch(/Тренировка дня|Дневной ритуал/);
+  expect(app.textContent).toMatch(/Начать сессию|Начать ритуал/);
   expect(app.textContent).not.toMatch(/Качество ритуала/);
   expect(app.textContent).not.toMatch(/балл мозга/i);
   expect(app.textContent).toMatch(/Непрерывность/);
@@ -266,10 +266,11 @@ test('today shows no-plan state if plan is empty', () => {
   const spy = vi.spyOn(recoveryModule, 'planWithRecovery').mockReturnValue({
     plan: { items: [], focusDomains: [] },
     snapshot: { gate: { active: false }, qualities: [] } as any,
-    recalibration: { probe: [], forced: false, summary: '' }
+    recalibration: { needed: false, snoozed: false, reasons: [], summary: '', probe: [] }
   });
   
   const spyDepth = vi.spyOn(depthModule, 'describeAdaptiveDepth').mockReturnValue({
+    trajectory: { label: '', summary: '', domain: null, enough: false } as any,
     chip: null, why: null, ritual: null
   });
 
