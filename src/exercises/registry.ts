@@ -131,6 +131,31 @@ import frameSwapModule from './frame-swap';
 import cacheSpanModule from './cache-span';
 import beaconRailModule from './beacon-rail';
 import motifFlipModule from './motif-flip';
+import dominantColorModule from './dominant-color';
+import vowelCountModule from './vowel-count';
+import shapeEquationModule from './shape-equation';
+import colorCipherModule from './color-cipher';
+import memoryHoneycombModule from './memory-honeycomb';
+import globalLocalModule from './global-local';
+import timeEstimationModule from './time-estimation';
+import wordUnscrambleModule from './word-unscramble';
+import colorFrequencyModule from './color-frequency';
+import letterShiftModule from './letter-shift';
+import angleMatchModule from './angle-match';
+import colorBandModule from './color-band';
+import emberLaneModule from './ember-lane';
+import helixFlipModule from './helix-flip';
+import wordLengthSortModule from './word-length-sort';
+import targetShadeModule from './target-shade';
+import mirrorMatchModule from './mirror-match';
+import ayColorPulseModule from './ay-color-pulse';
+import ayShapeShiftModule from './ay-shape-shift';
+import ayNumberGridModule from './ay-number-grid';
+import azNumberGridModule from './az-number-grid';
+import azColorMatchModule from './az-color-match';
+import azShapeShiftModule from './az-shape-shift';
+import areaCompareModule from './area-compare';
+import hiddenRuleModule from './hidden-rule';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -264,5 +289,30 @@ export const registry: ExerciseModule[] = [
   frameSwapModule,
   cacheSpanModule,
   beaconRailModule,
-  motifFlipModule
+  motifFlipModule,
+  dominantColorModule,
+  vowelCountModule,
+  shapeEquationModule,
+  colorCipherModule,
+  memoryHoneycombModule,
+  globalLocalModule,
+  timeEstimationModule,
+  wordUnscrambleModule,
+  colorFrequencyModule,
+  letterShiftModule,
+  angleMatchModule,
+  colorBandModule,
+  emberLaneModule,
+  helixFlipModule,
+  wordLengthSortModule,
+  targetShadeModule,
+  mirrorMatchModule,
+  ayColorPulseModule,
+  ayShapeShiftModule,
+  ayNumberGridModule,
+  azNumberGridModule,
+  azColorMatchModule,
+  azShapeShiftModule,
+  areaCompareModule,
+  hiddenRuleModule
 ];

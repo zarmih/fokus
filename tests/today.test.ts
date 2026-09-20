@@ -112,8 +112,8 @@ test('today shows Fokus Index and workout after calibration', () => {
   renderToday(app);
   expect(app.textContent).toMatch(/Михаил/);
   expect(app.textContent).toMatch(/Fokus Index/);
-  expect(app.textContent).toMatch(/Тренировка дня/);
-  expect(app.textContent).toMatch(/Начать сессию/);
+  expect(app.textContent).toMatch(/Дневной ритуал/);
+  expect(app.textContent).toMatch(/Начать ритуал/);
   expect(app.textContent).not.toMatch(/Качество ритуала/);
   expect(app.textContent).not.toMatch(/балл мозга/i);
   expect(app.textContent).toMatch(/Непрерывность/);
@@ -235,7 +235,7 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
   renderToday(app);
   expect(app.textContent).toMatch(/Мягкий возврат/);
   expect(app.textContent).toMatch(/5 минут/);
-  expect(app.textContent).not.toMatch(/Тренировка дня/);
+  expect(app.textContent).not.toMatch(/Дневной ритуал/);
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
 });
@@ -300,4 +300,24 @@ test('today shows error state if plan builder throws', () => {
 
   expect(app.textContent).toMatch(/Ошибка/);
   expect(app.textContent).toMatch(/Что-то пошло не так/);
+});
+
+test('today shows offline fallback when offline', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+  
+  const originalOnLine = navigator.onLine;
+  Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+  
+  try {
+    const app = document.getElementById('app')!;
+    renderToday(app);
+    expect(app.textContent).toMatch(/Офлайн/);
+    expect(app.textContent).toMatch(/Нет подключения/);
+    expect(app.querySelector('#btn-retry')).toBeTruthy();
+  } finally {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: originalOnLine });
+  }
 });

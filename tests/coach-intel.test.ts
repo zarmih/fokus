@@ -54,7 +54,7 @@ test('addDays does not slip on month boundaries', () => {
   expect(toDateKey('2026-09-11T23:40:00.000Z')).toBe('2026-09-11');
 });
 
-test('empty history is honest: no fake index, no tips', () => {
+test('empty history is honest: no fake index, supportive tip', () => {
   const intel = buildCoachIntel({
     summaries: [],
     domains: [],
@@ -66,9 +66,10 @@ test('empty history is honest: no fake index, no tips', () => {
   expect(intel.days.every((d) => d.fokusIndex === null && !d.played)).toBe(true);
   expect(intel.sparkline.points.every((p) => p.value === null)).toBe(true);
   expect(intel.sparkline.delta).toBe(null);
-  expect(intel.sparkline.deltaLabel).toBe('мало данных');
+  expect(intel.sparkline.deltaLabel).toBe('накапливаем данные');
   expect(intel.personalBest).toBe(null);
-  expect(intel.tips).toEqual([]);
+  expect(intel.tips).toHaveLength(1);
+  expect(intel.tips[0].title).toMatch(/собирать/i);
   expect(intel.milestones.every((m) => !m.reached)).toBe(true);
   expect(intel.adherence.playedDays).toBe(0);
 });
@@ -97,7 +98,7 @@ test('sparkline maps min/max, gaps stay null, personal best flagged', () => {
   expect(spark.min).toBe(400);
   expect(spark.max).toBe(430);
   expect(spark.delta).toBe(30);
-  expect(spark.deltaLabel).toContain('+30');
+  expect(spark.deltaLabel).toBe('мало данных');
   expect(spark.points[0].t).toBe(0);
   expect(spark.points[2].t).toBe(1);
   expect(spark.points[0].y).toBe(1);

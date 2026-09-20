@@ -272,6 +272,15 @@ export function renderToday(container: HTMLElement) {
         <button id="btn-retry" class="btn-secondary" type="button">Обновить</button>
       </div>
     `;
+  } else if (!navigator.onLine) {
+    actionHtml = `
+      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title">
+        <div class="workout-kicker">Офлайн режим</div>
+        <h3 id="cta-offline-title">Нет подключения</h3>
+        <p>Для создания персональной тренировки требуется сеть. Ваши данные в безопасности.</p>
+        <button id="btn-retry" class="btn-secondary" type="button">Проверить сеть</button>
+      </div>
+    `;
   } else if (!profile.calibrated) {
     actionHtml = `
       <div class="workout-card fx-enter">
