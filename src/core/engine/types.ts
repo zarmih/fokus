@@ -7,7 +7,9 @@ export type MetricModel =
   | 'speed-accuracy'
   | 'memory-span'
   | 'timing-precision'
-  | 'logic-correctness';
+  | 'logic-correctness'
+  | 'sequence-accuracy'
+  | 'capacity';
 
 export type RitualSlotKind = 'overdue' | 'due' | 'fresh';
 

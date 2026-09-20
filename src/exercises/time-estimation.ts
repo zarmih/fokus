@@ -1,195 +1,134 @@
 import { ExerciseModule, BlockResult } from './contract';
+import { mountStage } from './stage';
+
+export class TimeEstimationEngine {
+  targetSeconds = 0;
+  startTime = 0;
+  
+  generate(level: number) {
+    const min = 2 + Math.floor(level / 3);
+    const max = 4 + Math.floor(level / 2);
+    this.targetSeconds = Math.floor(Math.random() * (max - min + 1)) + min;
+    return this.targetSeconds;
+  }
+  
+  start() {
+    this.startTime = performance.now();
+  }
+  
+  stop() {
+    const elapsed = (performance.now() - this.startTime) / 1000;
+    const diff = Math.abs(elapsed - this.targetSeconds);
+    const success = diff <= 0.6; // margin of error
+    return { elapsed, diff, success };
+  }
+}
 
 const timeEstimationModule: ExerciseModule = {
   manifest: {
     id: 'time-estimation',
-    name: 'Оценка времени',
-    domain: 'speed',
-    skills: ['sustained_attention', 'processing_speed'],
+    name: 'Чувство времени',
+    domain: 'attention',
+    skills: ['sustained_attention'],
     metricModel: 'timing-precision',
-    instruction: 'Следите за шариком. Нажмите на кнопку ровно в тот момент, когда он должен достичь финиша, скрывшись за стеной.'
+    instruction: 'Запомните целевое время. Нажмите "Старт", отсчитайте время про себя, затем нажмите "Стоп".'
   },
-
-  render(el: HTMLElement, level: number, onEnd: (r: BlockResult) => void, isTimeUp: () => boolean) {
+  render(el, level, onEnd, isTimeUp) {
+    const engine = new TimeEstimationEngine();
+    const stage = mountStage(el, 'attention');
     let rounds = 0;
-    let correct = 0; // We'll compute a normalized accuracy per round
-    let rts: number[] = [];
-    let isGameOver = false;
-
-    el.innerHTML = `
+    let correct = 0;
+    let totalError = 0;
+    const rts: number[] = [];
+    
+    let isTiming = false;
+    
+    stage.board.innerHTML = `
       <style>
-        .te-arena {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          height: 100%;
-          gap: 40px;
-          user-select: none;
-        }
-        .te-track {
-          position: relative;
-          width: 280px;
-          height: 40px;
-          background: var(--surface, #1e1e1e);
-          border-radius: 20px;
-          overflow: hidden;
-          box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-        }
-        .te-wall {
-          position: absolute;
-          right: 0;
-          top: 0;
-          width: 50%;
-          height: 100%;
-          background: var(--surface-3, #444);
-          z-index: 2;
-          border-left: 2px solid var(--line, #555);
-        }
-        .te-ball {
-          position: absolute;
-          left: 0;
-          top: 8px;
-          width: 24px;
-          height: 24px;
-          background: var(--primary, #2196f3);
-          border-radius: 50%;
-          z-index: 1;
-        }
-        .te-btn {
-          padding: 16px 32px;
-          font-size: 16px;
-          background: var(--primary, #2196f3);
-          color: white;
-          border: none;
-          border-radius: 24px;
-          cursor: pointer;
-          transition: transform 0.1s, background 0.2s;
-        }
-        .te-btn:active {
-          transform: scale(0.95);
-        }
-        .te-btn:disabled {
-          background: var(--text-dim, #888);
-          cursor: default;
-        }
+        .te-box { display: flex; flex-direction: column; align-items: center; gap: 24px; padding: 30px; }
+        .te-target { font-size: 64px; font-weight: 800; color: var(--text); }
+        .te-btn { padding: 20px 48px; font-size: 24px; font-weight: bold; border-radius: 100px; border: none; background: var(--primary); color: white; cursor: pointer; user-select: none; transition: transform 0.1s, opacity 0.2s; }
+        .te-btn:active { transform: scale(0.95); }
+        .te-btn.timing { background: var(--danger); }
+        .te-feedback { font-size: 20px; font-weight: 600; opacity: 0; transition: opacity 0.2s; }
       </style>
-      <div class="te-arena">
-        <div class="te-track">
-          <div class="te-wall"></div>
-          <div class="te-ball" id="te-ball"></div>
-        </div>
-        <button class="te-btn" id="te-btn">Финиш!</button>
+      <div class="te-box">
+        <div class="te-target" id="te-target"></div>
+        <button class="te-btn" id="te-btn">СТАРТ</button>
+        <div class="te-feedback" id="te-feedback"></div>
       </div>
     `;
-
-    const ball = el.querySelector('#te-ball') as HTMLElement;
-    const btn = el.querySelector('#te-btn') as HTMLButtonElement;
-
-    let t0 = 0;
-    let durationMs = 2000;
-    let animFrame = 0;
-    let roundActive = false;
-    let currentPhase = 'idle';
-
-    const animate = () => {
-      if (isGameOver || !roundActive) return;
-      
-      const elapsed = performance.now() - t0;
-      let progress = elapsed / durationMs;
-      
-      if (progress > 1.2) {
-        // Missed completely (waited too long)
-        handleAns(true);
-        return;
-      }
-
-      // Max x is track width (280) - ball width (24) = 256
-      const currentX = progress * 256;
-      ball.style.transform = `translateX(${currentX}px)`;
-      
-      animFrame = requestAnimationFrame(animate);
-    };
-
+    
+    const targetEl = stage.board.querySelector('#te-target') as HTMLElement;
+    const btn = stage.board.querySelector('#te-btn') as HTMLButtonElement;
+    const feedback = stage.board.querySelector('#te-feedback') as HTMLElement;
+    
+    let t0 = performance.now();
+    let timer: number;
+    
     const startRound = () => {
-      if (isGameOver) return;
       if (isTimeUp()) {
         endBlock();
         return;
       }
-      
-      btn.disabled = false;
-      btn.style.background = 'var(--primary, #2196f3)';
-      ball.style.transform = 'translateX(0px)';
-      
-      // Speed variation based on level
-      // Level 1: 2000ms. Higher levels can be faster or much slower.
-      const minDuration = Math.max(800, 2000 - level * 100);
-      const maxDuration = 3000 + level * 50;
-      durationMs = minDuration + Math.random() * (maxDuration - minDuration);
-      
-      roundActive = true;
-      currentPhase = 'moving';
+      isTiming = false;
+      const target = engine.generate(level);
+      targetEl.textContent = `${target} сек`;
+      btn.textContent = 'СТАРТ';
+      btn.className = 'te-btn';
+      feedback.style.opacity = '0';
       t0 = performance.now();
-      animFrame = requestAnimationFrame(animate);
     };
-
-    const handleAns = (missed = false) => {
-      if (isGameOver || currentPhase !== 'moving') return;
-      roundActive = false;
-      currentPhase = 'feedback';
-      cancelAnimationFrame(animFrame);
-      btn.disabled = true;
-
-      const elapsed = performance.now() - t0;
-      rounds++;
-      
-      let error = Math.abs(elapsed - durationMs);
-      if (missed) error = durationMs * 0.5; // Heavy penalty
-
-      // Tolerance based on level (harder = smaller tolerance)
-      const maxTolerance = Math.max(100, 500 - level * 20);
-      
-      let roundScore = 0;
-      if (error < maxTolerance) {
-        roundScore = 1 - (error / maxTolerance); // 0 to 1
-        btn.style.background = 'var(--ok, #4caf50)';
+    
+    const handleAction = () => {
+      if (!isTiming) {
+        // Start
+        isTiming = true;
+        engine.start();
+        targetEl.textContent = '...';
+        btn.textContent = 'СТОП';
+        btn.className = 'te-btn timing';
       } else {
-        btn.style.background = 'var(--danger, #f44336)';
+        // Stop
+        const res = engine.stop();
+        rounds++;
+        rts.push(res.elapsed * 1000);
+        totalError += res.diff;
+        if (res.success) {
+          correct++;
+          stage.pulse(true);
+          feedback.style.color = 'var(--success)';
+          feedback.textContent = `Точно! (${res.elapsed.toFixed(2)} с)`;
+        } else {
+          stage.pulse(false);
+          feedback.style.color = 'var(--danger)';
+          feedback.textContent = `Мимо: ${res.elapsed.toFixed(2)} с`;
+        }
+        feedback.style.opacity = '1';
+        isTiming = false;
+        btn.disabled = true;
+        
+        timer = window.setTimeout(() => {
+          btn.disabled = false;
+          startRound();
+        }, 1500);
       }
-      
-      correct += roundScore;
-      rts.push(elapsed);
-
-      // Reveal ball position
-      const finalX = (elapsed / durationMs) * 256;
-      ball.style.transform = `translateX(${Math.min(280, finalX)}px)`;
-      ball.style.zIndex = '3'; // Bring above wall temporarily
-
-      setTimeout(() => {
-        ball.style.zIndex = '1';
-        startRound();
-      }, 1000);
     };
-
-    btn.onclick = () => handleAns(false);
-
-    // Initial delay before first round
-    setTimeout(startRound, 500);
-
+    
+    btn.addEventListener('click', handleAction);
+    startRound();
+    
     const endBlock = () => {
-      isGameOver = true;
-      cancelAnimationFrame(animFrame);
       const accuracy = rounds > 0 ? correct / rounds : 0;
-      const avgRtMs = rts.length > 0 ? rts.reduce((a,b)=>a+b,0)/rts.length : 1200;
+      const avgRtMs = rts.length > 0 ? rts.reduce((a,b)=>a+b,0)/rts.length : 2000;
+      stage.cleanup();
       onEnd({ accuracy, avgRtMs, rounds });
     };
-
+    
     return () => {
-      isGameOver = true;
-      cancelAnimationFrame(animFrame);
+      clearTimeout(timer);
+      stage.cleanup();
     };
   }
 };
-
 export default timeEstimationModule;

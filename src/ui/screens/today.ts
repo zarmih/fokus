@@ -37,6 +37,7 @@ export function renderToday(container: HTMLElement) {
   const streak = snap.streak.current;
   const skippedYesterday = snap.streak.openMisses === 1;
   let yesterdayScore = 0;
+  const gapDays = snap.streak.openMisses;
   if (snap.streak.status === 'open' && ds.length > 0) {
     yesterdayScore = Math.round(ds[ds.length - 1].totalScore);
   }
@@ -93,8 +94,8 @@ export function renderToday(container: HTMLElement) {
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
 
   const fi = computeFokusIndex(domains);
-  const prevFi = previousFokusIndex(ds, new Date().toISOString());
-  const fiDelta = indexDelta(fi.value, prevFi);
+  const prevFi = previousFokusIndex(ds, new Date().toISOString(), 7);
+  const fiDelta = indexDelta(fi.value, prevFi, 7);
 
   const focusText = plan.focusDomains.length > 0
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
@@ -104,10 +105,13 @@ export function renderToday(container: HTMLElement) {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
     const slot = item.slot ? SLOT_LABEL[item.slot] : '';
-    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}">
-      <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
-      <span>${r?.name}</span>
-      ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 4px; height: auto; border-radius: 12px;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
+        <span style="font-weight: 600;">${r?.name}</span>
+        ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
+      </div>
+      <div style="font-size: 11px; opacity: 0.85; line-height: 1.2;">${item.reason}</div>
     </div>`;
   }).join('');
 
@@ -159,6 +163,15 @@ export function renderToday(container: HTMLElement) {
   }
 
   const insights = generateInsights(domains, skills, states, ds, sessions);
+  if (gapDays >= 2 && !playedToday) {
+    insights.unshift({
+      title: 'С возвращением',
+      description: 'Исследования показывают, что восстановление после паузы укрепляет нейронные связи. Fokus подобрал мягкий старт для сегодняшней сессии.',
+      confidence: 'high',
+      type: 'milestone',
+      priority: 1
+    });
+  }
   const topInsight = insights[0];
   const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
     <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
@@ -207,36 +220,45 @@ export function renderToday(container: HTMLElement) {
     `;
   }
 
-  const recalHtml = showRecal ? `
-    <div class="workout-card recal-card">
-      <div class="workout-kicker">Мягкая перекалибровка</div>
-      <h3>Обновить оценку</h3>
-      <p>${recal.summary || 'Короткая сверка, чтобы сложность снова попала в зону вызова. Серия не сбрасывается.'}</p>
-      <div class="recal-actions">
-        <button id="btn-recal" class="btn-primary" type="button">Пройти (~90 сек)</button>
-        <button id="btn-recal-later" class="btn-secondary" type="button">Позже</button>
-      </div>
-    </div>
-  ` : '';
-
   let actionHtml = '';
-  if (!profile.calibrated) {
+  if (!navigator.onLine) {
     actionHtml = `
-      <div class="workout-card fx-enter">
+      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title">
+        <div class="workout-kicker">Офлайн режим</div>
+        <h3 id="cta-offline-title">Нет подключения</h3>
+        <p>Для создания персональной тренировки требуется сеть. Ваши данные в безопасности.</p>
+        <button id="btn-retry" class="btn-secondary" type="button">Проверить сеть</button>
+      </div>
+    `;
+  } else if (!profile.calibrated) {
+    actionHtml = `
+      <div class="workout-card fx-enter" role="region" aria-labelledby="cta-first-title">
         <div class="workout-kicker">Первый шаг</div>
-        <h3>Калибровка уровня</h3>
+        <h3 id="cta-first-title">Калибровка уровня</h3>
         <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
         <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate">
+      <div class="workout-card done fx-celebrate" role="region" aria-labelledby="cta-done-title">
         <div class="workout-kicker">Сегодня</div>
-        <h3>План выполнен</h3>
+        <h3 id="cta-done-title">План выполнен</h3>
         ${trendChipHtml}
         <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
         <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
+      </div>
+    `;
+  } else if (showRecal) {
+    actionHtml = `
+      <div class="workout-card recal-card fx-enter" role="region" aria-labelledby="cta-recal-title">
+        <div class="workout-kicker">Мягкая перекалибровка</div>
+        <h3 id="cta-recal-title">Обновить оценку</h3>
+        <p>${recal.summary || 'Короткая сверка, чтобы сложность снова попала в зону вызова. Серия не сбрасывается.'}</p>
+        <div class="recal-actions" style="display: flex; gap: 12px; margin-top: 12px;">
+          <button id="btn-recal" class="btn-primary" type="button" style="margin-bottom: 0;">Пройти (~90 сек)</button>
+          <button id="btn-recal-later" class="btn-secondary" type="button" style="margin-bottom: 0;">Позже</button>
+        </div>
       </div>
     `;
   } else if (snap.ritual.active) {
@@ -244,9 +266,10 @@ export function renderToday(container: HTMLElement) {
       ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter">
+      <div class="workout-card fx-enter" role="region" aria-labelledby="cta-return-title">
         <div class="workout-kicker">Мягкий возврат</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
+        <h3 id="cta-return-title">${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
+        <p>Рады возвращению. Мы подобрали мягкий старт, чтобы плавно войти в ритм.</p>
         <div class="workout-chips">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
@@ -254,9 +277,9 @@ export function renderToday(container: HTMLElement) {
   } else {
     const rest = ritual.snapshot.gate.active;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}" role="region" aria-labelledby="cta-today-title">
         <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
+        <h3 id="cta-today-title">${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
@@ -274,7 +297,6 @@ export function renderToday(container: HTMLElement) {
     ${heroHtml}
 
     ${renderQualityCard(ritual.snapshot)}
-    ${recalHtml}
 
     ${actionHtml}
 
@@ -283,6 +305,10 @@ export function renderToday(container: HTMLElement) {
     <div class="dashboard-widgets">
       <div class="stat-row">
         ${renderStreakChip(snap, 'pill')}
+        <div class="stat-pill">
+          <div class="stat-num">${streak}${profile.seriesGoalDays ? ` <span style="font-size: 16px; opacity: 0.5;">/ ${profile.seriesGoalDays}</span>` : ''}</div>
+          <div class="stat-lbl">${profile.seriesGoalDays ? 'цель серии' : (streak === 0 ? 'начни серию' : 'дней подряд')}</div>
+        </div>
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
           <div class="stat-lbl">${leagueName(lvl.currentLevel)}</div>
@@ -321,6 +347,9 @@ export function renderToday(container: HTMLElement) {
   });
   content.querySelector('#btn-recal-later')?.addEventListener('click', () => {
     snoozeRecalibration();
+    renderToday(container);
+  });
+  content.querySelector('#btn-retry')?.addEventListener('click', () => {
     renderToday(container);
   });
   const workout = content.querySelector('.workout-card') as HTMLElement | null;

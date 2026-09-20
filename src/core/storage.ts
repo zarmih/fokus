@@ -11,7 +11,8 @@ import {
   serializeBackup,
   type ImportMode,
   type ImportPreview,
-  type MergeReport
+  type MergeReport,
+  syncQueue
 } from './offline-sync';
 import {
   APP_STATE_KEY,
@@ -75,7 +76,7 @@ export interface ImportResult {
 const defaultProfile: Profile = {
   name: 'User',
   createdAt: new Date().toISOString(),
-  sessionLengthSec: 300,
+  sessionLengthSec: 900,
   soundOn: true,
   soundVolume: 1,
   hapticsOn: true,
@@ -207,7 +208,11 @@ export class Storage {
         updatedAt: this.clock()
       }
     };
-    return this.writeRaw(JSON.stringify(stamped));
+    const success = this.writeRaw(JSON.stringify(stamped));
+    if (success) {
+      syncQueue.enqueue({ type: 'save', rev: stamped.meta?.rev, deviceId: stamped.meta?.deviceId });
+    }
+    return success;
   }
 
   getProfile(): Profile { return { ...defaultProfile, ...(this.getState().profile || {}) }; }

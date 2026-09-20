@@ -5,7 +5,7 @@ const areaCompareModule: ExerciseModule = {
     id: 'area-compare',
     name: 'Сравнение площадей',
     domain: 'logic',
-    skills: ['spatial_reasoning', 'estimation'],
+    skills: ['spatial_reasoning', 'pattern_recognition'],
     metricModel: 'speed-accuracy',
     instruction: 'Нажмите на фигуру, площадь которой больше.'
   },

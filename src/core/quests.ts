@@ -75,3 +75,43 @@ export function updateQuestProgress(type: 'blocks' | 'accuracy' | 'score', value
     storage.setProfile(p);
   }
 }
+
+export function getWeeklyGoal() {
+  const p = storage.getProfile();
+  const d = new Date();
+  d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
+  const weekStartStr = d.toISOString().split('T')[0];
+  
+  if (!p.weeklyGoal || p.weeklyGoal.startIso !== weekStartStr) {
+    const domains = storage.getDomains();
+    const sorted = [...domains].sort((a, b) => a.value - b.value);
+    const weakDomain = sorted.length > 0 ? sorted[0].domain : 'attention';
+    p.weeklyGoal = {
+      domain: weakDomain,
+      startIso: weekStartStr,
+      target: 10,
+      progress: 0
+    };
+    storage.setProfile(p);
+  }
+  return p.weeklyGoal;
+}
+
+export function updateWeeklyGoalProgress(domain: string, blocks: number) {
+  const p = storage.getProfile();
+  const goal = p.weeklyGoal;
+  if (!goal) return;
+
+  const d = new Date();
+  d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
+  const weekStartStr = d.toISOString().split('T')[0];
+  
+  if (goal.startIso === weekStartStr && goal.domain === domain) {
+    if (goal.progress < goal.target) {
+      goal.progress += blocks;
+      if (goal.progress > goal.target) goal.progress = goal.target;
+      p.weeklyGoal = goal;
+      storage.setProfile(p);
+    }
+  }
+}

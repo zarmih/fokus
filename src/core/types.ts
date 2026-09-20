@@ -55,6 +55,8 @@ export interface Profile {
   createdAt: string;
   sessionLengthSec: number;
   calibrated?: boolean;
+  programPhase?: number;
+  programStartDate?: string;
   onboarded?: boolean;
   theme?: 'dark' | 'light';
   soundOn: boolean;
@@ -62,12 +64,22 @@ export interface Profile {
   soundVolume?: number;
   /** Optional Vibration API hooks. Default true when omitted. */
   hapticsOn?: boolean;
+  reducedMotion?: boolean;
   language?: string;
   achievements?: string[];
+  shieldCharges?: number;
+  shieldLastUsed?: string;
   locale: 'ru';
   schemaVersion: number;
   xp?: number;
   primaryGoal?: string; // e.g. 'memory', 'attention', 'speed', 'flexibility', 'logic' or 'balance'
+  programDay?: number;
+  programWeek?: number;
+  needsRecalibration?: boolean;
+  recalibrationPostponed?: boolean;
+  recalibrationSnoozedUntil?: string | null;
+  lastCalibrationAt?: string;
+  engineVersion?: number;
   quests?: any[];
   questsDate?: string;
   lastLifestyle?: { sleep: string | null; stress: string | null; date: string };
@@ -80,14 +92,16 @@ export interface Profile {
   probeSnapshot?: ProbeSnapshot;
   firstWeekPlan?: FirstWeekPlan;
   transferTipCursor?: number;
-  /** Present if a Phase 2 program PR is merged; G7 does not own this field. */
-  programPhase?: number;
-  programStartDate?: string;
-  /** ISO time of last (re)calibration. Used by the v2 engine stale trigger. */
-  lastCalibrationAt?: string;
-  needsRecalibration?: boolean;
-  recalibrationSnoozedUntil?: string | null;
-  engineVersion?: number;
+  weeklyGoal?: { domain: string; startIso: string; target: number; progress: number };
+  seriesGoalDays?: number;
+  seriesGoalStartedAt?: string;
+  activeSession?: {
+    items: SessionItem[];
+    planItems: { exerciseId: string }[];
+    timeLeft: number;
+    startedAt: string;
+    domainDeltas: Record<string, number>;
+  };
 }
 
 export interface SkillIndex {

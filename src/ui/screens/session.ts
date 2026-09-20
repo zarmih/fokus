@@ -237,6 +237,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           if (mode === 'normal') {
             import('../../core/quests').then(q => {
               q.updateQuestProgress('blocks', 1);
+              if (manifest.domain) {
+                q.updateWeeklyGoalProgress(manifest.domain, 1);
+              }
               q.updateQuestProgress('accuracy', Math.round(res.accuracy * 100));
             }).catch(() => {});
           }
@@ -458,7 +461,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
 
     const finishedAt = new Date().toISOString();
-    const duration = Math.max(0, plannedDuration - timeLeft);
+    const duration = Math.max(0, sessionBudget - timeLeft);
     const s: Session = {
       id: Date.now().toString(),
       startedAt: sessionStartedAt,
@@ -467,7 +470,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       items: sessionResults,
       interrupted: false,
       endReason: sessionEndReason,
-      plannedDurationSec: plannedDuration
+      plannedDurationSec: sessionBudget
     };
     storage.addSession(s);
 
@@ -528,7 +531,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   };
 
   function persistAbandonedSession() {
-    const duration = Math.max(0, plannedDuration - timeLeft);
+    const duration = Math.max(0, sessionBudget - timeLeft);
     storage.addSession({
       id: Date.now().toString(),
       startedAt: sessionStartedAt,
@@ -537,7 +540,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       items: sessionResults,
       interrupted: true,
       endReason: 'abandoned',
-      plannedDurationSec: plannedDuration
+      plannedDurationSec: sessionBudget
     });
   }
 

@@ -1,25 +1,20 @@
-export type Color = 'Красный' | 'Синий' | 'Зеленый' | 'Желтый';
-
 export class VaultSpanEngine {
-  generatePuzzle(level: number): { solution: Color[], clues: string[] } {
-    const isHard = level > 4;
-    const colors: Color[] = isHard ? ['Красный', 'Синий', 'Зеленый', 'Желтый'] : ['Красный', 'Синий', 'Зеленый'];
-    const solution = [...colors].sort(() => Math.random() - 0.5);
-    let clues: string[] = [];
-    
-    if (!isHard) {
-      const [a, b, c] = solution;
-      const r = Math.floor(Math.random() * 3);
-      if (r === 0) clues = [`${a} левее ${b}`, `${b} левее ${c}`];
-      else if (r === 1) clues = [`${b} по центру`, `${a} левее ${c}`];
-      else clues = [`${c} правее ${b}`, `${b} правее ${a}`];
-    } else {
-      const [a, b, c, d] = solution;
-      const r = Math.floor(Math.random() * 2);
-      if (r === 0) clues = [`${a} первый слева`, `${d} крайний справа`, `${b} левее ${c}`];
-      else clues = [`${a} и ${d} по краям`, `${b} левее ${c}`, `${a} левее ${b}`]; // "по краям" means at 0 and 3. Since a left of b, a is at 0, d is at 3. b left of c means b is 1, c is 2.
+  startRound(params: { sequenceLength: number }): { sequence: number[] } {
+    const seq: number[] = [];
+    let prev = -1;
+    for (let i = 0; i < params.sequenceLength; i++) {
+      let next = Math.floor(Math.random() * 9);
+      while (next === prev) next = Math.floor(Math.random() * 9);
+      seq.push(next);
+      prev = next;
     }
-    
-    return { solution, clues: clues.sort(() => Math.random() - 0.5) };
+    return { sequence: seq };
+  }
+  submit(userSequence: number[], targetSequence: number[]): { accuracy: number } {
+    let correct = 0;
+    for (let i = 0; i < targetSequence.length; i++) {
+      if (userSequence[i] === targetSequence[i]) correct++;
+    }
+    return { accuracy: targetSequence.length ? correct / targetSequence.length : 0 };
   }
 }

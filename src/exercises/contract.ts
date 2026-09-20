@@ -25,7 +25,7 @@ export interface ExerciseManifest {
   name: string;
   domain: Domain;
   skills: CognitiveSkill[];
-  metricModel?: 'speed-accuracy' | 'memory-span' | 'timing-precision' | 'logic-correctness';
+  metricModel?: 'speed-accuracy' | 'memory-span' | 'timing-precision' | 'logic-correctness' | 'sequence-accuracy' | 'capacity';
   instruction: string;
 }
 

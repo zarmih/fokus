@@ -80,8 +80,70 @@ import vowelConsonantModule from './vowel-consonant';
 import arrowSwipeModule from './arrow-swipe';
 import shapeNameModule from './shape-name';
 import numberSeriesModule from './number-series';
-import emberLaneModule from './ember-lane';
+import rhythmTapModule from './rhythm-tap';
+import mirrorPickModule from './mirror-pick';
+import orderRecallModule from './order-recall';
+import trailMakeModule from './trail-make';
+import matrixCompleteModule from './matrix-complete';
+import pairBindModule from './pair-bind';
+import vigilProbeModule from './vigil-probe';
+import stackSpanModule from './stack-span';
+import ruleInduceModule from './rule-induce';
+import changeSpotModule from './change-spot';
+import tallyUpdateModule from './tally-update';
+import relationChainModule from './relation-chain';
+import pulseGapModule from './pulse-gap';
+import setShiftModule from './set-shift';
+import crowdProbeModule from './crowd-probe';
+import lagEchoModule from './lag-echo';
+import zoneGuardModule from './zone-guard';
+import signFlipModule from './sign-flip';
+import haloTraceModule from './halo-trace';
+import gateTapModule from './gate-tap';
+import dualLabelModule from './dual-label';
+import anchorDriftModule from './anchor-drift';
+import maskSpanModule from './mask-span';
+import cueBounceModule from './cue-bounce';
+import railChaseModule from './rail-chase';
+import shardHoldModule from './shard-hold';
+import flipAgendaModule from './flip-agenda';
+import orbitTapModule from './orbit-tap';
+import glyphStashModule from './glyph-stash';
+import axisSwapModule from './axis-swap';
+import flarePickModule from './flare-pick';
+import nestSpanModule from './nest-span';
+import tokenWarpModule from './token-warp';
+import sparkLaneModule from './spark-lane';
+import traySpanModule from './tray-span';
+import lensSwapModule from './lens-swap';
+import beaconSnapModule from './beacon-snap';
+import slotSpanModule from './slot-span';
+import prismFlipModule from './prism-flip';
+import waveLockModule from './wave-lock';
+import gridStashModule from './grid-stash';
+import rulePivotModule from './rule-pivot';
+import crestTapModule from './crest-tap';
+import pouchSpanModule from './pouch-span';
+import rubricFlipModule from './rubric-flip';
+import pulseRailModule from './pulse-rail';
 import vaultSpanModule from './vault-span';
+import frameSwapModule from './frame-swap';
+import cacheSpanModule from './cache-span';
+import beaconRailModule from './beacon-rail';
+import motifFlipModule from './motif-flip';
+import dominantColorModule from './dominant-color';
+import vowelCountModule from './vowel-count';
+import shapeEquationModule from './shape-equation';
+import colorCipherModule from './color-cipher';
+import memoryHoneycombModule from './memory-honeycomb';
+import globalLocalModule from './global-local';
+import timeEstimationModule from './time-estimation';
+import wordUnscrambleModule from './word-unscramble';
+import colorFrequencyModule from './color-frequency';
+import letterShiftModule from './letter-shift';
+import angleMatchModule from './angle-match';
+import colorBandModule from './color-band';
+import emberLaneModule from './ember-lane';
 import helixFlipModule from './helix-flip';
 import wordLengthSortModule from './word-length-sort';
 import targetShadeModule from './target-shade';
@@ -94,7 +156,6 @@ import azColorMatchModule from './az-color-match';
 import azShapeShiftModule from './az-shape-shift';
 import areaCompareModule from './area-compare';
 import hiddenRuleModule from './hidden-rule';
-import timeEstimationModule from './time-estimation';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -178,8 +239,70 @@ export const registry: ExerciseModule[] = [
   arrowSwipeModule,
   shapeNameModule,
   numberSeriesModule,
-  emberLaneModule,
+  rhythmTapModule,
+  mirrorPickModule,
+  orderRecallModule,
+  trailMakeModule,
+  matrixCompleteModule,
+  pairBindModule,
+  vigilProbeModule,
+  stackSpanModule,
+  ruleInduceModule,
+  changeSpotModule,
+  tallyUpdateModule,
+  relationChainModule,
+  pulseGapModule,
+  setShiftModule,
+  crowdProbeModule,
+  lagEchoModule,
+  zoneGuardModule,
+  signFlipModule,
+  haloTraceModule,
+  gateTapModule,
+  dualLabelModule,
+  anchorDriftModule,
+  maskSpanModule,
+  cueBounceModule,
+  railChaseModule,
+  shardHoldModule,
+  flipAgendaModule,
+  orbitTapModule,
+  glyphStashModule,
+  axisSwapModule,
+  flarePickModule,
+  nestSpanModule,
+  tokenWarpModule,
+  sparkLaneModule,
+  traySpanModule,
+  lensSwapModule,
+  beaconSnapModule,
+  slotSpanModule,
+  prismFlipModule,
+  waveLockModule,
+  gridStashModule,
+  rulePivotModule,
+  crestTapModule,
+  pouchSpanModule,
+  rubricFlipModule,
+  pulseRailModule,
   vaultSpanModule,
+  frameSwapModule,
+  cacheSpanModule,
+  beaconRailModule,
+  motifFlipModule,
+  dominantColorModule,
+  vowelCountModule,
+  shapeEquationModule,
+  colorCipherModule,
+  memoryHoneycombModule,
+  globalLocalModule,
+  timeEstimationModule,
+  wordUnscrambleModule,
+  colorFrequencyModule,
+  letterShiftModule,
+  angleMatchModule,
+  colorBandModule,
+  emberLaneModule,
   helixFlipModule,
   wordLengthSortModule,
   targetShadeModule,
@@ -191,6 +314,5 @@ export const registry: ExerciseModule[] = [
   azColorMatchModule,
   azShapeShiftModule,
   areaCompareModule,
-  hiddenRuleModule,
-  timeEstimationModule
+  hiddenRuleModule
 ];

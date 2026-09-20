@@ -42,7 +42,9 @@ export const DISCRIMINATION: Record<MetricModel, number> = {
   'memory-span': 1.35,
   'logic-correctness': 1.15,
   'speed-accuracy': 1.0,
-  'timing-precision': 0.85
+  'timing-precision': 0.85,
+  'sequence-accuracy': 1.0,
+  'capacity': 1.35
 };
 
 export const DEFAULT_ALPHA = 1.0;

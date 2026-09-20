@@ -1,138 +1,87 @@
-import { VaultSpanEngine, Color } from './engine';
-import { getVaultSpanParams } from './manifest';
-import { mountStage, tile3d } from '../stage';
+import { VaultSpanEngine } from './engine';
+import { manifest, getParams } from './manifest';
+import { mountStage } from '../stage';
 
-const COLOR_MAP: Record<Color, string> = {
-  'Красный': '#ef4444',
-  'Синий': '#3b82f6',
-  'Зеленый': '#10b981',
-  'Желтый': '#eab308'
-};
-
-export function renderVaultSpan(
+export function render(
   container: HTMLElement,
   level: number,
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
   const engine = new VaultSpanEngine();
-  const stage = mountStage(container, 'logic');
-  
-  let rounds = 0;
-  let correctCount = 0;
-  let totalRt = 0;
-  
-  let solution: Color[] = [];
-  let userAnswers: Color[] = [];
-  let roundStartTime = 0;
+  const stage = mountStage(container, 'memory');
+  let rounds = 0, totalAccuracy = 0, totalRt = 0;
+  let targetSeq: number[] = [];
+  let userSeq: number[] = [];
+  let isInputPhase = false;
+  let roundStart = 0;
 
-  const renderPuzzle = (clues: string[], availableColors: Color[]) => {
-    stage.setStatus('Взломай сейф');
+  stage.board.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; max-width:300px; margin:0 auto;">
+      ${Array.from({length: 9}).map((_, i) => `<button id="vs-cell-${i}" class="btn" style="height:80px; font-size:32px; border-radius:12px;"></button>`).join('')}
+    </div>
+  `;
+
+  const cells = Array.from({length: 9}).map((_, i) => stage.board.querySelector(`#vs-cell-${i}`) as HTMLButtonElement);
+
+  const showSequence = async (seq: number[]) => {
+    isInputPhase = false;
+    stage.setStatus('Запоминайте...');
+    cells.forEach(c => c.textContent = '');
     
-    // Slots for answers
-    const slotsHtml = solution.map((_, i) => {
-      const color = userAnswers[i];
-      const bg = color ? COLOR_MAP[color] : 'transparent';
-      const border = color ? 'none' : '2px dashed #475569';
-      return `<div style="width: 50px; height: 50px; border-radius: 50%; background: ${bg}; border: ${border}; display: inline-block; margin: 0 5px;"></div>`;
-    }).join('');
-
-    // Available buttons
-    const buttonsHtml = availableColors.map(color => {
-      const isUsed = userAnswers.includes(color);
-      return `<button id="btn-${color}" class="btn-secondary" style="margin: 5px; opacity: ${isUsed ? 0.3 : 1}" ${isUsed ? 'disabled' : ''}>
-        ${tile3d('', `<div style="width:20px;height:20px;border-radius:50%;background:${COLOR_MAP[color]};display:inline-block;vertical-align:middle;margin-right:8px;"></div>${color}`)}
-      </button>`;
-    }).join('');
-
-    const cluesHtml = clues.map(c => `<div style="padding: 8px; margin: 4px 0; background: #1e293b; border-radius: 8px; font-size: 16px;">${c}</div>`).join('');
-
-    stage.board.innerHTML = `
-      <div style="text-align: center;">
-        <div style="margin-bottom: 24px; min-height: 54px;">
-          ${slotsHtml}
-        </div>
-        <div style="margin-bottom: 30px; text-align: left; display: inline-block;">
-          ${cluesHtml}
-        </div>
-        <div>
-          ${buttonsHtml}
-        </div>
-        <div style="margin-top: 16px;">
-          <button id="btn-reset" class="btn-ghost" style="color: #94a3b8; font-size: 14px;">Сброс</button>
-        </div>
-      </div>
-    `;
-
-    availableColors.forEach(color => {
-      const btn = stage.board.querySelector(`#btn-${color}`) as HTMLButtonElement;
-      if (btn) {
-        btn.addEventListener('click', () => {
-          if (userAnswers.length < solution.length) {
-            userAnswers.push(color);
-            checkAnswer();
-          }
-        });
-      }
-    });
-
-    const resetBtn = stage.board.querySelector('#btn-reset');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        userAnswers = [];
-        renderPuzzle(clues, availableColors);
-      });
+    await new Promise(r => setTimeout(r, 500));
+    for (const idx of seq) {
+      cells[idx].textContent = '🪙';
+      cells[idx].style.background = 'var(--surface)';
+      await new Promise(r => setTimeout(r, 600));
+      cells[idx].textContent = '';
+      cells[idx].style.background = '';
+      await new Promise(r => setTimeout(r, 200));
     }
-  };
-
-  const checkAnswer = () => {
-    // Re-render to show updated slots and disabled buttons
-    const { clues } = currentPuzzle;
-    const availableColors = [...solution].sort((a, b) => a.localeCompare(b));
-    renderPuzzle(clues, availableColors);
-
-    if (userAnswers.length === solution.length) {
-      const isCorrect = userAnswers.every((ans, i) => ans === solution[i]);
-      if (isCorrect) {
-        correctCount++;
-        totalRt += (Date.now() - roundStartTime);
-        stage.pulse(true);
-      } else {
-        totalRt += 5000; // penalty
-        stage.pulse(false);
-      }
-      rounds++;
-      setTimeout(startRound, 1000);
-    }
-  };
-
-  let currentPuzzle: { solution: Color[], clues: string[] };
-
-  const startRound = () => {
-    if (isTimeUp()) {
-      finishBlock();
-      return;
-    }
-    userAnswers = [];
-    currentPuzzle = engine.generatePuzzle(level);
-    solution = currentPuzzle.solution;
-    const availableColors = [...solution].sort((a, b) => a.localeCompare(b));
     
-    roundStartTime = Date.now();
-    renderPuzzle(currentPuzzle.clues, availableColors);
+    stage.setStatus('Повторите!');
+    isInputPhase = true;
+    userSeq = [];
+    roundStart = Date.now();
   };
 
-  const finishBlock = () => {
+  const nextRound = () => {
+    if (isTimeUp()) return finish();
+    const params = getParams(level);
+    targetSeq = engine.startRound(params).sequence;
+    showSequence(targetSeq);
+  };
+
+  cells.forEach((cell, i) => {
+    cell.onclick = () => {
+      if (!isInputPhase) return;
+      userSeq.push(i);
+      cell.textContent = '🪙';
+      setTimeout(() => { cell.textContent = ''; }, 300);
+      
+      if (userSeq.length === targetSeq.length) {
+        isInputPhase = false;
+        const rt = Date.now() - roundStart;
+        const { accuracy } = engine.submit(userSeq, targetSeq);
+        rounds++;
+        totalAccuracy += accuracy;
+        totalRt += rt;
+        stage.pulse(accuracy === 1);
+        setTimeout(nextRound, 1000);
+      }
+    };
+  });
+
+  const finish = () => {
     stage.cleanup();
     onBlockEnd({
-      accuracy: rounds > 0 ? correctCount / rounds : 0,
-      avgRtMs: rounds > 0 ? totalRt / rounds : 0,
+      accuracy: rounds > 0 ? totalAccuracy / rounds : 0,
+      avgRtMs: totalRt / Math.max(1, rounds),
       rounds
     });
   };
 
-  startRound();
-  
+  nextRound();
   return () => {
     stage.cleanup();
   };

@@ -45,21 +45,29 @@ export function computeFokusIndex(domains: DomainIndex[]): FokusIndex {
   return { value, confidence, coverage, byDomain, trend };
 }
 
-export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: string): number | null {
+export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: string, daysAgo: number = 1): number | null {
   const today = excludeTodayIso?.slice(0, 10);
+  let targetDate = today;
+  if (today && daysAgo > 1) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - daysAgo + 1);
+    targetDate = d.toISOString().slice(0, 10);
+  }
+
   const withIndex = summaries
     .filter((s) => typeof s.fokusIndex === 'number' && s.fokusIndex > 0)
-    .filter((s) => !today || !s.date.startsWith(today));
+    .filter((s) => !today || s.date < (targetDate || today));
   if (withIndex.length === 0) return null;
   return withIndex[withIndex.length - 1].fokusIndex as number;
 }
 
-export function indexDelta(current: number, previous: number | null): { delta: number; label: string } {
+export function indexDelta(current: number, previous: number | null, daysAgo: number = 1): { delta: number; label: string } {
   if (previous === null || previous === 0) {
     return { delta: 0, label: 'базовая оценка' };
   }
   const delta = current - previous;
-  if (delta > 8) return { delta, label: `+${delta} к вчера` };
-  if (delta < -8) return { delta, label: `${delta} к вчера` };
-  return { delta, label: 'на уровне вчера' };
+  const labelSuffix = daysAgo === 7 ? 'к прошлой неделе' : 'к вчера';
+  if (delta > 8) return { delta, label: `+${delta} ${labelSuffix}` };
+  if (delta < -8) return { delta, label: `${delta} ${labelSuffix}` };
+  return { delta, label: `на уровне ${daysAgo === 7 ? 'прошлой недели' : 'вчера'}` };
 }

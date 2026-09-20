@@ -137,12 +137,11 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   storage.setProfile(p);
 
   for (let i = 0; i < 4; i++) {
-    const d = new Date(Date.now() - (4 - i) * 86400000);
-    const dateStr = d.toISOString().slice(0, 10);
+    const t = Date.now() - (4 - i) * 86400000;
     storage.addSession({
       id: `hard-${i}`,
-      startedAt: `${dateStr}T18:00:00.000Z`,
-      finishedAt: `${dateStr}T18:12:00.000Z`,
+      startedAt: new Date(t).toISOString(),
+      finishedAt: new Date(t + 12 * 60 * 1000).toISOString(),
       durationSec: 700,
       plannedDurationSec: 720,
       items: [
@@ -156,7 +155,7 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   const app = document.getElementById('app')!;
   renderToday(app);
   expect(app.textContent).toMatch(/Качество ритуала/);
-  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче|Мягкий возврат|короткий возврат/i);
+  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
   expect(app.textContent).toMatch(/5 минут/);
   expect(app.textContent).not.toMatch(/IQ/);
   expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
@@ -236,4 +235,24 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
   expect(app.textContent).not.toMatch(/Тренировка дня/);
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
+});
+
+test('today shows offline fallback when offline', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+  
+  const originalOnLine = navigator.onLine;
+  Object.defineProperty(navigator, 'onLine', { configurable: true, value: false });
+  
+  try {
+    const app = document.getElementById('app')!;
+    renderToday(app);
+    expect(app.textContent).toMatch(/Офлайн/);
+    expect(app.textContent).toMatch(/Нет подключения/);
+    expect(app.querySelector('#btn-retry')).toBeTruthy();
+  } finally {
+    Object.defineProperty(navigator, 'onLine', { configurable: true, value: originalOnLine });
+  }
 });

@@ -23,18 +23,18 @@ export function calculateNormalizedPerformance(
   avgRtMs: number, 
   targetMs: number, 
   difficulty: number,
-  model: 'speed-accuracy' | 'memory-span' | 'timing-precision' | 'logic-correctness' = 'speed-accuracy'
+  model: 'speed-accuracy' | 'memory-span' | 'timing-precision' | 'logic-correctness' | 'sequence-accuracy' | 'capacity' = 'speed-accuracy'
 ): number {
   if (accuracy === 0) return 0;
   
   let rawPerformance = 0;
   const diffMultiplier = 1 + (difficulty - 1) * 0.15;
   
-  if (model === 'speed-accuracy') {
+  if (model === 'speed-accuracy' || model === 'sequence-accuracy') {
     // Both speed and accuracy matter
     const speedFactor = avgRtMs > 0 ? Math.max(0.7, Math.min(1.2, targetMs / avgRtMs)) : 1.0;
     rawPerformance = accuracy * 100 * speedFactor * diffMultiplier * 5;
-  } else if (model === 'memory-span') {
+  } else if (model === 'memory-span' || model === 'capacity') {
     // Memory: speed is much less relevant. Accuracy and difficulty (which implies span length) matter most.
     rawPerformance = accuracy * 100 * diffMultiplier * 5.5; // Slightly higher base weight since speed doesn't boost it
   } else if (model === 'timing-precision') {
