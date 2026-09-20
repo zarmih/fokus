@@ -8,11 +8,6 @@ import { DOMAIN_IDS } from '../../core/engine/constants';
 import { domainLabel } from '../../core/labels';
 import type { DomainId } from '../../core/engine/types';
 
-/**
- * Personal plan screen. Lives on main even if Phase 2 program PRs are not
- * merged: it reads optional profile.programDay / programWeek when present
- * and otherwise derives a week-from-start from day summaries.
- */
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
   const profile = storage.getProfile();
@@ -61,6 +56,21 @@ export function renderProgram(container: HTMLElement) {
     `;
   }).join('');
 
+  const focusDomainsText = plan.focusDomains && plan.focusDomains.length > 0
+    ? plan.focusDomains.map(d => domainLabel(d as DomainId)).join(' и ')
+    : '';
+
+  const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3);
+
+  let coachMessage = 'Оптимальная сложность для поддержания формы и тонуса. Слоты: повторение, слот дня, новый стимул.';
+  if (focusDomainsText) {
+    if (isSparse) {
+      coachMessage = `Фокус на: ${focusDomainsText}. Идёт сбор данных — пока мы калибруем вашу форму, предлагаем сбалансированные нагрузки.`;
+    } else {
+      coachMessage = `Фокус на: ${focusDomainsText}. Мы сделали акцент на ваших зонах роста, чтобы тренировка дала максимальный эффект.`;
+    }
+  }
+
   let hero = '';
   if (!profile.calibrated) {
     hero = `
@@ -97,7 +107,7 @@ export function renderProgram(container: HTMLElement) {
       <div class="workout-card">
         <div class="workout-kicker">Тренировочная неделя ${weekIndex} · День ${dayIndex}/7</div>
         <h3>${Math.round((profile.sessionLengthSec || 900) / 60)} минут · Персональный ритуал</h3>
-        <p class="muted">Регулярность важнее марафонов. Слоты подобраны в зоне оптимальной трудности для честного прогресса.</p>
+        <p class="muted coach-rationale">${coachMessage}</p>
         <button id="btn-program-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
