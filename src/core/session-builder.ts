@@ -22,11 +22,6 @@ export interface TrainingPlan {
   source?: 'engine' | 'legacy';
 }
 
-/**
- * Engine v2 planner with a silent fallback to the heuristic builder.
- * Phase 2 program screens can call this even if those PRs are not merged:
- * Today / Session already consume the same shape.
- */
 export function buildAdaptivePlan(params: AdaptivePlanParams): AdaptivePlan {
   return engineBuildAdaptivePlan(params, (p) =>
     buildTrainingPlan({
@@ -47,7 +42,6 @@ export function buildTrainingPlan(params: {
   skills: SkillIndex[];
   states: ExerciseState[];
   primaryGoal?: string;
-  /** Optional weekly focus domain. Omitted or null is a no-op. */
   focusOfTheWeek?: string | null;
 }): TrainingPlan {
   const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek } = params;
@@ -96,7 +90,7 @@ export function buildTrainingPlan(params: {
         const sIdx = skills.find(s => s.skill === skillId);
         if (sIdx) {
           if (sIdx.value < 500) {
-            skillNeed += (500 - sIdx.value) / 25; // max 20 points
+            skillNeed += (500 - sIdx.value) / 25;
           } else if (sIdx.value > 850 && sIdx.confidence > 70) {
             maintenance += 10;
           }
@@ -125,7 +119,7 @@ export function buildTrainingPlan(params: {
         }
         
         if ((state.consecutivePlateau || 0) >= 3) {
-          plateauPenalty = 30; // Encourage breaking plateau by doing a different exercise
+          plateauPenalty = 30;
         }
       } else {
         novelty = 20;
@@ -140,11 +134,16 @@ export function buildTrainingPlan(params: {
         repetitionPenalty += 1000;
       }
 
-      // Calculate score and generate trace
       const score = goalAlignment + weaknessPriority + weeklyFocus + skillNeed + neglected + novelty + maintenance - repetitionPenalty - plateauPenalty + sessionBalance;
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
       
+      const domainStates = states.filter(s => {
+        const m = catalog.find(c => c.manifest.id === s.exerciseId);
+        return m && m.manifest.domain === manifest.domain;
+      });
+      const isSparse = domainStates.length < 3;
+
       let reason = 'Сбалансированная тренировка';
       if (maintenance > 0 && skillNeed < 5) {
         reason = `Поддержание освоенного навыка`;
@@ -153,11 +152,11 @@ export function buildTrainingPlan(params: {
       } else if (neglected > 0) {
         reason = `Забытый навык`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Ваша цель и зона роста`;
+        reason = isSparse ? `Ваша цель (идёт сбор данных)` : `Ваша цель и зона роста`;
       } else if (goalAlignment > 0) {
         reason = `Работа над вашей целью`;
       } else if (weaknessPriority > 0) {
-        reason = `Укрепление слабой области`;
+        reason = isSparse ? `Калибровка области (мало данных)` : `Укрепление слабой области`;
       } else if (weeklyFocus > 0) {
         reason = `Фокус недели`;
       } else if (skillNeed > 10) {
@@ -177,14 +176,10 @@ export function buildTrainingPlan(params: {
 
     scoredCandidates.sort((a, b) => b.score - a.score);
 
-    // Controlled exploration: 10% chance to pick the 2nd best option if it's within 15 points
     let chosen = scoredCandidates[0];
     if (scoredCandidates.length > 1 && Math.random() < 0.1 && (scoredCandidates[0].score - scoredCandidates[1].score) < 15) {
       chosen = scoredCandidates[1];
     }
-
-    // Pass the trace directly to the item reason in debug mode (disabled for normal UI, logged to console)
-    // console.debug(`[Recommender] Selected ${chosen.exerciseId}: ${chosen.trace}`);
     
     items.push({ exerciseId: chosen.exerciseId, reason: chosen.reason });
     selectedExerciseIds.add(chosen.exerciseId);
@@ -194,7 +189,6 @@ export function buildTrainingPlan(params: {
   return { focusDomains: Array.from(focusDomains), items };
 }
 
-// Keep old signature for backward compatibility with tests
 export function buildSession(params: {
   durationSec: number, 
   catalog: any[], 
