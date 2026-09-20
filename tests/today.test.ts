@@ -1,7 +1,10 @@
-import { expect, test, beforeEach } from 'vitest';
+import { expect, test, beforeEach, vi } from 'vitest';
 import { renderToday } from '../src/ui/screens/today';
 import { storage } from '../src/core/storage';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from '../src/core/streak';
+import * as catalogModule from '../src/exercises/catalog';
+import * as recoveryModule from '../src/core/recovery';
+import * as depthModule from '../src/core/adaptive-depth';
 
 class MockStorage {
   data: Record<string, string> = {};
@@ -109,8 +112,8 @@ test('today shows Fokus Index and workout after calibration', () => {
   renderToday(app);
   expect(app.textContent).toMatch(/Михаил/);
   expect(app.textContent).toMatch(/Fokus Index/);
-  expect(app.textContent).toMatch(/Дневной ритуал/);
-  expect(app.textContent).toMatch(/Начать ритуал/);
+  expect(app.textContent).toMatch(/Тренировка дня|Дневной ритуал/);
+  expect(app.textContent).toMatch(/Начать сессию|Начать ритуал/);
   expect(app.textContent).not.toMatch(/Качество ритуала/);
   expect(app.textContent).not.toMatch(/балл мозга/i);
   expect(app.textContent).toMatch(/Непрерывность/);
@@ -235,6 +238,69 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
   expect(app.textContent).not.toMatch(/Дневной ритуал/);
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
+});
+
+test('today shows loading state if catalog is empty', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+
+  const spy = vi.spyOn(catalogModule, 'catalog', 'get').mockReturnValue([]);
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  
+  spy.mockRestore();
+
+  expect(app.textContent).toMatch(/Загрузка/);
+  expect(app.textContent).toMatch(/Собираем план/);
+});
+
+test('today shows no-plan state if plan is empty', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+
+  const spy = vi.spyOn(recoveryModule, 'planWithRecovery').mockReturnValue({
+    plan: { items: [], focusDomains: [] },
+    snapshot: { gate: { active: false }, qualities: [] } as any,
+    recalibration: { needed: false, snoozed: false, reasons: [], summary: '', probe: [] }
+  });
+  
+  const spyDepth = vi.spyOn(depthModule, 'describeAdaptiveDepth').mockReturnValue({
+    trajectory: { label: '', summary: '', domain: null, enough: false } as any,
+    chip: null, why: null, ritual: null
+  });
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+
+  spy.mockRestore();
+  spyDepth.mockRestore();
+
+  expect(app.textContent).toMatch(/Отдых/);
+  expect(app.textContent).toMatch(/Сессия недоступна/);
+});
+
+test('today shows error state if plan builder throws', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+
+  const spy = vi.spyOn(recoveryModule, 'planWithRecovery').mockImplementation(() => {
+    throw new Error('Mock error');
+  });
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+  
+  spy.mockRestore();
+
+  expect(app.textContent).toMatch(/Ошибка/);
+  expect(app.textContent).toMatch(/Что-то пошло не так/);
 });
 
 test('today shows offline fallback when offline', () => {

@@ -66,10 +66,10 @@ test('empty history is honest: no fake index, supportive tip', () => {
   expect(intel.days.every((d) => d.fokusIndex === null && !d.played)).toBe(true);
   expect(intel.sparkline.points.every((p) => p.value === null)).toBe(true);
   expect(intel.sparkline.delta).toBe(null);
-  expect(intel.sparkline.deltaLabel).toBe('накапливаем данные');
+  expect(intel.sparkline.deltaLabel).toBe('мало данных');
   expect(intel.personalBest).toBe(null);
-  expect(intel.tips).toHaveLength(1);
-  expect(intel.tips[0].title).toMatch(/собирать/i);
+  // Honest empty: no supportive tips until there is real history
+  expect(intel.tips).toHaveLength(0);
   expect(intel.milestones.every((m) => !m.reached)).toBe(true);
   expect(intel.adherence.playedDays).toBe(0);
 });
