@@ -1550,7 +1550,28 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       instruction: 'Сортируйте фигуру влево или вправо. Правило (цвет или форма) неизвестно и периодически меняется.',
       metricModel: 'speed-accuracy'
     }
+  },
+{
+    manifest: {
+      id: 'ember-lane',
+      name: 'Угольная Тропа',
+      domain: 'memory',
+      skills: ['working_memory', 'spatial_memory'] as ExerciseManifest['skills'],
+      metricModel: 'memory-span',
+      instruction: 'Запомни последовательность вспыхивающих угольков и повтори её.'
+    }
+  },
+{
+    manifest: {
+      id: 'helix-flip',
+      name: 'Вращение Правил',
+      domain: 'flexibility',
+      skills: ['cognitive_flexibility', 'rule_switching', 'reaction_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Сравни две фигуры по текущему правилу (Цвет или Форма). Правило может внезапно измениться!'
+    }
   }
+
 ];
 export function getManifest(id: string): ExerciseManifest | undefined {
   return catalog.find((c) => c.manifest.id === id)?.manifest;
