@@ -25,19 +25,6 @@ export interface ComposeRitualParams {
   rng?: () => number;
 }
 
-/**
- * Compose the daily ritual.
- *
- * Pipeline:
- *  1. Decide how many blocks the ~15m (or shorter) session holds.
- *  2. Lay out overdue / due / fresh slots.
- *  3. For each slot, score the catalog with IRT information, spacing
- *     urgency, domain need, and goal alignment — then pick a winner
- *     that respects domain diversity.
- *
- * Falls through slot kinds if the catalog has no matching card
- * (overdue → due → fresh) so a brand-new profile still gets a plan.
- */
 export function composeRitual(params: ComposeRitualParams): RitualPlan {
   const rng = params.rng || Math.random;
   const goal = params.primaryGoal || 'balance';
@@ -162,7 +149,8 @@ function scoreCatalog(params: ComposeRitualParams & {
       novelty,
       plateau,
       goal,
-      itemDomain: item.domain
+      itemDomain: item.domain,
+      conf
     });
 
     const trace = `I:${info.toFixed(2)} Urg:${urgency(spacing, nowMs).toFixed(2)} Need:${need.toFixed(2)} Slot:${slotMatch} Goal:${goalPts} Div:${diversity} Rep:${repeat} Plat:${plateau} Nov:${novelty} = ${score.toFixed(1)}`;
@@ -189,13 +177,25 @@ function reasonFor(args: {
   plateau: number;
   goal: string;
   itemDomain: DomainId;
+  conf: number;
 }): string {
+  const isSparse = args.conf < 0.4;
   if (args.plateau < 0) return 'Смена контекста для прорыва';
   if (args.wantedSlot === 'overdue' || args.slot === 'overdue') return SLOT_REASON.overdue;
-  if (args.novelty > 0 && args.wantedSlot === 'fresh') return SLOT_REASON.fresh;
-  if (args.goalPts > 0 && args.need > 0.6) return 'Ваша цель и зона роста';
+  
+  if (args.goalPts > 0 && args.need > 0.6) {
+    if (isSparse) return 'Ваша цель (идёт сбор данных)';
+    return 'Ваша цель и зона роста';
+  }
+  
   if (args.goalPts > 0) return 'Работа над вашей целью';
-  if (args.need > 0.7) return 'Укрепление слабой области';
+  
+  if (args.need > 0.7) {
+    if (isSparse) return 'Калибровка области (мало данных)';
+    return 'Укрепление слабой области';
+  }
+
+  if (args.novelty > 0 && args.wantedSlot === 'fresh') return SLOT_REASON.fresh;
   if (args.wantedSlot === 'due' || args.slot === 'due') return SLOT_REASON.due;
   if (args.novelty > 0) return SLOT_REASON.fresh;
   return 'Сбалансированная тренировка';

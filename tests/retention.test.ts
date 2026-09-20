@@ -224,7 +224,7 @@ describe('assessRetention — session fatigue', () => {
     const fatigue = snap.signals.find((s) => s.id === 'session_fatigue')!;
     expect(fatigue.score).toBeGreaterThanOrEqual(55);
     expect(snap.primaryNudge?.kind).toBe('rest');
-    expect(snap.primaryNudge?.body).toMatch(/завтра/i);
+    expect(snap.primaryNudge?.body).toMatch(/отдых/i);
   });
 
   test('fatigue is zero when the user has not played today', () => {
