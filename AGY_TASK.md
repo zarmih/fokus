@@ -1,16 +1,31 @@
-# AGY_TASK — Автопилот Wave X1
-Ты руки Fokus. Worktree: `/workspace/developer/github/fokus-wt/A1`. Ветка уже feature/agy-wave-X1 от origin/main. Игнорируй Eligibility. Без подтверждений. agy 1.1.1. Прочитай задачу ниже и выполни до конца (commit + gh pr create).
+# AGY_TASK — Wave AA / Zone AA3 — Quests / achievements
+Ты руки Fokus. Worktree: `/workspace/developer/github/fokus-wt/A3`. Ветка уже `feature/agy-wave-AA3` от origin/main (387f9ca). Игнорируй Eligibility. Без подтверждений. agy 1.1.1. Прочитай задачу и выполни до конца (commit + push + gh pr create).
 
-## Зона X1 — Exercises Batch EE
-Сделай ровно **3** новые качественные, реально играбельные игры для тренировки разных когнитивных навыков. Придумай уникальные kebab-case id, не повторяющие существующие. Каждая игра должна соответствовать текущему контракту exercise loader/engine/view, иметь корректные состояния раундов, scoring/difficulty, restart/finish, понятные русские инструкции и доступные controls. Это должны быть самостоятельные brain-training механики с осмысленной адаптацией, а не косметические варианты уже имеющихся игр.
+## Wave AA · Zone AA3 — Quests / achievements
+**Goal:** усилить quests + achievements: осмысленный прогресс, без переписывания progress/index (это Wave Z3).
 
-Сначала проверь текущий `registry.ts` и существующие упражнения, чтобы не повторяться; добавь новые записи в registry.ts. Разрешены только файлы новых упражнений, `registry.ts` и относящиеся к ним тесты. Строго запрещены catalog UI, today, result, settings, navigation, coach, service worker, onboarding и stats; не меняй другие зоны. `session.ts` запрещён.
+### ALLOWED paths (STRICT)
+- `src/core/quests.ts`
+- `src/core/achievements.ts`
+- related UI только если уже есть dedicated surface для quests/achievements
+- иначе: core + small progress hooks без rewrite `src/ui/screens/progress.ts` / fokus-index
+- тесты для вышеуказанного
 
-## Общие правила
-- Работай автономно, без вопросов и подтверждений. Игнорируй Eligibility.
-- Используй agy 1.1.1. Сначала изучи существующие архитектуру, стиль, тесты и соседние экраны, затем внеси законченное production-quality изменение.
-- Интерфейс, тексты, aria-label и сообщения об ошибках — на русском; не добавляй фальшивые метрики или обещания улучшения мозга.
-- Делай UX уровня лучшего brain-trainer: понятная цель, прогресс, обратная связь, клавиатура, touch, responsive, reduced-motion и доступность. Не копируй Wikium, Elevate, Lumosity, Peak или NeuroNation.
-- Соблюдай строго свою зону и не редактируй запрещённые зоны. Не меняй session.ts ни при каких обстоятельствах.
-- Не коммить AGY_TASK.md. Сделай ровно один чистый commit со всеми изменениями своей задачи. Перед commit запусти npm test и npm run build; исправь ошибки. Затем создай PR из своей ветки через gh pr create. В заголовке PR обязательно есть «Не мержить без ревью».
-- Не мержи PR. Не трогай чужие ветки, PR или worktrees.
+### FORBIDDEN paths
+- AA1 exercises/registry
+- AA2 onboarding
+- AA4 duel
+- AA5 PWA/offline
+- AA6 session a11y
+- Не переписывать `src/ui/screens/progress.ts`, `src/core/fokus-index.ts`, weekly-review (Z3)
+- Do NOT merge PRs
+
+## Success criteria
+1. Quests/achievements ощутимо полезнее для retention/progress feedback.
+2. `npm test` + `npm run build` green.
+3. One clean commit (no AGY_TASK.md). Push `feature/agy-wave-AA3`.
+4. `gh pr create` title `AA3: …`. Body: «Не мержить без ревью».
+5. Quota → STOP, no refill.
+
+## Rules
+Autonomous. Russian UI. Stay in zone. Never merge.

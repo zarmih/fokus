@@ -1,23 +1,28 @@
 import { storage } from './storage';
 
+export type QuestType = 'blocks' | 'accuracy' | 'score' | 'diversity' | 'perfect';
+
 export interface Quest {
   id: string;
   title: string;
   description: string;
-  type: 'blocks' | 'accuracy' | 'score';
+  type: QuestType;
   target: number;
   progress: number;
   completed: boolean;
+  xpReward: number;
 }
 
-export const QUEST_XP = 50;
-
-const QUEST_POOL = [
-  { id: 'q1', type: 'blocks', target: 5, title: 'Марафонец', description: 'Завершите 5 блоков за день' },
-  { id: 'q2', type: 'accuracy', target: 90, title: 'Снайпер', description: 'Достигните точности 90% в любом блоке' },
-  { id: 'q3', type: 'score', target: 500, title: 'Рекордсмен', description: 'Наберите суммарно 500 очков за день' },
-  { id: 'q4', type: 'blocks', target: 3, title: 'Разминка', description: 'Завершите 3 блока без пропусков' },
-  { id: 'q5', type: 'accuracy', target: 80, title: 'Точность', description: 'Наберите 80% точности в любом блоке' }
+const QUEST_POOL: Omit<Quest, 'progress' | 'completed'>[] = [
+  { id: 'q1', type: 'blocks', target: 5, title: 'Марафонец', description: 'Завершите 5 блоков за день', xpReward: 50 },
+  { id: 'q2', type: 'accuracy', target: 90, title: 'Снайпер', description: 'Достигните точности 90% в любом блоке', xpReward: 50 },
+  { id: 'q3', type: 'score', target: 500, title: 'Рекордсмен', description: 'Наберите суммарно 500 очков за день', xpReward: 75 },
+  { id: 'q4', type: 'blocks', target: 3, title: 'Разминка', description: 'Завершите 3 блока', xpReward: 30 },
+  { id: 'q5', type: 'accuracy', target: 80, title: 'Точность', description: 'Наберите 80% точности в любом блоке', xpReward: 30 },
+  { id: 'q6', type: 'diversity', target: 3, title: 'Разносторонний', description: 'Сыграйте в 3 разные игры', xpReward: 100 },
+  { id: 'q7', type: 'perfect', target: 1, title: 'Безупречность', description: 'Завершите блок со 100% точностью', xpReward: 100 },
+  { id: 'q8', type: 'score', target: 1000, title: 'Чемпион', description: 'Наберите суммарно 1000 очков за день', xpReward: 150 },
+  { id: 'q9', type: 'blocks', target: 10, title: 'Неутомимый', description: 'Завершите 10 блоков за день', xpReward: 200 }
 ];
 
 function getTodayStr() {
@@ -29,7 +34,7 @@ export function getDailyQuests(): Quest[] {
   if (!p.quests || p.questsDate !== getTodayStr()) {
     // Generate new quests
     const shuffled = [...QUEST_POOL].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 2).map(q => ({
+    const selected = shuffled.slice(0, 3).map(q => ({
       ...q,
       progress: 0,
       completed: false
@@ -38,18 +43,82 @@ export function getDailyQuests(): Quest[] {
     p.questsDate = getTodayStr();
     storage.setProfile(p);
   }
-  return p.quests as Quest[];
+
+  // Auto-sync progress based on today's sessions
+  syncQuestsProgress();
+
+  return storage.getProfile().quests as Quest[];
 }
 
-export function updateQuestProgress(type: 'blocks' | 'accuracy' | 'score', value: number) {
+function syncQuestsProgress() {
+  const p = storage.getProfile();
+  if (!p.quests || p.questsDate !== getTodayStr()) return;
+
+  const today = getTodayStr();
+  const todaySessions = storage.getSessions().filter(s => s.startedAt.startsWith(today));
+  
+  let changed = false;
+  let xpGain = 0;
+  
+  let totalBlocks = 0;
+  let maxAccuracy = 0;
+  let totalScore = 0;
+  const uniqueGames = new Set<string>();
+  let perfectBlocks = 0;
+
+  todaySessions.forEach(s => {
+    totalBlocks += s.items.length;
+    s.items.forEach(i => {
+      uniqueGames.add(i.exerciseId);
+      const acc = Math.round(i.accuracy * 100);
+      if (acc > maxAccuracy) maxAccuracy = acc;
+      if (acc === 100) perfectBlocks++;
+      totalScore += i.score;
+    });
+  });
+
+  p.quests.forEach((q: Quest) => {
+    if (q.completed) return;
+
+    let newProgress = q.progress;
+    
+    switch (q.type) {
+      case 'blocks': newProgress = Math.max(newProgress, totalBlocks); break;
+      case 'accuracy': newProgress = Math.max(newProgress, maxAccuracy); break;
+      case 'score': newProgress = Math.max(newProgress, totalScore); break;
+      case 'diversity': newProgress = Math.max(newProgress, uniqueGames.size); break;
+      case 'perfect': newProgress = Math.max(newProgress, perfectBlocks); break;
+    }
+
+    if (newProgress > q.progress) {
+      q.progress = newProgress;
+      changed = true;
+    }
+
+    if (q.progress >= q.target && !q.completed) {
+      q.progress = q.target;
+      q.completed = true;
+      changed = true;
+      xpGain += q.xpReward || 50;
+    }
+  });
+
+  if (changed) {
+    if (xpGain > 0) p.xp = (p.xp || 0) + xpGain;
+    storage.setProfile(p);
+  }
+}
+
+export function updateQuestProgress(type: string, value: number) {
   const p = storage.getProfile();
   if (!p.quests || p.questsDate !== getTodayStr()) return;
 
   let changed = false;
   let xpGain = 0;
   p.quests.forEach((q: Quest) => {
-    if (q.type === type && !q.completed) {
-      const wasComplete = q.completed;
+    if (q.completed) return;
+
+    if (q.type === type) {
       if (type === 'accuracy') {
         if (value >= q.target) {
           q.progress = q.target;
@@ -64,9 +133,17 @@ export function updateQuestProgress(type: 'blocks' | 'accuracy' | 'score', value
         }
         changed = true;
       }
-      if (q.completed && !wasComplete) {
-        xpGain += QUEST_XP;
-      }
+    } else if (q.type === 'perfect' && type === 'accuracy' && value === 100) {
+       q.progress += 1;
+       if (q.progress >= q.target) {
+           q.progress = q.target;
+           q.completed = true;
+       }
+       changed = true;
+    }
+    
+    if (q.completed && changed) {
+      xpGain += (q.xpReward || 50);
     }
   });
 
@@ -74,6 +151,9 @@ export function updateQuestProgress(type: 'blocks' | 'accuracy' | 'score', value
     if (xpGain > 0) p.xp = (p.xp || 0) + xpGain;
     storage.setProfile(p);
   }
+  
+  // also run a full sync just in case
+  syncQuestsProgress();
 }
 
 export function getWeeklyGoal() {
@@ -89,7 +169,7 @@ export function getWeeklyGoal() {
     p.weeklyGoal = {
       domain: weakDomain,
       startIso: weekStartStr,
-      target: 10,
+      target: 15, // Made slightly harder for better progression
       progress: 0
     };
     storage.setProfile(p);
@@ -115,3 +195,4 @@ export function updateWeeklyGoalProgress(domain: string, blocks: number) {
     }
   }
 }
+
