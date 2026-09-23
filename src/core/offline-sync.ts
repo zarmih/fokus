@@ -713,9 +713,11 @@ export class SyncQueue extends EventTarget {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(snapshot)
-      }).catch(() => ({ ok: true })); // fallback if not intercepted
+      }).catch(() => null); // network error -> null
       
-      if (res.ok) {
+      const success = res !== null;
+      
+      if (success) {
         this.queue = this.queue.slice(snapshot.length);
         this.saveQueue();
         this.setState(this.queue.length > 0 ? 'queued' : 'online');
