@@ -388,7 +388,7 @@ const DOMAIN_TIPS: Record<string, string[]> = {
 export function getWeeklyDomainTips(domainId: string): string[] {
   return DOMAIN_TIPS[domainId] || [
     'Регулярность важнее интенсивности. Короткие тренировки работают лучше долгих марафонов.',
-    'Качественный сон — лучшее, что можно сделать для закрепления навыка. Это не диагноз, а корреляция.'
+    'Качественный сон — лучшее, что можно сделать для закрепления навыка.'
   ];
 }
 
@@ -426,14 +426,14 @@ function buildTips(
     tips.push({
       kind: 'milestone',
       title: `${justHit.days} дней подряд`,
-      body: 'Регулярность важнее интенсивности: короткая сессия каждый день сильнее редких длинных.',
+      body: 'Регулярность важнее интенсивности. Короткая сессия каждый день полезнее редких марафонов.',
       tone: 'habit'
     });
   } else if (adherence.currentStreak >= 7 && !adherence.comeback) {
     tips.push({
       kind: 'streak',
       title: `${adherence.currentStreak} дней подряд`,
-      body: 'Серия на месте. Fokus уже умеет прощать один пропуск — не разменивайте ритм на марафон.',
+      body: 'Серия на месте. Fokus прощает один пропуск — не стоит разменивать ритм на усталость.',
       tone: 'habit'
     });
   }
@@ -442,7 +442,7 @@ function buildTips(
     tips.push({
       kind: 'best',
       title: 'Личный рекорд Fokus Index',
-      body: `${personalBest.value} — лучшая оценка за ${sparkline.window} дней. Форма плавает день ото дня: рекорд это отметка, не цель.`,
+      body: `${personalBest.value} — лучшая оценка за ${sparkline.window} дней. Оценки плавают день ото дня, это нормально.`,
       tone: 'science'
     });
   }
@@ -453,7 +453,7 @@ function buildTips(
     const lead =
       spread >= 40
         ? `«${domainLabel(weak.id)}» пока слабее остальных.`
-        : `Самый тихий домен сейчас — «${domainLabel(weak.id)}».`;
+        : `Сейчас фокус на «${domainLabel(weak.id)}».`;
     tips.push({
       kind: 'domain',
       title: `Зона роста · ${domainLabel(weak.id)}`,
@@ -467,21 +467,21 @@ function buildTips(
     tips.push({
       kind: 'adherence',
       title: 'Ритм важнее серии',
-      body: `${adherence.playedDays} из ${adherence.window} дней. Пять минут сегодня закрепят привычку сильнее, чем час раз в неделю.`,
+      body: `${adherence.playedDays} из ${adherence.window} дней. Пять минут сегодня закрепят привычку лучше, чем час раз в неделю.`,
       tone: 'recovery'
     });
   } else if (adherence.playedDays >= 5 && adherence.window === 14) {
     tips.push({
       kind: 'adherence',
       title: 'Привычка держится',
-      body: `${adherence.playedDays} тренировок за ${adherence.window} дней. Когнитивные навыки растут от регулярности, не от марафонов.`,
+      body: `${adherence.playedDays} тренировок за ${adherence.window} дней. Навыки растут от регулярности, не от марафонов.`,
       tone: 'habit'
     });
   } else if (adherence.playedDays >= 10 && adherence.window === 30) {
     tips.push({
       kind: 'adherence',
       title: 'Привычка держится',
-      body: `${adherence.playedDays} тренировок за 30 дней. Перенос в жизнь скромный — зато привычка внимания остаётся.`,
+      body: `${adherence.playedDays} тренировок за 30 дней. Привычка держать внимание постепенно переносится в жизнь.`,
       tone: 'habit'
     });
   }
@@ -489,8 +489,8 @@ function buildTips(
   if (adherence.forgivenSkips > 0 && adherence.currentStreak > 0 && tips.every((t) => t.kind !== 'comeback')) {
     tips.push({
       kind: 'adherence',
-      title: 'Пропуск уже учтён',
-      body: 'Один пропущенный день Fokus прощает, серия остаётся. Сегодняшний короткий блок важнее вчерашнего долга.',
+      title: 'Пропуск учтён',
+      body: 'Один пропуск Fokus прощает, серия остаётся. Сегодняшний короткий блок важнее вчерашнего долга.',
       tone: 'recovery'
     });
   }
@@ -499,7 +499,7 @@ function buildTips(
     tips.push({
       kind: 'science',
       title: 'Короткий ритуал',
-      body: 'Тренируем конкретные задачи. Перенос в жизнь скромный — зато привычка внимания остаётся.',
+      body: 'Тренируем конкретные задачи. Привычка держать внимание постепенно переносится в жизнь.',
       tone: 'science'
     });
   }
