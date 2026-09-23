@@ -15,7 +15,6 @@ export function nextStreak(prevDateStr: string | null, prevStreak: number, today
 
   if (diffDays === 0) return {streak: prevStreak, skipped: false};
   if (diffDays === 1) return {streak: prevStreak + 1, skipped: false};
-  if (diffDays === 2) return {streak: prevStreak + 1, skipped: true};
   return {streak: 1, skipped: false};
 }
 

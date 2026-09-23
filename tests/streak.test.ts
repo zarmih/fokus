@@ -30,8 +30,8 @@ test('streak: next day', () => {
 
 test('streak: skip 1 day', () => {
   const {streak, skipped} = nextStreak('2026-09-03T08:00:00Z', 3, '2026-09-05T10:00:00Z');
-  expect(streak).toBe(4);
-  expect(skipped).toBe(true);
+  expect(streak).toBe(1);
+  expect(skipped).toBe(false);
 });
 
 test('streak: skip > 1 day', () => {

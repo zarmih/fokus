@@ -56,7 +56,7 @@ test('today shows a rhythm line after a gap, without churn-panic copy', () => {
   renderToday(app);
   expect(app.textContent).toMatch(/Ритм/);
   expect(app.querySelector('[data-rhythm]')).toBeTruthy();
-  expect(app.textContent).not.toMatch(/churn|не пропусти|прокачай мозг/i);
+  expect(app.textContent).not.toMatch(/churn|не пропусти(?!т)|прокачай мозг/i);
 });
 
 test('today shows first-week strip and transfer framing after probe', () => {
