@@ -21,6 +21,8 @@ export type InsightKind =
   | 'session_mix'
   | 'session_complete'
   | 'session_incomplete'
+  | 'session_fatigue'
+  | 'session_warmup'
   | 'week_completion'
   | 'week_mix'
   | 'week_accuracy'
@@ -197,8 +199,8 @@ export function generateSessionInsight(
       candidates.push({
         kind: 'session_tradeoff',
         title: 'Спешка съела точность',
-        body: 'Ответы стали быстрее, ошибки — чаще. В жизни это как отправить письмо, не дочитав.',
-        action: 'Одна пауза перед ответом вернёт точность быстрее, чем ещё одна сессия.',
+        body: 'Ответы стали быстрее, ошибки — чаще. В жизни это как отправить важное письмо, не перечитав его.',
+        action: 'Короткая пауза перед ответом вернёт баланс быстрее, чем дополнительная тренировка.',
         domain: mixDomain,
         confidence: baseline.n >= 8 ? 'high' : 'medium',
         signal: 'accuracy',
@@ -211,8 +213,8 @@ export function generateSessionInsight(
     candidates.push({
       kind: 'session_accuracy',
       title: 'Точность сегодня ниже',
-      body: `Средняя точность ${pct(stats.avgAcc)}%. В быту это похоже на день, когда перечитываете сообщение дважды — сигнал нагрузки, не «сломанного» навыка.`,
-      action: 'Завтра не ускоряйтесь: сначала точность, потом темп.',
+      body: `Средняя точность ${pct(stats.avgAcc)}%. В быту это похоже на день, когда перечитываете сообщение дважды. Это индикатор фоновой усталости, а не «сломанного» навыка.`,
+      action: 'Завтра не гонитесь за скоростью: сначала точность, потом темп.',
       domain: mixDomain,
       confidence: stats.n >= 3 ? 'high' : 'medium',
       signal: 'accuracy',
@@ -230,8 +232,8 @@ export function generateSessionInsight(
     candidates.push({
       kind: 'session_difficulty',
       title: 'Сложность выросла — точность на месте',
-      body: 'Fokus поднял сложность, а доля верных ответов удержалась. Это рабочий шаг, не скачок способностей.',
-      action: 'Продолжайте в том же ритме. Резко добавлять минуты не нужно.',
+      body: 'Сложность повысилась, а доля верных ответов удержалась. Это рабочий тренировочный шаг, помогающий лучше адаптироваться, а не мгновенный скачок интеллекта.',
+      action: 'Продолжайте в том же ритме, резко увеличивать нагрузку не нужно.',
       domain: mixDomain,
       confidence: 'medium',
       signal: 'difficulty',
@@ -243,8 +245,8 @@ export function generateSessionInsight(
     candidates.push({
       kind: 'session_rt',
       title: 'Реакция сегодня медленнее',
-      body: `Средний ответ ${rtLabel(stats.avgRt)} — медленнее обычных ${rtLabel(baseline.avgRt)}. Так бывает при усталости или спешке вокруг.`,
-      action: 'Не догоняйте скорость сегодня. Короткий блок внимания завтра полезнее.',
+      body: `Средний ответ ${rtLabel(stats.avgRt)} — медленнее обычных ${rtLabel(baseline.avgRt)}. Так бывает при фоновом стрессе или недосыпе.`,
+      action: 'Не пытайтесь искусственно подгонять себя. Завтрашний короткий блок будет полезнее.',
       domain: mixDomain,
       confidence: baseline.n >= 8 ? 'high' : 'medium',
       signal: 'rt',
@@ -260,7 +262,7 @@ export function generateSessionInsight(
     candidates.push({
       kind: 'session_mix',
       title: 'Сессия была узкой',
-      body: `Почти всё время ушло в «${label}». Навыки в жизни не живут по отдельности.`,
+      body: `Почти всё время ушло в область «${label}». В реальных задачах навыки обычно работают сообща.`,
       action: 'Завтра Fokus подмешает другую область.',
       domain: mixDomain,
       confidence: 'medium',
@@ -285,14 +287,52 @@ export function generateSessionInsight(
   if (completed) {
     candidates.push({
       kind: 'session_complete',
-      title: 'Сессия собрана',
-      body: `Точность ${pct(stats.avgAcc)}%, среднее время ответа ${rtLabel(stats.avgRt || 0)}. Fokus фиксирует форму, не выставляет диагноз.`,
-      action: 'Завтра тот же ритуал. Длину увеличивать не обязательно.',
+      title: 'Тренировка завершена',
+      body: `Точность ${pct(stats.avgAcc)}%, среднее время ${rtLabel(stats.avgRt || 0)}. Навык работает стабильно. Главная задача сейчас — поддержание формы для бытовых дел, а не рекорды.`,
+      action: 'Завтра достаточно такого же короткого ритуала.',
       domain: mixDomain,
       confidence: stats.n >= 2 ? 'medium' : 'low',
       signal: 'completion',
       priority: 40
     });
+  }
+
+  if (session.items && session.items.length >= 6) {
+    const half = Math.floor(session.items.length / 2);
+    const firstHalf = session.items.slice(0, half);
+    const secondHalf = session.items.slice(half);
+    const acc1 = firstHalf.length ? mean(firstHalf.map((i) => i.accuracy)) : 0;
+    const acc2 = secondHalf.length ? mean(secondHalf.map((i) => i.accuracy)) : 0;
+    
+    // Fatigue
+    if (acc1 > 0 && acc2 < acc1 - 0.15) {
+      candidates.push({
+        kind: 'session_fatigue',
+        title: 'Усталость к концу блока',
+        body: `К концу сессии точность снизилась с ${pct(acc1)}% до ${pct(acc2)}%. Это естественное утомление внимания, похожее на конец долгого совещания.`,
+        action: 'В следующий раз можно сделать микропаузу в середине ритуала.',
+        domain: mixDomain,
+        confidence: 'high',
+        signal: 'accuracy',
+        priority: 88
+      });
+    }
+
+    // Warm-up
+    const rt1 = mean(firstHalf.map((i) => i.avgRtMs || 0).filter(v => v > 0));
+    const rt2 = mean(secondHalf.map((i) => i.avgRtMs || 0).filter(v => v > 0));
+    if (acc1 > 0 && acc2 > acc1 + 0.1 && (rt1 === 0 || rt2 <= rt1 * 1.1)) {
+      candidates.push({
+        kind: 'session_warmup',
+        title: 'Нужно время на разгон',
+        body: `Во второй половине точность выросла с ${pct(acc1)}% до ${pct(acc2)}%. Мозгу требуется время, чтобы «въехать» в задачу — прямо как при начале работы со сложным текстом.`,
+        action: 'Ошибки на первых минутах — это нормально, просто настройка оптики.',
+        domain: mixDomain,
+        confidence: 'high',
+        signal: 'accuracy',
+        priority: 77
+      });
+    }
   }
 
   if (candidates.length === 0) return warmingUp();
