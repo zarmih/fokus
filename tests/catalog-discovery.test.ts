@@ -17,11 +17,11 @@ describe('Catalog Discovery', () => {
     document.body.removeChild(container);
   });
 
-  test('renders domain chips with honest counts (no All wall)', () => {
+  test('renders domain chips including All filter', () => {
     renderTrainers(container);
     const chips = Array.from(container.querySelectorAll('.filter-chip')) as HTMLElement[];
     expect(chips.length).toBeGreaterThan(0);
-    expect(chips.some((c) => c.textContent?.includes('Все'))).toBe(false);
+    expect(chips.some((c) => c.textContent?.includes('Все'))).toBe(true);
     expect(chips[0].classList.contains('active')).toBe(true);
     expect(container.querySelector('#catalog-count-label')).toBeTruthy();
   });
