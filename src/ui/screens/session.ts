@@ -23,7 +23,7 @@ import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { ProbeOutcome } from '../../core/calibration';
 import type { SessionItem } from '../../core/types';
-import { announce, bindDialog, setScreenTitle } from '../a11y';
+import { announce, bindDialog, setScreenTitle, focusMain, prefersReducedMotion } from '../a11y';
 import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 
@@ -98,8 +98,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
     const last = sessionResults[sessionResults.length - 1];
     const lastEx = last ? getManifest(last.exerciseId) : null;
+    const reducedMotion = prefersReducedMotion();
+    const motionClass = reducedMotion ? '' : 'fx-enter';
     const lastBanner = last && lastEx ? `
-      <div class="block-recap fx-enter ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}" aria-live="polite">
+      <div class="block-recap ${motionClass} ${last.accuracy >= 0.8 ? 'is-ok' : 'is-miss'}" aria-live="polite">
         ${lastEx.name}: ${Math.round(last.accuracy * 100)}% · +${Math.round(last.score)}
       </div>
     ` : '';
@@ -116,7 +118,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <div class="session-block-info">${mode === 'calibration' ? `Зонд · блок ${currentIndex + 1}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>
       </div>
       ${lastBanner}
-      <div class="instruction-card fx-enter" id="instruction-card">
+      <div class="instruction-card ${motionClass}" id="instruction-card" tabindex="-1">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
@@ -126,6 +128,15 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       <button id="btn-next" class="btn-primary" type="button">Начать</button>
       <div id="game-container" class="play-arena"></div>
     `;
+
+    requestAnimationFrame(() => {
+      const btnNext = document.getElementById('btn-next');
+      if (btnNext) {
+        btnNext.focus();
+      } else {
+        focusMain();
+      }
+    });
 
     document.getElementById('btn-back')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
@@ -147,13 +158,41 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           overlay = document.createElement('div');
           overlay.id = 'pause-overlay';
           overlay.className = 'pause-overlay';
-          overlay.setAttribute('role', 'status');
-          overlay.innerHTML = '<div class="pause-card">Пауза</div>';
+          overlay.innerHTML = `
+            <div class="pause-card">
+              <div style="margin-bottom:16px;">Пауза</div>
+              <button id="btn-unpause" class="btn-primary" type="button">Продолжить</button>
+            </div>
+          `;
           document.getElementById('game-container')?.appendChild(overlay);
+
+          const unpause = () => {
+            isPaused = false;
+            btn.textContent = 'Пауза';
+            btn.setAttribute('aria-pressed', 'false');
+            if (overlay) {
+              const unbind = (overlay as any)._unbind;
+              if (unbind) unbind();
+              overlay.remove();
+            }
+            announce('Продолжаем');
+            btn.focus();
+          };
+
+          overlay.querySelector('#btn-unpause')?.addEventListener('click', unpause);
+          const unbind = bindDialog(overlay, {
+            label: 'Пауза',
+            onClose: unpause
+          });
+          (overlay as any)._unbind = unbind;
         }
         announce('Пауза');
       } else {
-        overlay?.remove();
+        if (overlay) {
+          const unbind = (overlay as any)._unbind;
+          if (unbind) unbind();
+          overlay.remove();
+        }
         announce('Продолжаем');
       }
     });
@@ -187,8 +226,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       content.dataset.sessionPhase = 'countdown';
       container.setAttribute('aria-busy', 'true');
 
+      const reducedMotion = prefersReducedMotion();
       const countdown = document.createElement('div');
-      countdown.className = 'count-overlay is-tick';
+      countdown.className = `count-overlay ${reducedMotion ? '' : 'is-tick'}`;
       countdown.setAttribute('role', 'status');
       countdown.setAttribute('aria-live', 'assertive');
       container.appendChild(countdown);
@@ -369,7 +409,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         count--;
         if (count > 0) {
           countdown.textContent = count.toString();
-          replayClass(countdown, 'is-tick');
+          if (!reducedMotion) replayClass(countdown, 'is-tick');
           playSessionCue('tick');
         } else {
           clearInterval(iv);
