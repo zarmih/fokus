@@ -9,6 +9,7 @@ import { planForNow } from '../../core/adaptive-plan';
 import { buildCoachIntel, type CoachIntel, type HistoryWindow } from '../../core/coach-intel';
 import { renderIndexSparkline } from '../components/charts';
 import { domainLabel } from '../../core/labels';
+import { ruPlural } from '../../core/transfer';
 
 function ruDay(iso: string): string {
   const d = new Date(iso.slice(0, 10) + 'T12:00:00Z');
@@ -172,7 +173,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
       topDomainText = ` Основной фокус был на области «${domainLabel(topDomain)}».`;
     }
 
-    summaryText = `За эту неделю вы провели ${totalSessions} ${totalSessions === 1 ? 'сессию' : (totalSessions >= 2 && totalSessions <= 4) ? 'сессии' : 'сессий'}, охватив ${totalExercises} ${totalExercises === 1 ? 'упражнение' : (totalExercises >= 2 && totalExercises <= 4) ? 'упражнения' : 'упражнений'}.${topDomainText} Средняя точность выполнения составила ${avgAcc}%.`;
+    summaryText = `За эту неделю вы провели ${ruPlural(totalSessions, 'сессию', 'сессии', 'сессий')}, охватив ${ruPlural(totalExercises, 'упражнение', 'упражнения', 'упражнений')}.${topDomainText} Средняя точность составила ${avgAcc}%.`;
 
     atAGlanceHtml = `
       <section class="surface wr-summary" aria-label="Сводка недели">
@@ -234,7 +235,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   if (sortedDeltas.length > 0) {
     const best = sortedDeltas[0];
     if (best.mDelta > 0) {
-      changedFacts.push(`Уровень освоения <strong>${best.name}</strong> вырос на ${best.mDelta}.`);
+      changedFacts.push(`Очки освоения <strong>${best.name}</strong> выросли на ${best.mDelta}.`);
     }
     const hardest = [...sortedDeltas].sort((a, b) => b.dDelta - a.dDelta)[0];
     if (hardest && hardest.dDelta > 0 && hardest.id !== best.id) {
@@ -246,7 +247,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     }
     const worst = sortedDeltas[sortedDeltas.length - 1];
     if (worst && worst.mDelta < 0 && worst.id !== best.id && worst.id !== hardest?.id && changedFacts.length < 3) {
-      changedFacts.push(`Уровень освоения <strong>${worst.name}</strong> снизился на ${Math.abs(worst.mDelta)}. Фокус на восстановление.`);
+      changedFacts.push(`Очки освоения <strong>${worst.name}</strong> снизились на ${Math.abs(worst.mDelta)}. Фокус на восстановление.`);
     }
   }
 
