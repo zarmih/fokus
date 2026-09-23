@@ -24,15 +24,15 @@ beforeEach(() => {
   // but we can check the rendered output of the real catalog.
 });
 
-test('renderTrainers uses honest counts and groups domains without "All"', () => {
+test('renderTrainers uses honest counts and groups domains including All', () => {
   const container = document.createElement('div');
   renderTrainers(container);
 
-  // Should not contain "Все" (All) filter
+  // Should contain "Все" (All) filter
   const chips = Array.from(container.querySelectorAll('.filter-chip')) as HTMLElement[];
   expect(chips.length).toBeGreaterThan(0);
   const chipTexts = chips.map(c => c.textContent);
-  expect(chipTexts.some(t => t?.includes('Все'))).toBe(false);
+  expect(chipTexts.some(t => t?.includes('Все'))).toBe(true);
 
   // First chip should be active
   expect(chips[0].classList.contains('active')).toBe(true);
@@ -40,9 +40,8 @@ test('renderTrainers uses honest counts and groups domains without "All"', () =>
   // Total count label
   const label = container.querySelector('#catalog-count-label');
   expect(label).toBeTruthy();
-  // It should show the count for the first domain initially
-  const firstDomainId = chips[0].dataset.dom!;
-  const firstDomainCount = catalog.filter(e => e.manifest.domain === firstDomainId).length;
+  // It should show the count for all domains initially
+  const firstDomainCount = catalog.length;
   expect(label?.textContent).toContain(`${firstDomainCount} упражнений`);
 });
 

@@ -28,7 +28,8 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       name: 'Космический стрелок',
       domain: 'speed',
       skills: ['reaction', 'tracking'] as unknown as ExerciseManifest['skills'],
-      instruction: 'Управляйте кораблем, чтобы сбивать летящие сверху цели. Промах снижает точность!'
+      instruction: 'Управляйте кораблем, чтобы сбивать летящие сверху цели. Промах снижает точность!',
+      metricModel: 'speed-accuracy'
     }
   },
 {

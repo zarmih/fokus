@@ -4,7 +4,7 @@ import { loadExercise } from '../../exercises/load-exercise';
 import { renderShell } from '../shell';
 import { storage } from '../../core/storage';
 import { getExerciseIntelligence } from '../../core/selectors';
-import { domainLabel, DOMAIN_ORDER } from '../../core/labels';
+import { domainLabel, DOMAIN_ORDER, skillLabel } from '../../core/labels';
 import { bindPressPhysics } from '../../core/motion';
 
 export function renderTrainers(container: HTMLElement) {
@@ -28,20 +28,20 @@ export function renderTrainers(container: HTMLElement) {
   });
 
   // Build filters explicitly reflecting counts
-  const filterHtml = validDomains.map((dom, i) => {
+  let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">Все <span style="opacity:0.6; font-size:11px;">${catalog.length}</span></button>`;
+  filterHtml += validDomains.map((dom, i) => {
     const count = domains.get(dom)!.length;
     const isWeak = count < 5;
     const label = domainLabel(dom);
     const weakFlag = isWeak ? ' <span style="opacity:0.5; font-size:0.9em;">(мало)</span>' : '';
-    // default to first valid domain, removing 'all' to avoid noisy wall of cards
-    const isActive = i === 0;
+    const isActive = false;
     return `<button class="filter-chip ${isActive ? 'active' : ''}" data-dom="${dom}" type="button" aria-pressed="${isActive ? 'true' : 'false'}">${label} <span style="opacity:0.6; font-size:11px;">${count}</span>${weakFlag}</button>`;
   }).join('');
 
   let allCardsHtml = '';
   validDomains.forEach((dom, i) => {
     const exercises = domains.get(dom)!;
-    const isActive = i === 0;
+    const isActive = true;
     
     let gridHtml = exercises.map(ex => {
       const st = exStates.find(s => s.exerciseId === ex.manifest.id);
@@ -104,6 +104,9 @@ export function renderTrainers(container: HTMLElement) {
           </div>
           <div class="trainer-name">${ex.manifest.name}</div>
           <div class="trainer-instruction">${ex.manifest.instruction}</div>
+          <div style="margin-bottom: 8px;">
+            ${(ex.manifest.skills || []).slice(0, 2).map((s: string) => `<span style="display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; margin-right: 4px; margin-top: 6px;">${skillLabel(s)}</span>`).join('')}
+          </div>
           <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; width: 100%;">
             <div class="trainer-level">Ур. ${lvl}</div>
           </div>
@@ -125,8 +128,24 @@ export function renderTrainers(container: HTMLElement) {
     <div class="today-head" style="margin-bottom: 24px;">
       <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px;">Каталог</h2>
       <p class="today-date" id="catalog-count-label" style="opacity: 0.7;">
-        ${validDomains.length > 0 ? domains.get(validDomains[0])!.length : 0} упражнений. Практика без влияния на Fokus Index.
+        ${catalog.length} упражнений. Практика без влияния на Fokus Index.
       </p>
+    </div>
+    <div style="margin-bottom: 24px; padding: 16px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--line);">
+      <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 12px;">Покрытие доменов</div>
+      <div style="display: flex; gap: 4px; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 12px;">
+        ${validDomains.map(dom => {
+          const count = domains.get(dom)!.length;
+          const percent = (count / catalog.length) * 100;
+          return `<div style="width: ${percent}%; background: var(--dom-${dom});" title="${domainLabel(dom)}: ${count}"></div>`;
+        }).join('')}
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px;">
+        ${validDomains.map(dom => {
+          const count = domains.get(dom)!.length;
+          return `<div style="display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: var(--dom-${dom});"></div><span style="color: var(--muted);">${domainLabel(dom)}: <strong style="color: var(--text);">${count}</strong></span></div>`;
+        }).join('')}
+      </div>
     </div>
     <div class="domain-filters">
       ${filterHtml}
@@ -148,11 +167,12 @@ export function renderTrainers(container: HTMLElement) {
       
       let count = 0;
       content.querySelectorAll('.domain-group').forEach(group => {
-        const match = (group as HTMLElement).dataset.group === dom;
+        const isAll = dom === 'all';
+        const match = isAll || (group as HTMLElement).dataset.group === dom;
         group.classList.toggle('is-hidden', !match);
         if (match) {
            const cards = group.querySelectorAll('.trainer-card');
-           count = cards.length;
+           count += cards.length;
         }
       });
       
