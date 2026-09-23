@@ -50,9 +50,9 @@ export const KNOWN_STORES: KnownStoreSpec[] = [
   {
     id: 'app-state',
     key: APP_STATE_KEY,
-    title: 'Профиль и прогресс',
+    title: 'Профиль и настройки',
     description:
-      'Имя (если задано), настройки, сессии, XP, сон/стресс, Fokus Index. Только localStorage этого устройства.',
+      'Имя, настройки, история сессий, прогресс (XP), данные о сне и стрессе. Хранится только локально.',
     mayContainPii: true,
     category: 'state'
   },
@@ -60,7 +60,7 @@ export const KNOWN_STORES: KnownStoreSpec[] = [
     id: 'reminder',
     key: REMINDER_LAST_KEY,
     title: 'Последнее напоминание',
-    description: 'Дата YYYY-MM-DD, чтобы не слать локальное уведомление дважды за день. Не имя и не сон.',
+    description: 'Системная дата отправки уведомления для предотвращения дублей. Не содержит личных данных.',
     mayContainPii: false,
     category: 'preference'
   }
