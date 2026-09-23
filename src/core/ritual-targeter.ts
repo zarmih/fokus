@@ -179,7 +179,12 @@ export function targetRitual(params: {
       });
 
       const theta = thetaByDomain.get(domain);
-      const weakness = theta === undefined ? 8 : 40 * (1 - theta);
+      const trajDomain = trajectory.domains.find(d => d.domain === domain);
+      let weakness = theta === undefined ? 8 : 40 * (1 - theta);
+      if (trajDomain) {
+        if (trajDomain.trend === 'falling') weakness += 15;
+        if (trajDomain.trend === 'rising') weakness -= 5;
+      }
       const goal = primaryGoal && domain === primaryGoal ? 20 : 0;
 
       const hours = hoursSince(state?.lastPlayedAt, now);
