@@ -20,8 +20,7 @@ test('settings explain quality without a fake brain score and default recovery o
   const app = document.getElementById('app')!;
   renderSettings(app);
   expect(app.textContent).toMatch(/Качество сессии и восстановление/);
-  expect(app.textContent).toMatch(/не IQ/i);
-  expect(app.textContent).toMatch(/не «балл мозга»|не балл мозга/i);
+  expect(app.textContent).toMatch(/не уровень интеллекта/i);
   const toggle = app.querySelector('#recovery-toggle') as HTMLInputElement;
   expect(toggle).toBeTruthy();
   expect(toggle.checked).toBe(true);

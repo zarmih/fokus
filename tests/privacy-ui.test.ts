@@ -32,8 +32,8 @@ test('settings privacy panel lists local stores and default redacted export', ()
   const app = document.getElementById('app')!;
   renderSettings(app);
 
-  expect(app.textContent).toMatch(/Приватность и данные/);
-  expect(app.textContent).toMatch(/Нет аккаунта/);
+  expect(app.textContent).toMatch(/Приватность|Управление данными/i);
+  expect(app.textContent).toMatch(/Нет аккаунта|У нас нет аккаунтов/i);
   expect(app.textContent).toMatch(/fokus\.v1/);
   expect(app.textContent).toMatch(/fokus\.reminder\.last/);
   expect(app.textContent).toMatch(/есть персональные данные/);
