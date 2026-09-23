@@ -104,7 +104,7 @@ test('difficulty up with held accuracy is a working step, not an IQ jump', () =>
   const insight = generateSessionInsight(s);
   expect(insight.kind).toBe('session_difficulty');
   expect(insight.signal).toBe('difficulty');
-  expect(insight.body).toMatch(/рабочий шаг/i);
+  expect(insight.body).toMatch(/рабочий тренировочный шаг/i);
   expect(insight.body).not.toMatch(CLAIM_RE);
 });
 
@@ -294,4 +294,30 @@ test('focusOfTheWeek biases the planner when the weakest domain has no exercises
   } finally {
     Math.random = original;
   }
+});
+
+test('fatigue insight triggers when accuracy drops significantly in the second half', () => {
+  const s = session({
+    startedAt: '2026-09-10T09:00:00Z',
+    items: [
+      item({ accuracy: 0.9 }), item({ accuracy: 0.95 }), item({ accuracy: 0.92 }),
+      item({ accuracy: 0.7 }), item({ accuracy: 0.75 }), item({ accuracy: 0.65 })
+    ]
+  });
+  const insight = generateSessionInsight(s);
+  expect(insight.kind).toBe('session_fatigue');
+  expect(insight.body).toMatch(/утомление/i);
+});
+
+test('warm-up insight triggers when accuracy improves significantly in the second half', () => {
+  const s = session({
+    startedAt: '2026-09-10T09:00:00Z',
+    items: [
+      item({ accuracy: 0.6 }), item({ accuracy: 0.7 }), item({ accuracy: 0.65 }),
+      item({ accuracy: 0.9 }), item({ accuracy: 0.95 }), item({ accuracy: 0.92 })
+    ]
+  });
+  const insight = generateSessionInsight(s);
+  expect(insight.kind).toBe('session_warmup');
+  expect(insight.body).toMatch(/время/i);
 });

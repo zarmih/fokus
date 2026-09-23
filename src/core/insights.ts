@@ -26,7 +26,7 @@ export function generateInsights(
     return [{
       type: 'milestone',
       title: 'Начало пути',
-      description: 'Мы всё ещё изучаем ваш профиль. Продолжайте тренироваться, чтобы получить персональные инсайты.',
+      description: 'Мы всё ещё собираем данные. Пройдите несколько ритуалов, чтобы Fokus смог заметить закономерности и дать полезные наблюдения.',
       confidence: 'low',
       priority: 100
     }];
@@ -53,7 +53,7 @@ export function generateInsights(
       insights.push({
         type: 'strength',
         title: 'Сильная сторона',
-        description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus будет поддерживать её и подтягивать остальные.`,
+        description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, пока вы подтягиваете навыки для остальных бытовых задач.`,
         confidence: strongConf > 70 ? 'high' : (strongConf > 40 ? 'medium' : 'low'),
         priority: 50 + (strongest.value / 100)
       });
@@ -64,7 +64,7 @@ export function generateInsights(
       insights.push({
         type: 'area_to_focus',
         title: 'Зона роста',
-        description: `«${domainLabel(weakest.domain)}» пока слабее остальных. Короткие повторы здесь дают самый быстрый прирост.`,
+        description: `«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
         confidence: weakConf > 70 ? 'high' : (weakConf > 40 ? 'medium' : 'low'),
         priority: 60 + ((500 - weakest.value) / 10)
       });
@@ -78,7 +78,7 @@ export function generateInsights(
     insights.push({
       type: 'improvement',
       title: 'Заметный прогресс',
-      description: `Навык «${skillLabel(best.skill)}» уверенно растёт. Так держать!`,
+      description: `В упражнении «${skillLabel(best.skill)}» наметился чёткий прогресс. Этот навык поможет легче справляться с рабочими нагрузками.`,
       confidence: best.confidence > 70 ? 'high' : 'medium',
       priority: 80 + best.trend
     });
@@ -93,7 +93,7 @@ export function generateInsights(
       insights.push({
         type: 'plateau',
         title: 'Стабилизация',
-        description: `Ваш результат в игре «${manifest.name}» стабилизировался. Возможно, стоит переключиться на другие задачи для развития связанных навыков.`,
+        description: `Ваш результат в игре «${manifest.name}» стабилизировался. Стоит переключиться на другие задачи, чтобы не превращать тренировку в автоматическую привычку.`,
         confidence: 'high',
         priority: 70 + (plat.consecutivePlateau || 0) * 5
       });
@@ -123,7 +123,7 @@ export function generateInsights(
       insights.push({
         type: 'recovery',
         title: 'Отскок после спада',
-        description: 'После более слабого дня результат вернулся. Это нормальная вариативность, не откат навыка.',
+        description: 'После просадки результаты снова выровнялись. Это естественное колебание формы в течение недели, а не откат ваших способностей.',
         confidence: 'medium',
         priority: 72
       });
@@ -140,7 +140,7 @@ export function generateInsights(
       insights.push({
         type: 'consistency',
         title: 'Сон и результат',
-        description: 'В дни с меньшим сном очки заметно ниже. Это корреляция, не диагноз — но короткий сон стоит учитывать.',
+        description: 'В дни с недостатком сна результаты обычно ниже. Это не диагноз, но хороший повод чуть снизить темп и не требовать от себя рекордов.',
         confidence: withSleep.length >= 8 ? 'high' : 'medium',
         priority: 78
       });
