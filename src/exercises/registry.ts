@@ -163,6 +163,9 @@ import letterCaseMatchModule from './letter-case-match';
 import changeMakerModule from './change-maker';
 import fractionCompareModule from './fraction-compare';
 import simonTaskModule from './simon-task';
+import symmetryGridModule from './symmetry-grid';
+import runningSumModule from './running-sum';
+import colorSyncModule from './color-sync';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -327,9 +330,15 @@ export const registry: ExerciseModule[] = [
   letterCaseMatchModule,
   changeMakerModule,
   fractionCompareModule,
-  simonTaskModule
+  simonTaskModule,
+  symmetryGridModule,
+  runningSumModule,
+  colorSyncModule
 ];
 
 catalog.push({ manifest: changeMakerModule.manifest });
 catalog.push({ manifest: fractionCompareModule.manifest });
 catalog.push({ manifest: simonTaskModule.manifest });
+catalog.push({ manifest: symmetryGridModule.manifest });
+catalog.push({ manifest: runningSumModule.manifest });
+catalog.push({ manifest: colorSyncModule.manifest });
