@@ -124,7 +124,7 @@ export function renderToday(container: HTMLElement) {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
     const slot = item.slot ? SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL] : '';
-    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 4px; height: auto; border-radius: 12px;">
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 4px; height: auto; border-radius: 12px;">
       <div style="display: flex; align-items: center; gap: 6px;">
         <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
         <span style="font-weight: 600;">${r?.name}</span>
@@ -256,7 +256,7 @@ export function renderToday(container: HTMLElement) {
 
   if (isLoading) {
     actionHtml = `
-      <div class="workout-card loading-state">
+      <div class="workout-card loading-state" role="region" aria-label="Загрузка плана">
         <div class="workout-kicker">Загрузка</div>
         <h3>Собираем план...</h3>
         <p>Fokus анализирует вашу активность.</p>
@@ -265,7 +265,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (errorState) {
     actionHtml = `
-      <div class="workout-card error-state">
+      <div class="workout-card error-state" role="region" aria-label="Ошибка создания плана">
         <div class="workout-kicker">Ошибка</div>
         <h3>Что-то пошло не так</h3>
         <p>Не удалось составить персональную сессию. Попробуйте обновить страницу.</p>
@@ -283,7 +283,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card fx-enter coach-${spark.tone}">
+      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-label="Старт калибровки">
         <div class="workout-kicker">${spark.title}</div>
         <h3>Калибровка уровня</h3>
         <p class="workout-coach-insight">${spark.body}</p>
@@ -292,7 +292,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate coach-${spark.tone}">
+      <div class="workout-card done fx-celebrate coach-${spark.tone}" role="region" aria-label="Тренировка выполнена">
         <div class="workout-kicker">${spark.title}</div>
         <h3>План выполнен</h3>
         ${trendChipHtml}
@@ -302,7 +302,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (noPlanState) {
     actionHtml = `
-      <div class="workout-card done fx-enter">
+      <div class="workout-card done fx-enter" role="region" aria-label="Сессия недоступна">
         <div class="workout-kicker">Отдых</div>
         <h3>На сегодня всё</h3>
         <p>Fokus рекомендует полный отдых или пока нет подходящих упражнений.</p>
@@ -314,26 +314,26 @@ export function renderToday(container: HTMLElement) {
       ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter coach-${spark.tone}">
+      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-label="Мягкий возврат">
         <div class="workout-kicker">${spark.title}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
         <p class="workout-coach-insight">${spark.body}</p>
-        <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <div class="workout-chips" role="list" aria-label="Упражнения для мягкого возврата">${compositionHtml}</div>
+        <button id="btn-start" class="btn-primary" type="button">Мягкий старт</button>
       </div>
     `;
   } else {
     const rest = ritual?.snapshot?.gate?.active;
     const finalKicker = rest ? 'Сегодня легче' : spark.title;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone}">
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone}" role="region" aria-label="Ежедневный ритуал">
         <div class="workout-kicker">${finalKicker}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         ${trendChipHtml}
         <p class="workout-coach-insight">${spark.body}</p>
-        <div class="workout-chips">${compositionHtml}</div>
+        <div class="workout-chips" role="list" aria-label="Упражнения на сегодня">${compositionHtml}</div>
         ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   }
