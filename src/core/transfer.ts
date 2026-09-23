@@ -74,7 +74,7 @@ export const TRANSFER_MAP: Record<TransferDomain, TransferEntry> = {
       },
       {
         id: 'attention-stop',
-        situation: 'Не пропустить нужную остановку, когда в наушниках подкаст',
+        situation: 'Не проехать нужную остановку, когда в наушниках подкаст',
         practiceLink: 'Нужный сигнал среди фона — та же задача, что поиск цели на экране.'
       }
     ]

@@ -15,9 +15,10 @@ import { precisionLabel } from '../../core/calibration';
 import { abilityCaption, pickTransferTip } from '../../core/onboarding';
 import { setScreenTitle } from '../a11y';
 import { animateCount, celebrate, playSessionCue } from '../../core/motion';
+import { buildTransferSurface } from '../../core/transfer-insights';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
-  const content = renderShell(container, { active: 'today', hideNav: true });
+  const content = renderShell(container, { active: 'program', hideNav: true });
   setScreenTitle(params.calibration ? 'Калибровка' : 'Результат');
   const session = params.session;
   const isCalibration = !!params.calibration;
@@ -175,7 +176,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   let secondaryActionLabel = '';
 
   if (noData) {
-    primaryActionLabel = 'На главную';
+    primaryActionLabel = 'Программа';
     primaryActionReason = 'Нет данных о тренировке';
   } else if (isOffline) {
     primaryActionLabel = 'Готово';
@@ -247,6 +248,29 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     </div>
   ` : '';
 
+  const surface = buildTransferSurface({
+    sessions: storage.getSessions(),
+    daySummaries: dsList,
+    domains: storage.getDomains(),
+    prefer: 'session'
+  });
+
+  const insightHtml = (!isCalibration && !isRecalibration && !noData && !isOffline) ? `
+    <div class="surface transfer-insight-card" style="border-left: 4px solid var(--primary);">
+      <h3>${surface.insight.title}</h3>
+      <p class="muted">${surface.insight.body}</p>
+      <div style="margin-top: 8px; font-weight: 500; color: var(--primary);">
+        ${surface.insight.action}
+      </div>
+      ${surface.tip ? `
+        <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+          <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--muted); margin-bottom: 4px;">Связь с жизнью</div>
+          <div><b>${surface.tip.situation}</b> — ${surface.tip.practiceLink}</div>
+        </div>
+      ` : ''}
+    </div>
+  ` : '';
+
   const unlocked = (params.unlocked || [])
     .map(id => ACHIEVEMENTS_DEF.find(a => a.id === id))
     .filter(Boolean);
@@ -298,6 +322,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       ${itemsHtml}
     </div>
 
+    ${insightHtml}
     ${feedbackHtml}
     ${nextActionHtml}
   `;
@@ -312,7 +337,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     if (actionId === 'repeat') {
       navigateTo('session', { mode: 'normal', items: session.items.map(i => ({ exerciseId: i.exerciseId })), durationSec: 300 });
     } else {
-      navigateTo('today');
+      navigateTo('program');
     }
   };
 

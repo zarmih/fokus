@@ -218,7 +218,7 @@ test('renderResult - V6 Next Action - No Data', () => {
 
   renderResult(container, { session });
   const html = container.innerHTML;
-  expect(html).toContain('На главную');
+  expect(html).toContain('Программа');
   expect(html).toContain('Нет данных о тренировке');
   expect(html).not.toContain('Как прошла тренировка?'); // No feedback on empty session
 });
