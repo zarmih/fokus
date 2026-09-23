@@ -19,8 +19,7 @@ test('onboarding collects goal, duration and starts calibration', () => {
   const app = document.getElementById('app')!;
   renderOnboarding(app);
 
-  expect(app.textContent).toMatch(/Пять минут/);
-  (app.querySelector('#btn-next') as HTMLButtonElement).click();
+  expect(app.textContent).toMatch(/Главная цель/i);
 
   const memory = [...app.querySelectorAll('.goal-card')].find(el => (el as HTMLElement).dataset.goal === 'memory') as HTMLButtonElement;
   memory.click();
@@ -33,10 +32,8 @@ test('onboarding collects goal, duration and starts calibration', () => {
   const name = app.querySelector('#onboard-name') as HTMLInputElement;
   name.value = 'Михаил';
   name.dispatchEvent(new Event('input'));
-  (app.querySelector('#btn-next') as HTMLButtonElement).click();
-
-  expect(app.textContent).toMatch(/не медицинское изделие/i);
-  expect(app.textContent).toMatch(/60–90/);
+  
+  expect(app.textContent).toMatch(/мягкий старт/i);
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const p = storage.getProfile();
