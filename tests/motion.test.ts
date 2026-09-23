@@ -122,14 +122,28 @@ describe('motion helpers', () => {
     expect(el.classList.contains('fx-celebrate')).toBe(true);
   });
 
-  test('bindPressPhysics toggles is-pressed on pointer', () => {
+  test('bindPressPhysics toggles is-pressed on pointer and keyboard', () => {
     const el = document.createElement('button');
     const stop = bindPressPhysics(el);
     expect(el.classList.contains('press-physics')).toBe(true);
+    
+    // Pointer
     el.dispatchEvent(new Event('pointerdown'));
     expect(el.classList.contains('is-pressed')).toBe(true);
     el.dispatchEvent(new Event('pointerup'));
     expect(el.classList.contains('is-pressed')).toBe(false);
+
+    // Keyboard
+    el.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+    expect(el.classList.contains('is-pressed')).toBe(true);
+    el.dispatchEvent(new KeyboardEvent('keyup', { key: 'Enter' }));
+    expect(el.classList.contains('is-pressed')).toBe(false);
+
+    el.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
+    expect(el.classList.contains('is-pressed')).toBe(true);
+    el.dispatchEvent(new KeyboardEvent('keyup', { key: ' ' }));
+    expect(el.classList.contains('is-pressed')).toBe(false);
+
     stop();
   });
 

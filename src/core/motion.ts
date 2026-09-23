@@ -79,17 +79,39 @@ export function bindPressPhysics(
     if (opts?.audio) playSessionCue('press');
   };
   const up = () => el.classList.remove('is-pressed');
+
+  const kdown = (ev: Event) => {
+    const key = (ev as KeyboardEvent).key;
+    if (key === 'Enter' || key === ' ') {
+      if (!el.classList.contains('is-pressed')) {
+        el.classList.add('is-pressed');
+        if (opts?.audio) playSessionCue('press');
+      }
+    }
+  };
+  const kup = (ev: Event) => {
+    const key = (ev as KeyboardEvent).key;
+    if (key === 'Enter' || key === ' ') {
+      el.classList.remove('is-pressed');
+    }
+  };
+
   el.addEventListener('pointerdown', down);
   el.addEventListener('pointerup', up);
   el.addEventListener('pointercancel', up);
   el.addEventListener('pointerleave', up);
   el.addEventListener('lostpointercapture', up);
+  el.addEventListener('keydown', kdown);
+  el.addEventListener('keyup', kup);
+
   return () => {
     el.removeEventListener('pointerdown', down);
     el.removeEventListener('pointerup', up);
     el.removeEventListener('pointercancel', up);
     el.removeEventListener('pointerleave', up);
     el.removeEventListener('lostpointercapture', up);
+    el.removeEventListener('keydown', kdown);
+    el.removeEventListener('keyup', kup);
     el.classList.remove('is-pressed');
   };
 }
