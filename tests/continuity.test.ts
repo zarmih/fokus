@@ -5,7 +5,8 @@ import {
   gentleReturnRitual,
   ritualDurationSec,
   SOFT_RETURN_DURATION_SEC,
-  weeklyContinuityScore
+  weeklyContinuityScore,
+  getContinuityMessage
 } from '../src/core/continuity';
 import { computeDayStreak } from '../src/core/streak';
 import type { Session } from '../src/core/types';
@@ -171,4 +172,20 @@ test('copy-facing snapshot never invents IQ / freeze / brain-age fields', () => 
   expect(snap.streak.current).toBe(0);
   expect(snap.ritual.active).toBe(true);
   expect(JSON.stringify(snap)).not.toMatch(/brain-?age|iq\b|freeze|paywall/i);
+});
+
+test('getContinuityMessage generates honest, metric-free texts', () => {
+  const weeklySnap = buildContinuitySnapshot({
+    now: '2026-09-10T12:00:00+03:00',
+    timeZone: 'Europe/Moscow',
+    daySummaries: [
+      { date: '2026-09-04', totalScore: 10, domainDeltas: {}, streak: 1, skipped: false },
+      { date: '2026-09-05', totalScore: 10, domainDeltas: {}, streak: 2, skipped: false },
+      { date: '2026-09-06', totalScore: 10, domainDeltas: {}, streak: 3, skipped: false },
+      { date: '2026-09-07', totalScore: 10, domainDeltas: {}, streak: 4, skipped: false }
+    ]
+  });
+  const msg1 = getContinuityMessage(weeklySnap);
+  expect(msg1.title).toMatch(/Индекс регулярности/);
+  expect(msg1.body).not.toMatch(/IQ|мозг|интеллект/i);
 });
