@@ -244,6 +244,10 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     if (plateau && changedFacts.length < 3) {
       changedFacts.push(`Результат в <strong>${plateau.name}</strong> стабилен, навык закрепляется.`);
     }
+    const worst = sortedDeltas[sortedDeltas.length - 1];
+    if (worst && worst.mDelta < 0 && worst.id !== best.id && worst.id !== hardest?.id && changedFacts.length < 3) {
+      changedFacts.push(`Уровень освоения <strong>${worst.name}</strong> снизился на ${Math.abs(worst.mDelta)}. Фокус на восстановление.`);
+    }
   }
 
   let whatChangedHtml = '';
