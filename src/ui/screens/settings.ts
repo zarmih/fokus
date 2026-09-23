@@ -356,16 +356,22 @@ export function renderSettings(container: HTMLElement) {
     import('../../core/motion').then(m => m.applyMotionPreference());
   });
 
-  import('../../pwa-install').then(({ deferredPrompt }) => {
+  import('../../pwa-install').then(({ onInstallPrompt }) => {
     if (typeof document === 'undefined') return;
     const installContainer = document.getElementById('install-container');
     const btnInstall = document.getElementById('btn-install');
-    if (deferredPrompt && installContainer && btnInstall) {
-      installContainer.style.display = 'block';
-      btnInstall.addEventListener('click', async () => {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
+    if (installContainer && btnInstall) {
+      onInstallPrompt((prompt: any) => {
+        if (prompt) {
+          installContainer.style.display = 'block';
+          btnInstall.onclick = async () => {
+            prompt.prompt();
+            const { outcome } = await prompt.userChoice;
+            if (outcome === 'accepted') {
+              installContainer.style.display = 'none';
+            }
+          };
+        } else {
           installContainer.style.display = 'none';
         }
       });
