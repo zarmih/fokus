@@ -307,7 +307,7 @@ export function spectatorSummary(params: {
     outcome: params.state.reason === 'draw' || !params.state.winnerId ? 'draw' : 'win',
     winnerAlias: params.state.reason === 'draw' ? null : winnerAlias,
     fighters,
-    closeFinish: gap <= 1,
+    closeFinish: gap === 1,
     fairMatch: params.fairMatch
   };
 }

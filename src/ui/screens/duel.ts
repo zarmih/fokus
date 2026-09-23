@@ -84,7 +84,7 @@ export function renderDuel(container: HTMLElement) {
       </ul>
       ${cooldown.allowed
         ? ''
-        : `<p class="cooldown-note">Пауза перед реваншем · ${formatCooldown(cooldown.remainingMs)}</p>`}
+        : `<p class="cooldown-note" id="cd-note">Пауза перед реваншем · <span id="cd-timer">${formatCooldown(cooldown.remainingMs)}</span></p>`}
     </div>
 
     ${lastHtml}
@@ -142,11 +142,30 @@ export function renderDuel(container: HTMLElement) {
     return p2p;
   };
 
+  const cdTimer = content.querySelector('#cd-timer');
+  const cdNote = content.querySelector('#cd-note');
+  if (cdTimer && cdNote) {
+    const iv = setInterval(() => {
+      if (!document.contains(cdTimer)) {
+        clearInterval(iv);
+        return;
+      }
+      const st = rematchStatus(lastBoutAt);
+      if (st.allowed) {
+        (cdNote as HTMLElement).style.display = 'none';
+        clearInterval(iv);
+      } else {
+        cdTimer.textContent = formatCooldown(st.remainingMs);
+      }
+    }, 1000);
+  }
+
   btnHost.addEventListener('click', () => {
-    if (!cooldown.allowed) {
+    const currentCooldown = rematchStatus(lastBoutAt);
+    if (!currentCooldown.allowed) {
       statusMsg.style.display = 'block';
       statusMsg.style.color = 'var(--text)';
-      statusMsg.textContent = `Реванш чуть позже · ${formatCooldown(cooldown.remainingMs)}`;
+      statusMsg.textContent = `Реванш чуть позже · ${formatCooldown(currentCooldown.remainingMs)}`;
       return;
     }
     btnJoin.disabled = true;
@@ -160,10 +179,11 @@ export function renderDuel(container: HTMLElement) {
       alert('Введите 4-значный код');
       return;
     }
-    if (!cooldown.allowed) {
+    const currentCooldown = rematchStatus(lastBoutAt);
+    if (!currentCooldown.allowed) {
       statusMsg.style.display = 'block';
       statusMsg.style.color = 'var(--text)';
-      statusMsg.textContent = `Реванш чуть позже · ${formatCooldown(cooldown.remainingMs)}`;
+      statusMsg.textContent = `Реванш чуть позже · ${formatCooldown(currentCooldown.remainingMs)}`;
       return;
     }
     btnHost.disabled = true;

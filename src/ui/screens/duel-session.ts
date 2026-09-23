@@ -121,11 +121,18 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     const draw = reason === 'draw' || myPoints === oppPoints;
     const title = draw ? 'Ничья' : didIWin ? 'Вы победили!' : 'Вы проиграли!';
     const color = draw ? 'var(--accent)' : didIWin ? 'var(--ok)' : 'var(--danger)';
+    const closeFinish = Math.abs(myPoints - oppPoints) === 1;
     
     exContainer.innerHTML = `
       <div style="padding: 24px; text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center;">
-        <h2 style="color: ${color}; margin-bottom: 16px;">${title}</h2>
-        <div style="font-size: 24px; font-weight: 700; margin-bottom: 32px;">Счет: ${myPoints} - ${oppPoints}</div>
+        <h2 style="color: ${color}; margin-bottom: 8px;">${title}</h2>
+        ${closeFinish && !draw ? '<div style="font-size: 14px; color: var(--muted); margin-bottom: 16px;">Близкий финиш!</div>' : '<div style="margin-bottom: 16px;"></div>'}
+        <div style="font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; margin-bottom: 32px; letter-spacing: 2px;">
+          <span style="color: var(--accent);">${myPoints}</span>
+          <span style="color: var(--muted); margin: 0 8px;">:</span>
+          <span style="color: var(--danger);">${oppPoints}</span>
+        </div>
+        <p style="color: var(--muted); margin-bottom: 32px; font-size: 14px;">Реванш возможен через 15 мин</p>
         <button id="btn-back" class="btn-primary" type="button">Вернуться</button>
       </div>
     `;
@@ -135,9 +142,29 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     });
   };
 
-  params.p2p.onMessage = (msg: any) => {
-    if (msg.type === 'START') {
+  let iAmReady = false;
+  let oppIsReady = false;
+  let startHandled = false;
+  
+  const checkBothReady = () => {
+    if (iAmReady && oppIsReady && !startHandled) {
+      startHandled = true;
+      if (params.isHost) {
+        params.p2p.send({ type: 'START' });
+      }
       startCountdown();
+    }
+  };
+
+  params.p2p.onMessage = (msg: any) => {
+    if (msg.type === 'READY') {
+      oppIsReady = true;
+      checkBothReady();
+    } else if (msg.type === 'START') {
+      if (!startHandled) {
+        startHandled = true;
+        startCountdown();
+      }
     } else if (msg.type === 'UPDATE') {
       oppPoints = msg.points;
       updateBars();
@@ -228,11 +255,9 @@ export function renderDuelSession(container: HTMLElement, params: { p2p: P2PConn
     mountExercise();
   };
 
-  if (params.isHost) {
-    // Host waits 2 seconds to make sure channel is fully stable, then sends start
-    setTimeout(() => {
-      params.p2p.send({ type: 'START' });
-      startCountdown();
-    }, 2000);
-  }
+  setTimeout(() => {
+    iAmReady = true;
+    params.p2p.send({ type: 'READY' });
+    checkBothReady();
+  }, 1000);
 }
