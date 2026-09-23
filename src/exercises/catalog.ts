@@ -1571,8 +1571,37 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy',
       instruction: 'Сравни две фигуры по текущему правилу (Цвет или Форма). Правило может внезапно измениться!'
     }
+  },
+{
+    manifest: {
+      id: 'even-odd-math',
+      name: 'Чёт-нечет',
+      domain: 'logic',
+      skills: ['mental_calculation', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Решите выражение. Если результат ЧЁТНЫЙ, нажмите «Чётный» (Влево). Если НЕЧЁТНЫЙ — «Нечётный» (Вправо).'
+    }
+  },
+{
+    manifest: {
+      id: 'shape-sides-match',
+      name: 'Стороны фигур',
+      domain: 'logic',
+      skills: ['pattern_recognition', 'processing_speed'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Совпадает ли число со количеством углов/сторон фигуры? Да (Влево), Нет (Вправо).'
+    }
+  },
+{
+    manifest: {
+      id: 'letter-case-match',
+      name: 'Регистр букв',
+      domain: 'speed',
+      skills: ['processing_speed', 'visual_scanning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Это одна и та же буква? Игнорируйте регистр. Да (Влево), Нет (Вправо).'
+    }
   }
-
 ];
 export function getManifest(id: string): ExerciseManifest | undefined {
   return catalog.find((c) => c.manifest.id === id)?.manifest;
