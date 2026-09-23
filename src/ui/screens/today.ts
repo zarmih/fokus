@@ -283,20 +283,20 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Первый шаг</div>
+      <div class="workout-card fx-enter coach-${spark.tone}">
+        <div class="workout-kicker">${spark.title}</div>
         <h3>Калибровка уровня</h3>
-        <p>3–5 коротких блоков, 60–90 секунд. Оценка способности по областям — не IQ. После этого Fokus соберёт персональную сессию.</p>
+        <p class="workout-coach-insight">${spark.body}</p>
         <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate">
-        <div class="workout-kicker">Сегодня</div>
+      <div class="workout-card done fx-celebrate coach-${spark.tone}">
+        <div class="workout-kicker">${spark.title}</div>
         <h3>План выполнен</h3>
         ${trendChipHtml}
-        <p>Дополнительная сессия не ломает прогресс — но лучший эффект даёт завтрашний ритуал.</p>
+        <p class="workout-coach-insight">${spark.body}</p>
         <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
@@ -314,20 +314,23 @@ export function renderToday(container: HTMLElement) {
       ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter">
-        <div class="workout-kicker">Мягкий возврат</div>
+      <div class="workout-card fx-enter coach-${spark.tone}">
+        <div class="workout-kicker">${spark.title}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
+        <p class="workout-coach-insight">${spark.body}</p>
         <div class="workout-chips">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
       </div>
     `;
   } else {
     const rest = ritual?.snapshot?.gate?.active;
+    const finalKicker = rest ? 'Сегодня легче' : spark.title;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone}">
+        <div class="workout-kicker">${finalKicker}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         ${trendChipHtml}
+        <p class="workout-coach-insight">${spark.body}</p>
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
         <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
@@ -370,13 +373,6 @@ export function renderToday(container: HTMLElement) {
       ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
       ${retentionHtml}
 
-      <div class="insight-banner coach-${spark.tone}">
-        <div class="insight-icon">💡</div>
-        <div>
-          <div class="insight-kicker">Коуч Fokus · ${spark.title}</div>
-          <div class="insight-body">${spark.body}</div>
-        </div>
-      </div>
 
       ${transferCardHtml}
 
