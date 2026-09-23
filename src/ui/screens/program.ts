@@ -2,6 +2,7 @@ import { renderShell } from '../shell';
 import { storage } from '../../core/storage';
 import { navigateTo } from '../router';
 import { registry } from '../../exercises/registry';
+import { calibrationSessionItems } from '../../core/calibration';
 import { currentModel, planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
 import { SLOT_LABEL, confidencePct, getDomain, isRecalibrationActive } from '../../core/engine';
 import { DOMAIN_IDS } from '../../core/engine/constants';
@@ -142,18 +143,29 @@ export function renderProgram(container: HTMLElement) {
   const startCalibration = () => {
     navigateTo('session', {
       mode: 'calibration',
-      items: [{ exerciseId: 'odd-one' }, { exerciseId: 'grid-memory' }, { exerciseId: 'stroop' }]
+      items: calibrationSessionItems({
+        primaryGoal: profile.primaryGoal,
+        catalog: registry.map(c => ({
+          id: c.manifest.id,
+          domain: c.manifest.domain,
+          skills: c.manifest.skills
+        }))
+      })
     });
   };
   const startRitual = () => {
     navigateTo('session', { mode: 'normal', items: plan.items });
   };
   const startRecal = () => {
-    const items = (recal.probe.length ? recal.probe : [
-      { exerciseId: 'odd-one' },
-      { exerciseId: 'grid-memory' },
-      { exerciseId: 'stroop' }
-    ]).map((p) => ({ exerciseId: p.exerciseId }));
+    const fallback = calibrationSessionItems({
+      primaryGoal: profile.primaryGoal,
+      catalog: registry.map(c => ({
+        id: c.manifest.id,
+        domain: c.manifest.domain,
+        skills: c.manifest.skills
+      }))
+    });
+    const items = (recal.probe.length ? recal.probe : fallback).map((p) => ({ exerciseId: p.exerciseId }));
     navigateTo('session', { mode: 'recalibration', items });
   };
 

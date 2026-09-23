@@ -177,9 +177,6 @@ export function buildTrainingPlan(params: {
     scoredCandidates.sort((a, b) => b.score - a.score);
 
     let chosen = scoredCandidates[0];
-    if (scoredCandidates.length > 1 && Math.random() < 0.1 && (scoredCandidates[0].score - scoredCandidates[1].score) < 15) {
-      chosen = scoredCandidates[1];
-    }
     
     items.push({ exerciseId: chosen.exerciseId, reason: chosen.reason });
     selectedExerciseIds.add(chosen.exerciseId);
