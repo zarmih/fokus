@@ -1,4 +1,5 @@
 import { ExerciseModule } from './contract';
+import { catalog } from './catalog';
 import gridMemoryModule from './grid-memory';
 import oddOneModule from './odd-one';
 import pairsModule from './pairs';
@@ -159,6 +160,9 @@ import hiddenRuleModule from './hidden-rule';
 import evenOddMathModule from './even-odd-math';
 import shapeSidesMatchModule from './shape-sides-match';
 import letterCaseMatchModule from './letter-case-match';
+import changeMakerModule from './change-maker';
+import fractionCompareModule from './fraction-compare';
+import simonTaskModule from './simon-task';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -320,5 +324,12 @@ export const registry: ExerciseModule[] = [
   hiddenRuleModule,
   evenOddMathModule,
   shapeSidesMatchModule,
-  letterCaseMatchModule
+  letterCaseMatchModule,
+  changeMakerModule,
+  fractionCompareModule,
+  simonTaskModule
 ];
+
+catalog.push({ manifest: changeMakerModule.manifest });
+catalog.push({ manifest: fractionCompareModule.manifest });
+catalog.push({ manifest: simonTaskModule.manifest });
