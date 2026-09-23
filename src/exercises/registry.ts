@@ -156,6 +156,9 @@ import azColorMatchModule from './az-color-match';
 import azShapeShiftModule from './az-shape-shift';
 import areaCompareModule from './area-compare';
 import hiddenRuleModule from './hidden-rule';
+import evenOddMathModule from './even-odd-math';
+import shapeSidesMatchModule from './shape-sides-match';
+import letterCaseMatchModule from './letter-case-match';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -314,5 +317,8 @@ export const registry: ExerciseModule[] = [
   azColorMatchModule,
   azShapeShiftModule,
   areaCompareModule,
-  hiddenRuleModule
+  hiddenRuleModule,
+  evenOddMathModule,
+  shapeSidesMatchModule,
+  letterCaseMatchModule
 ];
