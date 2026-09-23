@@ -1,5 +1,6 @@
 import { REMINDER_LAST_KEY } from './privacy';
 import { storage } from './storage';
+import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey } from './streak';
 
 export { REMINDER_LAST_KEY };
 
@@ -44,6 +45,13 @@ export function maybeNotify(): void {
   const summaries = storage.getDaySummaries();
   const playedToday = summaries.some((d) => d.date.startsWith(today));
   if (playedToday) return;
+
+  const tz = resolveFokusTimeZone().timeZone;
+  const todayKey = calendarDayKey(new Date(), tz);
+  const played = extractPlayedDays({ daySummaries: summaries, sessions: storage.getSessions() }, tz);
+  const streak = computeDayStreak(played, todayKey);
+  
+  if (streak.openMisses >= 3) return;
 
   const hour = preferredReminderHour();
   if (new Date().getHours() < hour) return;
