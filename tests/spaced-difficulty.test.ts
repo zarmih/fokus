@@ -48,6 +48,22 @@ test('failure drop is gentler than a raw -0.8 staircase', () => {
   expect(d.target).toBeLessThan(5.0);
 });
 
+test('failure drop increases with consecutive failures', () => {
+  const history = [
+    { accuracy: 0.60, difficulty: 6.0 }, // failure 1
+    { accuracy: 0.55, difficulty: 5.5 }  // failure 2
+  ];
+  const d = applySpacedDifficulty({
+    currentDifficulty: 5.5,
+    proposedDifficulty: 4.5,
+    accuracy: 0.5, // failure 3
+    history
+  });
+  expect(d.reasonCode).toBe('fail-drop');
+  // FAIL_MAX_DROP is 0.5. With 2 consecutive fails in history, drop is 0.5 + 2 * 0.25 = 1.0.
+  expect(d.target).toBeCloseTo(5.5 - 1.0, 5);
+});
+
 test('reapproach caps below the failed height until enough solid successes', () => {
   const history = [
     { accuracy: 0.5, difficulty: 7.0 }

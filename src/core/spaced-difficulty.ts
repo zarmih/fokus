@@ -188,7 +188,13 @@ export function applySpacedDifficulty(params: {
   const peak = Math.max(current, ...history.map((h) => h.difficulty), MIN_DIFFICULTY);
 
   if (isFailure(params.accuracy)) {
-    const gentle = clampDiff(current - FAIL_MAX_DROP);
+    let consecutiveFails = 0;
+    for (let i = history.length - 1; i >= 0; i--) {
+      if (isFailure(history[i].accuracy)) consecutiveFails++;
+      else break;
+    }
+    const dynamicDrop = FAIL_MAX_DROP + (consecutiveFails * 0.25);
+    const gentle = clampDiff(current - dynamicDrop);
     const target = Math.max(proposed, gentle);
     return {
       mode: 'reapproach',
