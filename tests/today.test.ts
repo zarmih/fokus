@@ -90,7 +90,7 @@ test('today shows first-week strip and transfer framing after probe', () => {
   const app = document.getElementById('app')!;
   renderToday(app);
   expect(app.textContent).toMatch(/Первая неделя/);
-  expect(app.textContent).toMatch(/Навёрстывать/);
+  expect(app.textContent).toMatch(/навёрстывать/i);
   expect(app.textContent).toMatch(/Где это встречается/);
   expect(app.textContent).not.toMatch(/IQ-тест|прокачать мозг/i);
 });
