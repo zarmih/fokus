@@ -118,10 +118,10 @@ describe('scheduleCue', () => {
     expect(s.skipAudio).toBe(true);
   });
 
-  test('combo triad has three delayed notes', () => {
+  test('combo triad has four delayed notes', () => {
     const s = scheduleCue('combo', audible, { combo: 5 });
-    expect(s.partials).toHaveLength(3);
-    expect(s.partials.map((p) => p.delay)).toEqual([0, 0.055, 0.11]);
+    expect(s.partials).toHaveLength(4);
+    expect(s.partials.map((p) => p.delay)).toEqual([0, 0.04, 0.08, 0.12]);
   });
 
   test('reduce-motion skips combo flourish and collapses ritual/celebrate', () => {

@@ -155,7 +155,8 @@ function hitPartials(combo?: number): CuePartial[] {
   const freq = 480 + n * 42;
   return [
     { freq, freqEnd: freq * 1.55, type: 'triangle', dur: 0.09, gain: 0.07, delay: 0 },
-    { freq: freq * 2, type: 'sine', dur: 0.05, gain: 0.025, delay: 0.02 }
+    { freq: freq * 2, type: 'sine', dur: 0.05, gain: 0.025, delay: 0.02 },
+    { freq: freq * 3, type: 'sine', dur: 0.03, gain: 0.015, delay: 0.03 }
   ];
 }
 
@@ -163,12 +164,12 @@ function comboPartials(combo?: number): CuePartial[] {
   const n = typeof combo === 'number' && Number.isFinite(combo) ? combo : 3;
   if (n < 3) return [];
   const root = 392 * (1 + Math.min(n - 3, 5) * 0.04);
-  return [0, 4, 7].map((semi, i) => ({
+  return [0, 4, 7, 12].map((semi, i) => ({
     freq: root * Math.pow(2, semi / 12),
     type: 'sine' as OscillatorType,
     dur: 0.14,
     gain: 0.055,
-    delay: i * 0.055
+    delay: i * 0.04
   }));
 }
 
@@ -192,11 +193,14 @@ function celebratePartials(): CuePartial[] {
 export function rawPartials(id: CueId, ctx: CueContext = {}): CuePartial[] {
   switch (id) {
     case 'tap':
-      return [{ freq: 620, type: 'square', dur: 0.045, gain: 0.035, delay: 0 }];
+      return [{ freq: 620, type: 'triangle', dur: 0.045, gain: 0.05, delay: 0 }];
     case 'hit':
       return hitPartials(ctx.combo);
     case 'miss':
-      return [{ freq: 240, freqEnd: 90, type: 'square', dur: 0.16, gain: 0.045, delay: 0 }];
+      return [
+        { freq: 240, freqEnd: 90, type: 'triangle', dur: 0.16, gain: 0.045, delay: 0 },
+        { freq: 240 * 1.5, freqEnd: 90 * 1.5, type: 'sine', dur: 0.16, gain: 0.03, delay: 0 }
+      ];
     case 'combo':
       return comboPartials(ctx.combo);
     case 'ritual':
