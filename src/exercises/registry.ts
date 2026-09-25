@@ -163,6 +163,9 @@ import letterCaseMatchModule from './letter-case-match';
 import changeMakerModule from './change-maker';
 import fractionCompareModule from './fraction-compare';
 import simonTaskModule from './simon-task';
+import seasonMatchModule from './season-match';
+import vowelConsonantCountModule from './vowel-consonant-count';
+import shapeColorTargetModule from './shape-color-target';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -327,7 +330,10 @@ export const registry: ExerciseModule[] = [
   letterCaseMatchModule,
   changeMakerModule,
   fractionCompareModule,
-  simonTaskModule
+  simonTaskModule,
+  seasonMatchModule,
+  vowelConsonantCountModule,
+  shapeColorTargetModule
 ];
 
 catalog.push({ manifest: changeMakerModule.manifest });
