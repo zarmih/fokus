@@ -5,6 +5,7 @@ import { calibrationSessionItems } from '../../core/calibration';
 import { buildFirstWeekPlan, firstWeekPreviewLines } from '../../core/onboarding';
 import { registry } from '../../exercises/registry';
 import { scheduleLocalReminder } from '../../core/reminders';
+import { bindPressPhysics, enterStage } from '../../core/motion';
 
 function catalog() {
   return registry.map((r) => ({
@@ -93,11 +94,18 @@ export function renderOnboarding(container: HTMLElement) {
       </div>
     `;
 
+    const root = container.querySelector('.onboard') as HTMLElement | null;
+    if (root) enterStage(root);
+
     const heading = container.querySelector('h1') as HTMLElement | null;
     if (heading) {
       heading.setAttribute('tabindex', '-1');
       heading.focus({ preventScroll: true });
     }
+
+    container.querySelectorAll<HTMLElement>('.goal-card, .btn-time, .btn-primary, .btn-secondary').forEach(btn => {
+      bindPressPhysics(btn, { audio: true });
+    });
 
     container.querySelector('#btn-back')?.addEventListener('click', () => {
       step--;
