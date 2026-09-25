@@ -337,30 +337,43 @@ export function ritualDurationSec(profileLengthSec: number, ritual: GentleReturn
 export interface ContinuityMessage {
   title: string;
   body: string;
+  actionHint?: string;
+}
+
+export function formatDaysPlural(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${n} день`;
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `${n} дня`;
+  return `${n} дней`;
 }
 
 export function getContinuityMessage(snapshot: ContinuitySnapshot): ContinuityMessage {
   if (snapshot.weekly.sufficient) {
     const scorePct = Math.round(snapshot.weekly.score * 100);
     return {
-      title: `Индекс регулярности: ${scorePct}%`,
-      body: `Вы тренировались ${snapshot.weekly.completedDays} из ${snapshot.weekly.windowDays} дней.`
+      title: `Регулярность: ${scorePct}%`,
+      body: `Вы тренировались ${snapshot.weekly.completedDays} из ${snapshot.weekly.windowDays} дней. Стабильный ритм — основа закрепления навыков.`,
+      actionHint: 'Ждём вас на следующей тренировке'
     };
   }
   if (snapshot.streak.current > 1) {
     return {
-      title: `Серия: ${snapshot.streak.current} дней`,
-      body: 'Ритм сохраняется. Вы на правильном пути.'
+      title: `Серия: ${formatDaysPlural(snapshot.streak.current)}`,
+      body: 'Ритм сохраняется. Регулярная практика помогает адаптироваться к нагрузке.',
+      actionHint: 'Отличный темп'
     };
   }
   if (snapshot.streak.current === 1) {
     return {
-      title: 'Отличное начало',
-      body: 'Первый шаг сделан. Регулярная практика — ключ к результату.'
+      title: 'Хороший старт',
+      body: 'Первая сессия позади. Главное — возвращаться.',
+      actionHint: 'До завтра'
     };
   }
   return {
     title: 'Тренировка завершена',
-    body: 'Результаты сохранены. Продолжайте в том же духе.'
+    body: 'Результаты сохранены локально.',
+    actionHint: 'До встречи'
   };
 }
