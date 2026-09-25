@@ -56,7 +56,7 @@ export function renderProgress(container: HTMLElement) {
       </div>
   `;
   if (activeDays === 0) {
-    chartHtml += `<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px;">Недостаточно данных для графика активности. Завершите первую сессию, чтобы увидеть статистику.</p></div></div>`;
+    chartHtml += `<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px;">График активности пуст. Завершите первую сессию, чтобы начать историю тренировок.</p></div></div>`;
   } else {
     chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
@@ -121,9 +121,15 @@ export function renderProgress(container: HTMLElement) {
   const sortedDomains = [...domains].sort((a, b) => a.value - b.value);
   const weakestDomainId = sortedDomains.length > 0 ? sortedDomains[0].domain : null;
 
-  let profileHtml = allDomains.map(d => {
-    const dVal = domains.find(x => x.domain === d.id);
-    if (!dVal) return '';
+  const hasProfileData = domains.some(d => d.value > 0) || skills.some(s => s.value > 0);
+
+  let profileHtml = '';
+  if (!hasProfileData) {
+    profileHtml = '<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0;">Профиль навыков формируется после первых тренировок. Пройдите несколько сессий, чтобы увидеть свою форму.</p></div>';
+  } else {
+    profileHtml = allDomains.map(d => {
+      const dVal = domains.find(x => x.domain === d.id);
+      if (!dVal) return '';
     const dScore = Math.round(dVal.value);
     
     // Find skills for this domain
@@ -173,10 +179,7 @@ export function renderProgress(container: HTMLElement) {
         ${emptyStateHtml}
       </div>
     `;
-  }).join('');
-
-  if (!profileHtml) {
-    profileHtml = '<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных. Пройдите больше упражнений из разных областей, чтобы сформировать профиль навыков.</p></div>';
+    }).join('');
   }
 
   const exStates = storage.getExerciseStates();
@@ -330,16 +333,16 @@ export function renderProgress(container: HTMLElement) {
       </div>
       <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
-  ` : fi.coverage === 0 && intel.ready ? `
+  ` : `
     <div class="fi-hero empty">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям. Продолжайте короткие сессии для калибровки.</div>
+        <div class="fi-meta">Недостаточно данных по областям. Выполняйте упражнения для начальной калибровки.</div>
         ${sparkHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает тренировочную форму, а не абсолютный интеллект.</p>
       </div>
     </div>
-  ` : '';
+  `;
 
   const nextMile = intel.milestones.find((m) => !m.reached);
   const milestonesHtml = intel.ready ? `
@@ -388,7 +391,7 @@ export function renderProgress(container: HTMLElement) {
     <div class="surface" style="margin-bottom: 24px;">
       <h3 style="margin-bottom: 16px;">Влияние сна на результаты</h3>
       <div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
-        <p style="color: var(--muted); font-size: 13px; margin: 0;">Недостаточно данных для анализа. Отмечайте качество сна после тренировок (минимум 2 сессии).</p>
+        <p style="color: var(--muted); font-size: 13px; margin: 0;">Отмечайте качество сна после сессий, чтобы увидеть, как он влияет на вашу форму (нужно минимум 2 записи).</p>
       </div>
     </div>`;
 
@@ -416,7 +419,7 @@ export function renderProgress(container: HTMLElement) {
     </div>
 
     <h3 style="margin: 32px 0 16px 0;">Профиль навыков</h3>
-    ${legendHtml}
+    ${hasProfileData ? legendHtml : ''}
     ${profileHtml}
   `;
 
