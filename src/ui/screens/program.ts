@@ -73,6 +73,12 @@ export function renderProgram(container: HTMLElement) {
       coachMessage = `Сессия собрана с упором на ваши слабые области: ${focusDomainsText}.`;
     }
   }
+  
+  if (!snapshot.ritual.active && snapshot.workload?.fatigued?.length > 0) {
+    const fText = snapshot.workload.fatigued.map(d => domainLabel(d as DomainId)).join(' и ');
+    coachMessage = `Нагрузка распределена: даём отдых для "${fText}" и смещаем фокус на другие области.`;
+  }
+
   if (snapshot.ritual.active) {
     coachMessage = 'Мягкий возврат после паузы. Знакомые задания для лёгкого старта.';
   }
