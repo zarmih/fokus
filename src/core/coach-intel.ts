@@ -422,11 +422,11 @@ export function weakDomainsOf(domains: DomainBreakdown[]): DomainBreakdown[] {
 
 function buildTips(
   intel: Omit<CoachIntel, 'tips'>,
-  asOf: string
+  asOf: string,
+  trajectory?: import('./ability-trajectory').AbilityTrajectory
 ): CoachTip[] {
   const tips: CoachTip[] = [];
   const { adherence, milestones, personalBest, weakDomainId, sparkline } = intel;
-  const weak = intel.domains.find((d) => d.id === weakDomainId);
 
   if (adherence.comeback) {
     const gap = Math.max(3, adherence.gapDays);
@@ -464,20 +464,70 @@ function buildTips(
     });
   }
 
-  if (weak) {
-    const spread = intel.domains.filter((d) => d.ready).reduce((m, d) => Math.max(m, d.current), 0) - weak.current;
-    const concrete = pickTip(getWeeklyDomainTips(weak.id), asOf);
-    const lead =
-      spread >= 40
-        ? `«${domainLabel(weak.id)}» пока слабее остальных.`
-        : `Сейчас фокус на «${domainLabel(weak.id)}».`;
-    tips.push({
-      kind: 'domain',
-      title: `Зона роста · ${domainLabel(weak.id)}`,
-      body: `${lead} ${concrete}`,
-      domainId: weak.id,
-      tone: 'focus'
-    });
+  let domainTipAdded = false;
+
+  if (trajectory && trajectory.ready) {
+    const falling = trajectory.domains.find(d => d.trend === 'falling');
+    const risingWeak = trajectory.domains.find(d => d.trend === 'rising' && d.theta < 0.4);
+    const stagnantWeak = trajectory.domains.find(d => d.trend === 'stable' && d.theta < 0.3);
+    const strongStable = trajectory.domains.find(d => d.trend === 'stable' && d.theta > 0.7);
+
+    if (falling) {
+      tips.push({
+        kind: 'domain',
+        title: `Цикл адаптации · ${domainLabel(falling.domain)}`,
+        body: `Показатели пошли на спад. Fokus временно снизит сложность, чтобы вы восстановили точность без лишнего напряжения.`,
+        domainId: falling.domain,
+        tone: 'recovery'
+      });
+      domainTipAdded = true;
+    } else if (risingWeak) {
+      tips.push({
+        kind: 'domain',
+        title: `Уверенный старт · ${domainLabel(risingWeak.domain)}`,
+        body: `Наметился стабильный рост. Фокус на регулярности даёт плоды, держите заданный темп.`,
+        domainId: risingWeak.domain,
+        tone: 'focus'
+      });
+      domainTipAdded = true;
+    } else if (stagnantWeak) {
+      tips.push({
+        kind: 'domain',
+        title: `Зона роста · ${domainLabel(stagnantWeak.domain)}`,
+        body: `Эта область пока поддаётся сложнее. Короткие регулярные подходы дадут самый заметный эффект.`,
+        domainId: stagnantWeak.domain,
+        tone: 'focus'
+      });
+      domainTipAdded = true;
+    } else if (strongStable && !adherence.comeback) {
+      tips.push({
+        kind: 'domain',
+        title: `Устойчивая база · ${domainLabel(strongStable.domain)}`,
+        body: `Ваша стабильная сильная сторона. Fokus будет поддерживать этот уровень без изнурительных пиковых нагрузок.`,
+        domainId: strongStable.domain,
+        tone: 'science'
+      });
+      domainTipAdded = true;
+    }
+  }
+
+  if (!domainTipAdded) {
+    const weak = intel.domains.find((d) => d.id === weakDomainId);
+    if (weak) {
+      const spread = intel.domains.filter((d) => d.ready).reduce((m, d) => Math.max(m, d.current), 0) - weak.current;
+      const concrete = pickTip(getWeeklyDomainTips(weak.id), asOf);
+      const lead =
+        spread >= 40
+          ? `«${domainLabel(weak.id)}» пока слабее остальных.`
+          : `Сейчас фокус на «${domainLabel(weak.id)}».`;
+      tips.push({
+        kind: 'domain',
+        title: `Зона роста · ${domainLabel(weak.id)}`,
+        body: `${lead} ${concrete}`,
+        domainId: weak.id,
+        tone: 'focus'
+      });
+    }
   }
 
   if (adherence.adherencePct < 50 && adherence.playedDays > 0 && !adherence.comeback) {
@@ -531,6 +581,7 @@ export function buildCoachIntel(input: {
   domains: DomainIndex[];
   window?: HistoryWindow;
   asOf?: string;
+  trajectory?: import('./ability-trajectory').AbilityTrajectory;
 }): CoachIntel {
   const window: HistoryWindow = input.window === 30 ? 30 : 14;
   const asOf = input.asOf || new Date().toISOString();
@@ -614,5 +665,5 @@ export function buildCoachIntel(input: {
     weakDomainId: ready ? weakDomainId : null
   };
 
-  return { ...intel, tips: ready ? buildTips(intel, asOf) : [] };
+  return { ...intel, tips: ready ? buildTips(intel, asOf, input.trajectory) : [] };
 }
