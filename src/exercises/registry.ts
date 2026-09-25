@@ -1,5 +1,4 @@
 import { ExerciseModule } from './contract';
-import { catalog } from './catalog';
 import gridMemoryModule from './grid-memory';
 import oddOneModule from './odd-one';
 import pairsModule from './pairs';
@@ -348,9 +347,3 @@ export const registry: ExerciseModule[] = [
   wordColorLinkModule
 ];
 
-catalog.push({ manifest: changeMakerModule.manifest });
-catalog.push({ manifest: fractionCompareModule.manifest });
-catalog.push({ manifest: simonTaskModule.manifest });
-catalog.push({ manifest: symmetryGridModule.manifest });
-catalog.push({ manifest: runningSumModule.manifest });
-catalog.push({ manifest: colorSyncModule.manifest });
