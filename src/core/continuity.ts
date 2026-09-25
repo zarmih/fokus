@@ -349,6 +349,20 @@ export function formatDaysPlural(n: number): string {
 }
 
 export function getContinuityMessage(snapshot: ContinuitySnapshot): ContinuityMessage {
+  if (snapshot.streak.status === 'returned') {
+    return {
+      title: 'С возвращением',
+      body: 'Пауза позади. Серия начата заново, но навык остался с вами.',
+      actionHint: 'Главное — продолжать'
+    };
+  }
+  if (snapshot.streak.status === 'fresh_start') {
+    return {
+      title: 'Новый заход',
+      body: 'Перерыв обнулил серию, но не ваши способности.',
+      actionHint: 'Отличный старт'
+    };
+  }
   if (snapshot.weekly.sufficient) {
     const scorePct = Math.round(snapshot.weekly.score * 100);
     return {
