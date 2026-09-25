@@ -1,6 +1,7 @@
 import { registry } from '../exercises/registry';
 import { buildAdaptivePlan } from './session-builder';
 import { storage } from './storage';
+import { loadContinuitySnapshot, ritualDurationSec, applyGentleReturnBias } from './continuity';
 import {
   applyObservation,
   catalogFromManifests,
@@ -19,8 +20,13 @@ export function planForNow(opts?: {
   nowMs?: number;
 }): AdaptivePlan {
   const profile = storage.getProfile();
-  return buildAdaptivePlan({
-    durationSec: opts?.durationSec ?? profile.sessionLengthSec,
+  
+  const snapshot = loadContinuitySnapshot(storage, opts?.nowMs ? new Date(opts.nowMs) : undefined);
+  const baseDuration = opts?.durationSec ?? profile.sessionLengthSec ?? 900;
+  const durationSec = ritualDurationSec(baseDuration, snapshot.ritual);
+
+  const plan = buildAdaptivePlan({
+    durationSec,
     catalog: registry as any,
     domains: storage.getDomains(),
     skills: storage.getSkills(),
@@ -32,6 +38,18 @@ export function planForNow(opts?: {
     excludeIds: opts?.excludeIds,
     nowMs: opts?.nowMs
   });
+
+  const biased = applyGentleReturnBias(
+    { focusDomains: plan.focusDomains || [], items: plan.items },
+    snapshot.ritual,
+    registry.map(c => ({ id: c.manifest.id, domain: c.manifest.domain }))
+  );
+
+  return {
+    ...plan,
+    focusDomains: biased.focusDomains,
+    items: biased.items as any
+  };
 }
 
 export function currentCatalog() {

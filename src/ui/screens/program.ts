@@ -4,26 +4,30 @@ import { navigateTo } from '../router';
 import { registry } from '../../exercises/registry';
 import { calibrationSessionItems } from '../../core/calibration';
 import { currentModel, planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
-import { SLOT_LABEL, confidencePct, getDomain, isRecalibrationActive } from '../../core/engine';
+import { SLOT_LABEL, getDomain, isRecalibrationActive } from '../../core/engine';
 import { DOMAIN_IDS } from '../../core/engine/constants';
 import { domainLabel } from '../../core/labels';
 import type { DomainId } from '../../core/engine/types';
+import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
   const profile = storage.getProfile();
-  const ds = storage.getDaySummaries();
-  const todayStr = new Date().toISOString().split('T')[0];
-  const playedToday = ds.some((d) => d.date.startsWith(todayStr));
+  
+  const snapshot = loadContinuitySnapshot(storage as any);
+  const contMsg = getContinuityMessage(snapshot);
+  const playedToday = snapshot.streak.playedToday;
+  
   const plan = planForNow({ durationSec: profile.sessionLengthSec || 900 });
   const recal = plan.recalibration;
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
   const model = currentModel();
 
-  const programDay = (profile as { programDay?: number }).programDay;
   const programWeek = (profile as { programWeek?: number }).programWeek;
-  const dayIndex = programDay || Math.max(1, ((ds.length) % 7) + 1);
-  const weekIndex = programWeek || Math.max(1, Math.floor(ds.length / 7) + 1);
+  const weekIndex = programWeek || Math.max(1, Math.floor(snapshot.playedDays.length / 7) + 1);
+  const planDurationMins = Math.round(
+    (snapshot.ritual.active ? snapshot.ritual.durationCapSec : profile.sessionLengthSec || 900) / 60
+  );
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
     const d = getDomain(model, id);
@@ -69,6 +73,9 @@ export function renderProgram(container: HTMLElement) {
       coachMessage = `Сессия собрана с упором на ваши слабые области: ${focusDomainsText}.`;
     }
   }
+  if (snapshot.ritual.active) {
+    coachMessage = 'Мягкий возврат после паузы. Знакомые задания для лёгкого старта.';
+  }
 
   let hero = '';
   if (!profile.calibrated) {
@@ -97,15 +104,15 @@ export function renderProgram(container: HTMLElement) {
       <div class="workout-card done">
         <div class="workout-kicker">На сегодня всё</div>
         <h3>Ритуал выполнен</h3>
-        <p>Лучший эффект даст отдых и продолжение занятий завтра.</p>
+        <p>${contMsg.body || 'Лучший эффект даст отдых и продолжение занятий завтра.'}</p>
         <button id="btn-program-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
   } else {
     hero = `
       <div class="workout-card">
-        <div class="workout-kicker">Тренировочная неделя ${weekIndex} · День ${dayIndex}/7</div>
-        <h3>Ритуал дня · ${Math.round((profile.sessionLengthSec || 900) / 60)} минут</h3>
+        <div class="workout-kicker">${contMsg.title}</div>
+        <h3>Ритуал дня · ${planDurationMins} минут</h3>
         <p class="muted coach-rationale">${coachMessage}</p>
         <button id="btn-program-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
@@ -120,6 +127,22 @@ export function renderProgram(container: HTMLElement) {
       </div>
       ${hero}
       ${profile.calibrated ? `
+        <div class="surface" style="margin-bottom:16px;">
+          <h3>Ваш ритм</h3>
+          <p class="muted" style="margin-bottom:12px">${contMsg.body}</p>
+          <div style="display:flex; gap:16px;">
+            <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
+              <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${snapshot.streak.current}</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:4px;">Серия (дней)</div>
+            </div>
+            ${snapshot.weekly.sufficient ? `
+            <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
+              <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${Math.round(snapshot.weekly.score * 100)}%</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:4px;">Регулярность</div>
+            </div>
+            ` : ''}
+          </div>
+        </div>
         <div class="surface">
           <h3>Вектор способностей</h3>
           <p class="muted" style="margin-bottom:12px">Ваши показатели в пяти когнитивных областях.</p>
