@@ -333,3 +333,34 @@ export function ritualDurationSec(profileLengthSec: number, ritual: GentleReturn
   if (!ritual.active) return profileLengthSec;
   return Math.min(profileLengthSec, ritual.durationCapSec);
 }
+
+export interface ContinuityMessage {
+  title: string;
+  body: string;
+}
+
+export function getContinuityMessage(snapshot: ContinuitySnapshot): ContinuityMessage {
+  if (snapshot.weekly.sufficient) {
+    const scorePct = Math.round(snapshot.weekly.score * 100);
+    return {
+      title: `Индекс регулярности: ${scorePct}%`,
+      body: `Вы тренировались ${snapshot.weekly.completedDays} из ${snapshot.weekly.windowDays} дней.`
+    };
+  }
+  if (snapshot.streak.current > 1) {
+    return {
+      title: `Серия: ${snapshot.streak.current} дней`,
+      body: 'Ритм сохраняется. Вы на правильном пути.'
+    };
+  }
+  if (snapshot.streak.current === 1) {
+    return {
+      title: 'Отличное начало',
+      body: 'Первый шаг сделан. Регулярная практика — ключ к результату.'
+    };
+  }
+  return {
+    title: 'Тренировка завершена',
+    body: 'Результаты сохранены. Продолжайте в том же духе.'
+  };
+}

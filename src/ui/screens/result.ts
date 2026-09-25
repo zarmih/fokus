@@ -16,6 +16,7 @@ import { abilityCaption, pickTransferTip } from '../../core/onboarding';
 import { setScreenTitle } from '../a11y';
 import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 import { buildTransferSurface } from '../../core/transfer-insights';
+import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'program', hideNav: true });
@@ -193,7 +194,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   } else if (isWeak) {
     primaryActionId = 'done';
     primaryActionLabel = 'Сделать перерыв';
-    primaryActionReason = 'Точность просела, мозгу нужен отдых';
+    primaryActionReason = 'Точность просела, рекомендуем отдых';
     secondaryActionId = 'repeat';
     secondaryActionLabel = 'Повторить (ещё раз)';
   } else if (isSuccess) {
@@ -220,7 +221,18 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     }
   }
 
+  const continuity = loadContinuitySnapshot(storage, session.startedAt);
+  const continuityMsg = getContinuityMessage(continuity);
+  
+  const continuityHtml = (!isCalibration && !isRecalibration && !noData && !isOffline) ? `
+    <div class="surface continuity-card" style="border-left: 4px solid var(--ok);">
+      <h3 style="margin-bottom: 4px;">${continuityMsg.title}</h3>
+      <p class="muted" style="margin-bottom: 0;">${continuityMsg.body}</p>
+    </div>
+  ` : '';
+
   const nextActionHtml = `
+    ${continuityHtml}
     <div class="surface next-action-card">
       <h3 class="visually-hidden">Следующий шаг</h3>
       <p class="muted" style="margin-bottom: 12px; font-weight: 500;">${primaryActionReason}</p>

@@ -164,7 +164,7 @@ test('renderResult - V6 Next Action - Weak result (suggests repeat/rest)', () =>
   renderResult(container, { session });
   const html = container.innerHTML;
   expect(html).toContain('Сделать перерыв');
-  expect(html).toContain('Точность просела, мозгу нужен отдых');
+  expect(html).toContain('Точность просела, рекомендуем отдых');
   expect(html).toContain('Повторить (ещё раз)');
 });
 
