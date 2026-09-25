@@ -117,7 +117,7 @@ test('renderWeeklyReview - real aggregation, mastery and difficulty delta', () =
   const html = container.innerHTML;
   
   expect(html).toContain('Арифметика');
-  expect(html).toContain('вырос на 10'); // mDelta for math-sprint
+  expect(html).toContain('выросли на 10'); // mDelta for math-sprint
   expect(html).toContain('повысил сложность');
   expect(html).toContain('Матрица');
   expect(html).toContain('на 0.5'); // dDelta for grid-memory
@@ -156,7 +156,7 @@ test('renderWeeklyReview - rolling time boundaries', () => {
   // Should not see Stroop
   expect(html).not.toContain('Струпа');
   // Should see Grid Memory
-  expect(html).toContain('вырос на 5');
+  expect(html).toContain('выросли на 5');
 });
 
 test('renderWeeklyReview - legacy data handling', () => {
