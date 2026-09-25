@@ -205,7 +205,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       secondaryActionId = 'done';
       secondaryActionLabel = 'На сегодня всё';
     } else {
-      primaryActionLabel = 'Готово';
+      primaryActionLabel = 'Завершить на сегодня';
       primaryActionReason = 'План выполнен идеально';
     }
   } else {
@@ -214,10 +214,10 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       primaryActionLabel = `Дальше: ${nextEx.name}`;
       primaryActionReason = nextItem?.reason || 'Рабочий темп, можно продолжить';
       secondaryActionId = 'done';
-      secondaryActionLabel = 'Закончить';
+      secondaryActionLabel = 'Закончить на сегодня';
     } else {
-      primaryActionLabel = 'Готово';
-      primaryActionReason = 'План выполнен';
+      primaryActionLabel = 'Завершить на сегодня';
+      primaryActionReason = 'План выполнен. Отличная работа.';
     }
   }
 
@@ -225,9 +225,10 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const continuityMsg = getContinuityMessage(continuity);
   
   const continuityHtml = (!isCalibration && !isRecalibration && !noData && !isOffline) ? `
-    <div class="surface continuity-card" style="border-left: 4px solid var(--ok);">
+    <div class="surface continuity-card" style="border-left: 4px solid var(--ok); margin-bottom: 16px;">
       <h3 style="margin-bottom: 4px;">${continuityMsg.title}</h3>
-      <p class="muted" style="margin-bottom: 0;">${continuityMsg.body}</p>
+      <p class="muted" style="margin-bottom: ${continuityMsg.actionHint ? '8px' : '0'};">${continuityMsg.body}</p>
+      ${continuityMsg.actionHint ? `<div style="font-weight: 500; color: var(--ok); font-size: 14px;">${continuityMsg.actionHint}</div>` : ''}
     </div>
   ` : '';
 

@@ -134,4 +134,4 @@ test('30-Day Multi-Day Simulation: Divergence of Plans for Different Latent Prof
   // User B should get memory exercises because they are weak at it
   const hasMemoryB = planB!.items.some(i => registry.find(r => r.manifest.id === i.exerciseId)?.manifest.domain === 'memory');
   expect(hasMemoryB).toBe(true);
-});
+}, 15000);

@@ -186,6 +186,6 @@ test('getContinuityMessage generates honest, metric-free texts', () => {
     ]
   });
   const msg1 = getContinuityMessage(weeklySnap);
-  expect(msg1.title).toMatch(/Индекс регулярности/);
+  expect(msg1.title).toMatch(/Регулярность/);
   expect(msg1.body).not.toMatch(/IQ|мозг|интеллект/i);
 });
