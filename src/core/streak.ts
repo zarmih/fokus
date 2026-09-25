@@ -147,6 +147,10 @@ export interface DayStreak {
    */
   openMisses: number;
   status: DayStreakStatus;
+  /** Percentage of days played in the last 30 days (0-100) */
+  consistency30: number;
+  /** Percentage of days played in the last 7 days (0-100) */
+  consistency7: number;
 }
 
 export function longestConsecutive(days: string[]): number {
@@ -178,6 +182,17 @@ function consecutiveEndingOn(played: Set<string>, endDay: string): number {
   return n;
 }
 
+function calculateConsistency(played: Set<string>, today: string, days: number): number {
+  if (days <= 0) return 0;
+  let active = 0;
+  let d = today;
+  for (let i = 0; i < days; i++) {
+    if (played.has(d)) active++;
+    d = addCalendarDays(d, -1);
+  }
+  return Math.round((active / days) * 100);
+}
+
 /**
  * Honest day-played streak. A 1–2 day gap resets `current` to 0.
  * Soft recovery lives in continuity.ts (ritual bias), not in this number.
@@ -192,7 +207,9 @@ export function computeDayStreak(playedDays: string[], today: string): DayStreak
       playedToday: false,
       daysSinceLastPlay: null,
       openMisses: 0,
-      status: 'empty'
+      status: 'empty',
+      consistency30: 0,
+      consistency7: 0
     };
   }
 
@@ -218,6 +235,9 @@ export function computeDayStreak(playedDays: string[], today: string): DayStreak
   else if (openMisses >= 1 && openMisses <= 2) status = 'soft_return';
   else status = 'fresh_start';
 
+  const consistency30 = calculateConsistency(played, today, 30);
+  const consistency7 = calculateConsistency(played, today, 7);
+
   return {
     current,
     longest,
@@ -225,6 +245,8 @@ export function computeDayStreak(playedDays: string[], today: string): DayStreak
     playedToday,
     daysSinceLastPlay,
     openMisses,
-    status
+    status,
+    consistency30,
+    consistency7
   };
 }

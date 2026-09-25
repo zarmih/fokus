@@ -1,4 +1,5 @@
 import { storage } from './storage';
+import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone } from './streak';
 
 export type QuestType = 'blocks' | 'accuracy' | 'score' | 'diversity' | 'perfect';
 
@@ -39,6 +40,36 @@ export function getDailyQuests(): Quest[] {
       progress: 0,
       completed: false
     })) as Quest[];
+    
+    const tz = resolveFokusTimeZone().timeZone;
+    const todayKey = calendarDayKey(new Date(), tz);
+    const played = extractPlayedDays({ daySummaries: storage.getDaySummaries(), sessions: storage.getSessions() }, tz);
+    const ds = computeDayStreak(played, todayKey);
+    
+    if (ds.status === 'soft_return' || ds.status === 'fresh_start') {
+      selected[0] = {
+        id: 'recovery_quest',
+        title: 'Возвращение в ритм',
+        description: 'Пройдите всего 1 блок, чтобы плавно возобновить тренировки',
+        type: 'blocks',
+        target: 1,
+        progress: 0,
+        completed: false,
+        xpReward: 100
+      };
+    } else if (ds.status === 'active' && ds.current > 0 && ds.current % 3 === 0) {
+      selected[0] = {
+        id: 'streak_bonus',
+        title: 'Сила привычки',
+        description: `Завершите 3 блока, чтобы укрепить свою серию (${ds.current} дн.)`,
+        type: 'blocks',
+        target: 3,
+        progress: 0,
+        completed: false,
+        xpReward: 150
+      };
+    }
+
     p.quests = selected;
     p.questsDate = getTodayStr();
     storage.setProfile(p);
