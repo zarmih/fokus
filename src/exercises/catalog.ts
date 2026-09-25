@@ -1751,6 +1751,26 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       instruction: 'Сосчитайте, сколько фигур заданного ЦВЕТА находится на экране, и выберите правильное число.',
       metricModel: 'speed-accuracy'
     }
+  },
+  {
+    manifest: {
+      id: 'letter-number-switch',
+      name: 'Переключение Буква-Цифра',
+      domain: 'flexibility',
+      skills: ['task_switching', 'cognitive_flexibility'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Если рамка ЖЁЛТАЯ — выберите ГЛАСНАЯ ли буква. Если СИНЯЯ — ЧЁТНАЯ ли цифра. Используйте стрелки Влево (Гласная/Чётная) и Вправо (Согласная/Нечётная).'
+    }
+  },
+  {
+    manifest: {
+      id: 'symbol-match',
+      name: 'Совпадение символов',
+      domain: 'attention',
+      skills: ['visual_scanning', 'processing_speed'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Найдите один символ, который есть на обеих карточках. Нажмите на него.'
+    }
   }
 ];
 
