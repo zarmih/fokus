@@ -124,13 +124,13 @@ export function renderToday(container: HTMLElement) {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
     const slot = item.slot ? SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL] : '';
-    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" style="display: flex; flex-direction: column; align-items: flex-start; padding: 8px 12px; gap: 4px; height: auto; border-radius: 12px;">
-      <div style="display: flex; align-items: center; gap: 6px;">
-        <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="18" height="18" alt="" decoding="async">
-        <span style="font-weight: 600;">${r?.name}</span>
-        ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" style="display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px; gap: 6px; height: auto; border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--surface-2); border: 1px solid var(--line);">
+      <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
+        <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="20" height="20" alt="" decoding="async" style="border-radius: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+        <span style="font-weight: 700; font-size: 14px; flex: 1;">${r?.name}</span>
+        ${slot ? `<span class="slot-tag" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg-elev); padding: 4px 8px; border-radius: 8px; color: var(--muted); border: 1px solid var(--line);">${slot}</span>` : ''}
       </div>
-      <div style="font-size: 11px; opacity: 0.85; line-height: 1.2;">${item.reason}</div>
+      <div style="font-size: 12px; opacity: 0.9; line-height: 1.4; font-weight: 500;">${item.reason}</div>
     </div>`;
   }).join('');
 
@@ -311,29 +311,47 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (snap.ritual.active) {
     const returnFocus = plan.focusDomains.length > 0
-      ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
+      ? plan.focusDomains.map(d => domainLabel(d)).join(', ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-label="Мягкий возврат">
-        <div class="workout-kicker">${spark.title}</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
-        <p class="workout-coach-insight">${spark.body}</p>
-        <div class="workout-chips" role="list" aria-label="Упражнения для мягкого возврата">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Мягкий старт</button>
+      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-labelledby="cta-return-title">
+        <div class="workout-kicker" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          ${spark.title}
+        </div>
+        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Возвращение в ритм</h3>
+        <p style="font-size: 14px; font-weight: 600; color: var(--accent-2); margin-bottom: 12px;">
+          ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
+        </p>
+        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
+        <div class="workout-chips" role="list" aria-label="Упражнения для мягкого возврата" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
+          <span>Начать плавно</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
       </div>
     `;
   } else {
     const rest = ritual?.snapshot?.gate?.active;
     const finalKicker = rest ? 'Сегодня легче' : spark.title;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone}" role="region" aria-label="Ежедневный ритуал">
-        <div class="workout-kicker">${finalKicker}</div>
-        <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
-        ${trendChipHtml}
-        <p class="workout-coach-insight">${spark.body}</p>
-        <div class="workout-chips" role="list" aria-label="Упражнения на сегодня">${compositionHtml}</div>
-        ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone}" role="region" aria-labelledby="cta-today-title">
+        <div class="workout-kicker" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${finalKicker}
+        </div>
+        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Тренировка дня</h3>
+        <p style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">
+          ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
+        </p>
+        ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
+        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
+        <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${ritualWhyHtml ? `<div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--line);">${ritualWhyHtml}</div>` : ''}
+        <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
+          <span>Начать ритуал</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
       </div>
     `;
   }
