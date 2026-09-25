@@ -56,7 +56,7 @@ export function renderProgress(container: HTMLElement) {
       </div>
   `;
   if (activeDays === 0) {
-    chartHtml += `<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px;">График активности пуст. Завершите первую сессию, чтобы начать историю тренировок.</p></div></div>`;
+    chartHtml += `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">График активности пока пуст.<br>Пройдите первую сессию, чтобы начать отслеживать регулярность тренировок.</p></div></div>`;
   } else {
     chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
@@ -76,7 +76,7 @@ export function renderProgress(container: HTMLElement) {
 
   let historyHtml = '';
   if (history.length === 0) {
-    historyHtml = '<p style="color: var(--muted); text-align: center; margin: 24px 0;">Нет истории тренировок</p>';
+    historyHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02); margin: 16px 0;"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">В истории пока нет записей.<br>Здесь будут отображаться результаты ваших завершённых сессий.</p></div>';
   } else {
     historyHtml = history.map(h => {
       const d = new Date(h.date);
@@ -125,7 +125,7 @@ export function renderProgress(container: HTMLElement) {
 
   let profileHtml = '';
   if (!hasProfileData) {
-    profileHtml = '<div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0;">Профиль навыков формируется после первых тренировок. Пройдите несколько сессий, чтобы увидеть свою форму.</p></div>';
+    profileHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Профиль навыков пуст.<br>Он начнёт формироваться после первых тренировок. Пройдите несколько сессий, чтобы система могла оценить вашу форму.</p></div>';
   } else {
     profileHtml = allDomains.map(d => {
       const dVal = domains.find(x => x.domain === d.id);
@@ -162,8 +162,8 @@ export function renderProgress(container: HTMLElement) {
     }).join('');
 
     const emptyStateHtml = dSkills.length === 0 ? `
-      <div style="padding: 12px 0 4px; text-align: center; color: var(--muted); font-size: 12px;">
-        Пройдите сессии для калибровки навыков
+      <div style="padding: 16px 12px; text-align: center; color: var(--muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-top: 12px;">
+        Пока нет данных. Пройдите упражнения на ${domainLabel(d.id).toLowerCase()}, чтобы открыть аналитику навыков.
       </div>
     ` : '';
 
@@ -321,7 +321,7 @@ export function renderProgress(container: HTMLElement) {
     ? `<div class="fi-pb">${intel.personalBest.isLatest ? 'личный рекорд' : 'рекорд'} · ${intel.personalBest.value}</div>`
     : '';
 
-  const fiHtml = fi.coverage > 0 ? `
+  const fiHtml = fi.coverage >= 3 ? `
     <div class="fi-hero">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
@@ -329,17 +329,27 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
         ${pbNote}
         ${sparkHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
       </div>
-      <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
+      <div class="fi-radar" aria-label="Диаграмма Фокус Индекса по областям">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
+    </div>
+  ` : fi.coverage > 0 ? `
+    <div class="fi-hero sparse" style="display: flex; align-items: center; justify-content: center; text-align: center; padding: 32px 16px;">
+      <div class="fi-copy" style="width: 100%;">
+        <div class="fi-kicker">Fokus Index</div>
+        <div class="fi-value" style="font-size: 24px; color: var(--text); opacity: 0.8; margin: 8px 0;">Калибровка...</div>
+        <div class="fi-meta" style="margin-bottom: 12px;">Открыто ${fi.coverage} из 5 областей.<br>Тренируйте разные навыки (нужно минимум 3 области) для расчёта индекса и построения диаграммы.</div>
+        ${sparkHtml}
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не абсолютный интеллект.</p>
+      </div>
     </div>
   ` : `
-    <div class="fi-hero empty">
-      <div class="fi-copy">
+    <div class="fi-hero empty" style="display: flex; align-items: center; justify-content: center; text-align: center; padding: 32px 16px;">
+      <div class="fi-copy" style="width: 100%;">
         <div class="fi-kicker">Fokus Index</div>
-        <div class="fi-meta">Недостаточно данных по областям. Выполняйте упражнения для начальной калибровки.</div>
-        ${sparkHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает тренировочную форму, а не абсолютный интеллект.</p>
+        <div class="fi-value" style="font-size: 24px; color: var(--muted); margin: 8px 0;">—</div>
+        <div class="fi-meta">Недостаточно данных. Завершите первые тренировки в разных областях, чтобы узнать свою форму.</div>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не абсолютный интеллект.</p>
       </div>
     </div>
   `;
@@ -377,7 +387,7 @@ export function renderProgress(container: HTMLElement) {
   `;
 
   const sleepData = ds.filter(d => d.lifestyle?.sleep && d.totalScore > 0);
-  const sleepHtml = sleepData.length >= 2 ? `
+  const sleepHtml = sleepData.length >= 5 ? `
     <div class="surface" style="margin-bottom: 24px;">
       <h3 style="margin-bottom: 16px;">Влияние сна на результат</h3>
       ${renderScatterPlot(
@@ -390,8 +400,8 @@ export function renderProgress(container: HTMLElement) {
     </div>` : `
     <div class="surface" style="margin-bottom: 24px;">
       <h3 style="margin-bottom: 16px;">Влияние сна на результаты</h3>
-      <div class="empty-state" style="padding: 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
-        <p style="color: var(--muted); font-size: 13px; margin: 0;">Отмечайте качество сна после сессий, чтобы увидеть, как он влияет на вашу форму (нужно минимум 2 записи).</p>
+      <div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
+        <p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Отмечайте качество сна после сессий, чтобы увидеть, как он влияет на вашу форму.<br>(Собрано ${sleepData.length} из 5 необходимых записей для графика)</p>
       </div>
     </div>`;
 
