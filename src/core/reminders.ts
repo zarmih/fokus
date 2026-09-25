@@ -62,8 +62,15 @@ export function maybeNotify(): void {
     /* ignore quota */
   }
 
+  let body = 'Короткая тренировка для поддержания ритма.';
+  if (streak.status === 'open') {
+    body = `Серия из ${streak.current} ${streak.current === 1 ? 'дня' : 'дней'} ждёт продолжения.`;
+  } else if (streak.status === 'soft_return') {
+    body = 'Возвращайтесь в ритм. Короткая сессия поможет после паузы.';
+  }
+
   const n = new Notification('Fokus', {
-    body: 'Пять минут на внимание и память. Серия ждёт.',
+    body,
     icon: `${import.meta.env.BASE_URL}icon.svg`,
     tag: 'fokus-daily'
   });
