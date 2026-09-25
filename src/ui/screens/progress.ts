@@ -306,7 +306,7 @@ export function renderProgress(container: HTMLElement) {
     rhythmHtml = '';
   }
 
-  const fi = computeFokusIndex(domains);
+  const fi = computeFokusIndex(domains, exStates);
   const intel = buildCoachIntel({
     summaries: ds,
     domains,
@@ -321,6 +321,19 @@ export function renderProgress(container: HTMLElement) {
     ? `<div class="fi-pb">${intel.personalBest.isLatest ? 'личный рекорд' : 'рекорд'} · ${intel.personalBest.value}</div>`
     : '';
 
+  const depthHtml = `
+    <div class="fi-depth" style="margin-top: 16px; font-size: 13px; color: var(--text);">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <span style="opacity: 0.8;">Глубина профиля</span>
+        <strong>${fi.depth.explored} из ${fi.depth.total}</strong>
+      </div>
+      <div class="scale-track" style="height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 6px;">
+        <div class="scale-fill" style="width: ${fi.depth.percent}%; background: var(--text); opacity: 0.8;"></div>
+      </div>
+      <div style="font-size: 11px; color: var(--muted);">Открыто ${fi.depth.percent}% каталога упражнений</div>
+    </div>
+  `;
+
   const fiHtml = fi.coverage >= 3 ? `
     <div class="fi-hero">
       <div class="fi-copy">
@@ -329,7 +342,8 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
         ${pbNote}
         ${sparkHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
+        ${depthHtml}
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
       </div>
       <div class="fi-radar" aria-label="Диаграмма Фокус Индекса по областям">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
@@ -340,7 +354,8 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-value" style="font-size: 24px; color: var(--text); opacity: 0.8; margin: 8px 0;">Калибровка...</div>
         <div class="fi-meta" style="margin-bottom: 12px;">Открыто ${fi.coverage} из 5 областей.<br>Тренируйте разные навыки (нужно минимум 3 области) для расчёта индекса и построения диаграммы.</div>
         ${sparkHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 8px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не абсолютный интеллект.</p>
+        ${depthHtml}
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не абсолютный интеллект.</p>
       </div>
     </div>
   ` : `
@@ -349,6 +364,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value" style="font-size: 24px; color: var(--muted); margin: 8px 0;">—</div>
         <div class="fi-meta">Недостаточно данных. Завершите первые тренировки в разных областях, чтобы узнать свою форму.</div>
+        ${depthHtml}
         <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не абсолютный интеллект.</p>
       </div>
     </div>

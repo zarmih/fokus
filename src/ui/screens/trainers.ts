@@ -27,8 +27,14 @@ export function renderTrainers(container: HTMLElement) {
     }
   });
 
+  const playedCount = exStates.filter(s => (s.attempts && s.attempts > 0) || s.lastPlayedAt).length;
+  const untriedCount = catalog.length - playedCount;
+
   // Build filters explicitly reflecting counts
   let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">Все <span style="opacity:0.6; font-size:11px;">${catalog.length}</span></button>`;
+  if (untriedCount > 0) {
+    filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false" style="color: var(--accent); border-color: rgba(234, 179, 8, 0.3);">Новое <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
+  }
   filterHtml += validDomains.map((dom, i) => {
     const count = domains.get(dom)!.length;
     const isWeak = count < 5;
@@ -45,6 +51,7 @@ export function renderTrainers(container: HTMLElement) {
     
     let gridHtml = exercises.map(ex => {
       const st = exStates.find(s => s.exerciseId === ex.manifest.id);
+      const isUntried = !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
       const lvl = st ? st.level : 1;
       const intel = getExerciseIntelligence(ex.manifest.id);
       
@@ -95,7 +102,8 @@ export function renderTrainers(container: HTMLElement) {
       }
 
       return `
-        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}">
+        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-untried="${isUntried}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}" style="position: relative;">
+          ${isUntried ? `<div style="position: absolute; top: -6px; right: -6px; background: var(--accent); color: #000; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; z-index: 2;">Новое</div>` : ''}
           <div class="trainer-header-row">
             <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
             <div class="trainer-icon-wrap">
@@ -167,13 +175,18 @@ export function renderTrainers(container: HTMLElement) {
       
       let count = 0;
       content.querySelectorAll('.domain-group').forEach(group => {
-        const isAll = dom === 'all';
-        const match = isAll || (group as HTMLElement).dataset.group === dom;
-        group.classList.toggle('is-hidden', !match);
-        if (match) {
-           const cards = group.querySelectorAll('.trainer-card');
-           count += cards.length;
-        }
+        let groupVisibleCount = 0;
+        group.querySelectorAll('.trainer-card').forEach(card => {
+          const el = card as HTMLElement;
+          const show = dom === 'all' || 
+                       (dom === 'discovery' && el.dataset.untried === 'true') || 
+                       (dom === (group as HTMLElement).dataset.group);
+          el.style.display = show ? '' : 'none';
+          if (show) groupVisibleCount++;
+        });
+        
+        group.classList.toggle('is-hidden', groupVisibleCount === 0);
+        count += groupVisibleCount;
       });
       
       const countLabel = content.querySelector('#catalog-count-label');
