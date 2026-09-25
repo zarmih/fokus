@@ -1,5 +1,6 @@
-import type { DomainIndex, DaySummary } from './types';
+import type { DomainIndex, DaySummary, ExerciseState } from './types';
 import { DOMAIN_ORDER } from './labels';
+import { catalog } from '../exercises/catalog';
 
 export interface DomainSlice {
   id: string;
@@ -14,11 +15,16 @@ export interface FokusIndex {
   coverage: number;
   byDomain: DomainSlice[];
   trend: number;
+  depth: {
+    explored: number;
+    total: number;
+    percent: number;
+  };
 }
 
 const MAX_RAW = 1332; // 999 / 0.75 — maps typical domain scores onto a 0–999 index
 
-export function computeFokusIndex(domains: DomainIndex[]): FokusIndex {
+export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseState[] = []): FokusIndex {
   const byDomain: DomainSlice[] = DOMAIN_ORDER.map((id) => {
     const d = domains.find((x) => x.domain === id);
     const ready = !!(d && d.value > 0);
@@ -30,9 +36,15 @@ export function computeFokusIndex(domains: DomainIndex[]): FokusIndex {
     };
   });
 
+  const total = catalog.length;
+  const playedCount = exStates.filter(s => (s.attempts && s.attempts > 0) || s.lastPlayedAt).length;
+  const explored = Math.min(total, playedCount);
+  const percent = total > 0 ? Math.round((explored / total) * 100) : 0;
+  const depth = { explored, total, percent };
+
   const ready = byDomain.filter((d) => d.ready);
   if (ready.length === 0) {
-    return { value: 0, confidence: 0, coverage: 0, byDomain, trend: 0 };
+    return { value: 0, confidence: 0, coverage: 0, byDomain, trend: 0, depth };
   }
 
   const mean = ready.reduce((sum, d) => sum + d.value, 0) / ready.length;
@@ -42,7 +54,7 @@ export function computeFokusIndex(domains: DomainIndex[]): FokusIndex {
   const confidence = Math.round(Math.min(100, coverageRatio * 100 * (coverage >= 3 ? 1 : 0.65)));
   const trend = ready.reduce((sum, d) => sum + d.trend, 0) / ready.length;
 
-  return { value, confidence, coverage, byDomain, trend };
+  return { value, confidence, coverage, byDomain, trend, depth };
 }
 
 export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: string, daysAgo: number = 1): number | null {
