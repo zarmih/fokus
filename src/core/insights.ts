@@ -2,6 +2,7 @@ import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from
 import { catalog, getManifest } from '../exercises/catalog';
 import { domainLabel, skillLabel } from './labels';
 import { analyzeChronotype } from './coach';
+import { computeAbilityTrajectory } from './ability-trajectory';
 
 export interface CognitiveInsight {
   type: 'improvement' | 'plateau' | 'consistency' | 'strength' | 'area_to_focus' | 'milestone' | 'recovery';
@@ -32,48 +33,129 @@ export function generateInsights(
     }];
   }
 
-  // 1. Strength & Area to focus (from Domains)
-  const sortedDomains = [...domains].sort((a, b) => b.value - a.value);
-  if (sortedDomains.length >= 2) {
-    const strongest = sortedDomains[0];
-    const weakest = sortedDomains[sortedDomains.length - 1];
-    
-    // Check if confidence is established (proxy by looking at total attempts of underlying skills)
-    const getDomainConfidence = (domainId: string) => {
-      const relatedSkills = catalog.filter(r => r.manifest.domain === domainId).flatMap(r => r.manifest.skills);
-      const relevantSkills = skills.filter(s => (relatedSkills as string[]).includes(s.skill));
-      const avgConfidence = relevantSkills.length > 0 
-        ? relevantSkills.reduce((sum, s) => sum + s.confidence, 0) / relevantSkills.length
-        : 0;
-      return avgConfidence;
-    };
-    
-    const strongConf = getDomainConfidence(strongest.domain);
-    if (strongest.value > 600) {
+  const catalogRefs = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const trajectory = computeAbilityTrajectory({ sessions, domains, catalog: catalogRefs });
+
+  if (trajectory.ready) {
+    // Look for rising weak domain
+    const risingWeak = trajectory.domains.find(d => d.trend === 'rising' && d.theta < 0.4);
+    if (risingWeak) {
       insights.push({
-        type: 'strength',
-        title: 'Сильная сторона',
-        description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, пока вы подтягиваете навыки для остальных бытовых задач.`,
-        confidence: strongConf > 70 ? 'high' : (strongConf > 40 ? 'medium' : 'low'),
-        priority: 50 + (strongest.value / 100)
+        type: 'improvement',
+        title: 'Уверенный старт',
+        description: `В области «${domainLabel(risingWeak.domain)}» наметился стабильный рост. Фокус на регулярности даёт плоды, даже если начальный уровень был невысоким.`,
+        confidence: 'high',
+        priority: 85
       });
     }
-    
-    const weakConf = getDomainConfidence(weakest.domain);
-    if (weakest.value < 500 && weakest.value > 0) {
+
+    // Look for falling domain
+    const falling = trajectory.domains.find(d => d.trend === 'falling');
+    if (falling) {
+      insights.push({
+        type: 'recovery',
+        title: 'Цикл адаптации',
+        description: `Показатели в «${domainLabel(falling.domain)}» пошли на спад. Fokus временно снизит сложность, чтобы вы восстановили точность без лишнего напряжения.`,
+        confidence: 'high',
+        priority: 82
+      });
+    }
+
+    // Stable strong domain
+    const stableStrong = trajectory.domains.find(d => d.theta > 0.7 && (d.trend === 'stable' || d.trend === 'rising'));
+    if (stableStrong) {
+      insights.push({
+        type: 'strength',
+        title: 'Устойчивая база',
+        description: `«${domainLabel(stableStrong.domain)}» — ваша стабильная сильная сторона. Fokus будет поддерживать этот уровень без изнурительных пиковых нагрузок.`,
+        confidence: 'high',
+        priority: 70
+      });
+    }
+
+    // Area to focus based on trajectory
+    const stagnantWeak = trajectory.domains.find(d => d.trend === 'stable' && d.theta < 0.3);
+    if (stagnantWeak && !risingWeak && !falling) {
       insights.push({
         type: 'area_to_focus',
         title: 'Зона роста',
-        description: `«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
-        confidence: weakConf > 70 ? 'high' : (weakConf > 40 ? 'medium' : 'low'),
-        priority: 60 + ((500 - weakest.value) / 10)
+        description: `«${domainLabel(stagnantWeak.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
+        confidence: 'high',
+        priority: 75
+      });
+    }
+  } else {
+    // Fallback if trajectory not ready
+    const sortedDomains = [...domains].sort((a, b) => b.value - a.value);
+    if (sortedDomains.length >= 2) {
+      const strongest = sortedDomains[0];
+      const weakest = sortedDomains[sortedDomains.length - 1];
+      
+      const getDomainConfidence = (domainId: string) => {
+        const relatedSkills = catalog.filter(r => r.manifest.domain === domainId).flatMap(r => r.manifest.skills);
+        const relevantSkills = skills.filter(s => (relatedSkills as string[]).includes(s.skill));
+        const avgConfidence = relevantSkills.length > 0 
+          ? relevantSkills.reduce((sum, s) => sum + s.confidence, 0) / relevantSkills.length
+          : 0;
+        return avgConfidence;
+      };
+      
+      const strongConf = getDomainConfidence(strongest.domain);
+      if (strongest.value > 600) {
+        insights.push({
+          type: 'strength',
+          title: 'Сильная сторона',
+          description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, пока вы подтягиваете навыки для остальных бытовых задач.`,
+          confidence: strongConf > 70 ? 'high' : (strongConf > 40 ? 'medium' : 'low'),
+          priority: 50 + (strongest.value / 100)
+        });
+      }
+      
+      const weakConf = getDomainConfidence(weakest.domain);
+      if (weakest.value < 500 && weakest.value > 0) {
+        insights.push({
+          type: 'area_to_focus',
+          title: 'Зона роста',
+          description: `«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
+          confidence: weakConf > 70 ? 'high' : (weakConf > 40 ? 'medium' : 'low'),
+          priority: 60 + ((500 - weakest.value) / 10)
+        });
+      }
+    }
+  }
+
+  // Adaptive Intelligence: Difficulty / Accuracy trade-offs
+  const strugglingState = states.find(s => s.difficulty >= 10 && s.lastAccuracy > 0 && s.lastAccuracy < 0.70);
+  if (strugglingState) {
+    const manifest = getManifest(strugglingState.exerciseId);
+    if (manifest) {
+      insights.push({
+        type: 'area_to_focus',
+        title: 'Предел сложности',
+        description: `В «${manifest.name}» вы достигли уровня, где точность начинает падать. Мы немного откатим сложность для закрепления фундамента.`,
+        confidence: 'high',
+        priority: 78
       });
     }
   }
 
-  // 2. Improvements (from Skills trend)
+  const masteringState = states.find(s => (s.mastery ?? 0) >= 90 && (s.consecutivePlateau || 0) < 3);
+  if (masteringState) {
+    const manifest = getManifest(masteringState.exerciseId);
+    if (manifest) {
+      insights.push({
+        type: 'strength',
+        title: 'Высокое мастерство',
+        description: `В «${manifest.name}» вы показываете отличный баланс скорости и точности. Навык переходит в автоматический режим.`,
+        confidence: 'high',
+        priority: 75
+      });
+    }
+  }
+
+  // Improvements (from Skills trend)
   const improvingSkills = skills.filter(s => s.trend > 15 && s.confidence > 30).sort((a, b) => b.trend - a.trend);
-  if (improvingSkills.length > 0) {
+  if (improvingSkills.length > 0 && insights.filter(i => i.type === 'improvement').length === 0) {
     const best = improvingSkills[0];
     insights.push({
       type: 'improvement',
@@ -84,9 +166,9 @@ export function generateInsights(
     });
   }
 
-  // 3. Plateau
+  // Plateau
   const plateauStates = states.filter(s => (s.consecutivePlateau || 0) >= 3);
-  if (plateauStates.length > 0) {
+  if (plateauStates.length > 0 && !masteringState) {
     const plat = plateauStates[0];
     const manifest = getManifest(plat.exerciseId);
     if (manifest) {
@@ -100,7 +182,7 @@ export function generateInsights(
     }
   }
 
-  // 4. Consistency over the last 7 days
+  // Consistency over the last 7 days
   const week = daySummaries.slice(-7);
   const activeDays = week.filter((d) => !d.skipped && d.totalScore > 0).length;
   if (totalDays >= 5 && activeDays >= 5) {
@@ -113,7 +195,7 @@ export function generateInsights(
     });
   }
 
-  // 5. Recovery after a dip
+  // Recovery after a dip
   if (week.length >= 4) {
     const scores = week.map((d) => d.totalScore);
     const minIdx = scores.indexOf(Math.min(...scores));
@@ -130,7 +212,7 @@ export function generateInsights(
     }
   }
 
-  // 6. Sleep correlation
+  // Sleep correlation
   const withSleep = daySummaries.filter((d) => d.lifestyle?.sleep && d.totalScore > 0);
   if (withSleep.length >= 5) {
     const avg = (arr: DaySummary[]) => arr.reduce((s, d) => s + d.totalScore, 0) / arr.length;
@@ -147,7 +229,7 @@ export function generateInsights(
     }
   }
 
-  // 7. Chronotype
+  // Chronotype
   const chrono = analyzeChronotype(sessions);
   if (chrono.bucket && chrono.sample >= 4) {
     insights.push({
