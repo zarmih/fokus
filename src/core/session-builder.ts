@@ -127,7 +127,7 @@ export function buildTrainingPlan(params: {
 
       let sessionBalance = 0;
       if (selectedDomains.has(manifest.domain)) {
-        sessionBalance = -40;
+        sessionBalance = (manifest.domain === weakestDomain) ? -15 : -40;
       }
       
       if (selectedExerciseIds.has(manifest.id)) {
