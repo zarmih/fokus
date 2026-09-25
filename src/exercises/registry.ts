@@ -169,6 +169,9 @@ import colorSyncModule from './color-sync';
 import seasonMatchModule from './season-match';
 import vowelConsonantCountModule from './vowel-consonant-count';
 import shapeColorTargetModule from './shape-color-target';
+import tripleMatchModule from './triple-match';
+import digitFilterModule from './digit-filter';
+import wordColorLinkModule from './word-color-link';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -339,7 +342,10 @@ export const registry: ExerciseModule[] = [
   colorSyncModule,
   seasonMatchModule,
   vowelConsonantCountModule,
-  shapeColorTargetModule
+  shapeColorTargetModule,
+  tripleMatchModule,
+  digitFilterModule,
+  wordColorLinkModule
 ];
 
 catalog.push({ manifest: changeMakerModule.manifest });

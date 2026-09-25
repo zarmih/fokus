@@ -1631,6 +1631,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy',
       instruction: 'Запомните цель. Если фигура совпадает с целью — жмите «Да» (Влево), иначе «Нет» (Вправо).'
     }
+  },
+{
+    manifest: {
+      id: 'triple-match',
+      name: 'Тройное совпадение',
+      domain: 'logic',
+      skills: ['pattern_recognition', 'logical_reasoning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Определите, составляют ли 3 фигуры СЕТ. Их цвета и формы должны либо полностью совпадать, либо полностью различаться.'
+    }
+  },
+{
+    manifest: {
+      id: 'digit-filter',
+      name: 'Фильтр цифр',
+      domain: 'attention',
+      skills: ['inhibition', 'selective_attention'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Нажимайте ПРОБЕЛ (или касайтесь экрана) ТОЛЬКО когда видите ЧЕТНУЮ ЦИФРУ. Игнорируйте нечетные цифры и буквы.'
+    }
+  },
+{
+    manifest: {
+      id: 'word-color-link',
+      name: 'Цвет слов',
+      domain: 'memory',
+      skills: ['working_memory', 'recall'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Запомните, каким цветом написано слово. Затем выберите этот цвет из предложенных вариантов.'
+    }
   }
 ];
 export function getManifest(id: string): ExerciseManifest | undefined {
