@@ -127,7 +127,7 @@ export function renderTrainers(container: HTMLElement) {
   content.innerHTML = `
     <div class="today-head" style="margin-bottom: 24px;">
       <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px;">Каталог</h2>
-      <p class="today-date" id="catalog-count-label" style="opacity: 0.7;">
+      <p class="today-date" id="catalog-count-label" style="opacity: 0.7;" aria-live="polite">
         ${catalog.length} упражнений. Практика без влияния на Fokus Index.
       </p>
     </div>
@@ -147,7 +147,7 @@ export function renderTrainers(container: HTMLElement) {
         }).join('')}
       </div>
     </div>
-    <div class="domain-filters">
+    <div class="domain-filters" role="group" aria-label="Фильтры доменов">
       ${filterHtml}
     </div>
     <div class="catalog-groups-container">
