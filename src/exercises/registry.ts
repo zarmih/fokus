@@ -166,6 +166,9 @@ import simonTaskModule from './simon-task';
 import symmetryGridModule from './symmetry-grid';
 import runningSumModule from './running-sum';
 import colorSyncModule from './color-sync';
+import seasonMatchModule from './season-match';
+import vowelConsonantCountModule from './vowel-consonant-count';
+import shapeColorTargetModule from './shape-color-target';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -333,7 +336,10 @@ export const registry: ExerciseModule[] = [
   simonTaskModule,
   symmetryGridModule,
   runningSumModule,
-  colorSyncModule
+  colorSyncModule,
+  seasonMatchModule,
+  vowelConsonantCountModule,
+  shapeColorTargetModule
 ];
 
 catalog.push({ manifest: changeMakerModule.manifest });

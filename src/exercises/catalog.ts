@@ -1601,6 +1601,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy',
       instruction: 'Это одна и та же буква? Игнорируйте регистр. Да (Влево), Нет (Вправо).'
     }
+  },
+{
+    manifest: {
+      id: 'season-match',
+      name: 'Сезоны',
+      domain: 'memory',
+      skills: ['recall', 'working_memory'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Определите, к какому времени года относится месяц. (Вверх - Зима, Вправо - Весна, Вниз - Лето, Влево - Осень).'
+    }
+  },
+{
+    manifest: {
+      id: 'vowel-consonant-count',
+      name: 'Гласные и Согласные',
+      domain: 'speed',
+      skills: ['processing_speed', 'visual_scanning'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Если в слове гласных больше, чем согласных — жмите «Да» (Влево). Иначе — «Нет» (Вправо).'
+    }
+  },
+{
+    manifest: {
+      id: 'shape-color-target',
+      name: 'Цветная Фигура',
+      domain: 'attention',
+      skills: ['selective_attention', 'inhibition'] as ExerciseManifest['skills'],
+      metricModel: 'speed-accuracy',
+      instruction: 'Запомните цель. Если фигура совпадает с целью — жмите «Да» (Влево), иначе «Нет» (Вправо).'
+    }
   }
 ];
 export function getManifest(id: string): ExerciseManifest | undefined {
