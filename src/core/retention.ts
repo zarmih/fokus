@@ -1,6 +1,9 @@
 import type { DaySummary, DomainIndex, Session, SessionItem } from './types';
 import { DOMAIN_ORDER, domainLabel } from './labels';
 
+// Wave AD3: Retention, honest streak, and quiet reminders logic
+
+
 /** Four signals that feed the churn-risk score. */
 export type RetentionSignalId =
   | 'adherence_gap'
