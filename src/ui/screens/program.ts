@@ -27,13 +27,11 @@ export function renderProgram(container: HTMLElement) {
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
     const d = getDomain(model, id);
-    const conf = confidencePct(d.precision, d.sources.length);
     const pct = Math.max(4, Math.min(100, (d.theta / 20) * 100));
     return `
       <div class="ability-row">
         <div class="ability-meta">
           <span>${domainLabel(id)}</span>
-          <span class="muted">θ ${d.theta.toFixed(1)} · ${conf}%</span>
         </div>
         <div class="scale-track"><div class="scale-fill" style="width:${pct}%"></div></div>
       </div>
@@ -50,7 +48,7 @@ export function renderProgram(container: HTMLElement) {
         <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="28" height="28" alt="">
         <div class="ritual-copy">
           <div class="ritual-name">${r?.manifest.name || item.exerciseId}</div>
-          <div class="muted">${item.reason}${p != null ? ` · P≈${p}%` : ''}</div>
+          <div class="muted">${item.reason}</div>
         </div>
         ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
       </div>
@@ -63,12 +61,12 @@ export function renderProgram(container: HTMLElement) {
 
   const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3);
 
-  let coachMessage = 'Оптимальная сложность для поддержания формы и тонуса. Слоты: повторение, слот дня, новый стимул.';
+  let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
   if (focusDomainsText) {
     if (isSparse) {
-      coachMessage = `Фокус на: ${focusDomainsText}. Идёт сбор данных — пока мы калибруем вашу форму, предлагаем сбалансированные нагрузки.`;
+      coachMessage = `Идёт сбор данных. В этой сессии сбалансированная нагрузка с фокусом на: ${focusDomainsText}.`;
     } else {
-      coachMessage = `Фокус на: ${focusDomainsText}. Мы сделали акцент на ваших зонах роста, чтобы тренировка дала максимальный эффект.`;
+      coachMessage = `Сессия собрана с упором на ваши слабые области: ${focusDomainsText}.`;
     }
   }
 
@@ -76,9 +74,9 @@ export function renderProgram(container: HTMLElement) {
   if (!profile.calibrated) {
     hero = `
       <div class="workout-card">
-        <div class="workout-kicker">Шаг 1</div>
+        <div class="workout-kicker">Ясный следующий шаг</div>
         <h3>Калибровка уровня</h3>
-        <p>Три коротких блока. После этого Fokus соберёт персональный ритуал на ~15 минут.</p>
+        <p>Пройдите три коротких блока, чтобы Fokus смог собрать подходящий для вас план.</p>
         <button id="btn-calibrate" class="btn-primary" type="button">Начать калибровку</button>
       </div>
     `;
@@ -97,9 +95,9 @@ export function renderProgram(container: HTMLElement) {
   } else if (playedToday) {
     hero = `
       <div class="workout-card done">
-        <div class="workout-kicker">Сегодня закрыто</div>
+        <div class="workout-kicker">На сегодня всё</div>
         <h3>Ритуал выполнен</h3>
-        <p>Дополнительная сессия не ломает прогресс — лучший эффект даёт завтрашний слот.</p>
+        <p>Лучший эффект даст отдых и продолжение занятий завтра.</p>
         <button id="btn-program-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
@@ -107,7 +105,7 @@ export function renderProgram(container: HTMLElement) {
     hero = `
       <div class="workout-card">
         <div class="workout-kicker">Тренировочная неделя ${weekIndex} · День ${dayIndex}/7</div>
-        <h3>${Math.round((profile.sessionLengthSec || 900) / 60)} минут · Персональный ритуал</h3>
+        <h3>Ритуал дня · ${Math.round((profile.sessionLengthSec || 900) / 60)} минут</h3>
         <p class="muted coach-rationale">${coachMessage}</p>
         <button id="btn-program-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
@@ -118,13 +116,13 @@ export function renderProgram(container: HTMLElement) {
     <div class="program-screen">
       <div class="today-head">
         <h2>Персональный план</h2>
-        <p class="today-date">Адаптивный движок v2 · не копия чужих методик</p>
+        <p class="today-date">План на сегодня</p>
       </div>
       ${hero}
       ${profile.calibrated ? `
         <div class="surface">
           <h3>Вектор способностей</h3>
-          <p class="muted" style="margin-bottom:12px">EWMA-форма и байесовская уверенность по пяти областям.</p>
+          <p class="muted" style="margin-bottom:12px">Ваши показатели в пяти когнитивных областях.</p>
           ${abilityHtml}
         </div>
         <div class="surface" style="margin-top:16px">
