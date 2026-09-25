@@ -8,11 +8,21 @@ export function shouldPrecache(relPath: string): boolean {
   return true;
 }
 
+import fs from 'node:fs';
+
 export function generateServiceWorker(assets: string[], version: string): string {
   const list = JSON.stringify(assets);
+  let customSw = '';
+  try {
+    customSw = fs.readFileSync('public/sw.js', 'utf8');
+  } catch (e) {
+    /* ignore */
+  }
   return `/* Fokus precache ${version} */
 const CACHE = ${JSON.stringify('fokus-' + version)};
 const ASSETS = ${list};
+
+${customSw}
 
 function toUrl(path) {
   return new URL(path, self.registration.scope).href;

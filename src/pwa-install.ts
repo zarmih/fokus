@@ -1,21 +1,48 @@
 export let deferredPrompt: any = null;
-const listeners = new Set<(prompt: any) => void>();
+export let isInstalled = false;
 
-export function onInstallPrompt(cb: (prompt: any) => void) {
+const listeners = new Set<(prompt: any, installed: boolean) => void>();
+
+function notify() {
+  listeners.forEach((cb) => cb(deferredPrompt, isInstalled));
+}
+
+export function onInstallPrompt(cb: (prompt: any, installed: boolean) => void) {
   listeners.add(cb);
-  if (deferredPrompt) cb(deferredPrompt);
+  cb(deferredPrompt, isInstalled);
   return () => listeners.delete(cb);
 }
 
 export function initInstallPrompt() {
   if (typeof window === 'undefined') return;
+
+  const mq = window.matchMedia('(display-mode: standalone)');
+  isInstalled = mq.matches || (navigator as any).standalone;
+
+  mq.addEventListener('change', (e) => {
+    isInstalled = e.matches;
+    if (isInstalled) deferredPrompt = null;
+    notify();
+  });
+
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    listeners.forEach((cb) => cb(deferredPrompt));
+    notify();
   });
+
   window.addEventListener('appinstalled', () => {
     deferredPrompt = null;
-    listeners.forEach((cb) => cb(null));
+    isInstalled = true;
+    notify();
   });
+}
+
+export async function promptInstall() {
+  if (!deferredPrompt) return false;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  notify();
+  return outcome === 'accepted';
 }

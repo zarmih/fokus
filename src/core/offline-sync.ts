@@ -633,6 +633,22 @@ export class SyncQueue extends EventTarget {
       window.addEventListener('online', () => this.handleNetworkChange(true));
       window.addEventListener('offline', () => this.handleNetworkChange(false));
       
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') {
+          this.saveQueue();
+        } else if (navigator.onLine && this.queue.length > 0) {
+          this.sync();
+        }
+      });
+      
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', (event) => {
+          if (event.data && event.data.type === 'SYNC_NOW') {
+            this.sync();
+          }
+        });
+      }
+      
       const stored = window.localStorage.getItem('fokus.sync.queue');
       if (stored) {
         try {
@@ -689,6 +705,9 @@ export class SyncQueue extends EventTarget {
     this.saveQueue();
     if (this.state === 'offline' || !navigator.onLine) {
       this.setState('queued');
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        navigator.serviceWorker.ready.then((reg: any) => reg.sync.register('fokus-sync')).catch(() => {});
+      }
     } else {
       this.sync();
     }
@@ -705,31 +724,36 @@ export class SyncQueue extends EventTarget {
     this.setState('syncing');
     const snapshot = [...this.queue];
     
-    // Simulate idempotent sync retry
     try {
       this.lastAttempt = new Date().toISOString();
-      // Dummy fetch to allow SW intercept if needed, or just simulate network delay
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      
       const res = await fetch('/api/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(snapshot)
-      }).catch(() => null); // network error -> null
+        body: JSON.stringify(snapshot),
+        signal: controller.signal
+      }).catch(() => null); 
       
-      const success = res !== null;
+      clearTimeout(timeoutId);
+      
+      const success = res !== null && res.ok;
       
       if (success) {
         this.queue = this.queue.slice(snapshot.length);
         this.saveQueue();
         this.setState(this.queue.length > 0 ? 'queued' : 'online');
       } else {
-        this.setState('error');
+        this.setState(navigator.onLine ? 'error' : 'queued');
       }
     } catch (e) {
-      this.setState('error');
+      this.setState(navigator.onLine ? 'error' : 'queued');
     } finally {
       this.syncing = false;
       if (this.queue.length > 0 && this.state !== 'error') {
-        this.sync(); // trigger next batch
+        this.sync();
       }
     }
   }
