@@ -27,7 +27,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       id: 'arcade-shooter',
       name: 'Космический стрелок',
       domain: 'speed',
-      skills: ['reaction', 'tracking'] as unknown as ExerciseManifest['skills'],
+      skills: ['reaction_speed', 'visual_scanning'],
       instruction: 'Управляйте кораблем, чтобы сбивать летящие сверху цели. Промах снижает точность!',
       metricModel: 'speed-accuracy'
     }
@@ -407,7 +407,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       id: 'gate-tap',
       name: 'Тап у ворот',
       domain: 'attention',
-      skills: ['sustained_attention', 'response_inhibition'] as ExerciseManifest['skills'],
+      skills: ['sustained_attention', 'inhibition'],
       instruction: 'Нажимайте на цель только тогда, когда ворота ОТКРЫТЫ. Штраф за пропуск или нажатие в закрытые ворота.',
       metricModel: 'speed-accuracy'
     }
@@ -457,7 +457,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       id: 'halo-trace',
       name: 'След ореола',
       domain: 'memory',
-      skills: ['spatial_memory', 'sequential_memory'] as ExerciseManifest['skills'],
+      skills: ['spatial_memory', 'working_memory'],
       instruction: 'Запомните последовательность вспыхивающих ореолов и повторите её.',
       metricModel: 'sequence-accuracy'
     }
