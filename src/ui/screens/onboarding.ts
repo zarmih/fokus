@@ -4,6 +4,7 @@ import { GOAL_COPY } from '../../core/labels';
 import { calibrationSessionItems } from '../../core/calibration';
 import { buildFirstWeekPlan, firstWeekPreviewLines } from '../../core/onboarding';
 import { registry } from '../../exercises/registry';
+import { scheduleLocalReminder } from '../../core/reminders';
 
 function catalog() {
   return registry.map((r) => ({
@@ -18,6 +19,7 @@ export function renderOnboarding(container: HTMLElement) {
   let selectedMin = 5;
   let selectedGoal = 'balance';
   let displayName = '';
+  let selectedReminderHour: number | null = null;
   const totalSteps = 3;
 
   const render = () => {
@@ -61,6 +63,24 @@ export function renderOnboarding(container: HTMLElement) {
           <p class="onboard-lead">Имя сохраняется только на вашем устройстве.</p>
           <label class="sr-only" for="onboard-name">Имя или ник</label>
           <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Введите имя..." autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
+          
+          <h2 style="margin-top: 32px; font-size: 1.25rem;">Напоминания</h2>
+          <p class="onboard-lead" style="margin-bottom: 12px;">Fokus работает лучше, если станет ежедневной привычкой. Включить тихие напоминания?</p>
+          <div class="time-stack" role="radiogroup" aria-label="Время напоминания">
+            <label class="btn-time ${selectedReminderHour === 9 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <span>В 09:00 (Утро)</span>
+              <input type="radio" name="onboard-reminder" value="9" class="sr-only" tabindex="-1" ${selectedReminderHour === 9 ? 'checked' : ''} />
+            </label>
+            <label class="btn-time ${selectedReminderHour === 20 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <span>В 20:00 (Вечер)</span>
+              <input type="radio" name="onboard-reminder" value="20" class="sr-only" tabindex="-1" ${selectedReminderHour === 20 ? 'checked' : ''} />
+            </label>
+            <label class="btn-time ${selectedReminderHour === null ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <span>Не нужно</span>
+              <input type="radio" name="onboard-reminder" value="null" class="sr-only" tabindex="-1" ${selectedReminderHour === null ? 'checked' : ''} />
+            </label>
+          </div>
+
           <div class="onboard-week-preview" style="margin-top: 24px; font-size: 14px; opacity: 0.8;">
             <strong>План на первую неделю:</strong> мягкий старт, разгон до ${selectedMin} мин в день.
           </div>
@@ -92,8 +112,17 @@ export function renderOnboarding(container: HTMLElement) {
     });
 
     container.querySelectorAll('.btn-time').forEach((btn) => {
+      if (btn.querySelector('input[type="radio"]')) return;
       btn.addEventListener('click', (e) => {
         selectedMin = parseInt((e.currentTarget as HTMLElement).dataset.m || '5', 10);
+        render();
+      });
+    });
+
+    container.querySelectorAll('input[name="onboard-reminder"]').forEach((radio) => {
+      radio.addEventListener('change', (e) => {
+        const val = (e.target as HTMLInputElement).value;
+        selectedReminderHour = val === 'null' ? null : parseInt(val, 10);
         render();
       });
     });
@@ -140,11 +169,20 @@ export function renderOnboarding(container: HTMLElement) {
         sessionLengthSec: selectedMin * 60,
         startDate: new Date().toISOString()
       });
+      p.reminderHour = selectedReminderHour;
       if (displayName) {
         p.displayName = displayName;
         p.name = displayName;
       }
       storage.setProfile(p);
+
+      if (selectedReminderHour !== null && typeof window !== 'undefined' && 'Notification' in window) {
+        Notification.requestPermission().then((perm) => {
+          if (perm === 'granted') {
+            scheduleLocalReminder();
+          }
+        }).catch(() => { /* ignore */ });
+      }
 
       if (!p.calibrated && storage.getHistory().length === 0) {
         navigateTo('session', {
