@@ -1722,6 +1722,36 @@ export const catalog: { manifest: ExerciseManifest }[] = [
       metricModel: 'speed-accuracy'
     }
   },
+  {
+    manifest: {
+      id: 'max-number',
+      name: 'Максимальное число',
+      domain: 'speed',
+      skills: ['visual_scanning', 'numerical_processing'] as ExerciseManifest['skills'],
+      instruction: 'Среди всех чисел на экране как можно быстрее найдите и нажмите на НАИБОЛЬШЕЕ число.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'arrow-path',
+      name: 'Путь по стрелкам',
+      domain: 'logic',
+      skills: ['spatial_reasoning', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Проследите путь от зелёного круга по направлению стрелок и нажмите на ту клетку, на которой путь заканчивается.',
+      metricModel: 'speed-accuracy'
+    }
+  },
+  {
+    manifest: {
+      id: 'color-count',
+      name: 'Перепись цветов',
+      domain: 'attention',
+      skills: ['selective_attention', 'visual_scanning'] as ExerciseManifest['skills'],
+      instruction: 'Сосчитайте, сколько фигур заданного ЦВЕТА находится на экране, и выберите правильное число.',
+      metricModel: 'speed-accuracy'
+    }
+  }
 ];
 
 export function getManifest(id: string): ExerciseManifest | undefined {

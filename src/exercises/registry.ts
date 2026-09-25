@@ -171,6 +171,9 @@ import shapeColorTargetModule from './shape-color-target';
 import tripleMatchModule from './triple-match';
 import digitFilterModule from './digit-filter';
 import wordColorLinkModule from './word-color-link';
+import maxNumberModule from './max-number';
+import arrowPathModule from './arrow-path';
+import colorCountModule from './color-count';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -344,6 +347,9 @@ export const registry: ExerciseModule[] = [
   shapeColorTargetModule,
   tripleMatchModule,
   digitFilterModule,
-  wordColorLinkModule
+  wordColorLinkModule,
+  maxNumberModule,
+  arrowPathModule,
+  colorCountModule
 ];
 
