@@ -342,6 +342,16 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  const fiExplainHtml = `
+    <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
+      <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
+      <p style="margin: 0 0 8px 0; color: var(--muted);">Индекс — это среднее значение ваших результатов в активных областях. Он показывает только вашу текущую тренировочную форму.</p>
+      <p style="margin: 0; color: var(--muted);">Уверенность зависит от того, как давно вы тренировались. Это просто честная метрика ваших результатов в тренажёрах без лишних обещаний.</p>
+    </div>
+  `;
+
+  const btnExplain = `<button id="btn-explain-index" class="btn-text" style="font-size: 11px; color: var(--accent); padding: 4px 0; margin-top: 8px; cursor: pointer; border: none; background: transparent; display: inline-block;" aria-expanded="false" aria-controls="fi-explainer">Как считается индекс?</button>`;
+
   const fiHtml = fi.coverage >= 3 ? `
     <div class="fi-hero">
       <div class="fi-copy">
@@ -351,7 +361,9 @@ export function renderProgress(container: HTMLElement) {
         ${pbNote}
         ${sparkHtml}
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не медицинский диагноз или абсолютный интеллект.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс отражает текущую тренировочную форму.</p>
+        ${btnExplain}
+        ${fiExplainHtml}
       </div>
       <div class="fi-radar" aria-label="Диаграмма Фокус Индекса по областям">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
@@ -363,7 +375,9 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-meta" style="margin-bottom: 12px;">Открыто ${fi.coverage} из 5 областей.<br>Тренируйте разные навыки (нужно минимум 3 области) для расчёта индекса и построения диаграммы.</div>
         ${sparkHtml}
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не абсолютный интеллект.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс отражает текущую тренировочную форму.</p>
+        ${btnExplain}
+        ${fiExplainHtml}
       </div>
     </div>
   ` : `
@@ -373,7 +387,9 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-value" style="font-size: 24px; color: var(--muted); margin: 8px 0;">—</div>
         <div class="fi-meta">Недостаточно данных. Завершите первые тренировки в разных областях, чтобы узнать свою форму.</div>
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">Индекс отражает текущую тренировочную форму, а не абсолютный интеллект.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">Индекс отражает текущую тренировочную форму.</p>
+        ${btnExplain}
+        ${fiExplainHtml}
       </div>
     </div>
   `;
@@ -459,5 +475,15 @@ export function renderProgress(container: HTMLElement) {
 
   content.querySelector('#btn-weekly-review')?.addEventListener('click', () => {
     import('../router').then(({navigateTo}) => navigateTo('weekly-review'));
+  });
+
+  content.querySelector('#btn-explain-index')?.addEventListener('click', (e) => {
+    const btn = e.target as HTMLButtonElement;
+    const explainer = content.querySelector('#fi-explainer') as HTMLElement;
+    if (explainer) {
+      const isHidden = explainer.style.display === 'none';
+      explainer.style.display = isHidden ? 'block' : 'none';
+      btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    }
   });
 }
