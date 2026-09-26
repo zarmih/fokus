@@ -2,6 +2,7 @@ import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from
 import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
 import { assessRetention, sparkFromRetention } from './retention';
+import { buildCoachIntel } from './coach-intel';
 
 export interface CoachSpark {
   title: string;
@@ -160,47 +161,19 @@ export function getDailySpark(params: {
     }
   }
 
-  if (trajectory && trajectory.ready && trajectory.headline) {
-    const focus = trajectory.headline;
-    const name = domainLabel(focus.domain);
-    if (focus.trend === 'rising') {
-       return {
-         title: `Рост: ${name}`,
-         body: `Показатели стабильно идут вверх. Сложность будет расти вместе с вашим навыком — держите темп.`,
-         tone: 'focus'
-       };
-    } else if (focus.trend === 'falling') {
-       return {
-         title: `Спад: ${name}`,
-         body: `Точность немного упала. Сегодня мы чуть снизим планку, чтобы восстановить уверенность.`,
-         tone: 'recovery'
-       };
-    } else if (focus.trend === 'stable' && focus.theta < 0.3) {
-       return {
-         title: `Зона роста: ${name}`,
-         body: `Эта область пока требует больше усилий. Сегодня фокус на ней — ошибаться нормально, важна регулярность.`,
-         tone: 'focus'
-       };
-    }
-  }
+  const intel = buildCoachIntel({
+    summaries: daySummaries,
+    domains,
+    trajectory,
+    asOf: now ? now.toISOString() : new Date().toISOString()
+  });
 
-  const fi = computeFokusIndex(domains);
-  const weakest = [...fi.byDomain].filter((d) => d.ready).sort((a, b) => a.value - b.value)[0];
-  const focus = (focusDomains && focusDomains[0]) || (primaryGoal && primaryGoal !== 'balance' ? primaryGoal : weakest?.id);
-
-  if (focus) {
+  if (intel.tips.length > 0) {
+    const tip = intel.tips[0];
     return {
-      title: 'Фокус дня',
-      body: `Сегодня упор на «${domainLabel(focus)}». Сложность подстроится под вашу текущую форму — ошибаться нормально.`,
-      tone: 'focus'
-    };
-  }
-
-  if (streak >= 7) {
-    return {
-      title: `${streak} дней подряд`,
-      body: 'Ритм установлен. Теперь главная задача — защищать его от выгорания, не повышая сложность искусственно.',
-      tone: 'habit'
+      title: tip.title,
+      body: tip.body,
+      tone: tip.tone
     };
   }
 

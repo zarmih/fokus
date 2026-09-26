@@ -14,6 +14,7 @@ import { generateInsights } from '../../core/insights';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
 import { getDailySpark } from '../../core/coach';
+import { buildCoachIntel } from '../../core/coach-intel';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
@@ -46,8 +47,11 @@ export function renderToday(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
+  const intel = buildCoachIntel({ summaries: ds, domains, asOf: new Date().toISOString() });
   const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
   const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
+  const coachTarget = intel.weakDomainId || profile.primaryGoal;
+  const targetGoal = weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || coachTarget;
   const baseDuration = weekRitual.inFirstWeek && weekRitual.ritualDay
     ? weekRitual.ritualDay.durationSec
     : profile.sessionLengthSec;
@@ -67,7 +71,7 @@ export function renderToday(container: HTMLElement) {
       domains,
       skills,
       states,
-      primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal,
+      primaryGoal: targetGoal,
       sessions,
       daySummaries: ds,
       recoveryHintsEnabled: profile.recoveryHints !== false
@@ -85,7 +89,7 @@ export function renderToday(container: HTMLElement) {
       states,
       catalog,
       durationSec: ritualDuration,
-      primaryGoal: weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || profile.primaryGoal
+      primaryGoal: targetGoal
     });
     if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
       plan.items = depth.ritual.items.map((s: any) => ({
