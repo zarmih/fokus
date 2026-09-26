@@ -18,12 +18,12 @@ test('partial coverage averages only ready domains', () => {
   ];
   const fi = computeFokusIndex(domains);
   expect(fi.coverage).toBe(2);
-  expect(fi.value).toBe(Math.round(((800 + 400) / 2) * 0.75));
-  expect(fi.confidence).toBeLessThan(70);
+  expect(fi.value).toBe(Math.round(((800 + 400) / 2)));
+  expect(fi.confidence).toBe(40);
   expect(fi.byDomain.find(d => d.id === 'speed')?.ready).toBe(false);
 });
 
-test('index is capped at 999', () => {
+test('index is honest and unbounded', () => {
   const domains: DomainIndex[] = [
     { domain: 'attention', value: 2000, updatedAt: 'x' },
     { domain: 'memory', value: 2000, updatedAt: 'x' },
@@ -31,7 +31,7 @@ test('index is capped at 999', () => {
     { domain: 'flexibility', value: 2000, updatedAt: 'x' },
     { domain: 'logic', value: 2000, updatedAt: 'x' }
   ];
-  expect(computeFokusIndex(domains).value).toBe(999);
+  expect(computeFokusIndex(domains).value).toBe(2000);
   expect(computeFokusIndex(domains).coverage).toBe(5);
 });
 

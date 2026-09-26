@@ -103,6 +103,8 @@ export function renderProgress(container: HTMLElement) {
   const skills = storage.getSkills();
   
   // Build domain -> skills map
+  const catalogRefs = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const trajectory = computeAbilityTrajectory({ sessions: storage.getSessions(), domains, catalog: catalogRefs });
   const domainSkills = new Map<string, Set<string>>();
   catalog.forEach(ex => {
     if (!domainSkills.has(ex.manifest.domain)) {
@@ -140,7 +142,7 @@ export function renderProgress(container: HTMLElement) {
     const skillsListHtml = dSkills.map(s => {
       const displayVal = Math.round(s.value);
       const isReliable = s.confidence >= 10;
-      const pct = isReliable ? Math.min(100, Math.max(0, displayVal / 15)) : 0;
+      
       const trendStr = s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '→';
       const trendColor = s.trend > 0 ? 'var(--ok)' : s.trend < 0 ? 'var(--danger)' : 'var(--muted)';
       const skillName = skillLabel(s.skill);
@@ -153,7 +155,7 @@ export function renderProgress(container: HTMLElement) {
             <span style="text-transform: capitalize; color: var(--text); opacity: ${isReliable ? '0.9' : '0.6'};">${skillName}</span>
             <span>${valueText}</span>
           </div>
-          <div class="scale-track" style="height: 4px; opacity: ${isReliable ? '1' : '0.4'}; background: rgba(255,255,255,0.05);">${isReliable ? `<div class="scale-fill" style="width: ${pct}%; background: var(--dom-${d.id}); box-shadow: 0 0 8px var(--dom-${d.id});"></div>` : `<div style="width: 100%; height: 100%; background: repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.1) 4px, rgba(255,255,255,0.1) 8px);"></div>`}</div>
+          
           ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
             <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
@@ -168,12 +170,15 @@ export function renderProgress(container: HTMLElement) {
       </div>
     ` : '';
 
+    const tr = trajectory.domains.find(t => t.domain === d.id);
+    const trLabel = tr ? (tr.trend === "rising" ? "растёт 📈" : tr.trend === "falling" ? "снижается 📉" : tr.trend === "stable" ? "стабильно ➖" : "сбор данных") : "";
     const isWeakest = d.id === weakestDomainId && dScore > 0;
     return `
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); position: relative;">
         ${isWeakest ? `<div style="position: absolute; top: -10px; right: 16px; background: var(--dom-${d.id}); color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Фокус внимания</div>` : ''}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${(dSkills.length > 0 || dScore === 0) ? '12px' : '0'};">
           <div style="font-weight: 700; font-size: 16px; color: ${dScore > 0 ? `var(--dom-${d.id})` : 'var(--muted)'}; opacity: ${dScore > 0 ? '1' : '0.6'};">${domainLabel(d.id)}</div>
+          ${trLabel && dScore > 0 ? `<div style="font-size: 11px; color: var(--muted); margin-left: 8px;">${trLabel}</div>` : ""}
           <div style="font-size: 18px; font-weight: 800; color: ${dScore > 0 ? 'inherit' : 'var(--muted)'};">${dScore > 0 ? dScore : '—'}</div>
         </div>
         ${skillsListHtml}
@@ -307,8 +312,6 @@ export function renderProgress(container: HTMLElement) {
     rhythmHtml = '';
   }
 
-  const catalogRefs = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
-  const trajectory = computeAbilityTrajectory({ sessions: storage.getSessions(), domains, catalog: catalogRefs });
 
   const fi = computeFokusIndex(domains, exStates);
   const intel = buildCoachIntel({
@@ -335,7 +338,7 @@ export function renderProgress(container: HTMLElement) {
       <div class="scale-track" style="height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 6px;">
         <div class="scale-fill" style="width: ${fi.depth.percent}%; background: var(--text); opacity: 0.8;"></div>
       </div>
-      <div style="font-size: 11px; color: var(--muted);">Открыто ${fi.depth.percent}% каталога упражнений</div>
+      <div style="font-size: 11px; color: var(--muted);">Освоено ${fi.depth.percent}% каталога (≥3 сессий)</div>
     </div>
   `;
 

@@ -317,6 +317,22 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   });
   const intelHtml = renderIntelPanel(intel);
 
+  const readyTrajectories = trajectory.domains.filter(t => t.trend !== 'unknown');
+  let trajectoryHtml = '';
+  if (readyTrajectories.length > 0) {
+    trajectoryHtml = `
+      <section class="surface wr-section">
+        <h3 class="wr-section-title">Траектории развития</h3>
+        <ul class="wr-changed-list">
+          ${readyTrajectories.map(t => {
+            const trLabel = t.trend === 'rising' ? 'растёт 📈' : t.trend === 'falling' ? 'снижается 📉' : 'стабильна ➖';
+            return `<li>Форма в области <strong>${domainLabel(t.domain)}</strong> ${trLabel}.</li>`;
+          }).join('')}
+        </ul>
+      </section>
+    `;
+  }
+
   content.innerHTML = `
     <header class="wr-header">
       <button id="btn-back" class="btn-tiny wr-btn-back" aria-label="Вернуться назад">← Назад</button>
@@ -328,6 +344,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     
     ${atAGlanceHtml}
     ${intelHtml}
+    ${trajectoryHtml}
     ${whatChangedHtml}
     ${insightHtml}
     ${nextStepHtml}
