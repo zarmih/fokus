@@ -3,7 +3,7 @@ export type Locale = 'ru' | 'en';
 const dictionary: Record<string, Record<Locale, string>> = {
   'today.title': { ru: 'Сегодня', en: 'Today' },
   'program.title': { ru: 'План', en: 'Plan' },
-  'today.start': { ru: 'Начать тренировку', en: 'Start Training' },
+  'today.start': { ru: 'Начать игру', en: 'Start the game' },
   'today.done_title': { ru: 'Отличная работа!', en: 'Great job!' },
   'today.done_desc': { ru: 'План на сегодня выполнен. Отдыхайте.', en: 'Today’s plan is complete. Rest.' },
   'trainers.title': { ru: 'Каталог', en: 'Trainers' },
