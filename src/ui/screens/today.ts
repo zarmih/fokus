@@ -372,6 +372,12 @@ export function renderToday(container: HTMLElement) {
 
     ${weekHtml}
 
+    <div class="surface install-card" id="today-install-card" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--accent);">
+      <h3 style="margin-bottom: 4px;">Установить Fokus</h3>
+      <p class="muted" style="margin-bottom: 12px;">Быстрый доступ с экрана домой и работа без сети.</p>
+      <button id="btn-today-install" class="btn-primary" type="button" style="width: 100%;">Установить приложение</button>
+    </div>
+
     <div class="dashboard-widgets">
       <div class="stat-row">
         ${renderStreakChip(snap, 'pill')}
@@ -417,6 +423,27 @@ export function renderToday(container: HTMLElement) {
 
   content.querySelector('#btn-retry')?.addEventListener('click', () => {
     window.location.reload();
+  });
+
+  import('../../pwa-install').then(({ onInstallPrompt }) => {
+    const card = content.querySelector('#today-install-card') as HTMLElement;
+    const btn = content.querySelector('#btn-today-install');
+    if (card && btn) {
+      onInstallPrompt((prompt: any) => {
+        if (prompt) {
+          card.style.display = 'block';
+          btn.addEventListener('click', async () => {
+            prompt.prompt();
+            const { outcome } = await prompt.userChoice;
+            if (outcome === 'accepted') {
+              card.style.display = 'none';
+            }
+          }, { once: true });
+        } else {
+          card.style.display = 'none';
+        }
+      });
+    }
   });
   
   content.querySelector('#btn-start')?.addEventListener('click', () => {

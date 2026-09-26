@@ -6,6 +6,34 @@ import { focusMain, setScreenTitle } from './a11y';
 import { streakAriaLabel } from './components/habit-continuity';
 import { syncQueue, type SyncStatus } from '../core/offline-sync';
 
+let updateBannerAdded = false;
+if (typeof window !== 'undefined') {
+  window.addEventListener('pwa-update-available', () => {
+    if (updateBannerAdded) return;
+    updateBannerAdded = true;
+    const app = document.getElementById('app');
+    if (!app) return;
+    const banner = document.createElement('div');
+    banner.className = 'surface pwa-update-banner fx-enter';
+    banner.style.cssText = 'position: fixed; bottom: 80px; left: 16px; right: 16px; z-index: 100; border-left: 4px solid var(--accent); box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 8px;';
+    banner.innerHTML = `
+      <div style="font-weight: 600;">Доступна новая версия</div>
+      <div style="font-size: 13px; color: var(--muted);">Обновите Fokus, чтобы получить последние улучшения.</div>
+      <div style="display: flex; gap: 8px; margin-top: 4px;">
+        <button class="btn-primary" type="button" style="flex: 1;" id="btn-pwa-update">Обновить сейчас</button>
+        <button class="btn-secondary" type="button" style="flex: 1;" id="btn-pwa-dismiss">Позже</button>
+      </div>
+    `;
+    banner.querySelector('#btn-pwa-update')?.addEventListener('click', () => {
+      window.location.reload();
+    });
+    banner.querySelector('#btn-pwa-dismiss')?.addEventListener('click', () => {
+      banner.remove();
+    });
+    app.appendChild(banner);
+  });
+}
+
 export function renderShell(container: HTMLElement, params: {active: 'today' | 'program' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
   const snap = loadContinuitySnapshot(storage);
   const streak = snap.streak.current;
