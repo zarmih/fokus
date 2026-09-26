@@ -127,11 +127,14 @@ export interface RitualItem {
   trace: string;
 }
 
+export type SessionRecipe = 'standard' | 'consolidation' | 'discovery' | 'deep-work';
+
 export interface RitualPlan {
   focusDomains: DomainId[];
   items: RitualItem[];
   targetBlocks: number;
   mix: RitualSlotKind[];
+  recipe: SessionRecipe;
 }
 
 export interface RecalibrationDecision {

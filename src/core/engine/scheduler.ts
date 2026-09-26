@@ -8,7 +8,7 @@ import {
   SPACING_INTERVAL_MIN
 } from './constants';
 import { addDaysIso, clip, daysBetween, isoFromMs } from './math';
-import type { AbilityModel, ExerciseSpacing, RitualSlotKind } from './types';
+import type { AbilityModel, ExerciseSpacing, RitualSlotKind, SessionRecipe } from './types';
 
 export function getSpacing(model: AbilityModel, exerciseId: string): ExerciseSpacing {
   return (
@@ -112,7 +112,26 @@ export function targetBlockCount(durationSec: number): number {
   return 3;
 }
 
-export function slotMix(blockCount: number): RitualSlotKind[] {
+export function pickRecipe(rng: () => number): SessionRecipe {
+  const r = rng();
+  if (r < 0.6) return 'standard';
+  if (r < 0.75) return 'consolidation';
+  if (r < 0.9) return 'discovery';
+  return 'deep-work';
+}
+
+export function slotMix(blockCount: number, recipe: SessionRecipe = 'standard'): RitualSlotKind[] {
+  if (recipe === 'consolidation') {
+    return Array(blockCount).fill('overdue');
+  }
+  if (recipe === 'discovery') {
+    const slots: RitualSlotKind[] = ['overdue', 'fresh', 'fresh', 'fresh', 'fresh'];
+    return slots.slice(0, blockCount);
+  }
+  if (recipe === 'deep-work') {
+    return Array(blockCount).fill('due');
+  }
+  
   if (blockCount <= 3) return ['overdue', 'due', 'fresh'];
   if (blockCount === 4) return ['overdue', 'overdue', 'due', 'fresh'];
   return ['overdue', 'overdue', 'due', 'due', 'fresh'];
@@ -132,4 +151,11 @@ export const SLOT_REASON: Record<RitualSlotKind, string> = {
   overdue: 'Интервал вышел — пора повторить',
   due: 'Слот дня — в зоне роста',
   fresh: 'Новый стимул — расширяем карту'
+};
+
+export const RECIPE_LABEL: Record<SessionRecipe, string> = {
+  standard: 'Сбалансированная',
+  consolidation: 'Закрепление',
+  discovery: 'Открытие',
+  'deep-work': 'Глубокая работа'
 };

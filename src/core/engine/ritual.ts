@@ -2,7 +2,7 @@ import { DOMAIN_IDS } from './constants';
 import { clip } from './math';
 import { confidence01, getDomain } from './ability';
 import { itemInformation, selectDifficulty } from './irt';
-import { classifySlot, getSpacing, slotMix, targetBlockCount, urgency, SLOT_REASON } from './scheduler';
+import { classifySlot, getSpacing, slotMix, targetBlockCount, urgency, SLOT_REASON, pickRecipe } from './scheduler';
 import type {
   AbilityModel,
   CatalogItem,
@@ -31,7 +31,8 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
   const exclude = new Set(params.excludeIds || []);
   const catalog = params.catalog.filter((c) => !exclude.has(c.id));
   const targetBlocks = Math.min(targetBlockCount(params.durationSec), Math.max(1, catalog.length));
-  const mix = slotMix(targetBlocks).slice(0, targetBlocks);
+  const recipe = pickRecipe(rng);
+  const mix = slotMix(targetBlocks, recipe).slice(0, targetBlocks);
 
   const focus = focusDomains(params.model, goal);
   const selectedIds = new Set<string>();
@@ -63,7 +64,7 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
     });
   });
 
-  return { focusDomains: focus, items, targetBlocks, mix };
+  return { focusDomains: focus, items, targetBlocks, mix, recipe };
 }
 
 function focusDomains(model: AbilityModel, goal: string): DomainId[] {
