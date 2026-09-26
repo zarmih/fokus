@@ -22,7 +22,7 @@ export interface FokusIndex {
   };
 }
 
-const MAX_RAW = 1332; // 999 / 0.75 — maps typical domain scores onto a 0–999 index
+
 
 export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseState[] = []): FokusIndex {
   const byDomain: DomainSlice[] = DOMAIN_ORDER.map((id) => {
@@ -37,7 +37,7 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   });
 
   const total = catalog.length;
-  const playedCount = exStates.filter(s => (s.attempts && s.attempts > 0) || s.lastPlayedAt).length;
+  const playedCount = exStates.filter(s => s.attempts && s.attempts >= 3).length;
   const explored = Math.min(total, playedCount);
   const percent = total > 0 ? Math.round((explored / total) * 100) : 0;
   const depth = { explored, total, percent };
@@ -48,10 +48,10 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   }
 
   const mean = ready.reduce((sum, d) => sum + d.value, 0) / ready.length;
-  const value = Math.round(Math.max(0, Math.min(999, mean * 0.75)));
+  const value = Math.round(mean);
   const coverage = ready.length;
   const coverageRatio = coverage / DOMAIN_ORDER.length;
-  const confidence = Math.round(Math.min(100, coverageRatio * 100 * (coverage >= 3 ? 1 : 0.65)));
+  const confidence = Math.round(coverageRatio * 100);
   const trend = ready.reduce((sum, d) => sum + d.trend, 0) / ready.length;
 
   return { value, confidence, coverage, byDomain, trend, depth };
