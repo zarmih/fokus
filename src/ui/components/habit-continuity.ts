@@ -27,7 +27,7 @@ function familiarPhrase(ritual: GentleReturn): string {
 export function streakAriaLabel(streak: DayStreak): string {
   if (streak.status === 'empty') return 'Серии пока нет';
   if (streak.status === 'soft_return') {
-    return `Пауза ${streak.openMisses} ${daysWord(streak.openMisses)}. Возвращайтесь в ритм без штрафа.`;
+    return `Короткая пауза. Возвращайтесь в ритм без штрафа.`;
   }
   if (streak.status === 'fresh_start') return 'Новый заход. Серия начнётся с сегодняшней сессии';
   if (streak.status === 'returned') {
@@ -106,8 +106,7 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
   }
 
   if (streak.status === 'soft_return') {
-    const miss = `${ritual.openMisses} ${daysWord(ritual.openMisses)}`;
-    return `Пауза ${miss} — это нормально. Серия прервалась честно, но навык остался. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы легко вернуться в ритм.${zoneNote}`;
+    return `Небольшая пауза — это нормально. Серия прервалась честно, но навык остался. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы легко вернуться в ритм.${zoneNote}`;
   }
 
   if (streak.status === 'fresh_start') {

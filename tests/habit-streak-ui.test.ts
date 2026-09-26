@@ -57,7 +57,7 @@ test('continuity hint: soft_return shows actionable next step in Russian', () =>
     timeZone: 'Europe/Moscow'
   } as any;
   const html = renderContinuityHint(snap, 'today');
-  expect(html).toMatch(/Пауза 2 дня — это нормально/);
+  expect(html).toMatch(/Небольшая пауза — это нормально/);
   expect(html).toMatch(/Ваш следующий шаг: короткий блок: Память и Внимание/);
   expect(html).toMatch(/чтобы легко вернуться в ритм/);
 });
