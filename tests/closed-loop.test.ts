@@ -106,7 +106,7 @@ describe('Cognitive Engine Closed Loop', () => {
     // User A should get a memory exercise due to weaknessPriority
     const exA = registry.find(r => r.manifest.id === planA.items[0].exerciseId)!;
     expect(exA.manifest.domain).toBe('memory');
-    expect(planA.items[0].reason).toContain('Укрепление слабой области');
+    expect(planA.items[0].reason).toContain('Слабая область');
 
     // User B should NOT get memory as their primary weakness, likely something else
     const exB = registry.find(r => r.manifest.id === planB.items[0].exerciseId)!;
