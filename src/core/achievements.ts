@@ -23,7 +23,8 @@ export const ACHIEVEMENTS_DEF: Achievement[] = [
   { id: 'balanced', name: 'Баланс', description: 'Данные по всем пяти областям', icon: '⚖️' },
   { id: 'perfectionist', name: 'Перфекционист', description: '10 блоков без единой ошибки', icon: '✨' },
   { id: 'consistency_80', name: 'Стабильность', description: 'Поддержание 80% регулярности за 30 дней', icon: '📈' },
-  { id: 'return_hero', name: 'Возвращение', description: 'Возобновление тренировок после паузы', icon: '🔄' }
+  { id: 'return_hero', name: 'Возвращение', description: 'Возобновление тренировок после паузы', icon: '🔄' },
+  { id: 'phoenix', name: 'Феникс', description: 'Возвращение к тренировкам после недели отдыха', icon: '🌅' }
 ];
 
 export interface AchievementState extends Achievement {
@@ -41,6 +42,7 @@ export function getAchievementsState(): AchievementState[] {
   
   let consistency30 = 0;
   let returnedStatus = false;
+  let returnedFromLongPause = false;
   
   if (summaries.length > 0 || sessions.length > 0) {
     import('./streak').then(({ extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone }) => {
@@ -50,6 +52,7 @@ export function getAchievementsState(): AchievementState[] {
       const ds = computeDayStreak(played, todayKey);
       consistency30 = ds.consistency30;
       returnedStatus = ds.status === 'returned';
+      returnedFromLongPause = ds.status === 'returned' && ds.daysSinceLastPlay !== null && ds.daysSinceLastPlay >= 7;
     });
   }
 
@@ -71,7 +74,7 @@ export function getAchievementsState(): AchievementState[] {
     'first_session': 1, 'streak_3': 3, 'streak_7': 7, 'streak_14': 14, 'streak_30': 30,
     'sniper': 1, 'night_owl': 1, 'early_bird': 1, 'veteran': 50, 'master': 500,
     'explorer': 10, 'balanced': 5, 'perfectionist': 10,
-    'consistency_80': 80, 'return_hero': 1
+    'consistency_80': 80, 'return_hero': 1, 'phoenix': 1
   };
 
   return ACHIEVEMENTS_DEF.map(def => {
@@ -98,6 +101,7 @@ export function getAchievementsState(): AchievementState[] {
         case 'perfectionist': progress = Math.min(perfectBlocks, 10); break;
         case 'consistency_80': progress = Math.min(consistency30, 80); break;
         case 'return_hero': progress = returnedStatus ? 1 : 0; break;
+        case 'phoenix': progress = returnedFromLongPause ? 1 : 0; break;
       }
     }
 
@@ -172,6 +176,7 @@ export function checkAchievements(): string[] {
     const ds = computeDayStreak(played, todayKey);
     if (ds.consistency30 >= 80) unlock('consistency_80');
     if (ds.status === 'returned') unlock('return_hero');
+    if (ds.status === 'returned' && ds.daysSinceLastPlay !== null && ds.daysSinceLastPlay >= 7) unlock('phoenix');
   });
 
   if (newly.length > 0) {

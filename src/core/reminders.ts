@@ -51,7 +51,8 @@ export function maybeNotify(): void {
   const played = extractPlayedDays({ daySummaries: summaries, sessions: storage.getSessions() }, tz);
   const streak = computeDayStreak(played, todayKey);
   
-  if (streak.openMisses >= 3) return;
+  if (streak.openMisses > 7) return;
+  if (streak.openMisses > 2 && streak.openMisses !== 3 && streak.openMisses !== 7) return;
 
   const hour = preferredReminderHour();
   if (new Date().getHours() < hour) return;
@@ -71,8 +72,14 @@ export function maybeNotify(): void {
     } else {
       body = 'Возвращайтесь в ритм. Короткая сессия поможет после паузы.';
     }
-  } else if (streak.status === 'fresh_start' && streak.consistency30 >= 50) {
-    body = 'Новый старт. Общая регулярность важнее идеальной непрерывной серии.';
+  } else if (streak.status === 'fresh_start') {
+    if (streak.openMisses === 3) {
+      body = 'Неделя только началась. Пятиминутный блок — отличный старт.';
+    } else if (streak.openMisses === 7) {
+      body = 'Пауза в неделю — хороший отдых. Ваши навыки готовы к лёгкой тренировке.';
+    } else {
+      body = 'Новый старт. Общая регулярность важнее идеальной непрерывной серии.';
+    }
   }
 
   const n = new Notification('Fokus', {

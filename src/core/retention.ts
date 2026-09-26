@@ -423,7 +423,15 @@ function pickNudges(params: {
     });
   }
 
-  if (!params.playedToday && params.gapDays >= 2) {
+  if (!params.playedToday && params.gapDays >= 7) {
+    out.push({
+      id: 'long_pause',
+      kind: 'resume',
+      title: 'Спустя время',
+      body: 'После долгой паузы Fokus обнуляет ожидания. Пройдите одну комфортную сессию в своём темпе.',
+      priority: 90
+    });
+  } else if (!params.playedToday && params.gapDays >= 2) {
     out.push({
       id: 'resume',
       kind: 'resume',

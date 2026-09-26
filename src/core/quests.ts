@@ -46,16 +46,27 @@ export function getDailyQuests(): Quest[] {
     const played = extractPlayedDays({ daySummaries: storage.getDaySummaries(), sessions: storage.getSessions() }, tz);
     const ds = computeDayStreak(played, todayKey);
     
-    if (ds.status === 'soft_return' || ds.status === 'fresh_start') {
+    if (ds.status === 'soft_return') {
       selected[0] = {
         id: 'recovery_quest',
-        title: 'Возвращение в ритм',
-        description: 'Пройдите всего 1 блок, чтобы плавно возобновить тренировки',
+        title: 'Мягкий возврат',
+        description: 'Пройдите 1 короткий блок, чтобы восстановить ритм после паузы',
         type: 'blocks',
         target: 1,
         progress: 0,
         completed: false,
         xpReward: 100
+      };
+    } else if (ds.status === 'fresh_start') {
+      selected[0] = {
+        id: 'fresh_start_quest',
+        title: 'Новый старт',
+        description: 'Завершите 1 любой блок без спешки. Мы снизили сложность.',
+        type: 'blocks',
+        target: 1,
+        progress: 0,
+        completed: false,
+        xpReward: 150
       };
     } else if (ds.status === 'active' && ds.current > 0 && ds.current % 3 === 0) {
       selected[0] = {
