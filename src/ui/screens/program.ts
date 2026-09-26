@@ -114,7 +114,7 @@ export function renderProgram(container: HTMLElement) {
   } else if (showRecal) {
     hero = `
       <div class="workout-card recal-card">
-        <div class="workout-kicker">Мягкая перекалибровка</div>
+        <div class="workout-kicker">Простая калибровка</div>
         <h3>Сверить оценку</h3>
         <p>${recal.summary || 'Короткая сверка сложности. Серия не сбрасывается.'}</p>
         <div class="recal-actions">
@@ -127,7 +127,7 @@ export function renderProgram(container: HTMLElement) {
     hero = `
       <div class="workout-card done">
         <div class="workout-kicker">На сегодня всё</div>
-        <h3>Ритуал выполнен</h3>
+        <h3>Тренировка выполнена</h3>
         <p>${contMsg.body || 'Лучший эффект даст отдых и продолжение занятий завтра.'}</p>
         <button id="btn-program-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
@@ -136,9 +136,9 @@ export function renderProgram(container: HTMLElement) {
     hero = `
       <div class="workout-card">
         <div class="workout-kicker">${contMsg.title}</div>
-        <h3>Ритуал дня · ${planDurationMins} минут</h3>
+        <h3>Тренировка дня · ${planDurationMins} минут</h3>
         <p class="muted coach-rationale">${coachMessage}</p>
-        <button id="btn-program-start" class="btn-primary" type="button">Начать ритуал</button>
+        <button id="btn-program-start" class="btn-primary" type="button">Начать игру</button>
       </div>
     `;
   }
@@ -173,13 +173,13 @@ export function renderProgram(container: HTMLElement) {
           ${abilityHtml}
         </div>
         <div class="surface" style="margin-top:16px">
-          <h3>Ритуал дня</h3>
+          <h3>Тренировка дня</h3>
           <div class="ritual-list">${ritualHtml || '<p class="muted">Каталог пуст — откройте тренажёры.</p>'}</div>
         </div>
       ` : ''}
       <div class="surface" style="margin-top:16px">
         <h3>Каталог</h3>
-        <p class="muted" style="margin-bottom:12px">Отдельные упражнения не ломают ритуал.</p>
+        <p class="muted" style="margin-bottom:12px">Отдельные упражнения не ломают тренировку.</p>
         <button id="btn-catalog" class="btn-secondary" type="button">Открыть тренажёры</button>
       </div>
     </div>
