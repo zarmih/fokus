@@ -8,7 +8,8 @@ import { SLOT_LABEL, getDomain, isRecalibrationActive } from '../../core/engine'
 import { DOMAIN_IDS } from '../../core/engine/constants';
 import { domainLabel } from '../../core/labels';
 import type { DomainId } from '../../core/engine/types';
-import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
+import { loadContinuitySnapshot, getContinuityMessage, applyGentleReturnBias, ritualDurationSec } from '../../core/continuity';
+import { planWithRecovery } from '../../core/recovery';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -18,16 +19,40 @@ export function renderProgram(container: HTMLElement) {
   const contMsg = getContinuityMessage(snapshot);
   const playedToday = snapshot.streak.playedToday;
   
-  const plan = planForNow({ durationSec: profile.sessionLengthSec || 900 });
-  const recal = plan.recalibration;
+  const ds = storage.getDaySummaries();
+  const sessions = storage.getSessions();
+  const domains = storage.getDomains();
+  const skills = storage.getSkills();
+  const states = storage.getExerciseStates();
+
+  const ritualDuration = ritualDurationSec(profile.sessionLengthSec || 900, snapshot.ritual);
+
+  const ritual = planWithRecovery({
+    durationSec: ritualDuration,
+    catalog: registry as any,
+    domains,
+    skills,
+    states,
+    primaryGoal: profile.primaryGoal,
+    sessions,
+    daySummaries: ds,
+    recoveryHintsEnabled: profile.recoveryHints !== false
+  });
+
+  const biased = applyGentleReturnBias(
+    ritual.plan as any,
+    snapshot.ritual,
+    registry.map(c => ({ id: c.manifest.id, domain: c.manifest.domain }))
+  );
+  
+  const plan = { ...ritual.plan, items: biased.items, focusDomains: biased.focusDomains };
+  const recal = ritual.recalibration;
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
   const model = currentModel();
 
   const programWeek = (profile as { programWeek?: number }).programWeek;
   const weekIndex = programWeek || Math.max(1, Math.floor(snapshot.playedDays.length / 7) + 1);
-  const planDurationMins = Math.round(
-    (snapshot.ritual.active ? snapshot.ritual.durationCapSec : profile.sessionLengthSec || 900) / 60
-  );
+  const planDurationMins = Math.round(ritualDuration / 60);
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
     const d = getDomain(model, id);
@@ -44,8 +69,8 @@ export function renderProgram(container: HTMLElement) {
 
   const ritualHtml = plan.items.map((item, i) => {
     const r = registry.find((x) => x.manifest.id === item.exerciseId);
-    const slot = item.slot ? SLOT_LABEL[item.slot] : '';
-    const p = item.pSuccess != null ? Math.round(item.pSuccess * 100) : null;
+    const slot = (item as any).slot ? SLOT_LABEL[(item as any).slot as import('../../core/engine/types').RitualSlotKind] : '';
+    const p = (item as any).pSuccess != null ? Math.round((item as any).pSuccess * 100) : null;
     return `
       <div class="ritual-row">
         <div class="ritual-idx">${i + 1}</div>
@@ -66,21 +91,14 @@ export function renderProgram(container: HTMLElement) {
   const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3);
 
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
-  if (focusDomainsText) {
-    if (isSparse) {
-      coachMessage = `Идёт сбор данных. В этой сессии сбалансированная нагрузка с фокусом на: ${focusDomainsText}.`;
-    } else {
-      coachMessage = `Сессия собрана с упором на ваши слабые области: ${focusDomainsText}.`;
-    }
-  }
-  
-  if (!snapshot.ritual.active && snapshot.workload?.fatigued?.length > 0) {
-    const fText = snapshot.workload.fatigued.map(d => domainLabel(d as DomainId)).join(' и ');
-    coachMessage = `Нагрузка распределена: даём отдых для "${fText}" и смещаем фокус на другие области.`;
-  }
-
   if (snapshot.ritual.active) {
     coachMessage = 'Мягкий возврат после паузы. Знакомые задания для лёгкого старта.';
+  } else if (ritual.snapshot.gate.active) {
+    coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
+  } else if (focusDomainsText) {
+    coachMessage = isSparse 
+      ? `Идёт сбор данных. В этой сессии сбалансированная нагрузка с фокусом на: ${focusDomainsText}.`
+      : `Сессия собрана с упором на ваши слабые области: ${focusDomainsText}.`;
   }
 
   let hero = '';
