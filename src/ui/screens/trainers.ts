@@ -33,15 +33,13 @@ export function renderTrainers(container: HTMLElement) {
   // Build filters explicitly reflecting counts
   let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">Все <span style="opacity:0.6; font-size:11px;">${catalog.length}</span></button>`;
   if (untriedCount > 0) {
-    filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false" style="color: var(--accent); border-color: rgba(234, 179, 8, 0.3);">Новое <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
+    filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false" style="color: var(--accent); border-color: rgba(234, 179, 8, 0.3);">Новые <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
   }
   filterHtml += validDomains.map((dom, i) => {
     const count = domains.get(dom)!.length;
-    const isWeak = count < 5;
     const label = domainLabel(dom);
-    const weakFlag = isWeak ? ' <span style="opacity:0.5; font-size:0.9em;">(мало)</span>' : '';
     const isActive = false;
-    return `<button class="filter-chip ${isActive ? 'active' : ''}" data-dom="${dom}" type="button" aria-pressed="${isActive ? 'true' : 'false'}">${label} <span style="opacity:0.6; font-size:11px;">${count}</span>${weakFlag}</button>`;
+    return `<button class="filter-chip ${isActive ? 'active' : ''}" data-dom="${dom}" type="button" aria-pressed="${isActive ? 'true' : 'false'}">${label} <span style="opacity:0.6; font-size:11px;">${count}</span></button>`;
   }).join('');
 
   let allCardsHtml = '';
@@ -101,8 +99,10 @@ export function renderTrainers(container: HTMLElement) {
         `;
       }
 
+      const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
+
       return `
-        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-untried="${isUntried}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}" style="position: relative;">
+        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-untried="${isUntried}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}" style="position: relative;">
           ${isUntried ? `<div style="position: absolute; top: -6px; right: -6px; background: var(--accent); color: #000; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; z-index: 2;">Новое</div>` : ''}
           <div class="trainer-header-row">
             <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
@@ -139,33 +139,87 @@ export function renderTrainers(container: HTMLElement) {
         ${catalog.length} упражнений. Практика без влияния на Fokus Index.
       </p>
     </div>
-    <div style="margin-bottom: 24px; padding: 16px; background: var(--surface); border-radius: var(--radius); border: 1px solid var(--line);">
-      <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); margin-bottom: 12px;">Покрытие доменов</div>
-      <div style="display: flex; gap: 4px; height: 12px; border-radius: 6px; overflow: hidden; margin-bottom: 12px;">
-        ${validDomains.map(dom => {
-          const count = domains.get(dom)!.length;
-          const percent = (count / catalog.length) * 100;
-          return `<div style="width: ${percent}%; background: var(--dom-${dom});" title="${domainLabel(dom)}: ${count}"></div>`;
-        }).join('')}
-      </div>
-      <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px;">
-        ${validDomains.map(dom => {
-          const count = domains.get(dom)!.length;
-          return `<div style="display: flex; align-items: center; gap: 6px;"><div style="width: 8px; height: 8px; border-radius: 50%; background: var(--dom-${dom});"></div><span style="color: var(--muted);">${domainLabel(dom)}: <strong style="color: var(--text);">${count}</strong></span></div>`;
-        }).join('')}
-      </div>
+    
+    <div style="margin-bottom: 24px;">
+      <input type="search" id="catalog-search" placeholder="Поиск по названию или навыку..." style="width: 100%; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px; outline: none; transition: border-color 0.2s;" aria-label="Поиск упражнений" autocomplete="off">
     </div>
-    <div class="domain-filters" role="group" aria-label="Фильтры доменов">
+
+    <div class="domain-filters" role="group" aria-label="Фильтры доменов" style="margin-bottom: 24px;">
       ${filterHtml}
     </div>
+    
     <div class="catalog-groups-container">
-      ${validDomains.length === 0 ? '<div style="opacity: 0.6; padding: 24px 0;">Нет доступных упражнений</div>' : allCardsHtml}
+      ${validDomains.length === 0 ? '<div style="opacity: 0.6; padding: 24px 0; text-align: center;">Нет доступных упражнений</div>' : allCardsHtml}
+      <div id="catalog-empty-state" style="display: none; padding: 48px 24px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--line);">
+        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
+        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ничего не найдено</div>
+        <div style="color: var(--muted); font-size: 14px;">Попробуйте изменить поисковой запрос или выбрать другой фильтр.</div>
+      </div>
     </div>
   `;
 
+  const searchInput = content.querySelector('#catalog-search') as HTMLInputElement;
+  const emptyState = content.querySelector('#catalog-empty-state') as HTMLElement;
+  let activeDom = 'all';
+
+  function updateVisibility() {
+    const query = (searchInput?.value || '').toLowerCase().trim();
+    let count = 0;
+    
+    content.querySelectorAll('.domain-group').forEach(group => {
+      let groupVisibleCount = 0;
+      const groupDom = (group as HTMLElement).dataset.group;
+      
+      group.querySelectorAll('.trainer-card').forEach(card => {
+        const el = card as HTMLElement;
+        const matchesDom = activeDom === 'all' || 
+                           (activeDom === 'discovery' && el.dataset.untried === 'true') || 
+                           (activeDom === groupDom);
+                           
+        const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
+        
+        const show = matchesDom && matchesSearch;
+        el.style.display = show ? '' : 'none';
+        if (show) groupVisibleCount++;
+      });
+      
+      group.classList.toggle('is-hidden', groupVisibleCount === 0);
+      count += groupVisibleCount;
+    });
+    
+    const countLabel = content.querySelector('#catalog-count-label');
+    if (countLabel) {
+      function pluralize(n: number, forms: [string, string, string]) {
+        const n10 = n % 10;
+        const n100 = n % 100;
+        if (n10 === 1 && n100 !== 11) return forms[0];
+        if ([2, 3, 4].includes(n10) && ![12, 13, 14].includes(n100)) return forms[1];
+        return forms[2];
+      }
+      const labelText = count === catalog.length 
+        ? `${catalog.length} упражнений. Практика без влияния на Fokus Index.`
+        : `Найдено ${count} ${pluralize(count, ['упражнение', 'упражнения', 'упражнений'])}.`;
+      countLabel.textContent = labelText;
+    }
+    
+    if (emptyState) {
+      emptyState.style.display = count === 0 ? 'block' : 'none';
+    }
+  }
+
+  if (searchInput) {
+    searchInput.addEventListener('input', updateVisibility);
+    searchInput.addEventListener('focus', () => {
+      searchInput.style.borderColor = 'var(--accent)';
+    });
+    searchInput.addEventListener('blur', () => {
+      searchInput.style.borderColor = 'var(--line)';
+    });
+  }
+
   content.querySelectorAll('.filter-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-      const dom = (chip as HTMLElement).dataset.dom;
+      activeDom = (chip as HTMLElement).dataset.dom || 'all';
       
       content.querySelectorAll('.filter-chip').forEach(c => {
         const on = c === chip;
@@ -173,26 +227,7 @@ export function renderTrainers(container: HTMLElement) {
         c.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
       
-      let count = 0;
-      content.querySelectorAll('.domain-group').forEach(group => {
-        let groupVisibleCount = 0;
-        group.querySelectorAll('.trainer-card').forEach(card => {
-          const el = card as HTMLElement;
-          const show = dom === 'all' || 
-                       (dom === 'discovery' && el.dataset.untried === 'true') || 
-                       (dom === (group as HTMLElement).dataset.group);
-          el.style.display = show ? '' : 'none';
-          if (show) groupVisibleCount++;
-        });
-        
-        group.classList.toggle('is-hidden', groupVisibleCount === 0);
-        count += groupVisibleCount;
-      });
-      
-      const countLabel = content.querySelector('#catalog-count-label');
-      if (countLabel) {
-        countLabel.textContent = `${count} упражнений. Практика без влияния на Fokus Index.`;
-      }
+      updateVisibility();
     });
   });
 
@@ -207,3 +242,4 @@ export function renderTrainers(container: HTMLElement) {
     });
   });
 }
+
