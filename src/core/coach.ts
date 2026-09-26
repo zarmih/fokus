@@ -68,6 +68,7 @@ export function getDailySpark(params: {
   /** Optional Phase 3 field — ignored when the program PR is not merged. */
   shieldCharges?: number;
   trajectory?: import('./ability-trajectory').AbilityTrajectory;
+  topInsight?: import('./insights').CognitiveInsight;
 }): CoachSpark {
   const {
     domains,
@@ -81,7 +82,8 @@ export function getDailySpark(params: {
     focusDomains,
     now,
     shieldCharges,
-    trajectory
+    trajectory,
+    topInsight
   } = params;
 
   if (!calibrated) {
@@ -148,6 +150,18 @@ export function getDailySpark(params: {
 
   const fromRetention = retentionSpark();
   if (fromRetention) return fromRetention;
+
+  if (topInsight && topInsight.priority >= 70) {
+    let tone: CoachSpark['tone'] = 'science';
+    if (topInsight.type === 'improvement' || topInsight.type === 'area_to_focus') tone = 'focus';
+    else if (topInsight.type === 'recovery' || topInsight.type === 'plateau') tone = 'recovery';
+    else if (topInsight.type === 'consistency' || topInsight.type === 'milestone') tone = 'habit';
+    return {
+      title: topInsight.title,
+      body: topInsight.description,
+      tone
+    };
+  }
 
   const chrono = analyzeChronotype(sessions);
   if (chrono.bucket && chrono.sample >= 3) {

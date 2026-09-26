@@ -10,6 +10,8 @@ export interface CognitiveInsight {
   description: string;
   confidence: 'low' | 'medium' | 'high';
   priority: number;
+  domainId?: string;
+  exerciseId?: string;
 }
 
 export function generateInsights(
@@ -45,7 +47,8 @@ export function generateInsights(
         title: 'Уверенный старт',
         description: `В области «${domainLabel(risingWeak.domain)}» наметился стабильный рост. Фокус на регулярности даёт плоды, даже если начальный уровень был невысоким.`,
         confidence: 'high',
-        priority: 85
+        priority: 85,
+        domainId: risingWeak.domain
       });
     }
 
@@ -57,7 +60,8 @@ export function generateInsights(
         title: 'Цикл адаптации',
         description: `Показатели в «${domainLabel(falling.domain)}» пошли на спад. Fokus временно снизит сложность, чтобы вы восстановили точность без лишнего напряжения.`,
         confidence: 'high',
-        priority: 82
+        priority: 82,
+        domainId: falling.domain
       });
     }
 
@@ -69,7 +73,8 @@ export function generateInsights(
         title: 'Устойчивая база',
         description: `«${domainLabel(stableStrong.domain)}» — ваша стабильная сильная сторона. Fokus будет поддерживать этот уровень без изнурительных пиковых нагрузок.`,
         confidence: 'high',
-        priority: 70
+        priority: 70,
+        domainId: stableStrong.domain
       });
     }
 
@@ -81,7 +86,8 @@ export function generateInsights(
         title: 'Зона роста',
         description: `«${domainLabel(stagnantWeak.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
         confidence: 'high',
-        priority: 75
+        priority: 75,
+        domainId: stagnantWeak.domain
       });
     }
   } else {
@@ -107,7 +113,8 @@ export function generateInsights(
           title: 'Сильная сторона',
           description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, пока вы подтягиваете навыки для остальных бытовых задач.`,
           confidence: strongConf > 70 ? 'high' : (strongConf > 40 ? 'medium' : 'low'),
-          priority: 50 + (strongest.value / 100)
+          priority: 50 + (strongest.value / 100),
+          domainId: strongest.domain
         });
       }
       
@@ -118,7 +125,8 @@ export function generateInsights(
           title: 'Зона роста',
           description: `«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
           confidence: weakConf > 70 ? 'high' : (weakConf > 40 ? 'medium' : 'low'),
-          priority: 60 + ((500 - weakest.value) / 10)
+          priority: 60 + ((500 - weakest.value) / 10),
+          domainId: weakest.domain
         });
       }
     }
@@ -134,7 +142,9 @@ export function generateInsights(
         title: 'Предел сложности',
         description: `В «${manifest.name}» вы достигли уровня, где точность начинает падать. Мы немного откатим сложность для закрепления фундамента.`,
         confidence: 'high',
-        priority: 78
+        priority: 78,
+        exerciseId: strugglingState.exerciseId,
+        domainId: manifest.domain
       });
     }
   }
@@ -148,7 +158,9 @@ export function generateInsights(
         title: 'Высокое мастерство',
         description: `В «${manifest.name}» вы показываете отличный баланс скорости и точности. Навык переходит в автоматический режим.`,
         confidence: 'high',
-        priority: 75
+        priority: 75,
+        exerciseId: masteringState.exerciseId,
+        domainId: manifest.domain
       });
     }
   }
@@ -177,7 +189,9 @@ export function generateInsights(
         title: 'Стабилизация',
         description: `Ваш результат в игре «${manifest.name}» стабилизировался. Стоит переключиться на другие задачи, чтобы не превращать тренировку в автоматическую привычку.`,
         confidence: 'high',
-        priority: 70 + (plat.consecutivePlateau || 0) * 5
+        priority: 70 + (plat.consecutivePlateau || 0) * 5,
+        exerciseId: plat.exerciseId,
+        domainId: manifest.domain
       });
     }
   }
