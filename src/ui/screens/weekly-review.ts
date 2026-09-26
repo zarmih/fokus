@@ -257,6 +257,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     whatChangedHtml = `
       <section class="surface wr-section" aria-labelledby="wr-changed-title">
         <h3 id="wr-changed-title" class="wr-section-title">Что изменилось</h3>
+        <p class="wr-trajectory-desc">Значимые изменения сложности и освоения в отдельных упражнениях.</p>
         <ul class="wr-changed-list">
           ${changedFacts.map(f => `<li>${f}</li>`).join('')}
         </ul>
@@ -321,14 +322,29 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   let trajectoryHtml = '';
   if (readyTrajectories.length > 0) {
     trajectoryHtml = `
-      <section class="surface wr-section">
-        <h3 class="wr-section-title">Траектории развития</h3>
-        <ul class="wr-changed-list">
+      <section class="surface wr-section wr-trajectory" aria-labelledby="wr-trajectory-title">
+        <h3 id="wr-trajectory-title" class="wr-section-title">Траектории способностей</h3>
+        <p class="wr-trajectory-desc">Честная оценка формы на основе последних тренировок. Fokus не обещает мгновенного роста и показывает реальные тренды.</p>
+        <div class="wr-trajectory-grid">
           ${readyTrajectories.map(t => {
-            const trLabel = t.trend === 'rising' ? 'растёт 📈' : t.trend === 'falling' ? 'снижается 📉' : 'стабильна ➖';
-            return `<li>Форма в области <strong>${domainLabel(t.domain)}</strong> ${trLabel}.</li>`;
+            const isRising = t.trend === 'rising';
+            const isFalling = t.trend === 'falling';
+            const trIcon = isRising ? '📈' : isFalling ? '📉' : '➖';
+            const trLabel = isRising ? 'Растёт' : isFalling ? 'Снижается' : 'Стабильна';
+            const desc = isRising ? 'Навык укрепляется' : isFalling ? 'Требует внимания' : 'Хорошая база';
+            const trClass = `wr-trend-${t.trend}`;
+            return `
+              <div class="wr-trajectory-card ${trClass}" tabindex="0" role="group" aria-label="${domainLabel(t.domain)}: ${trLabel}. ${desc}">
+                <div class="wr-traj-header">
+                  <span class="wr-traj-domain">${domainLabel(t.domain)}</span>
+                  <span class="wr-traj-icon" aria-hidden="true">${trIcon}</span>
+                </div>
+                <div class="wr-traj-state">${trLabel}</div>
+                <div class="wr-traj-desc">${desc}</div>
+              </div>
+            `;
           }).join('')}
-        </ul>
+        </div>
       </section>
     `;
   }
