@@ -33,13 +33,13 @@ export function renderOnboarding(container: HTMLElement) {
     const isNextDisabled = step === 3 && displayName.trim().length === 0;
 
     container.innerHTML = `
-      <div class="onboard">
+      <main class="onboard" aria-labelledby="onboard-heading">
         <div class="sr-only" aria-live="polite">Шаг ${step} из ${totalSteps}</div>
         <div class="onboard-dots" role="progressbar" aria-valuemin="1" aria-valuemax="${totalSteps}" aria-valuenow="${step}" aria-label="Шаг ${step} из ${totalSteps}">
           ${Array.from({ length: totalSteps }, (_, i) => `<span class="${i + 1 <= step ? 'on' : ''}"></span>`).join('')}
         </div>
         ${step === 1 ? `
-          <h1>Главная цель</h1>
+          <h1 id="onboard-heading">Главная цель</h1>
           <p class="onboard-lead">Выберите фокус ежедневной сессии. Вы сможете изменить цель позже.</p>
           <div class="goal-grid" role="group" aria-label="Главная цель">
             ${GOAL_COPY.map((g) => `
@@ -51,7 +51,7 @@ export function renderOnboarding(container: HTMLElement) {
           </div>
         ` : ''}
         ${step === 2 ? `
-          <h1>Сколько времени в день?</h1>
+          <h1 id="onboard-heading">Сколько времени в день?</h1>
           <p class="onboard-lead">Для устойчивого эффекта лучше заниматься понемногу, но каждый день.</p>
           <div class="time-stack" role="group" aria-label="Длительность сессии">
             <button class="btn-time ${selectedMin === 5 ? 'btn-primary' : 'btn-secondary'}" data-m="5" type="button" aria-pressed="${selectedMin === 5}">5 минут · ежедневный минимум</button>
@@ -60,7 +60,7 @@ export function renderOnboarding(container: HTMLElement) {
           </div>
         ` : ''}
         ${step === 3 ? `
-          <h1>Как к вам обращаться?</h1>
+          <h1 id="onboard-heading">Как к вам обращаться?</h1>
           <p class="onboard-lead">Имя сохраняется только на вашем устройстве.</p>
           <label class="sr-only" for="onboard-name">Имя или ник</label>
           <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Введите имя..." autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
@@ -91,7 +91,7 @@ export function renderOnboarding(container: HTMLElement) {
           ${step === 3 ? `<button id="btn-skip" class="btn-secondary" type="button" style="flex: 1;">Пропустить</button>` : ''}
           <button id="btn-next" class="btn-primary" type="button" style="flex: 2;" ${isNextDisabled ? 'disabled' : ''}>${step === 3 ? 'Начать калибровку' : 'Продолжить'}</button>
         </div>
-      </div>
+      </main>
     `;
 
     const root = container.querySelector('.onboard') as HTMLElement | null;
