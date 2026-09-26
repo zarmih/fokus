@@ -7,7 +7,7 @@ const colorShapeSwitchModule: ExerciseModule = {
     domain: 'flexibility',
     skills: ['rule_switching', 'cognitive_flexibility'],
     metricModel: 'speed-accuracy',
-    instruction: 'Если фон ТЁМНЫЙ — выберите совпадающую ФОРМУ. Если фон СВЕТЛЫЙ — выберите совпадающий ЦВЕТ.'
+    instruction: 'Если фон ТЁМНЫЙ — выберите совпадающую ФОРМУ. Если фон СВЕТЛЫЙ — выберите совпадающий ЦВЕТ. Используйте мышь или стрелки (← / →).'
   },
 
   render(el: HTMLElement, level: number, onEnd: (r: BlockResult) => void, isTimeUp: () => boolean) {
@@ -38,6 +38,12 @@ const colorShapeSwitchModule: ExerciseModule = {
           display: flex;
           gap: 24px;
         }
+        .cssw-btn-wrap {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 8px;
+        }
         .cssw-btn {
           width: 100px;
           height: 100px;
@@ -49,9 +55,14 @@ const colorShapeSwitchModule: ExerciseModule = {
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: transform 0.1s;
+          transition: transform 0.1s, background-color 0.2s;
         }
         .cssw-btn:active { transform: scale(0.9); }
+        .cssw-hint {
+          font-size: 14px;
+          opacity: 0.5;
+          font-weight: 500;
+        }
       </style>
       <div class="cssw-arena" id="cssw-arena">
         <div class="cssw-target" id="cssw-target"></div>
@@ -72,6 +83,26 @@ const colorShapeSwitchModule: ExerciseModule = {
 
     const switchProb = 0.3 + level * 0.05;
     let isDarkBg = true;
+
+    const handleAnsIdx = (idx: number, btn: HTMLElement) => {
+      if (phase !== 'input') return;
+      phase = 'result';
+      rounds++;
+      rts.push(performance.now() - t0);
+
+      if (idx === targetAnsIdx) {
+        correct++;
+        btn.style.borderColor = '#10b981'; // ok
+        btn.style.backgroundColor = 'rgba(16, 185, 129, 0.2)';
+      } else {
+        btn.style.borderColor = '#ef4444'; // danger
+        btn.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
+      }
+
+      setTimeout(startRound, 500);
+    };
+
+    let currentBtns: HTMLElement[] = [];
 
     const startRound = () => {
       if (isGameOver) return;
@@ -109,8 +140,12 @@ const colorShapeSwitchModule: ExerciseModule = {
       targetAnsIdx = isDarkBg ? (isShapeAnsLeft ? 0 : 1) : (isShapeAnsLeft ? 1 : 0);
 
       controls.innerHTML = '';
+      currentBtns = [];
       
-      const renderBtn = (opt: {shape: string, color: string}, idx: number) => {
+      const renderBtn = (opt: {shape: string, color: string}, idx: number, hint: string) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'cssw-btn-wrap';
+
         const btn = document.createElement('button');
         btn.className = 'cssw-btn';
         btn.textContent = opt.shape;
@@ -118,47 +153,55 @@ const colorShapeSwitchModule: ExerciseModule = {
         // Adjust button border color so it's visible on both backgrounds
         btn.style.borderColor = isDarkBg ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)';
         
-        btn.onclick = () => {
-          if (phase !== 'input') return;
-          phase = 'result';
-          rounds++;
-          rts.push(performance.now() - t0);
+        btn.onclick = () => handleAnsIdx(idx, btn);
+        
+        const hintEl = document.createElement('div');
+        hintEl.className = 'cssw-hint';
+        hintEl.textContent = hint;
+        hintEl.style.color = isDarkBg ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)';
 
-          if (idx === targetAnsIdx) {
-            correct++;
-            btn.style.borderColor = '#10b981'; // ok
-            btn.style.background = 'rgba(16, 185, 129, 0.2)';
-          } else {
-            btn.style.borderColor = '#ef4444'; // danger
-            btn.style.background = 'rgba(239, 68, 68, 0.2)';
-          }
-
-          setTimeout(startRound, 500);
-        };
-        controls.appendChild(btn);
+        wrap.appendChild(btn);
+        wrap.appendChild(hintEl);
+        controls.appendChild(wrap);
+        currentBtns[idx] = btn;
       };
 
       if (isShapeAnsLeft) {
-        renderBtn(optShapeMatch, 0);
-        renderBtn(optColorMatch, 1);
+        renderBtn(optShapeMatch, 0, '[←]');
+        renderBtn(optColorMatch, 1, '[→]');
       } else {
-        renderBtn(optColorMatch, 0);
-        renderBtn(optShapeMatch, 1);
+        renderBtn(optColorMatch, 0, '[←]');
+        renderBtn(optShapeMatch, 1, '[→]');
       }
 
       t0 = performance.now();
     };
 
+    const onKey = (e: KeyboardEvent) => {
+      if (isGameOver) return;
+      if (phase !== 'input') return;
+      if (e.key === 'ArrowLeft') {
+        handleAnsIdx(0, currentBtns[0]);
+      } else if (e.key === 'ArrowRight') {
+        handleAnsIdx(1, currentBtns[1]);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+
     startRound();
 
     const endBlock = () => {
       isGameOver = true;
+      window.removeEventListener('keydown', onKey);
       const accuracy = rounds > 0 ? correct / rounds : 0;
       const avgRtMs = rts.length > 0 ? rts.reduce((a,b)=>a+b,0)/rts.length : 1500;
       onEnd({ accuracy, avgRtMs, rounds });
     };
 
-    return () => { isGameOver = true; };
+    return () => { 
+      isGameOver = true; 
+      window.removeEventListener('keydown', onKey);
+    };
   }
 };
 
