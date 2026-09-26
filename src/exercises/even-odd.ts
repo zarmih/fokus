@@ -7,7 +7,7 @@ const evenOddModule: ExerciseModule = {
     domain: 'flexibility',
     skills: ['task_switching', 'cognitive_flexibility'],
     metricModel: 'speed-accuracy',
-    instruction: 'Если рамка СИНЯЯ — укажите чётное или нечётное. Если ЖЁЛТАЯ — больше или меньше 5.'
+    instruction: 'Если рамка СИНЯЯ — укажите чётное или нечётное. Если ЖЁЛТАЯ — больше или меньше 5. Используйте кнопки или стрелки (← / →).'
   },
 
   render(el: HTMLElement, level: number, onEnd: (r: BlockResult) => void, isTimeUp: () => boolean) {
@@ -37,7 +37,7 @@ const evenOddModule: ExerciseModule = {
           justify-content: center;
           font-size: 64px;
           font-weight: 800;
-          transition: border-color 0.2s;
+          transition: border-color 0.2s, background-color 0.2s;
         }
         .eo-frame.rule-even { border-color: #3b82f6; }
         .eo-frame.rule-mag { border-color: #eab308; }
@@ -47,6 +47,9 @@ const evenOddModule: ExerciseModule = {
           gap: 16px;
         }
         .eo-btn {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
           padding: 16px 24px;
           font-size: 18px;
           font-weight: 600;
@@ -54,8 +57,15 @@ const evenOddModule: ExerciseModule = {
           border: 2px solid var(--line);
           border-radius: 12px;
           cursor: pointer;
+          transition: transform 0.1s, background-color 0.2s;
         }
         .eo-btn:active { transform: scale(0.95); }
+        .eo-hint {
+          font-size: 12px;
+          opacity: 0.6;
+          margin-top: 4px;
+          font-weight: normal;
+        }
       </style>
       <div class="eo-arena">
         <div class="eo-frame" id="eo-frame"></div>
@@ -91,16 +101,22 @@ const evenOddModule: ExerciseModule = {
 
       controls.innerHTML = '';
       
+      const createBtn = (label: string, hint: string, onClick: () => void) => {
+        const btn = document.createElement('button'); 
+        btn.className = 'eo-btn'; 
+        btn.innerHTML = `<span>${label}</span><span class="eo-hint">${hint}</span>`;
+        btn.onclick = onClick;
+        return btn;
+      };
+
       if (rule === 'even') {
         currentAns = n % 2 === 0 ? 'even' : 'odd';
-        const b1 = document.createElement('button'); b1.className='eo-btn'; b1.textContent='Чётное'; b1.onclick = () => handleAns('even');
-        const b2 = document.createElement('button'); b2.className='eo-btn'; b2.textContent='Нечётное'; b2.onclick = () => handleAns('odd');
-        controls.appendChild(b1); controls.appendChild(b2);
+        controls.appendChild(createBtn('Чётное', '[←]', () => handleAns('even')));
+        controls.appendChild(createBtn('Нечётное', '[→]', () => handleAns('odd')));
       } else {
         currentAns = n > 5 ? 'greater' : 'less';
-        const b1 = document.createElement('button'); b1.className='eo-btn'; b1.textContent='< 5'; b1.onclick = () => handleAns('less');
-        const b2 = document.createElement('button'); b2.className='eo-btn'; b2.textContent='> 5'; b2.onclick = () => handleAns('greater');
-        controls.appendChild(b1); controls.appendChild(b2);
+        controls.appendChild(createBtn('< 5', '[←]', () => handleAns('less')));
+        controls.appendChild(createBtn('> 5', '[→]', () => handleAns('greater')));
       }
 
       t0 = performance.now();
@@ -111,26 +127,40 @@ const evenOddModule: ExerciseModule = {
       rounds++;
       if (ans === currentAns) {
         correct++;
-        frame.style.background = 'rgba(16, 185, 129, 0.1)';
+        frame.style.backgroundColor = 'rgba(16, 185, 129, 0.1)';
       } else {
         errors++;
-        frame.style.background = 'rgba(239, 68, 68, 0.1)';
+        frame.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
       }
-      setTimeout(() => frame.style.background = 'transparent', 150);
+      setTimeout(() => frame.style.backgroundColor = 'transparent', 150);
       rts.push(performance.now() - t0);
       startRound();
     };
+
+    const onKey = (e: KeyboardEvent) => {
+      if (isGameOver) return;
+      if (e.key === 'ArrowLeft') {
+        handleAns(rule === 'even' ? 'even' : 'less');
+      } else if (e.key === 'ArrowRight') {
+        handleAns(rule === 'even' ? 'odd' : 'greater');
+      }
+    };
+    window.addEventListener('keydown', onKey);
 
     startRound();
 
     const endBlock = () => {
       isGameOver = true;
+      window.removeEventListener('keydown', onKey);
       const accuracy = rounds > 0 ? correct / rounds : 0;
       const avgRtMs = rts.length > 0 ? rts.reduce((a,b)=>a+b,0)/rts.length : 2000;
       onEnd({ accuracy, avgRtMs, rounds });
     };
 
-    return () => { isGameOver = true; };
+    return () => { 
+      isGameOver = true; 
+      window.removeEventListener('keydown', onKey);
+    };
   }
 };
 
