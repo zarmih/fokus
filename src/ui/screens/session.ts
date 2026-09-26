@@ -276,7 +276,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           
           if (mode === 'normal') {
             import('../../core/quests').then(q => {
-              q.updateQuestProgress('blocks', 1);
+              q.updateQuestProgress('blocks', 1, item.exerciseId);
               if (manifest.domain) {
                 q.updateWeeklyGoalProgress(manifest.domain, 1);
               }
