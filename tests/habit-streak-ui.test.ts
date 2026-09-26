@@ -70,7 +70,7 @@ test('continuity hint: fresh_start shows actionable next step', () => {
     timeZoneSource: 'explicit'
   } as any;
   const html = renderContinuityHint(snap, 'today');
-  expect(html).toMatch(/Новый заход/);
+  expect(html).toMatch(/Новый старт/);
   expect(html).toMatch(/Следующий шаг: пройдите сегодняшнюю сессию/);
 });
 

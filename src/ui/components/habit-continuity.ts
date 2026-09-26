@@ -111,7 +111,7 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
   }
 
   if (streak.status === 'fresh_start') {
-    return `Новый заход. Перерыв обнуляет счётчик серии, но не ваш навык. Следующий шаг: пройдите сегодняшнюю сессию, чтобы вернуть ритм.${zoneNote}`;
+    return `Новый старт. Честная серия начинается заново, но ваш накопленный навык остаётся с вами. Следующий шаг: пройдите сегодняшнюю сессию без спешки.${zoneNote}`;
   }
 
   if (streak.status === 'returned') {
