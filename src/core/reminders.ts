@@ -66,7 +66,13 @@ export function maybeNotify(): void {
   if (streak.status === 'open') {
     body = `Серия из ${streak.current} ${streak.current === 1 ? 'дня' : 'дней'} ждёт продолжения.`;
   } else if (streak.status === 'soft_return') {
-    body = 'Возвращайтесь в ритм. Короткая сессия поможет после паузы.';
+    if (streak.consistency30 >= 80) {
+      body = `Ваша регулярность ${streak.consistency30}%. Короткая сессия сегодня поддержит этот отличный результат.`;
+    } else {
+      body = 'Возвращайтесь в ритм. Короткая сессия поможет после паузы.';
+    }
+  } else if (streak.status === 'fresh_start' && streak.consistency30 >= 50) {
+    body = 'Новый старт. Общая регулярность важнее идеальной непрерывной серии.';
   }
 
   const n = new Notification('Fokus', {

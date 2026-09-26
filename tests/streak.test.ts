@@ -71,6 +71,8 @@ test('honest streak: empty history is a no-op', () => {
   expect(s.current).toBe(0);
   expect(s.playedToday).toBe(false);
   expect(s.openMisses).toBe(0);
+  expect(s.consistency30).toBe(0);
+  expect(s.consistency7).toBe(0);
 });
 
 test('honest streak: consecutive days including today', () => {
@@ -79,6 +81,8 @@ test('honest streak: consecutive days including today', () => {
   expect(s.longest).toBe(3);
   expect(s.status).toBe('active');
   expect(s.playedToday).toBe(true);
+  expect(s.consistency30).toBe(10); // 3 out of 30 days is 10%
+  expect(s.consistency7).toBe(43); // 3 out of 7 days is 43%
 });
 
 test('honest streak: yesterday still open, today not played', () => {
@@ -87,6 +91,8 @@ test('honest streak: yesterday still open, today not played', () => {
   expect(s.status).toBe('open');
   expect(s.openMisses).toBe(0);
   expect(s.daysSinceLastPlay).toBe(1);
+  expect(s.consistency30).toBe(7); // 2 out of 30 days is 7%
+  expect(s.consistency7).toBe(29); // 2 out of 7 days is 29%
 });
 
 test('honest streak: 1-day gap resets current (soft return, not freeze)', () => {
@@ -95,6 +101,8 @@ test('honest streak: 1-day gap resets current (soft return, not freeze)', () => 
   expect(s.longest).toBe(2);
   expect(s.openMisses).toBe(1);
   expect(s.status).toBe('soft_return');
+  expect(s.consistency30).toBe(7);
+  expect(s.consistency7).toBe(29);
 });
 
 test('honest streak: 2-day gap is still a gentle return', () => {
@@ -102,6 +110,8 @@ test('honest streak: 2-day gap is still a gentle return', () => {
   expect(s.current).toBe(0);
   expect(s.openMisses).toBe(2);
   expect(s.status).toBe('soft_return');
+  expect(s.consistency30).toBe(3);
+  expect(s.consistency7).toBe(14);
 });
 
 test('honest streak: 3-day gap is a fresh start', () => {
@@ -109,6 +119,8 @@ test('honest streak: 3-day gap is a fresh start', () => {
   expect(s.current).toBe(0);
   expect(s.openMisses).toBe(3);
   expect(s.status).toBe('fresh_start');
+  expect(s.consistency30).toBe(3);
+  expect(s.consistency7).toBe(14);
 });
 
 test('honest streak: return day after 1-day gap starts a new count', () => {
@@ -116,6 +128,8 @@ test('honest streak: return day after 1-day gap starts a new count', () => {
   expect(s.current).toBe(1);
   expect(s.status).toBe('returned');
   expect(s.playedToday).toBe(true);
+  expect(s.consistency30).toBe(7);
+  expect(s.consistency7).toBe(29);
 });
 
 test('extractPlayedDays unions summaries, sessions, history', () => {

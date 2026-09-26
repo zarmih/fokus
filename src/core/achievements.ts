@@ -21,7 +21,9 @@ export const ACHIEVEMENTS_DEF: Achievement[] = [
   { id: 'master', name: 'Мастер', description: '500 пройденных блоков', icon: '🏆' },
   { id: 'explorer', name: 'Исследователь', description: '10 разных упражнений', icon: '🧭' },
   { id: 'balanced', name: 'Баланс', description: 'Данные по всем пяти областям', icon: '⚖️' },
-  { id: 'perfectionist', name: 'Перфекционист', description: '10 блоков без единой ошибки', icon: '✨' }
+  { id: 'perfectionist', name: 'Перфекционист', description: '10 блоков без единой ошибки', icon: '✨' },
+  { id: 'consistency_80', name: 'Стабильность', description: 'Поддержание 80% регулярности за 30 дней', icon: '📈' },
+  { id: 'return_hero', name: 'Возвращение', description: 'Возобновление тренировок после паузы', icon: '🔄' }
 ];
 
 export interface AchievementState extends Achievement {
@@ -37,6 +39,20 @@ export function getAchievementsState(): AchievementState[] {
   const sessions = storage.getSessions();
   const domains = storage.getDomains().filter(d => d.value > 0);
   
+  let consistency30 = 0;
+  let returnedStatus = false;
+  
+  if (summaries.length > 0 || sessions.length > 0) {
+    import('./streak').then(({ extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone }) => {
+      const tz = resolveFokusTimeZone().timeZone;
+      const todayKey = calendarDayKey(new Date(), tz);
+      const played = extractPlayedDays({ daySummaries: summaries, sessions }, tz);
+      const ds = computeDayStreak(played, todayKey);
+      consistency30 = ds.consistency30;
+      returnedStatus = ds.status === 'returned';
+    });
+  }
+
   const lastStreak = summaries.length > 0 ? summaries[summaries.length - 1].streak : 0;
   
   let totalBlocks = 0;
@@ -54,7 +70,8 @@ export function getAchievementsState(): AchievementState[] {
   const maxProgressMap: Record<string, number> = {
     'first_session': 1, 'streak_3': 3, 'streak_7': 7, 'streak_14': 14, 'streak_30': 30,
     'sniper': 1, 'night_owl': 1, 'early_bird': 1, 'veteran': 50, 'master': 500,
-    'explorer': 10, 'balanced': 5, 'perfectionist': 10
+    'explorer': 10, 'balanced': 5, 'perfectionist': 10,
+    'consistency_80': 80, 'return_hero': 1
   };
 
   return ACHIEVEMENTS_DEF.map(def => {
@@ -79,6 +96,8 @@ export function getAchievementsState(): AchievementState[] {
         case 'explorer': progress = Math.min(unique.size, 10); break;
         case 'balanced': progress = Math.min(domains.length, 5); break;
         case 'perfectionist': progress = Math.min(perfectBlocks, 10); break;
+        case 'consistency_80': progress = Math.min(consistency30, 80); break;
+        case 'return_hero': progress = returnedStatus ? 1 : 0; break;
       }
     }
 
@@ -145,6 +164,15 @@ export function checkAchievements(): string[] {
 
   const domains = storage.getDomains().filter(d => d.value > 0);
   if (domains.length >= 5) unlock('balanced');
+
+  import('./streak').then(({ extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone }) => {
+    const tz = resolveFokusTimeZone().timeZone;
+    const todayKey = calendarDayKey(new Date(), tz);
+    const played = extractPlayedDays({ daySummaries: summaries, sessions }, tz);
+    const ds = computeDayStreak(played, todayKey);
+    if (ds.consistency30 >= 80) unlock('consistency_80');
+    if (ds.status === 'returned') unlock('return_hero');
+  });
 
   if (newly.length > 0) {
     storage.setProfile(profile);

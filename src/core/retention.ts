@@ -1,5 +1,6 @@
 import type { DaySummary, DomainIndex, Session, SessionItem } from './types';
 import { DOMAIN_ORDER, domainLabel } from './labels';
+import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone, DayStreakStatus } from './streak';
 
 // Wave AD3: Retention, honest streak, and quiet reminders logic
 
@@ -13,7 +14,7 @@ export type RetentionSignalId =
 
 export type ChurnBand = 'stable' | 'watch' | 'at_risk' | 'critical';
 
-export type NudgeKind = 'resume' | 'protect_streak' | 'rebalance' | 'rest' | 'short_session';
+export type NudgeKind = 'resume' | 'protect_streak' | 'rebalance' | 'rest' | 'short_session' | 'praise_consistency' | 'praise_return';
 
 export interface RetentionSignal {
   id: RetentionSignalId;
@@ -169,6 +170,11 @@ export function assessRetention(input: RetentionInput): RetentionSnapshot {
     risk = Math.min(risk, 22);
   }
 
+  const tz = resolveFokusTimeZone().timeZone;
+  const todayKey = calendarDayKey(new Date(), tz);
+  const played = extractPlayedDays({ daySummaries: summaries, sessions }, tz);
+  const ds = computeDayStreak(played, todayKey);
+
   const band = bandFromRisk(risk);
   const neglectedDomain = neglect.domain;
   const nudges = pickNudges({
@@ -180,7 +186,9 @@ export function assessRetention(input: RetentionInput): RetentionSnapshot {
     fragility: fragility.score,
     neglect: neglect.score,
     fatigue: fatigue.score,
-    neglectedDomain
+    neglectedDomain,
+    status: ds.status,
+    consistency30: ds.consistency30
   });
 
   return {
@@ -207,7 +215,9 @@ const NUDGE_TONE: Record<NudgeKind, SoftSpark['tone']> = {
   protect_streak: 'habit',
   rebalance: 'focus',
   rest: 'habit',
-  short_session: 'start'
+  short_session: 'start',
+  praise_consistency: 'habit',
+  praise_return: 'recovery'
 };
 
 export function sparkFromRetention(snap: RetentionSnapshot): SoftSpark | null {
@@ -380,8 +390,28 @@ function pickNudges(params: {
   neglect: number;
   fatigue: number;
   neglectedDomain: string | null;
+  status: DayStreakStatus;
+  consistency30: number;
 }): RetentionNudge[] {
   const out: RetentionNudge[] = [];
+
+  if (params.playedToday && params.status === 'returned') {
+    out.push({
+      id: 'praise_return',
+      kind: 'praise_return',
+      title: 'С возвращением',
+      body: 'Сделать первый шаг после паузы — самое сложное. Отличная работа, ритм восстанавливается.',
+      priority: 95
+    });
+  } else if (params.playedToday && params.consistency30 >= 80 && params.streak % 5 === 0 && params.streak > 0) {
+    out.push({
+      id: 'praise_consistency',
+      kind: 'praise_consistency',
+      title: 'Высокая стабильность',
+      body: `Ваша регулярность за 30 дней — ${params.consistency30}%. Это сильный показатель честной привычки.`,
+      priority: 85
+    });
+  }
 
   if (params.playedToday && params.fatigue >= 55) {
     out.push({
