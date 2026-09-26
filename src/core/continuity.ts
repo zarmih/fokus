@@ -55,6 +55,12 @@ export interface RitualPlanItem {
   reason: string;
 }
 
+export interface DomainWorkload {
+  fatigued: string[];
+  neglected: string[];
+  recentDomains: string[];
+}
+
 export interface ContinuitySnapshot {
   timeZone: string;
   timeZoneSource: ResolvedTimeZone['source'];
@@ -63,6 +69,7 @@ export interface ContinuitySnapshot {
   streak: DayStreak;
   weekly: WeeklyContinuity;
   ritual: GentleReturn;
+  workload: DomainWorkload;
 }
 
 export interface ContinuityInput {
@@ -280,6 +287,38 @@ export function applyGentleReturnBias(
   return { focusDomains, items, applied: true };
 }
 
+export function evaluateDomainWorkload(
+  playedDays: string[],
+  today: string,
+  summaries: DaySummary[]
+): DomainWorkload {
+  const played = [...playedDays].sort().reverse();
+  const recent = played.filter(d => d < today).slice(0, 3);
+  
+  const hits: Record<string, number> = {};
+  for (const d of recent) {
+    const s = summaries.find(x => x.date === d);
+    if (s && s.domainDeltas) {
+      for (const dom of Object.keys(s.domainDeltas)) {
+        hits[dom] = (hits[dom] || 0) + 1;
+      }
+    }
+  }
+
+  const fatigued: string[] = [];
+  const neglected: string[] = [];
+  const recentDomains = Object.keys(hits);
+  const allDomains = ['attention', 'memory', 'speed', 'flexibility', 'logic'];
+
+  for (const d of allDomains) {
+    const h = hits[d] || 0;
+    if (h >= 2) fatigued.push(d);
+    if (h === 0 && recent.length >= 2) neglected.push(d);
+  }
+
+  return { fatigued, neglected, recentDomains };
+}
+
 export function buildContinuitySnapshot(input: ContinuityInput = {}): ContinuitySnapshot {
   const resolved = resolveFokusTimeZone(input.timeZone);
   const now = input.now === undefined ? new Date() : input.now instanceof Date ? input.now : new Date(input.now);
@@ -300,6 +339,7 @@ export function buildContinuitySnapshot(input: ContinuityInput = {}): Continuity
     daySummaries: input.daySummaries,
     exerciseStates: input.exerciseStates
   });
+  const workload = evaluateDomainWorkload(playedDays, today, input.daySummaries || []);
   return {
     timeZone: resolved.timeZone,
     timeZoneSource: resolved.source,
@@ -307,7 +347,8 @@ export function buildContinuitySnapshot(input: ContinuityInput = {}): Continuity
     playedDays,
     streak,
     weekly,
-    ritual
+    ritual,
+    workload
   };
 }
 

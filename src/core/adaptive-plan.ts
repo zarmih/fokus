@@ -25,6 +25,20 @@ export function planForNow(opts?: {
   const baseDuration = opts?.durationSec ?? profile.sessionLengthSec ?? 900;
   const durationSec = ritualDurationSec(baseDuration, snapshot.ritual);
 
+  const toExclude = new Set(opts?.excludeIds || []);
+  const fatiguedToRest = snapshot.workload.fatigued.filter(d => d !== profile.primaryGoal);
+  
+  if (fatiguedToRest.length > 0) {
+    const allDomains = new Set(registry.map(c => c.manifest.domain));
+    if (allDomains.size - fatiguedToRest.length >= 3) {
+      registry.forEach(c => {
+        if (fatiguedToRest.includes(c.manifest.domain)) {
+          toExclude.add(c.manifest.id);
+        }
+      });
+    }
+  }
+
   const plan = buildAdaptivePlan({
     durationSec,
     catalog: registry as any,
@@ -35,7 +49,7 @@ export function planForNow(opts?: {
     abilityModel: storage.getAbilityModel(),
     lastCalibrationAt: profile.lastCalibrationAt || null,
     snoozedUntil: profile.recalibrationSnoozedUntil || null,
-    excludeIds: opts?.excludeIds,
+    excludeIds: Array.from(toExclude),
     nowMs: opts?.nowMs
   });
 
