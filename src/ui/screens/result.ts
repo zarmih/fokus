@@ -104,7 +104,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
             <div>${stateLabel}</div>
           </div>
           <div class="result-cell">
-            <div class="muted">Калибровка</div>
+            <div class="muted">Уверенность</div>
             <div>${confDisplay}</div>
           </div>
         </div>
@@ -228,7 +228,12 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
   const nextActionHtml = `
     <div class="surface next-action-card" aria-labelledby="next-step-heading">
-      ${showContinuity ? `
+      ${isOffline ? `
+        <div style="border-left: 4px solid var(--muted); padding-left: 12px; margin-bottom: 24px;">
+          <h3 style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">Тренировка сохранена</h3>
+          <p class="muted" style="line-height: 1.4;">Вы офлайн. Результаты сохранены на устройстве и будут синхронизированы при подключении к сети.</p>
+        </div>
+      ` : showContinuity ? `
         <div style="border-left: 4px solid var(--ok); padding-left: 12px; margin-bottom: 24px;">
           <h3 id="next-step-heading" style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">${continuityMsg.title}</h3>
           <p class="muted" style="margin-bottom: ${continuityMsg.actionHint ? '8px' : '0'}; line-height: 1.4;">${continuityMsg.body}</p>

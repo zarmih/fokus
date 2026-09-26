@@ -299,11 +299,11 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (!navigator.onLine) {
     actionHtml = `
-      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title">
+      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
         <div class="workout-kicker">Офлайн режим</div>
         <h3 id="cta-offline-title">Нет подключения</h3>
         <p>Для создания персональной тренировки требуется сеть. Ваши данные в безопасности.</p>
-        <button id="btn-retry" class="btn-secondary" type="button">Проверить сеть</button>
+        <button id="btn-retry" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">Проверить сеть</button>
       </div>
     `;
   } else if (!profile.calibrated) {
@@ -396,10 +396,13 @@ export function renderToday(container: HTMLElement) {
 
     ${weekHtml}
 
-    <div class="surface install-card" id="today-install-card" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--accent);">
-      <h3 style="margin-bottom: 4px;">Установить Fokus</h3>
-      <p class="muted" style="margin-bottom: 12px;">Быстрый доступ с экрана домой и работа без сети.</p>
-      <button id="btn-today-install" class="btn-primary" type="button" style="width: 100%;">Установить приложение</button>
+    <div class="surface install-card" id="today-install-card" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--ok); background: var(--surface-2);">
+      <h3 style="margin-bottom: 4px; font-size: 16px; letter-spacing: -0.01em;">Добавить Fokus на главный экран</h3>
+      <p class="muted" style="margin-bottom: 12px; font-size: 14px; line-height: 1.4;">Быстрый доступ к тренировкам, полноэкранный режим и работа без интернета.</p>
+      <button id="btn-today-install" class="btn-primary" type="button" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+        Установить приложение
+      </button>
     </div>
 
     <div class="dashboard-widgets">
