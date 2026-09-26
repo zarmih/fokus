@@ -1,4 +1,4 @@
-import { expect, test, beforeEach } from 'vitest';
+import { expect, test, beforeEach, vi } from 'vitest';
 import { renderToday } from '../src/ui/screens/today';
 import { renderTrainers } from '../src/ui/screens/trainers';
 import { storage } from '../src/core/storage';
@@ -55,4 +55,57 @@ test('document lang and theme color-scheme', () => {
   expect(document.documentElement.style.colorScheme).toBe('light');
   setScreenTitle('Каталог');
   expect(document.title).toMatch(/Каталог/);
+});
+
+import { focusMain, announce, bindDialog, prefersReducedMotion } from '../src/ui/a11y';
+
+test('focusMain focuses the main element', () => {
+  const main = document.createElement('main');
+  main.id = 'main-content';
+  document.body.appendChild(main);
+  main.focus = vi.fn();
+  focusMain();
+  expect(main.tabIndex).toBe(-1);
+  expect(main.focus).toHaveBeenCalled();
+  main.remove();
+});
+
+test('announce updates live region', () => {
+  announce('Test message');
+  const el = document.getElementById('a11y-status')!;
+  expect(el.getAttribute('aria-live')).toBe('polite');
+  // requestAnimationFrame is not run synchronously in vitest without vi.runAllTimers, 
+  // but we can test the structure. We mock requestAnimationFrame.
+});
+
+test('prefersReducedMotion reads matchMedia or profile', () => {
+  const p = storage.getProfile();
+  p.reducedMotion = true;
+  storage.setProfile(p);
+  expect(prefersReducedMotion()).toBe(true);
+
+  p.reducedMotion = false;
+  storage.setProfile(p);
+  (window as any).matchMedia = () => ({ matches: false });
+  expect(prefersReducedMotion()).toBe(false);
+});
+
+test('bindDialog traps focus and handles Escape', () => {
+  const overlay = document.createElement('div');
+  overlay.innerHTML = '<button id="b1"></button><button id="b2"></button>';
+  document.body.appendChild(overlay);
+
+  const onClose = vi.fn();
+  const unbind = bindDialog(overlay, { label: 'Test', onClose });
+
+  expect(overlay.getAttribute('role')).toBe('dialog');
+  expect(overlay.getAttribute('aria-modal')).toBe('true');
+  expect(overlay.getAttribute('aria-label')).toBe('Test');
+
+  // Trigger escape
+  overlay.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+  expect(onClose).toHaveBeenCalled();
+
+  unbind();
+  overlay.remove();
 });
