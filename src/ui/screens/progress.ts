@@ -14,6 +14,7 @@ import { renderQualityCard } from '../components/quality-card';
 import { assessRetention, bandLabel, signalLabel } from '../../core/retention';
 import { buildCoachIntel } from '../../core/coach-intel';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
+import { computeAbilityTrajectory } from '../../core/ability-trajectory';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -306,12 +307,16 @@ export function renderProgress(container: HTMLElement) {
     rhythmHtml = '';
   }
 
+  const catalogRefs = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const trajectory = computeAbilityTrajectory({ sessions: storage.getSessions(), domains, catalog: catalogRefs });
+
   const fi = computeFokusIndex(domains, exStates);
   const intel = buildCoachIntel({
     summaries: ds,
     domains,
     window: 14,
-    asOf: new Date().toISOString()
+    asOf: new Date().toISOString(),
+    trajectory
   });
   const sparkCount = intel.sparkline.points.filter((p) => p.value != null).length;
   const sparkHtml = sparkCount >= 2

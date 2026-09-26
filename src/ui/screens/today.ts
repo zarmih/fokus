@@ -55,7 +55,7 @@ export function renderToday(container: HTMLElement) {
   let plan: { items: any[]; focusDomains: string[] } = { items: [], focusDomains: [] };
   let ritualDuration = durationSec;
   let recal: any = { probe: [] as any[], forced: false, summary: '' };
-  let depth = { chip: null as any, why: null as string | null, ritual: null as any };
+  let depth = { chip: null as any, why: null as string | null, ritual: null as any, trajectory: null as any };
   let ritual: any = null;
   let errorState = false;
   let noPlanState = false;
@@ -155,7 +155,8 @@ export function renderToday(container: HTMLElement) {
     skippedYesterday,
     primaryGoal: profile.primaryGoal,
     focusDomains: plan.focusDomains,
-    shieldCharges
+    shieldCharges,
+    trajectory: depth.trajectory
   });
 
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });

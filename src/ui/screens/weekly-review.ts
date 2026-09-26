@@ -7,6 +7,7 @@ import { transferCardFromStorage } from '../components/transfer-card';
 import { generateInsights } from '../../core/insights';
 import { planForNow } from '../../core/adaptive-plan';
 import { buildCoachIntel, type CoachIntel, type HistoryWindow } from '../../core/coach-intel';
+import { computeAbilityTrajectory } from '../../core/ability-trajectory';
 import { renderIndexSparkline } from '../components/charts';
 import { domainLabel } from '../../core/labels';
 import { ruPlural } from '../../core/transfer';
@@ -304,11 +305,15 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
   const periodStr = `${dateFormatter.format(weekAgo)} — ${dateFormatter.format(now)}`;
 
+  const catalogRefs = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const trajectory = computeAbilityTrajectory({ sessions: storage.getSessions(), domains, catalog: catalogRefs });
+
   const intel = buildCoachIntel({
     summaries: allSummaries,
     domains,
     window: historyWindow,
-    asOf: now.toISOString()
+    asOf: now.toISOString(),
+    trajectory
   });
   const intelHtml = renderIntelPanel(intel);
 

@@ -66,6 +66,7 @@ export function getDailySpark(params: {
   now?: Date;
   /** Optional Phase 3 field — ignored when the program PR is not merged. */
   shieldCharges?: number;
+  trajectory?: import('./ability-trajectory').AbilityTrajectory;
 }): CoachSpark {
   const {
     domains,
@@ -78,7 +79,8 @@ export function getDailySpark(params: {
     primaryGoal,
     focusDomains,
     now,
-    shieldCharges
+    shieldCharges,
+    trajectory
   } = params;
 
   if (!calibrated) {
@@ -155,6 +157,30 @@ export function getDailySpark(params: {
         body: `По прошлым сессиям вы точнее ${chrono.label}. Хорошее время для сложного блока без лишнего напряжения.`,
         tone: 'time'
       };
+    }
+  }
+
+  if (trajectory && trajectory.ready && trajectory.headline) {
+    const focus = trajectory.headline;
+    const name = domainLabel(focus.domain);
+    if (focus.trend === 'rising') {
+       return {
+         title: `Рост: ${name}`,
+         body: `Показатели стабильно идут вверх. Сложность будет расти вместе с вашим навыком — держите темп.`,
+         tone: 'focus'
+       };
+    } else if (focus.trend === 'falling') {
+       return {
+         title: `Спад: ${name}`,
+         body: `Точность немного упала. Сегодня мы чуть снизим планку, чтобы восстановить уверенность.`,
+         tone: 'recovery'
+       };
+    } else if (focus.trend === 'stable' && focus.theta < 0.3) {
+       return {
+         title: `Зона роста: ${name}`,
+         body: `Эта область пока требует больше усилий. Сегодня фокус на ней — ошибаться нормально, важна регулярность.`,
+         tone: 'focus'
+       };
     }
   }
 
