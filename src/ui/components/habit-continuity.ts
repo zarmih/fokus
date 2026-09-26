@@ -127,7 +127,7 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
           : `${weekly.gapCount} паузы в окне`;
     const extra =
       screen === 'stats'
-        ? ` ${weekly.completedDays} из ${weekly.eligibleDays} дней, ${gaps}.`
+        ? ` ${weekly.completedDays} дней (сессии), ${gaps}.`
         : '';
     return `Непрерывность недели: ${scoreText(weekly.score)} из 1. Доля дней с сессией минус штраф за паузы.${extra} Не оценка способностей.${zoneNote}`;
   }
@@ -155,7 +155,7 @@ function renderSettingsHint(snap: ContinuitySnapshot): string {
       : `Календарный день считается в зоне ${snap.timeZone} (не в UTC, если полночь расходится).`;
   const cap = streakChipCaption(snap.streak);
   const weeklyLine = snap.weekly.sufficient
-    ? `Сейчас ${scoreText(snap.weekly.score)} из 1 (${snap.weekly.completedDays} из ${snap.weekly.eligibleDays} дней).`
+    ? `Сейчас ${scoreText(snap.weekly.score)} из 1 (${snap.weekly.completedDays} дней).`
     : 'Индекс появится после четырёх дней с первой сессии.';
 
   return `
