@@ -456,7 +456,7 @@ export function renderSettings(container: HTMLElement) {
           if (perm === 'granted') {
             btnNotif.textContent = 'Уведомления включены';
             (btnNotif as HTMLButtonElement).disabled = true;
-            new Notification('Fokus', { body: 'Отлично! Теперь вы не пропустите тренировку.' });
+            new Notification('Fokus', { body: 'Напоминания включены. Fokus будет подсказывать время для сессии.' });
             import('../../core/reminders').then(m => m.scheduleLocalReminder());
           } else {
             alert('Разрешение не получено.');
