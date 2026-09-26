@@ -32,9 +32,6 @@ export function renderTrainers(container: HTMLElement) {
 
   // Build filters explicitly reflecting counts
   let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">Все <span style="opacity:0.6; font-size:11px;">${catalog.length}</span></button>`;
-  if (untriedCount > 0) {
-    filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false" style="color: var(--accent); border-color: rgba(234, 179, 8, 0.3);">Новые <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
-  }
   filterHtml += validDomains.map((dom, i) => {
     const count = domains.get(dom)!.length;
     const label = domainLabel(dom);
@@ -102,8 +99,7 @@ export function renderTrainers(container: HTMLElement) {
       const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
 
       return `
-        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-untried="${isUntried}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}" style="position: relative;">
-          ${isUntried ? `<div style="position: absolute; top: -6px; right: -6px; background: var(--accent); color: #000; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 8px; text-transform: uppercase; z-index: 2;">Новое</div>` : ''}
+        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}" style="position: relative;">
           <div class="trainer-header-row">
             <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
             <div class="trainer-icon-wrap">
@@ -153,7 +149,7 @@ export function renderTrainers(container: HTMLElement) {
       <div id="catalog-empty-state" style="display: none; padding: 48px 24px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--line);">
         <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
         <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ничего не найдено</div>
-        <div style="color: var(--muted); font-size: 14px;">Попробуйте изменить поисковой запрос или выбрать другой фильтр.</div>
+        <div style="color: var(--muted); font-size: 14px;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
       </div>
     </div>
   `;
@@ -172,10 +168,7 @@ export function renderTrainers(container: HTMLElement) {
       
       group.querySelectorAll('.trainer-card').forEach(card => {
         const el = card as HTMLElement;
-        const matchesDom = activeDom === 'all' || 
-                           (activeDom === 'discovery' && el.dataset.untried === 'true') || 
-                           (activeDom === groupDom);
-                           
+        const matchesDom = activeDom === 'all' || (activeDom === groupDom);
         const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
         
         const show = matchesDom && matchesSearch;
