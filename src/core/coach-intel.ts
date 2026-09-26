@@ -429,11 +429,10 @@ function buildTips(
   const { adherence, milestones, personalBest, weakDomainId, sparkline } = intel;
 
   if (adherence.comeback) {
-    const gap = Math.max(3, adherence.gapDays);
     tips.push({
       kind: 'comeback',
       title: 'С возвращением',
-      body: `Пауза в ${gap} ${gap === 1 ? 'день' : gap < 5 ? 'дня' : 'дней'} не обнуляет навык. Короткий блок вернёт ритм — навёрстывать пропущенные дни не нужно.`,
+      body: 'Долгая пауза не обнуляет навык. Короткий блок вернёт ритм — навёрстывать пропущенное не нужно.',
       tone: 'recovery'
     });
   }
