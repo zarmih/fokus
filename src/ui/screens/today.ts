@@ -48,9 +48,20 @@ export function renderToday(container: HTMLElement) {
   const states = storage.getExerciseStates();
   const sessions = storage.getSessions();
   const intel = buildCoachIntel({ summaries: ds, domains, asOf: new Date().toISOString() });
+  const insights = generateInsights(domains, skills, states, ds, sessions);
+  if (gapDays >= 2 && !playedToday) {
+    insights.unshift({
+      title: 'С возвращением',
+      description: 'Исследования показывают, что восстановление после паузы укрепляет нейронные связи. Fokus подобрал мягкий старт для сегодняшней сессии.',
+      confidence: 'high',
+      type: 'recovery',
+      priority: 100
+    });
+  }
+  const topInsight = insights[0];
   const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
   const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
-  const coachTarget = intel.weakDomainId || profile.primaryGoal;
+  const coachTarget = topInsight?.domainId || intel.weakDomainId || profile.primaryGoal;
   const targetGoal = weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || coachTarget;
   const baseDuration = weekRitual.inFirstWeek && weekRitual.ritualDay
     ? weekRitual.ritualDay.durationSec
@@ -160,7 +171,8 @@ export function renderToday(container: HTMLElement) {
     primaryGoal: profile.primaryGoal,
     focusDomains: plan.focusDomains,
     shieldCharges,
-    trajectory: depth.trajectory
+    trajectory: depth.trajectory,
+    topInsight
   });
 
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
@@ -186,17 +198,7 @@ export function renderToday(container: HTMLElement) {
     retentionHtml = '';
   }
 
-  const insights = generateInsights(domains, skills, states, ds, sessions);
-  if (gapDays >= 2 && !playedToday) {
-    insights.unshift({
-      title: 'С возвращением',
-      description: 'Исследования показывают, что восстановление после паузы укрепляет нейронные связи. Fokus подобрал мягкий старт для сегодняшней сессии.',
-      confidence: 'high',
-      type: 'milestone',
-      priority: 1
-    });
-  }
-  const topInsight = insights[0];
+
   const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
     <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
       <div class="week-kicker">Первая неделя · день ${weekRitual.day} из 7 · ${weekRitual.ritualDay.label}</div>
