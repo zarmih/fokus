@@ -30,7 +30,8 @@ export function buildAdaptivePlan(params: AdaptivePlanParams): AdaptivePlan {
       domains: p.domains,
       skills: p.skills,
       states: p.states,
-      primaryGoal: p.primaryGoal
+      primaryGoal: p.primaryGoal,
+      excludeIds: p.excludeIds
     })
   );
 }
@@ -43,8 +44,9 @@ export function buildTrainingPlan(params: {
   states: ExerciseState[];
   primaryGoal?: string;
   focusOfTheWeek?: string | null;
+  excludeIds?: string[];
 }): TrainingPlan {
-  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek } = params;
+  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, excludeIds = [] } = params;
   
   let targetBlocks = 3;
   if (durationSec >= 480) targetBlocks = 4;
@@ -65,7 +67,9 @@ export function buildTrainingPlan(params: {
   const selectedDomains = new Set<string>();
   
   for (let blockIndex = 0; blockIndex < targetBlocks; blockIndex++) {
-    const scoredCandidates = catalog.map(c => {
+    const scoredCandidates = catalog
+      .filter(c => !excludeIds.includes(c.manifest.id))
+      .map(c => {
       const manifest = c.manifest;
       const state = states.find(s => s.exerciseId === manifest.id);
       
