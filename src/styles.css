@@ -2886,3 +2886,18 @@ html[data-motion="reduce"] .trainer-card { transition-duration: 0ms; }
   opacity: 0.9;
   flex-shrink: 0;
 }
+
+
+/* AI5 Trajectory Styles */
+.wr-trajectory-desc { font-size: 14px; opacity: 0.8; margin-bottom: 16px; }
+.wr-trajectory-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.wr-trajectory-card { display: flex; flex-direction: column; background: var(--surface-2, rgba(255,255,255,0.05)); padding: 16px; border-radius: 12px; border: 1px solid var(--border-color, rgba(255,255,255,0.1)); transition: transform 0.2s; }
+.wr-trajectory-card:focus-visible, .wr-trajectory-card:hover { transform: translateY(-2px); }
+.wr-traj-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-weight: 600; }
+.wr-traj-domain { font-size: 15px; }
+.wr-traj-icon { font-size: 18px; line-height: 1; }
+.wr-traj-state { font-size: 18px; font-weight: bold; margin-bottom: 4px; }
+.wr-traj-desc { font-size: 13px; opacity: 0.7; }
+.wr-trend-rising { border-bottom: 3px solid #10b981; }
+.wr-trend-falling { border-bottom: 3px solid #ef4444; }
+.wr-trend-stable { border-bottom: 3px solid #3b82f6; }
