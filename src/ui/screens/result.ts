@@ -227,7 +227,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const showContinuity = !isCalibration && !isRecalibration && !noData && !isOffline;
 
   const nextActionHtml = `
-    <div class="surface next-action-card" aria-labelledby="next-step-heading">
+    <div class="surface next-action-card" role="region" aria-labelledby="next-step-heading" aria-live="polite">
       ${isOffline ? `
         <div style="border-left: 4px solid var(--muted); padding-left: 12px; margin-bottom: 24px;">
           <h3 style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">Тренировка сохранена</h3>
@@ -393,4 +393,9 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       /* user cancelled share */
     }
   });
+
+  const primaryBtn = content.querySelector('#btn-primary-action') as HTMLElement | null;
+  if (primaryBtn) {
+    requestAnimationFrame(() => primaryBtn.focus());
+  }
 }
