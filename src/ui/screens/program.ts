@@ -52,7 +52,7 @@ export function renderProgram(container: HTMLElement) {
 
   const programWeek = (profile as { programWeek?: number }).programWeek;
   const weekIndex = programWeek || Math.max(1, Math.floor(snapshot.playedDays.length / 7) + 1);
-  const planDurationMins = Math.round(ritualDuration / 60);
+  const planDurationMins = plan.items.length * 3;
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
     const d = getDomain(model, id);
@@ -62,7 +62,7 @@ export function renderProgram(container: HTMLElement) {
         <div class="ability-meta">
           <span>${domainLabel(id)}</span>
         </div>
-        <div class="scale-track"><div class="scale-fill" style="width:${pct}%"></div></div>
+        <div class="scale-track" role="progressbar" aria-valuenow="${Math.round(pct)}" aria-valuemin="0" aria-valuemax="100" aria-label="${domainLabel(id)}: ${Math.round(pct)}%"><div class="scale-fill" style="width:${pct}%"></div></div>
       </div>
     `;
   }).join('');
@@ -76,7 +76,7 @@ export function renderProgram(container: HTMLElement) {
         <div class="ritual-idx">${i + 1}</div>
         <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="28" height="28" alt="">
         <div class="ritual-copy">
-          <div class="ritual-name">${r?.manifest.name || item.exerciseId}</div>
+          <div class="ritual-name" aria-label="Упражнение: ${r?.manifest.name || item.exerciseId}">${r?.manifest.name || item.exerciseId}</div>
           <div class="muted">${item.reason}</div>
         </div>
         ${slot ? `<span class="slot-tag">${slot}</span>` : ''}
@@ -89,6 +89,9 @@ export function renderProgram(container: HTMLElement) {
     : '';
 
   const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3);
+  const isPersonalized = profile.calibrated && !isSparse;
+  const programTitle = isPersonalized ? 'Персональный план' : 'План тренировки';
+  const subtitle = `Неделя ${weekIndex} · План на сегодня`;
 
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
   if (snapshot.ritual.active) {
@@ -136,7 +139,7 @@ export function renderProgram(container: HTMLElement) {
     hero = `
       <div class="workout-card">
         <div class="workout-kicker">${contMsg.title}</div>
-        <h3>Тренировка дня · ${planDurationMins} минут</h3>
+        <h3>Тренировка дня · ~${planDurationMins} мин</h3>
         <p class="muted coach-rationale">${coachMessage}</p>
         <button id="btn-program-start" class="btn-primary" type="button">Начать игру</button>
       </div>
@@ -146,8 +149,8 @@ export function renderProgram(container: HTMLElement) {
   shell.innerHTML = `
     <div class="program-screen">
       <div class="today-head">
-        <h2>Персональный план</h2>
-        <p class="today-date">План на сегодня</p>
+        <h2>${programTitle}</h2>
+        <p class="today-date">${subtitle}</p>
       </div>
       ${hero}
       ${profile.calibrated ? `
