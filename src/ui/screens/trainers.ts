@@ -31,97 +31,134 @@ export function renderTrainers(container: HTMLElement) {
   const untriedCount = catalog.length - playedCount;
 
   // Build filters explicitly reflecting counts
+  function renderCard(ex: any) {
+    const st = exStates.find(s => s.exerciseId === ex.manifest.id);
+    const isUntried = !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
+    const lvl = st ? st.level : 1;
+    const intel = getExerciseIntelligence(ex.manifest.id);
+    
+    let intelHtml = '';
+    const stateLabels: Record<string, string> = {
+      'CALIBRATING': 'Калибровка',
+      'DEVELOPING': 'Освоение',
+      'STABLE': 'Стабильно',
+      'CHALLENGE': 'Вызов',
+      'PLATEAU': 'Плато'
+    };
+
+    const currentStateLabel = stateLabels[intel.state] || intel.state;
+
+    if (intel.state === 'CALIBRATING') {
+      intelHtml = `
+        <div style="margin-top: 12px;" aria-hidden="true">
+          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Калибровка (${intel.attempts}/3)</div>
+          <div class="scale-track" style="height: 4px; opacity: 0.3; margin: 0;"><div class="scale-fill" style="width: 100%; background: var(--muted);"></div></div>
+          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Сложность: ${intel.difficulty}</div>
+        </div>`;
+    } else {
+      const stateColor = intel.state === 'STABLE' ? 'var(--ok)' : intel.state === 'CHALLENGE' ? 'var(--accent)' : intel.state === 'PLATEAU' ? 'var(--danger)' : 'var(--text)';
+      let avgTrend = 0;
+      if (intel.skills.length > 0) {
+        avgTrend = intel.skills.reduce((sum, s) => sum + (s.trend || 0), 0) / intel.skills.length;
+      }
+      const trendStr = avgTrend > 0.05 ? '↑' : avgTrend < -0.05 ? '↓' : '→';
+      const trendColor = avgTrend > 0.05 ? 'var(--ok)' : avgTrend < -0.05 ? 'var(--danger)' : 'var(--muted)';
+
+      intelHtml = `
+        <div style="margin-top: 12px;" aria-hidden="true">
+          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
+            <div style="font-size: 11px; color: ${stateColor}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${currentStateLabel}
+            </div>
+            <div style="font-size: 12px; font-weight: 700;">
+              ${intel.mastery}<span style="font-size: 10px; color: var(--muted); font-weight: 500;">/100</span>
+            </div>
+          </div>
+          <div class="scale-track" style="height: 4px; margin: 0 0 6px 0; background: rgba(255,255,255,0.05);">
+            <div class="scale-fill" style="width: ${intel.mastery}%; background: ${stateColor};"></div>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);">
+            <div>Сложность: <span style="color: var(--text);">${intel.difficulty}</span></div>
+            <div>Тренд: <span style="color: ${trendColor}; font-weight: 700;">${trendStr}</span></div>
+          </div>
+        </div>
+      `;
+    }
+
+    const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
+    const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
+
+    return `
+      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
+        <div class="trainer-header-row">
+          <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
+          <div class="trainer-icon-wrap">
+            <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="24" height="24" alt="" decoding="async" loading="lazy">
+          </div>
+        </div>
+        <div class="trainer-name">${ex.manifest.name}</div>
+        <div class="trainer-instruction">${ex.manifest.instruction}</div>
+        <div style="margin-bottom: 8px;">
+          ${(ex.manifest.skills || []).slice(0, 2).map((s: string) => `<span style="display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; margin-right: 4px; margin-top: 6px;">${skillLabel(s)}</span>`).join('')}
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; width: 100%;">
+          <div class="trainer-level">Ур. ${lvl}</div>
+        </div>
+        ${intelHtml}
+      </button>
+    `;
+  }
+
   let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">Все <span style="opacity:0.6; font-size:11px;">${catalog.length}</span></button>`;
+  
+  if (untriedCount > 0) {
+    filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">Новое <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
+  }
+
   filterHtml += validDomains.map((dom, i) => {
     const count = domains.get(dom)!.length;
     const label = domainLabel(dom);
-    const isActive = false;
-    return `<button class="filter-chip ${isActive ? 'active' : ''}" data-dom="${dom}" type="button" aria-pressed="${isActive ? 'true' : 'false'}">${label} <span style="opacity:0.6; font-size:11px;">${count}</span></button>`;
+    return `<button class="filter-chip" data-dom="${dom}" type="button" aria-pressed="false">${label} <span style="opacity:0.6; font-size:11px;">${count}</span></button>`;
   }).join('');
 
   let allCardsHtml = '';
+
+  if (untriedCount > 0) {
+    const untriedExercises = catalog.filter(ex => {
+      const st = exStates.find(s => s.exerciseId === ex.manifest.id);
+      return !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
+    }).sort((a, b) => {
+      const intelA = getExerciseIntelligence(a.manifest.id);
+      const intelB = getExerciseIntelligence(b.manifest.id);
+      const diffA = Number(intelA.difficulty);
+      const diffB = Number(intelB.difficulty);
+      if (diffA !== diffB) return diffA - diffB;
+      return a.manifest.name.localeCompare(b.manifest.name, 'ru');
+    });
+
+    allCardsHtml += `
+      <div class="domain-group is-hidden" data-group="discovery">
+        <div class="trainers-grid">
+          ${untriedExercises.map(renderCard).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   validDomains.forEach((dom, i) => {
-    const exercises = domains.get(dom)!;
+    const exercises = domains.get(dom)!.sort((a, b) => {
+      const intelA = getExerciseIntelligence(a.manifest.id);
+      const intelB = getExerciseIntelligence(b.manifest.id);
+      const diffA = Number(intelA.difficulty);
+      const diffB = Number(intelB.difficulty);
+      if (diffA !== diffB) {
+        return diffA - diffB;
+      }
+      return a.manifest.name.localeCompare(b.manifest.name, 'ru');
+    });
     const isActive = true;
     
-    let gridHtml = exercises.map(ex => {
-      const st = exStates.find(s => s.exerciseId === ex.manifest.id);
-      const isUntried = !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
-      const lvl = st ? st.level : 1;
-      const intel = getExerciseIntelligence(ex.manifest.id);
-      
-      let intelHtml = '';
-      const stateLabels: Record<string, string> = {
-        'CALIBRATING': 'Калибровка',
-        'DEVELOPING': 'Освоение',
-        'STABLE': 'Стабильно',
-        'CHALLENGE': 'Вызов',
-        'PLATEAU': 'Плато'
-      };
-
-      const currentStateLabel = stateLabels[intel.state] || intel.state;
-
-      if (intel.state === 'CALIBRATING') {
-        intelHtml = `
-          <div style="margin-top: 12px;" aria-hidden="true">
-            <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Калибровка (${intel.attempts}/3)</div>
-            <div class="scale-track" style="height: 4px; opacity: 0.3; margin: 0;"><div class="scale-fill" style="width: 100%; background: var(--muted);"></div></div>
-            <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Сложность: ${intel.difficulty}</div>
-          </div>`;
-      } else {
-        const stateColor = intel.state === 'STABLE' ? 'var(--ok)' : intel.state === 'CHALLENGE' ? 'var(--accent)' : intel.state === 'PLATEAU' ? 'var(--danger)' : 'var(--text)';
-        let avgTrend = 0;
-        if (intel.skills.length > 0) {
-          avgTrend = intel.skills.reduce((sum, s) => sum + (s.trend || 0), 0) / intel.skills.length;
-        }
-        const trendStr = avgTrend > 0.05 ? '↑' : avgTrend < -0.05 ? '↓' : '→';
-        const trendColor = avgTrend > 0.05 ? 'var(--ok)' : avgTrend < -0.05 ? 'var(--danger)' : 'var(--muted)';
-
-        intelHtml = `
-          <div style="margin-top: 12px;" aria-hidden="true">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
-              <div style="font-size: 11px; color: ${stateColor}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                ${currentStateLabel}
-              </div>
-              <div style="font-size: 12px; font-weight: 700;">
-                ${intel.mastery}<span style="font-size: 10px; color: var(--muted); font-weight: 500;">/100</span>
-              </div>
-            </div>
-            <div class="scale-track" style="height: 4px; margin: 0 0 6px 0; background: rgba(255,255,255,0.05);">
-              <div class="scale-fill" style="width: ${intel.mastery}%; background: ${stateColor};"></div>
-            </div>
-            <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);">
-              <div>Сложность: <span style="color: var(--text);">${intel.difficulty}</span></div>
-              <div>Тренд: <span style="color: ${trendColor}; font-weight: 700;">${trendStr}</span></div>
-            </div>
-          </div>
-        `;
-      }
-
-      const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
-
-      const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
-
-      return `
-        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
-          <div class="trainer-header-row">
-            <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
-            <div class="trainer-icon-wrap">
-              <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="24" height="24" alt="" decoding="async" loading="lazy">
-            </div>
-          </div>
-          <div class="trainer-name">${ex.manifest.name}</div>
-          <div class="trainer-instruction">${ex.manifest.instruction}</div>
-          <div style="margin-bottom: 8px;">
-            ${(ex.manifest.skills || []).slice(0, 2).map((s: string) => `<span style="display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; margin-right: 4px; margin-top: 6px;">${skillLabel(s)}</span>`).join('')}
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; width: 100%;">
-            <div class="trainer-level">Ур. ${lvl}</div>
-          </div>
-          ${intelHtml}
-        </button>
-      `;
-    }).join('');
+    let gridHtml = exercises.map(renderCard).join('');
 
     allCardsHtml += `
       <div class="domain-group ${isActive ? '' : 'is-hidden'}" data-group="${dom}">
@@ -153,13 +190,15 @@ export function renderTrainers(container: HTMLElement) {
       <div id="catalog-empty-state" style="display: none; padding: 48px 24px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--line);" role="status">
         <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;" aria-hidden="true">🔍</div>
         <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ничего не найдено</div>
-        <div style="color: var(--muted); font-size: 14px;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
+        <div style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
+        <button type="button" id="catalog-clear-search" style="padding: 10px 20px; background: rgba(255,255,255,0.1); color: var(--text); border: none; border-radius: var(--radius); font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;">Сбросить поиск</button>
       </div>
     </div>
   `;
 
   const searchInput = content.querySelector('#catalog-search') as HTMLInputElement;
   const emptyState = content.querySelector('#catalog-empty-state') as HTMLElement;
+  const clearSearchBtn = content.querySelector('#catalog-clear-search') as HTMLButtonElement;
   let activeDom = 'all';
 
   function updateVisibility() {
@@ -202,6 +241,20 @@ export function renderTrainers(container: HTMLElement) {
     if (emptyState) {
       emptyState.style.display = count === 0 ? 'block' : 'none';
     }
+  }
+
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      activeDom = 'all';
+      content.querySelectorAll('.filter-chip').forEach(c => {
+        const on = (c as HTMLElement).dataset.dom === 'all';
+        c.classList.toggle('active', on);
+        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      updateVisibility();
+      if (searchInput) searchInput.focus();
+    });
   }
 
   if (searchInput) {
