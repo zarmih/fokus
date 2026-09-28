@@ -256,7 +256,7 @@ export function renderProgress(container: HTMLElement) {
   const legendHtml = `
     <div class="legend-box">
       <div style="margin-bottom: 6px;"><strong>Форма (Performance)</strong> — как вы справляетесь прямо сейчас.</div>
-      <div style="margin-bottom: 6px;"><strong>Освоение (Mastery)</strong> — насколько навык устойчиво закреплён.</div>
+      <div style="margin-bottom: 6px;"><strong>Освоение (Mastery)</strong> — насколько результаты устойчиво закреплены.</div>
       <div><strong>Уверенность (Confidence)</strong> — насколько Fokus уверен в оценке.</div>
     </div>
   `;
@@ -346,7 +346,7 @@ export function renderProgress(container: HTMLElement) {
     <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
       <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
       <p style="margin: 0 0 8px 0; color: var(--muted);">Индекс — это среднее значение ваших результатов в активных областях. Он показывает только вашу текущую тренировочную форму.</p>
-      <p style="margin: 0; color: var(--muted);">Уверенность зависит от того, как давно вы тренировались. Это просто честная метрика ваших результатов в тренажёрах без лишних обещаний.</p>
+      <p style="margin: 0; color: var(--muted);">Уверенность зависит от охвата областей. Это просто честная метрика ваших результатов в тренажёрах без лишних обещаний.</p>
     </div>
   `;
 
