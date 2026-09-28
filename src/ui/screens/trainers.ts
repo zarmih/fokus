@@ -59,9 +59,11 @@ export function renderTrainers(container: HTMLElement) {
         'PLATEAU': 'Плато'
       };
 
+      const currentStateLabel = stateLabels[intel.state] || intel.state;
+
       if (intel.state === 'CALIBRATING') {
         intelHtml = `
-          <div style="margin-top: 12px;">
+          <div style="margin-top: 12px;" aria-hidden="true">
             <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Калибровка (${intel.attempts}/3)</div>
             <div class="scale-track" style="height: 4px; opacity: 0.3; margin: 0;"><div class="scale-fill" style="width: 100%; background: var(--muted);"></div></div>
             <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Сложность: ${intel.difficulty}</div>
@@ -76,10 +78,10 @@ export function renderTrainers(container: HTMLElement) {
         const trendColor = avgTrend > 0.05 ? 'var(--ok)' : avgTrend < -0.05 ? 'var(--danger)' : 'var(--muted)';
 
         intelHtml = `
-          <div style="margin-top: 12px;">
+          <div style="margin-top: 12px;" aria-hidden="true">
             <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
               <div style="font-size: 11px; color: ${stateColor}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-                ${stateLabels[intel.state] || intel.state}
+                ${currentStateLabel}
               </div>
               <div style="font-size: 12px; font-weight: 700;">
                 ${intel.mastery}<span style="font-size: 10px; color: var(--muted); font-weight: 500;">/100</span>
@@ -98,8 +100,10 @@ export function renderTrainers(container: HTMLElement) {
 
       const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
 
+      const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
+
       return `
-        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ex.manifest.name}, ${domainLabel(ex.manifest.domain)}, уровень ${lvl}" style="position: relative;">
+        <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
           <div class="trainer-header-row">
             <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
             <div class="trainer-icon-wrap">
@@ -144,10 +148,10 @@ export function renderTrainers(container: HTMLElement) {
       ${filterHtml}
     </div>
     
-    <div class="catalog-groups-container">
+    <div class="catalog-groups-container" aria-live="polite">
       ${validDomains.length === 0 ? '<div style="opacity: 0.6; padding: 24px 0; text-align: center;">Нет доступных упражнений</div>' : allCardsHtml}
-      <div id="catalog-empty-state" style="display: none; padding: 48px 24px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--line);">
-        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">🔍</div>
+      <div id="catalog-empty-state" style="display: none; padding: 48px 24px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--line);" role="status">
+        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;" aria-hidden="true">🔍</div>
         <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ничего не найдено</div>
         <div style="color: var(--muted); font-size: 14px;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
       </div>
