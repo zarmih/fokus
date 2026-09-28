@@ -281,16 +281,16 @@ export function renderToday(container: HTMLElement) {
 
   if (isLoading) {
     actionHtml = `
-      <div class="workout-card loading-state" role="region" aria-label="Загрузка плана">
+      <div class="workout-card loading-state" role="region" aria-label="Загрузка плана" aria-live="polite" aria-busy="true">
         <div class="workout-kicker">Загрузка</div>
         <h3>Собираем план...</h3>
         <p>Fokus анализирует вашу активность.</p>
-        <button class="btn-primary" type="button" disabled>Подождите</button>
+        <button class="btn-primary" type="button" disabled aria-disabled="true">Подождите</button>
       </div>
     `;
   } else if (errorState) {
     actionHtml = `
-      <div class="workout-card error-state" role="region" aria-label="Ошибка создания плана">
+      <div class="workout-card error-state" role="region" aria-label="Ошибка создания плана" aria-live="assertive">
         <div class="workout-kicker">Ошибка</div>
         <h3>Что-то пошло не так</h3>
         <p>Не удалось составить персональную сессию. Попробуйте обновить страницу.</p>
@@ -299,7 +299,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (!navigator.onLine) {
     actionHtml = `
-      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
+      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" aria-live="polite" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
         <div class="workout-kicker">Офлайн режим</div>
         <h3 id="cta-offline-title">Нет подключения</h3>
         <p>Для создания персональной тренировки требуется сеть. Ваши данные в безопасности.</p>
@@ -327,11 +327,11 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (noPlanState) {
     actionHtml = `
-      <div class="workout-card done fx-enter" role="region" aria-label="Сессия недоступна">
+      <div class="workout-card done fx-enter" role="region" aria-label="Сессия недоступна" aria-live="polite">
         <div class="workout-kicker">Отдых</div>
         <h3>На сегодня всё</h3>
         <p>Fokus рекомендует полный отдых или пока нет подходящих упражнений.</p>
-        <button class="btn-secondary" type="button" disabled>Сессия недоступна</button>
+        <button class="btn-secondary" type="button" disabled aria-disabled="true">Сессия недоступна</button>
       </div>
     `;
   } else if (snap.ritual.active) {
@@ -396,8 +396,8 @@ export function renderToday(container: HTMLElement) {
 
     ${weekHtml}
 
-    <div class="surface install-card" id="today-install-card" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--ok); background: var(--surface-2);">
-      <h3 style="margin-bottom: 4px; font-size: 16px; letter-spacing: -0.01em;">Добавить Fokus на главный экран</h3>
+    <div class="surface install-card" id="today-install-card" role="region" aria-labelledby="install-title" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--ok); background: var(--surface-2);">
+      <h3 id="install-title" style="margin-bottom: 4px; font-size: 16px; letter-spacing: -0.01em;">Добавить Fokus на главный экран</h3>
       <p class="muted" style="margin-bottom: 12px; font-size: 14px; line-height: 1.4;">Быстрый доступ к тренировкам, полноэкранный режим и работа без интернета.</p>
       <button id="btn-today-install" class="btn-primary" type="button" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -456,6 +456,11 @@ export function renderToday(container: HTMLElement) {
   });
   const workout = content.querySelector('.workout-card') as HTMLElement | null;
   if (workout && !workout.classList.contains('fx-celebrate')) enterStage(workout);
+  
+  const startBtn = content.querySelector('#btn-start') as HTMLElement | null;
+  if (startBtn && !isLoading && !errorState) {
+    requestAnimationFrame(() => startBtn.focus());
+  }
 
   content.querySelector('#btn-retry')?.addEventListener('click', () => {
     window.location.reload();
