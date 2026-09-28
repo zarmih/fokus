@@ -26,13 +26,7 @@ export function generateInsights(
   // Need enough data
   const totalDays = daySummaries.length;
   if (totalDays < 2) {
-    return [{
-      type: 'milestone',
-      title: 'Начало пути',
-      description: 'Мы всё ещё собираем данные. Пройдите несколько ритуалов, чтобы Fokus смог заметить закономерности и дать полезные наблюдения.',
-      confidence: 'low',
-      priority: 100
-    }];
+    return [];
   }
 
   const catalogRefs = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
@@ -45,7 +39,7 @@ export function generateInsights(
       insights.push({
         type: 'improvement',
         title: 'Уверенный старт',
-        description: `В области «${domainLabel(risingWeak.domain)}» наметился стабильный рост. Фокус на регулярности даёт плоды, даже если начальный уровень был невысоким.`,
+        description: `В области «${domainLabel(risingWeak.domain)}» наметилась положительная динамика. Регулярные короткие сессии закрепляют результат.`,
         confidence: 'high',
         priority: 85,
         domainId: risingWeak.domain
@@ -84,7 +78,7 @@ export function generateInsights(
       insights.push({
         type: 'area_to_focus',
         title: 'Зона роста',
-        description: `«${domainLabel(stagnantWeak.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
+        description: `«${domainLabel(stagnantWeak.domain)}» пока поддаётся сложнее. Короткие регулярные подходы помогут постепенно освоиться без лишнего напряжения.`,
         confidence: 'high',
         priority: 75,
         domainId: stagnantWeak.domain
@@ -111,7 +105,7 @@ export function generateInsights(
         insights.push({
           type: 'strength',
           title: 'Сильная сторона',
-          description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, пока вы подтягиваете навыки для остальных бытовых задач.`,
+          description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, балансируя нагрузку с другими областями.`,
           confidence: strongConf > 70 ? 'high' : (strongConf > 40 ? 'medium' : 'low'),
           priority: 50 + (strongest.value / 100),
           domainId: strongest.domain
@@ -123,7 +117,7 @@ export function generateInsights(
         insights.push({
           type: 'area_to_focus',
           title: 'Зона роста',
-          description: `«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы здесь дадут самый заметный эффект для ваших повседневных задач.`,
+          description: `«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы помогут постепенно освоиться без лишнего напряжения.`,
           confidence: weakConf > 70 ? 'high' : (weakConf > 40 ? 'medium' : 'low'),
           priority: 60 + ((500 - weakest.value) / 10),
           domainId: weakest.domain
@@ -172,7 +166,7 @@ export function generateInsights(
     insights.push({
       type: 'improvement',
       title: 'Заметный прогресс',
-      description: `В упражнении «${skillLabel(best.skill)}» наметился чёткий прогресс. Этот навык поможет легче справляться с рабочими нагрузками.`,
+      description: `В упражнении «${skillLabel(best.skill)}» наметился чёткий прогресс. Точность и скорость ответов стабильно растут.`,
       confidence: best.confidence > 70 ? 'high' : 'medium',
       priority: 80 + best.trend
     });
@@ -187,7 +181,7 @@ export function generateInsights(
       insights.push({
         type: 'plateau',
         title: 'Стабилизация',
-        description: `Ваш результат в игре «${manifest.name}» стабилизировался. Стоит переключиться на другие задачи, чтобы не превращать тренировку в автоматическую привычку.`,
+        description: `Ваш результат в упражнении «${manifest.name}» стабилизировался. Стоит переключиться на другие задачи, чтобы не превращать тренировку в автоматическую привычку.`,
         confidence: 'high',
         priority: 70 + (plat.consecutivePlateau || 0) * 5,
         exerciseId: plat.exerciseId,
