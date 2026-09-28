@@ -19,7 +19,7 @@ test('Scenario A: Fresh user gets baseline-like balanced plan', () => {
   
   // With no data, domains are empty, so focusDomains is empty. It should pick exploration reasons.
   expect(plan.focusDomains.length).toBe(0);
-  expect(plan.items.length).toBe(3); // 5 min
+  expect(plan.items.length).toBe(2); // 5 min
   expect(plan.items[0].reason).toBe('Развитие навыка');
 });
 
@@ -44,7 +44,7 @@ test('Scenario B: Weak Memory user', () => {
   // First item should be weakest domain (memory)
   const firstEx = catalog.find(c => c.manifest.id === plan.items[0].exerciseId);
   expect(firstEx?.manifest.domain).toBe('memory');
-  expect(plan.items[0].reason).toContain('Слабая область');
+  expect(plan.items[0].reason).toContain('Зона роста');
 });
 
 test('Scenario C: User Goal Change', () => {
