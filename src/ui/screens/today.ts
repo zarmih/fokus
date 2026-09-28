@@ -299,7 +299,7 @@ export function renderToday(container: HTMLElement) {
     `;
   } else if (!navigator.onLine) {
     actionHtml = `
-      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" aria-live="polite" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
+      <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" aria-live="polite" tabindex="-1" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
         <div class="workout-kicker">Офлайн режим</div>
         <h3 id="cta-offline-title">Нет подключения</h3>
         <p>Для создания персональной тренировки требуется сеть. Ваши данные в безопасности.</p>
@@ -396,7 +396,7 @@ export function renderToday(container: HTMLElement) {
 
     ${weekHtml}
 
-    <div class="surface install-card" id="today-install-card" role="region" aria-labelledby="install-title" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--ok); background: var(--surface-2);">
+    <div class="surface install-card" id="today-install-card" role="region" aria-labelledby="install-title" tabindex="-1" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--ok); background: var(--surface-2);">
       <h3 id="install-title" style="margin-bottom: 4px; font-size: 16px; letter-spacing: -0.01em;">Добавить Fokus на главный экран</h3>
       <p class="muted" style="margin-bottom: 12px; font-size: 14px; line-height: 1.4;">Быстрый доступ к тренировкам, полноэкранный режим и работа без интернета.</p>
       <button id="btn-today-install" class="btn-primary" type="button" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
@@ -460,6 +460,9 @@ export function renderToday(container: HTMLElement) {
   const startBtn = content.querySelector('#btn-start') as HTMLElement | null;
   if (startBtn && !isLoading && !errorState) {
     requestAnimationFrame(() => startBtn.focus());
+  } else if (!navigator.onLine) {
+    const retryBtn = content.querySelector('#btn-retry') as HTMLElement | null;
+    if (retryBtn) requestAnimationFrame(() => retryBtn.focus());
   }
 
   content.querySelector('#btn-retry')?.addEventListener('click', () => {

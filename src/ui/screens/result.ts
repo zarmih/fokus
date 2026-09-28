@@ -226,22 +226,28 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   
   const showContinuity = !isCalibration && !isRecalibration && !noData && !isOffline;
 
+  // Enhance the primary reason with continuity action hint if available
+  if (showContinuity && continuityMsg.actionHint && !primaryActionReason.includes(continuityMsg.actionHint)) {
+    primaryActionReason = nextEx 
+      ? `${primaryActionReason}` 
+      : `${continuityMsg.actionHint} · ${primaryActionReason}`;
+  }
+
   const nextActionHtml = `
     <div class="surface next-action-card" role="region" aria-labelledby="next-step-heading" aria-live="polite">
       ${isOffline ? `
-        <div style="border-left: 4px solid var(--muted); padding-left: 12px; margin-bottom: 24px;">
-          <h3 style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">Тренировка сохранена</h3>
+        <div class="offline-sync-hint" style="border-left: 4px solid var(--muted); padding-left: 12px; margin-bottom: 24px;">
+          <h3 id="next-step-heading" style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">Тренировка сохранена</h3>
           <p class="muted" style="line-height: 1.4;">Вы офлайн. Результаты сохранены на устройстве и будут синхронизированы при подключении к сети.</p>
         </div>
       ` : showContinuity ? `
-        <div style="border-left: 4px solid var(--ok); padding-left: 12px; margin-bottom: 24px;">
+        <div class="continuity-hint" style="border-left: 4px solid var(--ok); padding-left: 12px; margin-bottom: 24px;">
           <h3 id="next-step-heading" style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">${continuityMsg.title}</h3>
-          <p class="muted" style="margin-bottom: ${continuityMsg.actionHint ? '8px' : '0'}; line-height: 1.4;">${continuityMsg.body}</p>
-          ${continuityMsg.actionHint ? `<div style="font-weight: 500; color: var(--ok); font-size: 14px;">${continuityMsg.actionHint}</div>` : ''}
+          <p class="muted" style="margin-bottom: 0; line-height: 1.4;">${continuityMsg.body}</p>
         </div>
       ` : `<h3 id="next-step-heading" class="visually-hidden">Следующий шаг</h3>`}
       
-      <p style="margin-bottom: 16px; font-weight: 600; font-size: 15px; text-align: center; color: var(--text);">${primaryActionReason}</p>
+      <p class="primary-action-reason" style="margin-bottom: 16px; font-weight: 600; font-size: 15px; text-align: center; color: var(--text);">${primaryActionReason}</p>
       <div class="result-actions" style="display:flex; gap:12px; flex-direction: column; align-items: stretch;">
         <button id="btn-primary-action" class="btn-primary" style="padding: 14px; font-size: 16px; font-weight: 600; border-radius: 12px;" data-action="${primaryActionId}">${primaryActionLabel}</button>
         ${secondaryActionId ? `<button id="btn-secondary-action" class="btn-secondary" style="padding: 12px; font-size: 15px; border-radius: 12px;" data-action="${secondaryActionId}">${secondaryActionLabel}</button>` : ''}
