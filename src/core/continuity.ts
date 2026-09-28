@@ -400,7 +400,7 @@ export function getContinuityMessage(snapshot: ContinuitySnapshot): ContinuityMe
   if (snapshot.streak.status === 'fresh_start') {
     return {
       title: 'Новый заход',
-      body: 'Перерыв обнулил серию, но не ваши способности.',
+      body: 'Счётчик дней обнулился, но ваш навык остался.',
       actionHint: 'Отличный старт'
     };
   }

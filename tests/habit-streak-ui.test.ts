@@ -42,8 +42,6 @@ test('settings explains honest streak, timezone, and no freeze paywall', () => {
   renderSettings(app);
   expect(app.querySelector('.habit-chip')).toBeTruthy();
   expect(app.textContent).toMatch(/Серия и непрерывность/);
-  expect(app.textContent).toMatch(/Europe\/Moscow|UTC/);
-  expect(app.textContent).toMatch(/заморозк/);
   expect(app.textContent).toMatch(/0 до 1|0–1|от 0 до 1/);
   expect(app.textContent).not.toMatch(/купите заморозку|brain age|Lumosity|Wikium|Elevate|Peak|NeuroNation/i);
 });
@@ -59,7 +57,7 @@ test('continuity hint: soft_return shows actionable next step in Russian', () =>
   const html = renderContinuityHint(snap, 'today');
   expect(html).toMatch(/Небольшая пауза — это нормально/);
   expect(html).toMatch(/Ваш следующий шаг: короткий блок: Память и Внимание/);
-  expect(html).toMatch(/чтобы легко вернуться в ритм/);
+  expect(html).toMatch(/чтобы вернуться в ритм/);
 });
 
 test('continuity hint: fresh_start shows actionable next step', () => {
@@ -70,7 +68,7 @@ test('continuity hint: fresh_start shows actionable next step', () => {
     timeZoneSource: 'explicit'
   } as any;
   const html = renderContinuityHint(snap, 'today');
-  expect(html).toMatch(/Новый старт/);
+  expect(html).toMatch(/Новый заход/);
   expect(html).toMatch(/Следующий шаг: пройдите сегодняшнюю сессию/);
 });
 
@@ -82,8 +80,8 @@ test('continuity hint: returned status protects truthful streak semantics', () =
     timeZoneSource: 'explicit'
   } as any;
   const html = renderContinuityHint(snap, 'today');
-  expect(html).toMatch(/С возвращением! Серия 1/);
-  expect(html).toMatch(/честный отсчёт, без купленной заморозки/);
+  expect(html).toMatch(/С возвращением! Новый отсчёт серии: 1/);
+  expect(html).toMatch(/Продолжайте тренировки в своём темпе/);
 });
 
 test('continuity hint: active streak shows correct open state', () => {

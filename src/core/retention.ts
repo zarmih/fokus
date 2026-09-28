@@ -400,7 +400,7 @@ function pickNudges(params: {
       id: 'praise_return',
       kind: 'praise_return',
       title: 'С возвращением',
-      body: 'Сделать первый шаг после паузы — самое сложное. Отличная работа, ритм восстанавливается.',
+      body: 'Отличная работа, ритм восстанавливается. Серия начинается заново, но ваш навык сохранён.',
       priority: 95
     });
   } else if (params.playedToday && params.consistency30 >= 80 && params.streak % 5 === 0 && params.streak > 0) {
@@ -436,7 +436,7 @@ function pickNudges(params: {
       id: 'resume',
       kind: 'resume',
       title: 'Плавное возвращение',
-      body: 'Пауза не сжигает ваш навык. Короткая сессия сегодня важнее, чем марафон завтра.',
+      body: 'Пауза — это нормально. Короткая сессия сегодня важнее, чем интенсивная тренировка завтра.',
       priority: params.gapDays >= 4 ? 88 : 80
     });
   }
