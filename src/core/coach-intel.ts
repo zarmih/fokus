@@ -552,11 +552,11 @@ function buildTips(
     });
   }
 
-  if (adherence.forgivenSkips > 0 && adherence.currentStreak > 0 && tips.every((t) => t.kind !== 'comeback')) {
+  if (adherence.gapDays > 0 && adherence.gapDays <= 2 && tips.every((t) => t.kind !== 'comeback' && t.kind !== 'adherence')) {
     tips.push({
       kind: 'adherence',
-      title: 'Пропуск учтён',
-      body: 'Один пропуск Fokus прощает, серия остаётся. Сегодняшний короткий блок важнее вчерашнего долга.',
+      title: 'Мягкий возврат',
+      body: 'Пауза позади. Серия начата заново, но накопленный навык остался с вами. Сегодняшний короткий блок важнее долгов.',
       tone: 'recovery'
     });
   }
