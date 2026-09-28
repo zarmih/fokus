@@ -76,13 +76,13 @@ test('continuity hint: fresh_start shows actionable next step', () => {
 
 test('continuity hint: returned status protects truthful streak semantics', () => {
   const snap = {
-    streak: { status: 'returned', current: 4 },
+    streak: { status: 'returned', current: 1 },
     weekly: { sufficient: false },
     ritual: { openMisses: 0, familiarDomains: [] },
     timeZoneSource: 'explicit'
   } as any;
   const html = renderContinuityHint(snap, 'today');
-  expect(html).toMatch(/С возвращением! Серия снова 4/);
+  expect(html).toMatch(/С возвращением! Серия 1/);
   expect(html).toMatch(/честный отсчёт, без купленной заморозки/);
 });
 

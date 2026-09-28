@@ -114,7 +114,7 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
   }
 
   if (streak.status === 'returned') {
-    return `С возвращением! Серия снова ${streak.current} — честный отсчёт, без купленной заморозки. Продолжайте в своём темпе.${zoneNote}`;
+    return `С возвращением! Серия ${streak.current} — честный отсчёт, без купленной заморозки. Продолжайте в своём темпе.${zoneNote}`;
   }
 
   if (weekly.sufficient) {
