@@ -93,7 +93,7 @@ export function getDailyQuests(): Quest[] {
       selected[1] = {
         id: 'streak_bonus',
         title: 'Сила привычки',
-        description: `Завершите 3 блока, чтобы поддержать свой ритм (${ds.current} дн.)`,
+        description: `Завершите 3 блока, чтобы поддержать свой ритм`,
         type: 'blocks',
         difficulty: 'medium',
         target: 3,
