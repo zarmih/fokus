@@ -14,10 +14,10 @@ export const THETA_PRIOR_MU = 0.5;
 export const THETA_PRIOR_PRECISION = 2;
 export const EVIDENCE_LIKELIHOOD = 3;
 export const SESSION_EWMA_ALPHA = 0.28;
-export const SLOPE_RISING = 0.03;
-export const SLOPE_FALLING = -0.03;
+export const SLOPE_RISING = 0.025;
+export const SLOPE_FALLING = -0.025;
 export const MIN_OBSERVATIONS_READY = 3;
-export const MIN_SESSIONS_READY = 2;
+export const MIN_SESSIONS_READY = 3;
 export const DEFAULT_TARGET_MS = 1500;
 export const DOMAIN_VALUE_SCALE = 1200;
 

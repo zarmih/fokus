@@ -345,23 +345,23 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     trajectoryHtml = `
       <section class="surface wr-section wr-trajectory" aria-labelledby="wr-trajectory-title">
         <h3 id="wr-trajectory-title" class="wr-section-title">Траектории способностей</h3>
-        <p class="wr-trajectory-desc">Честная оценка формы на основе последних тренировок. Fokus не обещает мгновенного роста и показывает реальные тренды.</p>
+        <p class="wr-trajectory-desc">Оценка динамики на основе последних сессий. Fokus анализирует изменения вашей формы без преувеличений.</p>
         <div class="wr-trajectory-grid">
           ${readyTrajectories.map(t => {
             const isRising = t.trend === 'rising';
             const isFalling = t.trend === 'falling';
             const trIcon = isRising ? '↑' : isFalling ? '↓' : '→';
             const trLabel = isRising ? 'Растёт' : isFalling ? 'Снижается' : 'Стабильна';
-            const desc = isRising ? 'Результаты улучшаются' : isFalling ? 'Форма снижается' : 'Результаты стабильны';
+            const desc = isRising ? 'Вы показываете прогресс в последних сессиях' : isFalling ? 'Форма немного просела, требуется фокус' : 'Результаты закрепились на плато';
             const trClass = `wr-trend-${t.trend}`;
             return `
               <div class="wr-trajectory-card ${trClass}" tabindex="0" role="group" aria-label="${domainLabel(t.domain)}: ${trLabel}. ${desc}">
                 <div class="wr-traj-header">
                   <span class="wr-traj-domain">${domainLabel(t.domain)}</span>
-                  <span class="wr-traj-icon" aria-hidden="true">${trIcon}</span>
+                  <span class="wr-traj-icon" aria-hidden="true" style="color: ${isRising ? 'var(--ok)' : isFalling ? 'var(--danger)' : 'var(--muted)'}; opacity: 0.8;">${trIcon}</span>
                 </div>
-                <div class="wr-traj-state">${trLabel}</div>
-                <div class="wr-traj-desc">${desc}</div>
+                <div class="wr-traj-state" style="font-weight: 600;">${trLabel}</div>
+                <div class="wr-traj-desc" style="color: var(--muted); font-size: 12px; margin-top: 4px;">${desc}</div>
               </div>
             `;
           }).join('')}

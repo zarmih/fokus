@@ -185,12 +185,22 @@ test('today shows ability trend chip without ritual why after enough sessions', 
   });
   storage.addSession({
     id: 's2',
-    startedAt: day(1),
-    finishedAt: day(1),
+    startedAt: day(2),
+    finishedAt: day(2),
     durationSec: 300,
     items: [
       { exerciseId: 'grid-memory', level: 3, accuracy: 0.6, avgRtMs: 1700, score: 22, difficultyBefore: 3 },
       { exerciseId: 'stroop', level: 6, accuracy: 0.92, avgRtMs: 850, score: 70, difficultyBefore: 6 }
+    ]
+  });
+  storage.addSession({
+    id: 's3',
+    startedAt: day(1),
+    finishedAt: day(1),
+    durationSec: 300,
+    items: [
+      { exerciseId: 'grid-memory', level: 3, accuracy: 0.65, avgRtMs: 1600, score: 25, difficultyBefore: 3 },
+      { exerciseId: 'stroop', level: 6, accuracy: 0.95, avgRtMs: 800, score: 75, difficultyBefore: 6 }
     ]
   });
 
