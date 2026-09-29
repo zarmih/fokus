@@ -423,7 +423,15 @@ function pickNudges(params: {
     });
   }
 
-  if (!params.playedToday && params.gapDays >= 7) {
+  if (!params.playedToday && params.gapDays >= 14) {
+    out.push({
+      id: 'very_long_pause',
+      kind: 'resume',
+      title: 'Новый старт',
+      body: 'Длинная пауза — отличный повод освежить навыки. Fokus мягко откалибрует сложность под ваш сегодняшний ритм.',
+      priority: 95
+    });
+  } else if (!params.playedToday && params.gapDays >= 7) {
     out.push({
       id: 'long_pause',
       kind: 'resume',
