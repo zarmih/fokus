@@ -1,11 +1,15 @@
 import { registry } from './registry';
 import type { ExerciseManifest } from './contract';
 
-const uniqueRegistry = registry.filter((mod, index, self) =>
-  index === self.findIndex((m) => m.manifest.id === mod.manifest.id)
-);
+const seenIds = new Set<string>();
+for (const mod of registry) {
+  if (seenIds.has(mod.manifest.id)) {
+    throw new Error(`Duplicate exercise in registry: ${mod.manifest.id}`);
+  }
+  seenIds.add(mod.manifest.id);
+}
 
-export const catalog: { manifest: ExerciseManifest }[] = uniqueRegistry
+export const catalog: { manifest: ExerciseManifest }[] = registry
   .map(mod => ({ manifest: mod.manifest }))
   .sort((a, b) => a.manifest.name.localeCompare(b.manifest.name, 'ru'));
 
