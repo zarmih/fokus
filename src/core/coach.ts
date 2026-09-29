@@ -114,9 +114,13 @@ export function getDailySpark(params: {
   };
 
   if (playedToday) {
-    const rest = retentionSpark();
-    if (rest && rest.tone === 'habit' && /завтра/i.test(rest.body)) {
-      return rest;
+    const retention = retentionSpark();
+    if (retention) {
+      const t = retention.title.toLowerCase();
+      // Allow specific nudges that apply after a session
+      if (t.includes('достаточно') || t.includes('возвращением') || t.includes('стабильность')) {
+        return retention;
+      }
     }
     return {
       title: 'План выполнен',
