@@ -83,7 +83,9 @@ export function renderOnboarding(container: HTMLElement) {
           </div>
 
           <div class="onboard-week-preview" style="margin-top: 24px; font-size: 14px; opacity: 0.8;">
-            <strong>План на первую неделю:</strong> мягкий старт, разгон до ${selectedMin} мин в день.
+            <strong>План на первую неделю:</strong><br/>
+            <span style="display: block; margin-top: 4px; margin-bottom: 4px;">${firstWeekPreviewLines(weekPreview).slice(0, 3).join('<br/>')}</span>
+            ...и плавный разгон до ${selectedMin} мин в день.
           </div>
         ` : ''}
         <div class="onboard-actions" style="display: flex; gap: 8px;">

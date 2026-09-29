@@ -224,7 +224,7 @@ export function renderToday(container: HTMLElement) {
   const questsHtml = `
     <div class="surface quests-card">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-        <h3 style="margin: 0;">Квесты дня</h3>
+        <h3 style="margin: 0;">Задачи дня</h3>
       </div>
       ${quests.map((q: any) => {
         const pct = Math.min(100, (q.progress / q.target) * 100);
@@ -242,11 +242,10 @@ export function renderToday(container: HTMLElement) {
               </div>
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                 ${q.completed ? `
-                  <span style="font-size: 12px; font-weight: 700; color: var(--ok);">Выполнено (+${q.xpReward} XP)</span>
+                  <span style="font-size: 12px; font-weight: 700; color: var(--ok);">Выполнено</span>
                 ` : `
                   <div class="quest-count" style="font-size: 14px; font-weight: 600;">${q.progress}/${q.target}</div>
                 `}
-                ${!q.claimed && !q.completed ? `<div style="font-size: 11px; font-weight: 700; color: var(--accent);">+${q.xpReward} XP</div>` : ''}
               </div>
             </div>
             ${!q.completed ? `<div class="scale-track quest-track" style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden;" role="progressbar" aria-valuenow="${q.progress}" aria-valuemax="${q.target}" aria-valuemin="0"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; height: 100%; width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'}; transition: width 0.3s ease;"></div></div>` : ''}
