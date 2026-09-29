@@ -188,6 +188,8 @@ function syncQuestsProgress() {
     if (q.progress >= q.target && !q.completed) {
       q.progress = q.target;
       q.completed = true;
+      q.claimed = true;
+      p.xp = (p.xp || 0) + (q.xpReward || 50);
       changed = true;
     }
   });
@@ -210,6 +212,8 @@ export function updateQuestProgress(type: string, value: number, exerciseId?: st
         if (value >= q.target) {
           q.progress = q.target;
           q.completed = true;
+          q.claimed = true;
+          p.xp = (p.xp || 0) + (q.xpReward || 50);
           changed = true;
         }
       } else {
@@ -217,6 +221,8 @@ export function updateQuestProgress(type: string, value: number, exerciseId?: st
         if (q.progress >= q.target) {
           q.progress = q.target;
           q.completed = true;
+          q.claimed = true;
+          p.xp = (p.xp || 0) + (q.xpReward || 50);
         }
         changed = true;
       }
@@ -225,6 +231,8 @@ export function updateQuestProgress(type: string, value: number, exerciseId?: st
        if (q.progress >= q.target) {
            q.progress = q.target;
            q.completed = true;
+           q.claimed = true;
+           p.xp = (p.xp || 0) + (q.xpReward || 50);
        }
        changed = true;
     } else if (q.type === 'domain' && type === 'blocks' && exerciseId) {
@@ -234,6 +242,8 @@ export function updateQuestProgress(type: string, value: number, exerciseId?: st
          if (q.progress >= q.target) {
              q.progress = q.target;
              q.completed = true;
+             q.claimed = true;
+             p.xp = (p.xp || 0) + (q.xpReward || 50);
          }
          changed = true;
        }
