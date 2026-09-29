@@ -13,7 +13,7 @@ import {
 export const WEEK_WINDOW_DAYS = 7;
 /** Completed misses that trigger a shorter / familiar return (not a fake freeze). */
 export const SOFT_RETURN_MISSES_MIN = 1;
-export const SOFT_RETURN_MISSES_MAX = 2;
+export const SOFT_RETURN_MISSES_MAX = 14;
 /** Cap the return session at the product's shortest ritual (5 min). */
 export const SOFT_RETURN_DURATION_SEC = 300;
 /** Need this many eligible days before the 0–1 index is shown as a score. */
