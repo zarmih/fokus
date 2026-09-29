@@ -64,13 +64,13 @@ export function abilityTrendChip(trajectory: AbilityTrajectory): AbilityTrendChi
   const d = trajectory.headline;
   const name = domainLabel(d.domain);
   let label = `${name} стабильно`;
-  let spoken = `Тренд способности: ${name} стабильно`;
+  let spoken = `Тренд: ${name} стабильно`;
   if (d.trend === 'rising') {
     label = `${name} растёт`;
-    spoken = `Тренд способности: ${name} растёт`;
+    spoken = `Тренд: ${name} растёт`;
   } else if (d.trend === 'falling') {
     label = `${name} проседает`;
-    spoken = `Тренд способности: ${name} проседает`;
+    spoken = `Тренд: ${name} проседает`;
   }
   return { label, domain: d.domain, trend: d.trend, aria: spoken };
 }

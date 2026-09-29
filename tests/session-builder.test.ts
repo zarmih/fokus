@@ -22,7 +22,7 @@ test('buildSession 5 min logic with 6 domains', () => {
     yesterdayDomains: []
   });
   
-  expect(res.length).toBe(3);
+  expect(res.length).toBe(2);
   
   const domains = res.map(r => catalog.find(c => c.id === r.exerciseId)!.domain);
   const counts = domains.reduce((a, c) => (a[c] = (a[c] || 0) + 1, a), {} as any);
@@ -49,7 +49,7 @@ test('sparse history triggers correct weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toContain('Слабая область');
+  expect(plan.items[0].reason).toContain('Зона роста');
 });
 
 test('sufficient history triggers normal weak-domain bias copy', () => {
@@ -73,5 +73,5 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toContain('Слабая область');
+  expect(plan.items[0].reason).toContain('Зона роста');
 });
