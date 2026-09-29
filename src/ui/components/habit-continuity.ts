@@ -27,7 +27,7 @@ function familiarPhrase(ritual: GentleReturn): string {
 export function streakAriaLabel(streak: DayStreak): string {
   if (streak.status === 'empty') return 'Серии пока нет';
   if (streak.status === 'soft_return') {
-    return `Короткая пауза. Возвращайтесь в ритм без штрафа.`;
+    return `Короткая пауза. Возвращайтесь в ритм.`;
   }
   if (streak.status === 'fresh_start') return 'Новый заход. Серия начнётся с сегодняшней сессии';
   if (streak.status === 'returned') {
@@ -106,15 +106,15 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
   }
 
   if (streak.status === 'soft_return') {
-    return `Небольшая пауза — это нормально. Серия прервалась честно, но навык остался. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы легко вернуться в ритм.${zoneNote}`;
+    return `Небольшая пауза — это нормально. Счётчик дней обнулился, но навык остался. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы вернуться в ритм.${zoneNote}`;
   }
 
   if (streak.status === 'fresh_start') {
-    return `Новый старт. Честная серия начинается заново, но ваш накопленный навык остаётся с вами. Следующий шаг: пройдите сегодняшнюю сессию без спешки.${zoneNote}`;
+    return `Новый заход. Счётчик дней обнулился, но накопленный навык остаётся с вами. Следующий шаг: пройдите сегодняшнюю сессию в комфортном темпе.${zoneNote}`;
   }
 
   if (streak.status === 'returned') {
-    return `С возвращением! Серия ${streak.current} — честный отсчёт, без купленной заморозки. Продолжайте в своём темпе.${zoneNote}`;
+    return `С возвращением! Новый отсчёт серии: ${streak.current}. Продолжайте тренировки в своём темпе.${zoneNote}`;
   }
 
   if (weekly.sufficient) {
@@ -162,7 +162,7 @@ function renderSettingsHint(snap: ContinuitySnapshot): string {
       <div class="continuity-hint-kicker">Серия и непрерывность</div>
       <p class="continuity-hint-body">
         Серия — подряд идущие календарные дни с сессией. Сейчас: ${cap.num} · ${cap.lbl}.
-        Пропуск обнуляет счётчик. Это не штраф и не «заморозка серии» из платных приложений.
+        Пропуск дня обнуляет счётчик без дополнительных условий.
       </p>
       <p class="continuity-hint-body">
         После паузы 1–2 дня Fokus предлагает более короткий знакомый блок (до 5 минут), без навёрстывания.
