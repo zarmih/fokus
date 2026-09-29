@@ -197,7 +197,7 @@ test('today shows ability trend chip and ritual why after enough sessions', () =
   const app = document.getElementById('app')!;
   renderToday(app);
   expect(app.querySelector('.ability-trend-chip')).toBeTruthy();
-  expect(app.querySelector('.ability-trend-chip')?.getAttribute('aria-label')).toMatch(/Тренд способности/);
+  expect(app.querySelector('.ability-trend-chip')?.getAttribute('aria-label')).toMatch(/Тренд:/);
   expect(app.querySelector('.ritual-why')).toBeTruthy();
   expect(app.textContent).not.toMatch(/IQ/i);
 });

@@ -88,10 +88,10 @@ export function renderProgram(container: HTMLElement) {
     ? plan.focusDomains.map(d => domainLabel(d as DomainId)).join(' и ')
     : '';
 
-  const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3);
+  const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3) || snapshot.playedDays.length < 3;
   const isPersonalized = profile.calibrated && !isSparse;
   const programTitle = isPersonalized ? 'Персональный план' : 'План тренировки';
-  const subtitle = `Неделя ${weekIndex} · План на сегодня`;
+  const subtitle = isPersonalized ? `Программа: день ${snapshot.playedDays.length + 1} · Неделя ${weekIndex}` : `План на сегодня`;
 
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
   if (snapshot.ritual.active) {
@@ -101,7 +101,7 @@ export function renderProgram(container: HTMLElement) {
   } else if (focusDomainsText) {
     coachMessage = isSparse 
       ? `Идёт сбор данных. В этой сессии сбалансированная нагрузка с фокусом на: ${focusDomainsText}.`
-      : `Сессия собрана с упором на ваши слабые области: ${focusDomainsText}.`;
+      : `Сессия собрана с упором на ваши зоны роста: ${focusDomainsText}.`;
   }
 
   let hero = '';
@@ -172,7 +172,7 @@ export function renderProgram(container: HTMLElement) {
         </div>
         <div class="surface">
           <h3>Вектор способностей</h3>
-          <p class="muted" style="margin-bottom:12px">Ваши показатели в пяти когнитивных областях.</p>
+          <p class="muted" style="margin-bottom:12px">Ваши показатели в пяти областях.</p>
           ${abilityHtml}
         </div>
         <div class="surface" style="margin-top:16px">

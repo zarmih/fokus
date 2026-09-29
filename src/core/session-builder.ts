@@ -48,9 +48,9 @@ export function buildTrainingPlan(params: {
 }): TrainingPlan {
   const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, excludeIds = [] } = params;
   
-  let targetBlocks = 3;
-  if (durationSec >= 480) targetBlocks = 4;
-  if (durationSec >= 720) targetBlocks = 5;
+  const blockDurationSec = 180; // ~3 minutes per block
+  let targetBlocks = Math.max(2, Math.round(durationSec / blockDurationSec));
+  if (targetBlocks > 6) targetBlocks = 6;
 
   const sortedDomains = [...domains].sort((a, b) => a.value - b.value);
   const weakestDomain = sortedDomains.length > 0 ? sortedDomains[0].domain : null;
@@ -160,7 +160,7 @@ export function buildTrainingPlan(params: {
       } else if (goalAlignment > 0) {
         reason = `Ваша цель`;
       } else if (weaknessPriority > 0) {
-        reason = `Слабая область`;
+        reason = `Зона роста`;
       } else if (weeklyFocus > 0) {
         reason = `Фокус недели`;
       } else if (skillNeed > 10) {
