@@ -51,7 +51,9 @@ export function renderProgram(container: HTMLElement) {
   const model = currentModel();
 
   const programWeek = (profile as { programWeek?: number }).programWeek;
-  const weekIndex = programWeek || Math.max(1, Math.floor(snapshot.playedDays.length / 7) + 1);
+  const playedCount = snapshot.playedDays.length;
+  const weekIndexBase = playedToday ? Math.max(0, playedCount - 1) : playedCount;
+  const weekIndex = programWeek || Math.floor(weekIndexBase / 7) + 1;
   const planDurationMins = plan.items.length * 3;
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
@@ -90,8 +92,8 @@ export function renderProgram(container: HTMLElement) {
 
   const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3) || snapshot.playedDays.length < 3;
   const isPersonalized = profile.calibrated && !isSparse;
-  const programTitle = isPersonalized ? 'Персональный план' : 'План тренировки';
-  const subtitle = isPersonalized ? `Программа: день ${snapshot.playedDays.length + 1} · Неделя ${weekIndex}` : `План на сегодня`;
+  const programTitle = isPersonalized ? 'Персональный план' : 'Базовая программа';
+  const subtitle = isPersonalized ? `Программа: день ${playedCount + (playedToday ? 0 : 1)} · Неделя ${weekIndex}` : `Сбор данных: день ${playedCount + (playedToday ? 0 : 1)}`;
 
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
   if (snapshot.ritual.active) {
@@ -101,7 +103,7 @@ export function renderProgram(container: HTMLElement) {
   } else if (focusDomainsText) {
     coachMessage = isSparse 
       ? `Идёт сбор данных. В этой сессии сбалансированная нагрузка с фокусом на: ${focusDomainsText}.`
-      : `Сессия собрана с упором на ваши зоны роста: ${focusDomainsText}.`;
+      : `План адаптирован к вашему уровню. Фокус на: ${focusDomainsText}.`;
   }
 
   let hero = '';
@@ -158,8 +160,7 @@ export function renderProgram(container: HTMLElement) {
           <h3 style="margin-bottom:12px;">Неделя ${weekIndex}</h3>
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
             ${Array.from({ length: 7 }).map((_, i) => {
-              const playedCount = playedToday ? snapshot.playedDays.length : snapshot.playedDays.length;
-              const daysInWeek = playedCount % 7 || (playedCount > 0 ? 7 : 0);
+              const daysInWeek = playedToday ? ((playedCount - 1) % 7) + 1 : playedCount % 7;
               const isCompleted = playedToday ? i < daysInWeek : i < daysInWeek;
               const isCurrent = playedToday ? i === daysInWeek - 1 : i === daysInWeek;
               const bg = isCompleted ? 'var(--ok)' : isCurrent ? 'var(--primary)' : 'rgba(255,255,255,0.05)';
@@ -167,7 +168,7 @@ export function renderProgram(container: HTMLElement) {
               return `<div style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
-          <p class="muted" style="font-size:13px; margin:0;">${isSparse ? 'Собираем данные для точной адаптации.' : 'План собран на основе ваших сильных и слабых сторон.'}</p>
+          <p class="muted" style="font-size:13px; margin:0;">${isSparse ? 'Пройдите несколько тренировок, чтобы система адаптировала план под вас.' : 'План собран на основе ваших сильных и слабых сторон.'}</p>
         </div>
         <div class="surface" style="margin-bottom:16px;">
           <h3>Ваш ритм</h3>
