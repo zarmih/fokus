@@ -3,7 +3,7 @@ import { storage } from '../../core/storage';
 import { navigateTo } from '../router';
 import { registry } from '../../exercises/registry';
 import { calibrationSessionItems } from '../../core/calibration';
-import { currentModel, planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
+import { currentModel, snoozeRecalibration, getProgramPosition } from '../../core/adaptive-plan';
 import { SLOT_LABEL, getDomain, isRecalibrationActive } from '../../core/engine';
 import { DOMAIN_IDS } from '../../core/engine/constants';
 import { domainLabel } from '../../core/labels';
@@ -49,11 +49,8 @@ export function renderProgram(container: HTMLElement) {
   const recal = ritual.recalibration;
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
   const model = currentModel();
-
-  const programWeek = (profile as { programWeek?: number }).programWeek;
-  const playedCount = snapshot.playedDays.length;
-  const weekIndexBase = playedToday ? Math.max(0, playedCount - 1) : playedCount;
-  const weekIndex = programWeek || Math.floor(weekIndexBase / 7) + 1;
+  
+  const { weekIndex, dayInWeek, playedCount, isSparse, playedToday: pt } = getProgramPosition(snapshot, profile as any);
   const planDurationMins = plan.items.length * 3;
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
@@ -90,8 +87,8 @@ export function renderProgram(container: HTMLElement) {
     ? plan.focusDomains.map(d => domainLabel(d as DomainId)).join(' и ')
     : '';
 
-  const isSparse = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3) || snapshot.playedDays.length < 3;
-  const isPersonalized = profile.calibrated && !isSparse;
+  const isSparseModel = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3) || isSparse;
+  const isPersonalized = profile.calibrated && !isSparseModel;
   const programTitle = isPersonalized ? 'Персональный план' : 'Базовая программа';
   const subtitle = isPersonalized ? `Программа: день ${playedCount + (playedToday ? 0 : 1)} · Неделя ${weekIndex}` : `Сбор данных: день ${playedCount + (playedToday ? 0 : 1)}`;
 
@@ -101,9 +98,9 @@ export function renderProgram(container: HTMLElement) {
   } else if (ritual.snapshot.gate.active) {
     coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
   } else if (focusDomainsText) {
-    coachMessage = isSparse 
+    coachMessage = isSparseModel 
       ? `Для точной адаптации нужно больше данных. Сегодня фокус на: ${focusDomainsText}.`
-      : `План построен на актуальных данных ваших сессий. Фокус на: ${focusDomainsText}.`;
+      : `План на день ${dayInWeek} построен по истории сессий. Фокус на: ${focusDomainsText}.`;
   }
 
   let hero = '';
@@ -160,15 +157,16 @@ export function renderProgram(container: HTMLElement) {
           <h3 style="margin-bottom:12px;">Неделя ${weekIndex}</h3>
           <div style="display: flex; gap: 8px; margin-bottom: 12px;">
             ${Array.from({ length: 7 }).map((_, i) => {
-              const daysInWeek = playedToday ? ((playedCount - 1) % 7) + 1 : playedCount % 7;
-              const isCompleted = playedToday ? i < daysInWeek : i < daysInWeek;
-              const isCurrent = playedToday ? i === daysInWeek - 1 : i === daysInWeek;
+              const activeDayZeroIndexed = playedToday ? -1 : (dayInWeek - 1);
+              const completedBeforeZeroIndexed = playedToday ? dayInWeek : (dayInWeek - 1);
+              const isCompleted = i < completedBeforeZeroIndexed;
+              const isCurrent = i === activeDayZeroIndexed;
               const bg = isCompleted ? 'var(--ok)' : isCurrent ? 'var(--primary)' : 'rgba(255,255,255,0.05)';
               const color = isCompleted || isCurrent ? '#fff' : 'var(--muted)';
               return `<div style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
-          <p class="muted" style="font-size:13px; margin:0;">${isSparse ? 'Для более точной адаптации нужно пройти ещё несколько тренировок.' : 'План собран на основе актуальной истории ваших сессий.'}</p>
+          <p class="muted" style="font-size:13px; margin:0;">${isSparseModel ? 'Для точной настройки сложности завершите первую неделю.' : `День ${dayInWeek}: адаптивный маршрут сбалансирован.`}</p>
         </div>
         <div class="surface" style="margin-bottom:16px;">
           <h3>Ваш ритм</h3>
