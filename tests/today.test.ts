@@ -162,7 +162,7 @@ test('today shows quality trend and a shorter recovery ritual after hard session
   expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
 });
 
-test('today shows ability trend chip and ritual why after enough sessions', () => {
+test('today shows ability trend chip without ritual why after enough sessions', () => {
   const p = storage.getProfile();
   p.onboarded = true;
   p.calibrated = true;
@@ -198,7 +198,7 @@ test('today shows ability trend chip and ritual why after enough sessions', () =
   renderToday(app);
   expect(app.querySelector('.ability-trend-chip')).toBeTruthy();
   expect(app.querySelector('.ability-trend-chip')?.getAttribute('aria-label')).toMatch(/Тренд:/);
-  expect(app.querySelector('.ritual-why')).toBeTruthy();
+  expect(app.querySelector('.ritual-why')).toBeNull();
   expect(app.textContent).not.toMatch(/IQ/i);
 });
 
