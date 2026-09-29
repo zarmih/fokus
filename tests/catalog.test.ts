@@ -3,12 +3,17 @@ import { catalog, getManifest } from '../src/exercises/catalog';
 import { registry } from '../src/exercises/registry';
 import { knownExerciseIds, loadExercise } from '../src/exercises/load-exercise';
 
-test('catalog ids match the full registry', () => {
+test('catalog ids match the full registry without duplicates', () => {
   const catalogIds = catalog.map((c) => c.manifest.id).sort();
-  const registryIds = registry.map((r) => r.manifest.id)
-    .sort();
+  const registryIds = Array.from(new Set(registry.map((r) => r.manifest.id))).sort();
   expect(catalogIds).toEqual(registryIds);
   expect(catalog.length).toBeGreaterThan(70);
+});
+
+test('catalog.unique: contains no duplicate exercise ids', () => {
+  const ids = catalog.map((c) => c.manifest.id);
+  const uniqueIds = new Set(ids);
+  expect(ids.length).toBe(uniqueIds.size);
 });
 
 test('getManifest returns planning fields without needing render()', () => {

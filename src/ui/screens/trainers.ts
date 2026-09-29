@@ -27,8 +27,11 @@ export function renderTrainers(container: HTMLElement) {
     }
   });
 
-  const playedCount = exStates.filter(s => (s.attempts && s.attempts > 0) || s.lastPlayedAt).length;
-  const untriedCount = catalog.length - playedCount;
+  const untriedExercises = catalog.filter(ex => {
+    const st = exStates.find(s => s.exerciseId === ex.manifest.id);
+    return !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
+  });
+  const untriedCount = untriedExercises.length;
 
   // Build filters explicitly reflecting counts
   function renderCard(ex: any) {
@@ -124,10 +127,7 @@ export function renderTrainers(container: HTMLElement) {
   let allCardsHtml = '';
 
   if (untriedCount > 0) {
-    const untriedExercises = catalog.filter(ex => {
-      const st = exStates.find(s => s.exerciseId === ex.manifest.id);
-      return !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
-    }).sort((a, b) => {
+    const sortedUntried = untriedExercises.slice().sort((a, b) => {
       const intelA = getExerciseIntelligence(a.manifest.id);
       const intelB = getExerciseIntelligence(b.manifest.id);
       const diffA = Number(intelA.difficulty);
@@ -139,7 +139,7 @@ export function renderTrainers(container: HTMLElement) {
     allCardsHtml += `
       <div class="domain-group is-hidden" data-group="discovery">
         <div class="trainers-grid">
-          ${untriedExercises.map(renderCard).join('')}
+          ${sortedUntried.map(renderCard).join('')}
         </div>
       </div>
     `;
