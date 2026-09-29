@@ -102,8 +102,8 @@ export function renderProgram(container: HTMLElement) {
     coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
   } else if (focusDomainsText) {
     coachMessage = isSparse 
-      ? `Идёт сбор данных. В этой сессии сбалансированная нагрузка с фокусом на: ${focusDomainsText}.`
-      : `План адаптирован к вашему уровню. Фокус на: ${focusDomainsText}.`;
+      ? `Для точной адаптации нужно больше данных. Сегодня фокус на: ${focusDomainsText}.`
+      : `План построен на актуальных данных ваших сессий. Фокус на: ${focusDomainsText}.`;
   }
 
   let hero = '';
@@ -112,7 +112,7 @@ export function renderProgram(container: HTMLElement) {
       <div class="workout-card">
         <div class="workout-kicker">Ясный следующий шаг</div>
         <h3>Калибровка уровня</h3>
-        <p>Пройдите три коротких блока, чтобы Fokus смог собрать подходящий для вас план.</p>
+        <p>Пройдите три коротких блока, чтобы Fokus начал собирать первичную статистику.</p>
         <button id="btn-calibrate" class="btn-primary" type="button">Начать калибровку</button>
       </div>
     `;
@@ -143,7 +143,7 @@ export function renderProgram(container: HTMLElement) {
         <div class="workout-kicker">${contMsg.title}</div>
         <h3>Тренировка дня · ~${planDurationMins} мин</h3>
         <p class="muted coach-rationale">${coachMessage}</p>
-        <button id="btn-program-start" class="btn-primary" type="button">Начать игру</button>
+        <button id="btn-program-start" class="btn-primary" type="button">Начать тренировку</button>
       </div>
     `;
   }
@@ -168,7 +168,7 @@ export function renderProgram(container: HTMLElement) {
               return `<div style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
-          <p class="muted" style="font-size:13px; margin:0;">${isSparse ? 'Пройдите несколько тренировок, чтобы система адаптировала план под вас.' : 'План собран на основе ваших сильных и слабых сторон.'}</p>
+          <p class="muted" style="font-size:13px; margin:0;">${isSparse ? 'Для более точной адаптации нужно пройти ещё несколько тренировок.' : 'План собран на основе актуальной истории ваших сессий.'}</p>
         </div>
         <div class="surface" style="margin-bottom:16px;">
           <h3>Ваш ритм</h3>
