@@ -350,7 +350,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
           ${readyTrajectories.map(t => {
             const isRising = t.trend === 'rising';
             const isFalling = t.trend === 'falling';
-            const trIcon = isRising ? '📈' : isFalling ? '📉' : '➖';
+            const trIcon = isRising ? '↑' : isFalling ? '↓' : '→';
             const trLabel = isRising ? 'Растёт' : isFalling ? 'Снижается' : 'Стабильна';
             const desc = isRising ? 'Результаты улучшаются' : isFalling ? 'Форма снижается' : 'Результаты стабильны';
             const trClass = `wr-trend-${t.trend}`;
