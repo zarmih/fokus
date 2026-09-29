@@ -267,7 +267,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     whatChangedHtml = `
       <section class="surface wr-section" aria-labelledby="wr-changed-title">
         <h3 id="wr-changed-title" class="wr-section-title">Что изменилось</h3>
-        <p class="wr-empty-desc">Пока недостаточно подтверждённых изменений. Fokus продолжает калибровку ваших навыков.</p>
+        <p class="wr-empty-desc">Пока недостаточно подтверждённых изменений. Fokus продолжает калибровку ваших результатов.</p>
       </section>
     `;
   }
@@ -331,7 +331,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
             const isFalling = t.trend === 'falling';
             const trIcon = isRising ? '📈' : isFalling ? '📉' : '➖';
             const trLabel = isRising ? 'Растёт' : isFalling ? 'Снижается' : 'Стабильна';
-            const desc = isRising ? 'Навык укрепляется' : isFalling ? 'Требует внимания' : 'Хорошая база';
+            const desc = isRising ? 'Результаты улучшаются' : isFalling ? 'Форма снижается' : 'Результаты стабильны';
             const trClass = `wr-trend-${t.trend}`;
             return `
               <div class="wr-trajectory-card ${trClass}" tabindex="0" role="group" aria-label="${domainLabel(t.domain)}: ${trLabel}. ${desc}">
