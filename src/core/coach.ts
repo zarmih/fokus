@@ -1,3 +1,4 @@
+// AM5: Coach intelligence and retention nudges.
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
 import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
