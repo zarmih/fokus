@@ -80,6 +80,6 @@ export function indexDelta(current: number, previous: number | null, daysAgo: nu
   const delta = current - previous;
   const labelSuffix = daysAgo === 7 ? 'прошлой недели' : 'вчера';
   if (Math.abs(delta) <= 8) return { delta, label: `на уровне ${labelSuffix}` };
-  if (delta > 8) return { delta, label: `+${delta} к ${labelSuffix === 'вчера' ? 'вчера' : 'прошлой неделе'}` };
-  return { delta, label: `${delta} к ${labelSuffix === 'вчера' ? 'вчера' : 'прошлой неделе'}` };
+  if (delta > 8) return { delta, label: `+${delta} ${labelSuffix === 'вчера' ? 'ко вчерашнему дню' : 'к прошлой неделе'}` };
+  return { delta, label: `${delta} ${labelSuffix === 'вчера' ? 'ко вчерашнему дню' : 'к прошлой неделе'}` };
 }
