@@ -5,10 +5,11 @@ const seenIds = new Set<string>();
 export const catalog: { manifest: ExerciseManifest }[] = [];
 
 for (const mod of registry) {
-  if (!seenIds.has(mod.manifest.id)) {
-    seenIds.add(mod.manifest.id);
-    catalog.push({ manifest: mod.manifest });
+  if (seenIds.has(mod.manifest.id)) {
+    throw new Error(`Duplicate exercise id found: ${mod.manifest.id}`);
   }
+  seenIds.add(mod.manifest.id);
+  catalog.push({ manifest: mod.manifest });
 }
 
 catalog.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name, 'ru'));
