@@ -33,7 +33,8 @@ test('onboarding collects goal, duration and starts calibration', () => {
   name.value = 'Михаил';
   name.dispatchEvent(new Event('input'));
   
-  expect(app.textContent).toMatch(/мягкий старт/i);
+  expect(app.textContent).toMatch(/План на первую неделю/i);
+  expect(app.textContent).toMatch(/День 1|плавный разгон/i);
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const p = storage.getProfile();
