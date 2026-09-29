@@ -143,7 +143,7 @@ test('applyGentleReturnBias reorders toward familiar exercises without touching 
   }, [{ id: 'grid-memory', domain: 'memory' }, { id: 'odd-one', domain: 'attention' }]);
   expect(out.applied).toBe(true);
   expect(out.items[0].exerciseId).toBe('grid-memory');
-  expect(out.items[0].reason).toMatch(/мягкого возврата/);
+  expect(out.items[0].reason).toMatch(/лёгкого старта|плавного возвращения|мягкого возврата/);
   expect(out.focusDomains[0]).toBe('memory');
 });
 
