@@ -9,6 +9,12 @@ Phase 2 on this branch is the **Adaptive Engine v2 ritual**, not a hard dependen
 - Today / Session / Result consume the same planner.
 - Schema v4 for the ability snapshot.
 
+### Batch B Additions
+
+- **UX Consistency:** Changed "Тренировка дня" and "Начать сессию" to "Дневной ритуал" and "Начать ритуал".
+- **Levels Display:** Added brief display of levels for 5 categories (attention, memory, speed, flexibility, logic) after calibration in the Today view.
+- **Completion Status:** Updated the plan completed state to be "Сегодня закрыто".
+
 ## Graceful fallbacks
 
 | If… | Then… |

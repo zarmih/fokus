@@ -235,6 +235,13 @@ export function renderToday(container: HTMLElement) {
           <div class="fi-meta">${fiDelta.label} · ${fi.coverage} из 5 областей</div>
         </div>
         <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 180, max: 1200 })}</div>
+        <div class="domain-levels" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:16px;">
+          ${Object.entries(fi.byDomain).map(([domain, val]) => `
+            <div class="chip dom-${domain}" style="font-size:12px; padding:4px 8px;">
+              ${domainLabel(domain)}: ${leagueName(Math.floor(Number(val) / 100))}
+            </div>
+          `).join('')}
+        </div>
       </div>
     `;
   }
@@ -309,19 +316,19 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Мягкий возврат</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${returnFocus}</h3>
         <div class="workout-chips">${compositionHtml}</div>
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   } else {
     const rest = ritual?.snapshot?.gate?.active;
     actionHtml = `
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''}">
-        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Тренировка дня'}</div>
+        <div class="workout-kicker">${rest ? 'Сегодня легче' : 'Дневной ритуал'}</div>
         <h3>${Math.floor(ritualDuration / 60)} минут · ${focusText}</h3>
         ${trendChipHtml}
         <div class="workout-chips">${compositionHtml}</div>
         ${ritualWhyHtml}
-        <button id="btn-start" class="btn-primary" type="button">Начать сессию</button>
+        <button id="btn-start" class="btn-primary" type="button">Начать ритуал</button>
       </div>
     `;
   }

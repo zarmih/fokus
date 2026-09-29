@@ -112,8 +112,8 @@ test('today shows Fokus Index and workout after calibration', () => {
   renderToday(app);
   expect(app.textContent).toMatch(/Михаил/);
   expect(app.textContent).toMatch(/Fokus Index/);
-  expect(app.textContent).toMatch(/Тренировка дня/);
-  expect(app.textContent).toMatch(/Начать сессию/);
+  expect(app.textContent).toMatch(/Дневной ритуал/);
+  expect(app.textContent).toMatch(/Начать ритуал/);
   expect(app.textContent).not.toMatch(/Качество ритуала/);
   expect(app.textContent).not.toMatch(/балл мозга/i);
   expect(app.textContent).toMatch(/Непрерывность/);
@@ -235,7 +235,7 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
   renderToday(app);
   expect(app.textContent).toMatch(/Мягкий возврат/);
   expect(app.textContent).toMatch(/5 минут/);
-  expect(app.textContent).not.toMatch(/Тренировка дня/);
+  expect(app.textContent).not.toMatch(/Дневной ритуал/);
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');
   expect(app.textContent).not.toMatch(/не потеряйте|купить заморозку/i);
 });
@@ -266,11 +266,11 @@ test('today shows no-plan state if plan is empty', () => {
   const spy = vi.spyOn(recoveryModule, 'planWithRecovery').mockReturnValue({
     plan: { items: [], focusDomains: [] },
     snapshot: { gate: { active: false }, qualities: [] } as any,
-    recalibration: { probe: [], forced: false, summary: '' }
-  });
+    recalibration: { probe: [], summary: '' } as any
+  } as any);
   
   const spyDepth = vi.spyOn(depthModule, 'describeAdaptiveDepth').mockReturnValue({
-    chip: null, why: null, ritual: null
+    chip: null, why: null, ritual: null, trajectory: {} as any
   });
 
   const app = document.getElementById('app')!;
