@@ -9,7 +9,7 @@ import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
-import { getDailyQuests, claimQuest } from '../../core/quests';
+import { getDailyQuests } from '../../core/quests';
 import { generateInsights } from '../../core/insights';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
@@ -223,7 +223,7 @@ export function renderToday(container: HTMLElement) {
         const diffLabel = q.difficulty === 'hard' ? 'Сложно' : q.difficulty === 'easy' ? 'Легко' : 'Средне';
         const diffColor = q.difficulty === 'hard' ? 'var(--warn)' : q.difficulty === 'easy' ? 'var(--ok)' : 'var(--accent)';
         return `
-          <div class="quest-row" style="margin-bottom: 16px;">
+          <div class="quest-row" style="margin-bottom: 16px;" role="group" aria-label="${q.title}. ${q.description}. ${q.completed ? 'Выполнено' : `Прогресс ${q.progress} из ${q.target}`}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
               <div>
                 <div class="quest-title ${q.completed ? 'done' : ''}" style="font-weight: 700; font-size: 15px;">
@@ -233,17 +233,15 @@ export function renderToday(container: HTMLElement) {
                 <div class="quest-desc" style="font-size: 13px; opacity: 0.7; margin-top: 2px;">${q.description}</div>
               </div>
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
-                ${q.completed && !q.claimed ? `
-                  <button class="btn-claim-quest" data-id="${q.id}" style="background: var(--ok); color: #fff; border: none; border-radius: 6px; padding: 4px 8px; font-weight: 700; font-size: 11px; cursor: pointer;">Забрать +${q.xpReward} XP</button>
-                ` : q.claimed ? `
-                  <span style="font-size: 12px; font-weight: 700; color: var(--ok);">Выполнено</span>
+                ${q.completed ? `
+                  <span style="font-size: 12px; font-weight: 700; color: var(--ok);">Выполнено (+${q.xpReward} XP)</span>
                 ` : `
                   <div class="quest-count" style="font-size: 14px; font-weight: 600;">${q.progress}/${q.target}</div>
                 `}
                 ${!q.claimed && !q.completed ? `<div style="font-size: 11px; font-weight: 700; color: var(--accent);">+${q.xpReward} XP</div>` : ''}
               </div>
             </div>
-            ${!q.claimed ? `<div class="scale-track quest-track" style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden;"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; height: 100%; width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'}; transition: width 0.3s ease;"></div></div>` : ''}
+            ${!q.completed ? `<div class="scale-track quest-track" style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden;" role="progressbar" aria-valuenow="${q.progress}" aria-valuemax="${q.target}" aria-valuemin="0"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; height: 100%; width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'}; transition: width 0.3s ease;"></div></div>` : ''}
           </div>
         `;
       }).join('')}
@@ -432,14 +430,7 @@ export function renderToday(container: HTMLElement) {
     </div>
   `;
 
-  content.querySelectorAll('.btn-claim-quest').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const id = (e.currentTarget as HTMLElement).dataset.id;
-      if (id && claimQuest(id)) {
-        renderToday(container);
-      }
-    });
-  });
+
 
   content.querySelector('#btn-recal')?.addEventListener('click', () => {
     const items = (recal.probe.length ? recal.probe : [
