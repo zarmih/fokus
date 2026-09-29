@@ -114,9 +114,7 @@ export function renderTrainers(container: HTMLElement) {
 
   let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">Все <span style="opacity:0.6; font-size:11px;">${catalog.length}</span></button>`;
   
-  if (untriedCount > 0) {
-    filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">Новое <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
-  }
+  filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">Новое <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
 
   filterHtml += validDomains.map((dom, i) => {
     const count = domains.get(dom)!.length;
@@ -175,9 +173,9 @@ export function renderTrainers(container: HTMLElement) {
     <div class="catalog-groups-container" aria-live="polite">
       ${validDomains.length === 0 ? '<div style="opacity: 0.6; padding: 24px 0; text-align: center;">Нет доступных упражнений</div>' : allCardsHtml}
       <div id="catalog-empty-state" style="display: none; padding: 48px 24px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--line);" role="status">
-        <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;" aria-hidden="true">🔍</div>
-        <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ничего не найдено</div>
-        <div style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
+        <div id="empty-state-icon" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;" aria-hidden="true">🔍</div>
+        <div id="empty-state-title" style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ничего не найдено</div>
+        <div id="empty-state-desc" style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
         <button type="button" id="catalog-clear-search" style="padding: 10px 20px; background: rgba(255,255,255,0.1); color: var(--text); border: none; border-radius: var(--radius); font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;">Сбросить поиск</button>
       </div>
     </div>
@@ -234,7 +232,26 @@ export function renderTrainers(container: HTMLElement) {
     }
     
     if (emptyState) {
-      emptyState.style.display = count === 0 ? 'block' : 'none';
+      if (count === 0) {
+        emptyState.style.display = 'block';
+        const icon = emptyState.querySelector('#empty-state-icon');
+        const title = emptyState.querySelector('#empty-state-title');
+        const desc = emptyState.querySelector('#empty-state-desc');
+        const btn = emptyState.querySelector('#catalog-clear-search') as HTMLElement;
+        if (activeDom === 'discovery' && query === '') {
+          if (icon) icon.textContent = '🎉';
+          if (title) title.textContent = 'Вы попробовали все упражнения!';
+          if (desc) desc.textContent = 'В каталоге больше нет новых тренировок. Возвращайтесь к знакомым упражнениям, чтобы улучшить свои результаты.';
+          if (btn) btn.style.display = 'none';
+        } else {
+          if (icon) icon.textContent = '🔍';
+          if (title) title.textContent = 'Ничего не найдено';
+          if (desc) desc.textContent = 'По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.';
+          if (btn) btn.style.display = 'inline-block';
+        }
+      } else {
+        emptyState.style.display = 'none';
+      }
     }
   }
 
