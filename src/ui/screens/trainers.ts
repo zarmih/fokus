@@ -92,7 +92,7 @@ export function renderTrainers(container: HTMLElement) {
     const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
 
     return `
-      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
+      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-untried="${isUntried}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
         <div class="trainer-header-row">
           <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
           <div class="trainer-icon-wrap">
@@ -126,24 +126,7 @@ export function renderTrainers(container: HTMLElement) {
 
   let allCardsHtml = '';
 
-  if (untriedCount > 0) {
-    const sortedUntried = untriedExercises.slice().sort((a, b) => {
-      const intelA = getExerciseIntelligence(a.manifest.id);
-      const intelB = getExerciseIntelligence(b.manifest.id);
-      const diffA = Number(intelA.difficulty);
-      const diffB = Number(intelB.difficulty);
-      if (diffA !== diffB) return diffA - diffB;
-      return a.manifest.name.localeCompare(b.manifest.name, 'ru');
-    });
 
-    allCardsHtml += `
-      <div class="domain-group is-hidden" data-group="discovery">
-        <div class="trainers-grid">
-          ${sortedUntried.map(renderCard).join('')}
-        </div>
-      </div>
-    `;
-  }
 
   validDomains.forEach((dom, i) => {
     const exercises = domains.get(dom)!.sort((a, b) => {
@@ -161,7 +144,11 @@ export function renderTrainers(container: HTMLElement) {
     let gridHtml = exercises.map(renderCard).join('');
 
     allCardsHtml += `
-      <div class="domain-group ${isActive ? '' : 'is-hidden'}" data-group="${dom}">
+      <div class="domain-group ${isActive ? '' : 'is-hidden'}" data-group="${dom}" style="margin-bottom: 32px;">
+        <h3 style="font-size: 20px; font-weight: 600; margin: 0 0 16px 4px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; color: var(--text);">
+          ${domainLabel(dom)}
+          <span style="font-size: 13px; font-weight: 500; color: var(--muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">${exercises.length}</span>
+        </h3>
         <div class="trainers-grid">
           ${gridHtml}
         </div>
@@ -211,7 +198,15 @@ export function renderTrainers(container: HTMLElement) {
       
       group.querySelectorAll('.trainer-card').forEach(card => {
         const el = card as HTMLElement;
-        const matchesDom = activeDom === 'all' || (activeDom === groupDom);
+        const isUntried = el.dataset.untried === 'true';
+        let matchesDom = false;
+        if (activeDom === 'all') {
+          matchesDom = true;
+        } else if (activeDom === 'discovery') {
+          matchesDom = isUntried;
+        } else {
+          matchesDom = activeDom === groupDom;
+        }
         const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
         
         const show = matchesDom && matchesSearch;
