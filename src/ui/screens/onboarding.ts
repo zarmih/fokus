@@ -66,19 +66,19 @@ export function renderOnboarding(container: HTMLElement) {
           <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Введите имя..." autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
           
           <h2 style="margin-top: 32px; font-size: 1.25rem;">Напоминания</h2>
-          <p class="onboard-lead" style="margin-bottom: 12px;">Fokus работает лучше, если станет ежедневной привычкой. Включить тихие напоминания?</p>
+          <p class="onboard-lead" style="margin-bottom: 12px;">Уведомления помогут не забывать о тренировках. Их всегда можно отключить.</p>
           <div class="time-stack" role="radiogroup" aria-label="Время напоминания">
             <label class="btn-time ${selectedReminderHour === 9 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
               <span>В 09:00 (Утро)</span>
-              <input type="radio" name="onboard-reminder" value="9" class="sr-only" tabindex="-1" ${selectedReminderHour === 9 ? 'checked' : ''} />
+              <input type="radio" name="onboard-reminder" value="9" class="sr-only" ${selectedReminderHour === 9 ? 'checked' : ''} />
             </label>
             <label class="btn-time ${selectedReminderHour === 20 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
               <span>В 20:00 (Вечер)</span>
-              <input type="radio" name="onboard-reminder" value="20" class="sr-only" tabindex="-1" ${selectedReminderHour === 20 ? 'checked' : ''} />
+              <input type="radio" name="onboard-reminder" value="20" class="sr-only" ${selectedReminderHour === 20 ? 'checked' : ''} />
             </label>
             <label class="btn-time ${selectedReminderHour === null ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
               <span>Не нужно</span>
-              <input type="radio" name="onboard-reminder" value="null" class="sr-only" tabindex="-1" ${selectedReminderHour === null ? 'checked' : ''} />
+              <input type="radio" name="onboard-reminder" value="null" class="sr-only" ${selectedReminderHour === null ? 'checked' : ''} />
             </label>
           </div>
 

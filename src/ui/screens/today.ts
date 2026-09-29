@@ -401,7 +401,7 @@ export function renderToday(container: HTMLElement) {
 
     ${weekHtml}
 
-    <div class="surface install-card" id="today-install-card" role="region" aria-labelledby="install-title" tabindex="-1" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--ok); background: var(--surface-2);">
+    <div class="surface install-card" id="today-install-card" role="region" aria-labelledby="install-title" style="display: none; margin-bottom: 16px; border-left: 4px solid var(--ok); background: var(--surface-2);">
       <h3 id="install-title" style="margin-bottom: 4px; font-size: 16px; letter-spacing: -0.01em;">Добавить Fokus на главный экран</h3>
       <p class="muted" style="margin-bottom: 12px; font-size: 14px; line-height: 1.4;">Быстрый доступ к тренировкам, полноэкранный режим и работа без интернета.</p>
       <button id="btn-today-install" class="btn-primary" type="button" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
