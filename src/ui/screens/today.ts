@@ -67,8 +67,15 @@ export function renderToday(container: HTMLElement) {
     ? weekRitual.ritualDay.durationSec
     : profile.sessionLengthSec;
   const durationSec = ritualDurationSec(baseDuration, snap.ritual);
+
+  const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
+  const unfinishedSession = lastSession && lastSession.startedAt.startsWith(todayStr) && lastSession.finishedAt === null ? lastSession : null;
+  const effectiveDurationSec = unfinishedSession
+    ? Math.max(60, (unfinishedSession.plannedDurationSec || durationSec) - (unfinishedSession.durationSec || 0))
+    : durationSec;
+
   let plan: { items: any[]; focusDomains: string[] } = { items: [], focusDomains: [] };
-  let ritualDuration = durationSec;
+  let ritualDuration = effectiveDurationSec;
   let recal: any = { probe: [] as any[], forced: false, summary: '' };
   let depth = { chip: null as any, why: null as string | null, ritual: null as any, trajectory: null as any };
   let ritual: any = null;
@@ -77,7 +84,7 @@ export function renderToday(container: HTMLElement) {
 
   try {
     ritual = planWithRecovery({
-      durationSec,
+      durationSec: effectiveDurationSec,
       catalog,
       domains,
       skills,
@@ -85,13 +92,14 @@ export function renderToday(container: HTMLElement) {
       primaryGoal: targetGoal,
       sessions,
       daySummaries: ds,
-      recoveryHintsEnabled: profile.recoveryHints !== false
+      recoveryHintsEnabled: profile.recoveryHints !== false,
+      excludeIds: unfinishedSession ? unfinishedSession.items.map((i: any) => i.exerciseId) : []
     });
     plan = ritual.plan;
     const catalogHints = catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain }));
     const biased = applyGentleReturnBias(plan as any, snap.ritual, catalogHints);
     plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
-    ritualDuration = Math.min(ritual.snapshot.durationSec, durationSec);
+    ritualDuration = Math.min(ritual.snapshot.durationSec, effectiveDurationSec);
     recal = ritual.recalibration;
     depth = describeAdaptiveDepth({
       sessions,
@@ -349,7 +357,7 @@ export function renderToday(container: HTMLElement) {
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого возврата" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>Начать плавно</span>
+          <span>${unfinishedSession ? 'Продолжить плавно' : 'Начать плавно'}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
@@ -371,7 +379,7 @@ export function renderToday(container: HTMLElement) {
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>Начать ритуал</span>
+          <span>${unfinishedSession ? 'Продолжить ритуал' : 'Начать ритуал'}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
