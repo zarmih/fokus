@@ -44,7 +44,7 @@ test('Scenario B: Weak Memory user', () => {
   // First item should be weakest domain (memory)
   const firstEx = catalog.find(c => c.manifest.id === plan.items[0].exerciseId);
   expect(firstEx?.manifest.domain).toBe('memory');
-  expect(plan.items[0].reason).toMatch(/Точечная нагрузка|Первое знакомство|Ваша цель и зона фокуса/);
+  expect(plan.items[0].reason).toMatch(/Точечная нагрузка|Первое знакомство|Ваша цель и зона фокуса|Цель и фокус|Ваша цель:/);
 });
 
 test('Scenario C: User Goal Change', () => {

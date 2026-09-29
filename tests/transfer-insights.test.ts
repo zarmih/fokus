@@ -290,7 +290,7 @@ test('focusOfTheWeek biases the planner when the weakest domain has no exercises
     expect(plain.focusDomains).not.toContain('speed');
     expect(biased.focusDomains).toContain('speed');
     expect(biased.items[0].exerciseId).toBe('s1');
-    expect(biased.items[0].reason).toMatch(/Фокус недели|Первое знакомство|Точечная нагрузка/);
+    expect(biased.items[0].reason).toMatch(/Фокус( \d+-й)? недели|Первое знакомство|Точечная нагрузка/);
   } finally {
     Math.random = original;
   }

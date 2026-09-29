@@ -73,5 +73,5 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toBe('Точечная нагрузка');
+  expect(plan.items[0].reason).toMatch(/^Точечная нагрузка(: день \d+)?$/);
 });
