@@ -258,26 +258,19 @@ export function applyGentleReturnBias(
   }
 
   const famEx = new Set(ritual.familiarExerciseIds);
-  const famDom = new Set(ritual.familiarDomains);
-  const domainOf = (id: string) => catalog.find((c) => c.id === id)?.domain;
-
-  const scored = plan.items.map((item, index) => {
-    let rank = index;
-    if (famEx.has(item.exerciseId)) rank -= 100;
-    const domain = domainOf(item.exerciseId);
-    if (domain && famDom.has(domain)) rank -= 50;
-    return { item, rank, index };
-  });
-  const changed = scored.some((row) => row.rank !== row.index);
-  if (!changed) {
+  
+  let items = plan.items.filter(item => famEx.has(item.exerciseId));
+  
+  if (items.length > 0) {
+    items = items.map(item => ({ ...item, reason: 'Знакомый блок для мягкого возврата' }));
+  } else if (ritual.familiarExerciseIds.length > 0) {
+    items = ritual.familiarExerciseIds.slice(0, 2).map(id => ({
+      exerciseId: id,
+      reason: 'Знакомый блок для мягкого возврата'
+    }));
+  } else {
     return { focusDomains: plan.focusDomains, items: plan.items, applied: false };
   }
-  scored.sort((a, b) => a.rank - b.rank || a.index - b.index);
-
-  const items = scored.map((row) => {
-    if (row.rank >= row.index) return row.item;
-    return { ...row.item, reason: 'Знакомый блок для мягкого возврата' };
-  });
 
   const focusDomains =
     ritual.familiarDomains.length > 0
