@@ -149,24 +149,26 @@ export function buildTrainingPlan(params: {
       const isSparse = domainStates.length < 3;
 
       let reason = 'Сбалансированная тренировка';
-      if (maintenance > 0 && skillNeed < 5) {
-        reason = `Поддержание навыка`;
+      if (isSparse) {
+        reason = novelty > 0 ? 'Первое знакомство' : 'Сбор данных';
+      } else if (maintenance > 0 && skillNeed < 5) {
+        reason = `Поддержание тонуса`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {
         reason = `Смена контекста`;
       } else if (neglected > 0) {
-        reason = `Забытый навык`;
+        reason = `Давно не тренировали`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Цель и зона роста`;
+        reason = `Ваша цель и зона фокуса`;
       } else if (goalAlignment > 0) {
-        reason = `Ваша цель`;
+        reason = `Акцент на вашу цель`;
       } else if (weaknessPriority > 0) {
-        reason = `Зона роста`;
+        reason = `Точечная нагрузка`;
       } else if (weeklyFocus > 0) {
         reason = `Фокус недели`;
       } else if (skillNeed > 10) {
-        reason = `Развитие навыка`;
+        reason = `Актуальная задача`;
       } else if (novelty > 0) {
-        reason = `Новое упражнение`;
+        reason = `Новая задача`;
       }
 
       return {
