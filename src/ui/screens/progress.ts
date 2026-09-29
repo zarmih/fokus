@@ -171,7 +171,7 @@ export function renderProgress(container: HTMLElement) {
     ` : '';
 
     const tr = trajectory.domains.find(t => t.domain === d.id);
-    const trLabel = tr ? (tr.trend === "rising" ? "растёт 📈" : tr.trend === "falling" ? "снижается 📉" : tr.trend === "stable" ? "стабильно ➖" : "сбор данных") : "";
+    const trLabel = tr ? (tr.trend === "rising" ? "растёт ↑" : tr.trend === "falling" ? "снижается ↓" : tr.trend === "stable" ? "стабильно →" : "сбор данных") : "";
     const isWeakest = d.id === weakestDomainId && dScore > 0;
     return `
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); position: relative;">
