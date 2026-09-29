@@ -155,6 +155,21 @@ export function renderProgram(container: HTMLElement) {
       ${hero}
       ${profile.calibrated ? `
         <div class="surface" style="margin-bottom:16px;">
+          <h3 style="margin-bottom:12px;">Неделя ${weekIndex}</h3>
+          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+            ${Array.from({ length: 7 }).map((_, i) => {
+              const playedCount = playedToday ? snapshot.playedDays.length : snapshot.playedDays.length;
+              const daysInWeek = playedCount % 7 || (playedCount > 0 ? 7 : 0);
+              const isCompleted = playedToday ? i < daysInWeek : i < daysInWeek;
+              const isCurrent = playedToday ? i === daysInWeek - 1 : i === daysInWeek;
+              const bg = isCompleted ? 'var(--ok)' : isCurrent ? 'var(--primary)' : 'rgba(255,255,255,0.05)';
+              const color = isCompleted || isCurrent ? '#fff' : 'var(--muted)';
+              return \`<div style="flex: 1; height: 32px; border-radius: 4px; background: \${bg}; color: \${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">\${isCompleted ? '✓' : i + 1}</div>\`;
+            }).join('')}
+          </div>
+          <p class="muted" style="font-size:13px; margin:0;">${isSparse ? 'Собираем данные для точной адаптации.' : 'План собран на основе ваших сильных и слабых сторон.'}</p>
+        </div>
+        <div class="surface" style="margin-bottom:16px;">
           <h3>Ваш ритм</h3>
           <p class="muted" style="margin-bottom:12px">${contMsg.body}</p>
           <div style="display:flex; gap:16px;">
