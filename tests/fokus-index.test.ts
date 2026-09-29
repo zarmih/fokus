@@ -19,7 +19,7 @@ test('partial coverage averages only ready domains', () => {
   const fi = computeFokusIndex(domains);
   expect(fi.coverage).toBe(2);
   expect(fi.value).toBe(Math.round(((800 + 400) / 2)));
-  expect(fi.confidence).toBe(40);
+  expect(fi.confidence).toBe(24); // coverageRatio*0.6 + exploredFactor*0.4
   expect(fi.byDomain.find(d => d.id === 'speed')?.ready).toBe(false);
 });
 

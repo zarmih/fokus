@@ -128,12 +128,22 @@ test('does not invent IQ in the public description helper', () => {
       },
       {
         id: 's2',
-        startedAt: daysAgo(1),
-        finishedAt: daysAgo(1),
+        startedAt: daysAgo(2),
+        finishedAt: daysAgo(2),
         durationSec: 300,
         items: [
           { exerciseId: 'grid-memory', level: 3, accuracy: 0.65, avgRtMs: 1500, score: 22 },
           { exerciseId: 'stroop', level: 4, accuracy: 0.85, avgRtMs: 900, score: 50 }
+        ]
+      },
+      {
+        id: 's3',
+        startedAt: daysAgo(1),
+        finishedAt: daysAgo(1),
+        durationSec: 300,
+        items: [
+          { exerciseId: 'grid-memory', level: 3, accuracy: 0.70, avgRtMs: 1400, score: 25 },
+          { exerciseId: 'stroop', level: 4, accuracy: 0.90, avgRtMs: 800, score: 60 }
         ]
       }
     ],

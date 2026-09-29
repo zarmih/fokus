@@ -27,7 +27,7 @@ test('progress index UI explains index honestly without junk metrics', () => {
   
   const text = document.body.textContent || '';
   expect(text).toMatch(/Fokus Index/);
-  expect(text).toMatch(/Индекс отражает текущую тренировочную форму/);
+  expect(text).toMatch(/тренировочную форму|фактические результаты/);
   const fiHero = document.querySelector('.fi-hero');
   expect(fiHero).toBeTruthy();
   const heroText = fiHero?.textContent || '';

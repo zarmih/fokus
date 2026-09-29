@@ -51,7 +51,8 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   const value = Math.round(mean);
   const coverage = ready.length;
   const coverageRatio = coverage / DOMAIN_ORDER.length;
-  const confidence = Math.round(coverageRatio * 100);
+  const explorationFactor = Math.min(1, explored / 10);
+  const confidence = Math.round((coverageRatio * 0.6 + explorationFactor * 0.4) * 100);
   const trend = ready.reduce((sum, d) => sum + d.trend, 0) / ready.length;
 
   return { value, confidence, coverage, byDomain, trend, depth };
