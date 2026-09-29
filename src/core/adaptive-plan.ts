@@ -25,6 +25,8 @@ export function planForNow(opts?: {
   const baseDuration = opts?.durationSec ?? profile.sessionLengthSec ?? 900;
   const durationSec = ritualDurationSec(baseDuration, snapshot.ritual);
 
+  const { weekIndex, dayInWeek } = getProgramPosition(snapshot, profile as any);
+
   const toExclude = new Set(opts?.excludeIds || []);
   const fatiguedToRest = snapshot.workload.fatigued.filter(d => d !== profile.primaryGoal);
   
@@ -50,7 +52,9 @@ export function planForNow(opts?: {
     lastCalibrationAt: profile.lastCalibrationAt || null,
     snoozedUntil: profile.recalibrationSnoozedUntil || null,
     excludeIds: Array.from(toExclude),
-    nowMs: opts?.nowMs
+    nowMs: opts?.nowMs,
+    programWeek: weekIndex,
+    programDay: dayInWeek
   });
 
   const biased = applyGentleReturnBias(
@@ -116,4 +120,17 @@ export function snoozeRecalibration(nowMs = Date.now()) {
   const p = storage.getProfile();
   p.recalibrationSnoozedUntil = snoozeUntil(nowMs);
   storage.setProfile(p);
+}
+
+export function getProgramPosition(snapshot: any, profile: { programWeek?: number }) {
+  const programWeek = profile.programWeek;
+  const playedCount = snapshot.playedDays?.length || 0;
+  const playedToday = snapshot.streak?.playedToday || false;
+  
+  const weekIndexBase = playedToday ? Math.max(0, playedCount - 1) : playedCount;
+  const weekIndex = programWeek || Math.floor(weekIndexBase / 7) + 1;
+  const dayInWeek = playedToday ? ((Math.max(0, playedCount - 1)) % 7) + 1 : (playedCount % 7) + 1;
+  const isSparse = playedCount < 3;
+  
+  return { weekIndex, dayInWeek, playedCount, isSparse, playedToday };
 }

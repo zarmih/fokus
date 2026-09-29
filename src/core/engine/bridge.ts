@@ -52,6 +52,8 @@ export interface AdaptivePlanParams {
   excludeIds?: string[];
   nowMs?: number;
   rng?: () => number;
+  programWeek?: number;
+  programDay?: number;
 }
 
 /**

@@ -31,6 +31,8 @@ export function buildAdaptivePlan(params: AdaptivePlanParams): AdaptivePlan {
       skills: p.skills,
       states: p.states,
       primaryGoal: p.primaryGoal,
+      programWeek: p.programWeek,
+      programDay: p.programDay,
       excludeIds: p.excludeIds
     })
   );
@@ -44,9 +46,11 @@ export function buildTrainingPlan(params: {
   states: ExerciseState[];
   primaryGoal?: string;
   focusOfTheWeek?: string | null;
+  programWeek?: number;
+  programDay?: number;
   excludeIds?: string[];
 }): TrainingPlan {
-  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, excludeIds = [] } = params;
+  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, programWeek, programDay, excludeIds = [] } = params;
   
   const blockDurationSec = 180; // ~3 minutes per block
   let targetBlocks = Math.max(2, Math.round(durationSec / blockDurationSec));
@@ -158,13 +162,13 @@ export function buildTrainingPlan(params: {
       } else if (neglected > 0) {
         reason = `Давно не тренировали`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Ваша цель и зона фокуса`;
+        reason = `Цель и фокус: день ${programDay || 1}`;
       } else if (goalAlignment > 0) {
-        reason = `Акцент на вашу цель`;
+        reason = `Ваша цель: неделя ${programWeek || 1}`;
       } else if (weaknessPriority > 0) {
-        reason = `Точечная нагрузка`;
+        reason = `Точечная нагрузка: день ${programDay || 1}`;
       } else if (weeklyFocus > 0) {
-        reason = `Фокус недели`;
+        reason = `Фокус ${programWeek ? programWeek + '-й недели' : 'недели'}`;
       } else if (skillNeed > 10) {
         reason = `Актуальная задача`;
       } else if (novelty > 0) {
