@@ -190,7 +190,25 @@ export function renderProgress(container: HTMLElement) {
 
   const exStates = storage.getExerciseStates();
   const sessions = storage.getSessions();
-  const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
+  const insights = generateInsights(domains, skills, exStates, ds, sessions);
+  
+  let generatedInsightsHtml = '';
+  if (insights.length > 0) {
+    generatedInsightsHtml = `
+      <div class="surface" style="margin-bottom: 24px;">
+        <h3 style="margin-bottom: 16px;">Инсайты</h3>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          ${insights.slice(0, 2).map(ins => `
+            <div style="padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
+              <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 4px;">${ins.title}</div>
+              <div style="font-size: 13px; color: var(--text); line-height: 1.5;">${ins.description}</div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   const insightHtml = transferCardFromStorage({ prefer: 'week' });
 
   // Next Step Block
@@ -455,6 +473,7 @@ export function renderProgress(container: HTMLElement) {
     ${renderQualityCard(ritual.snapshot, { detailed: true })}
     ${rhythmHtml}
     ${milestonesHtml}
+    ${generatedInsightsHtml}
     ${insightHtml}
     ${weeklyGoalHtml}
     ${nextStepHtml}

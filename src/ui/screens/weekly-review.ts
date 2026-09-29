@@ -276,11 +276,32 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   const domains = storage.getDomains();
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
+  const rawInsights = generateInsights(domains, skills, states, daySummaries, sessions);
+  
+  let generatedInsightsHtml = '';
+  if (rawInsights.length > 0) {
+    generatedInsightsHtml = `
+      <section class="surface wr-section" aria-labelledby="wr-insights-title">
+        <h3 id="wr-insights-title" class="wr-section-title">Инсайты недели</h3>
+        <p class="wr-trajectory-desc">Честный анализ вашей формы и результаты без пустых обещаний.</p>
+        <div class="wr-trajectory-grid">
+          ${rawInsights.slice(0, 3).map(ins => `
+            <div class="wr-trajectory-card" tabindex="0" role="group" aria-label="${ins.title}: ${ins.description}">
+              <div class="wr-traj-header">
+                <span class="wr-traj-domain">${ins.title}</span>
+              </div>
+              <div class="wr-traj-desc">${ins.description}</div>
+            </div>
+          `).join('')}
+        </div>
+      </section>
+    `;
+  }
+
   const insightHtml = totalSessions > 0 ? transferCardFromStorage({ prefer: 'week' }) : '';
 
   // NEXT STEP (from recommendation engine)
   const profile = storage.getProfile();
-  const weeklyFocus = suggestFocusOfTheWeek(domains, daySummaries, sessions);
   const plan = planForNow({ durationSec: profile.sessionLengthSec });
 
   let nextStepHtml = '';
@@ -362,6 +383,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     ${intelHtml}
     ${trajectoryHtml}
     ${whatChangedHtml}
+    ${generatedInsightsHtml}
     ${insightHtml}
     ${nextStepHtml}
   `;
