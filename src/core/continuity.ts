@@ -262,11 +262,11 @@ export function applyGentleReturnBias(
   let items = plan.items.filter(item => famEx.has(item.exerciseId));
   
   if (items.length > 0) {
-    items = items.map(item => ({ ...item, reason: 'Знакомый блок для мягкого возврата' }));
+    items = items.map(item => ({ ...item, reason: 'Знакомая нагрузка для лёгкого старта' }));
   } else if (ritual.familiarExerciseIds.length > 0) {
     items = ritual.familiarExerciseIds.slice(0, 2).map(id => ({
       exerciseId: id,
-      reason: 'Знакомый блок для мягкого возврата'
+      reason: 'Знакомое упражнение для плавного возвращения'
     }));
   } else {
     return { focusDomains: plan.focusDomains, items: plan.items, applied: false };
