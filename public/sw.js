@@ -1,8 +1,19 @@
 /* Overwritten on production build by vite-plugin fokus-sw, but logic appended if supported. */
 const CACHE_NAME = 'fokus-cache-v1';
+const PRECACHE_URLS = [
+  '/',
+  '/index.html',
+  '/manifest.webmanifest',
+  '/icons.svg',
+  '/favicon.svg'
+];
 
 self.addEventListener('install', (event) => {
-  self.skipWaiting();
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', (event) => {
