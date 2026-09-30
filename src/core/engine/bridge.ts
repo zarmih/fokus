@@ -55,6 +55,7 @@ export interface AdaptivePlanParams {
   programWeek?: number;
   programDay?: number;
   focusOfTheWeek?: string | null;
+  isSparse?: boolean;
 }
 
 /**
@@ -93,7 +94,8 @@ export function buildAdaptivePlan(
       excludeIds: params.excludeIds,
       rng: params.rng,
       programWeek: params.programWeek,
-      programDay: params.programDay
+      programDay: params.programDay,
+      isSparse: params.isSparse
     });
 
     if (!ritual.items.length) {

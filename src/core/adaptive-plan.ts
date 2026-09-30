@@ -26,7 +26,7 @@ export function planForNow(opts?: {
   const baseDuration = opts?.durationSec ?? profile.sessionLengthSec ?? 900;
   const durationSec = ritualDurationSec(baseDuration, snapshot.ritual);
 
-  const { weekIndex, dayInWeek } = getProgramPosition(snapshot, profile as any);
+  const { weekIndex, dayInWeek, isSparse } = getProgramPosition(snapshot, profile as any);
 
   const toExclude = new Set(opts?.excludeIds || []);
   const fatiguedToRest = snapshot.workload.fatigued.filter(d => d !== profile.primaryGoal);
@@ -56,7 +56,8 @@ export function planForNow(opts?: {
     nowMs: opts?.nowMs,
     programWeek: weekIndex,
     programDay: dayInWeek,
-    focusOfTheWeek: rotatingTipDomain(new Date(opts?.nowMs ?? Date.now()))
+    focusOfTheWeek: rotatingTipDomain(new Date(opts?.nowMs ?? Date.now())),
+    isSparse
   });
 
   const biased = applyGentleReturnBias(

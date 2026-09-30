@@ -33,7 +33,8 @@ export function buildAdaptivePlan(params: AdaptivePlanParams): AdaptivePlan {
       primaryGoal: p.primaryGoal,
       programWeek: p.programWeek,
       programDay: p.programDay,
-      excludeIds: p.excludeIds
+      excludeIds: p.excludeIds,
+      isSparse: p.isSparse
     })
   );
 }
@@ -49,8 +50,9 @@ export function buildTrainingPlan(params: {
   programWeek?: number;
   programDay?: number;
   excludeIds?: string[];
+  isSparse?: boolean;
 }): TrainingPlan {
-  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, programWeek, programDay, excludeIds = [] } = params;
+  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, programWeek, programDay, excludeIds = [], isSparse = states.length < 9 } = params;
   
   const blockDurationSec = 180; // ~3 minutes per block
   let targetBlocks = Math.max(2, Math.round(durationSec / blockDurationSec));
@@ -88,9 +90,9 @@ export function buildTrainingPlan(params: {
         const m = catalog.find(c => c.manifest.id === s.exerciseId);
         return m && m.manifest.domain === manifest.domain;
       });
-      const isSparse = domainStates.length < 3;
+      const isSparseDomain = domainStates.length < 3;
 
-      if (!isSparse) {
+      if (!isSparseDomain) {
         if (weakestDomain === manifest.domain) {
           weaknessPriority = 35; 
         } else if (secondWeakestDomain === manifest.domain) {
@@ -156,8 +158,9 @@ export function buildTrainingPlan(params: {
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
 
       let reason = 'Сбалансированная тренировка';
-      if (isSparse) {
-        reason = novelty > 0 ? 'Первое знакомство (сбор данных)' : 'Сбор данных для адаптации';
+      if (isSparse || isSparseDomain) {
+        const pd = programDay || 1;
+        reason = novelty > 0 ? `День ${pd}: Первое знакомство (сбор данных)` : `День ${pd}: Сбор данных для адаптации`;
       } else if (maintenance > 0 && skillNeed < 5) {
         reason = `Поддержание тонуса`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {

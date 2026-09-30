@@ -26,6 +26,7 @@ export interface ComposeRitualParams {
   rng?: () => number;
   programWeek?: number;
   programDay?: number;
+  isSparse?: boolean;
 }
 
 export function composeRitual(params: ComposeRitualParams): RitualPlan {
@@ -95,8 +96,9 @@ function scoreCatalog(params: ComposeRitualParams & {
   programWeek?: number;
   programDay?: number;
   focusOfTheWeek?: string | null;
+  isSparse?: boolean;
 }): ScoredCandidate[] {
-  const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng, programWeek, programDay, focusOfTheWeek } = params;
+  const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng, programWeek, programDay, focusOfTheWeek, isSparse } = params;
 
   return catalog.map((item) => {
     const spacing = getSpacing(model, item.id);
@@ -163,7 +165,8 @@ function scoreCatalog(params: ComposeRitualParams & {
       conf,
       programWeek,
       programDay,
-      weeklyFocusPts
+      weeklyFocusPts,
+      isSparse: isSparse ?? (conf < 0.4)
     });
 
     const trace = `I:${info.toFixed(2)} Urg:${urgency(spacing, nowMs).toFixed(2)} Need:${need.toFixed(2)} Slot:${slotMatch} Goal:${goalPts} WFocus:${weeklyFocusPts} Div:${diversity} Rep:${repeat} Plat:${plateau} Nov:${novelty} = ${score.toFixed(1)}`;
@@ -194,13 +197,13 @@ function reasonFor(args: {
   programWeek?: number;
   programDay?: number;
   weeklyFocusPts?: number;
+  isSparse: boolean;
 }): string {
-  const isSparse = args.conf < 0.4;
   if (args.plateau < 0) return 'Смена контекста для прорыва';
   if (args.wantedSlot === 'overdue' || args.slot === 'overdue') return SLOT_REASON.overdue;
   
   if (args.goalPts > 0 && args.need > 0.6) {
-    if (isSparse) return `Ваша цель: день ${args.programDay || 1} (сбор данных)`;
+    if (args.isSparse) return `Ваша цель: день ${args.programDay || 1} (сбор данных)`;
     return `Неделя ${args.programWeek || 1}: цель и отстающий навык`;
   }
   
@@ -208,7 +211,7 @@ function reasonFor(args: {
   if (args.weeklyFocusPts && args.weeklyFocusPts > 0) return `Фокус ${args.programWeek ? args.programWeek + '-й недели' : 'недели'}`;
   
   if (args.need > 0.7) {
-    if (isSparse) return 'Сбор данных для адаптации';
+    if (args.isSparse) return 'Сбор данных для адаптации';
     return `День ${args.programDay || 1}: акцент на отстающий навык`;
   }
 
