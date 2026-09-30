@@ -195,7 +195,11 @@ export function buildTrainingPlan(params: {
 
     let chosen = scoredCandidates[0];
     
-    items.push({ exerciseId: chosen.exerciseId, reason: chosen.reason });
+    items.push({ 
+      exerciseId: chosen.exerciseId, 
+      reason: chosen.reason,
+      domain: chosen.manifest.domain
+    });
     selectedExerciseIds.add(chosen.exerciseId);
     selectedDomains.add(chosen.manifest.domain);
   }
@@ -222,5 +226,5 @@ export function buildSession(params: {
       level: 1, difficulty: 1, performance: 0, lastAccuracy: 0
     }))
   });
-  return plan.items.map(item => ({ exerciseId: item.exerciseId }));
+  return plan.items;
 }
