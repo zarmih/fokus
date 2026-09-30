@@ -254,9 +254,9 @@ export function renderSettings(container: HTMLElement) {
         </label>
       </div>
 
-      <div class="surface" id="install-container" style="display: none; margin-bottom: 16px;">
-        <h4 style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Установка приложения</h4>
-        <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;">Установить Fokus на устройство</button>
+      <div class="surface" id="install-container" style="display: none; margin-bottom: 16px;" role="region" aria-labelledby="install-heading" aria-live="polite">
+        <h4 id="install-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Установка приложения</h4>
+        <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;" aria-label="Установить Fokus на устройство">Установить Fokus на устройство</button>
         <div style="font-size: 12px; color: var(--muted); text-align: center;">Доступ прямо с экрана без браузера.</div>
       </div>
 

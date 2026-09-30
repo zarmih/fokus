@@ -82,10 +82,12 @@ export function renderOnboarding(container: HTMLElement) {
             </label>
           </div>
 
-          <div class="onboard-week-preview" style="margin-top: 24px; font-size: 14px; opacity: 0.8;">
-            <strong>План на первую неделю:</strong><br/>
-            <span style="display: block; margin-top: 4px; margin-bottom: 4px;">${firstWeekPreviewLines(weekPreview).slice(0, 3).join('<br/>')}</span>
-            ...и плавный разгон до ${selectedMin} мин в день.
+          <div class="onboard-week-preview" style="margin-top: 24px;" aria-live="polite">
+            <h2 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">План на первую неделю:</h2>
+            <ul style="list-style: none; padding: 0; margin: 0 0 12px; font-size: 14px; opacity: 0.9; display: flex; flex-direction: column; gap: 6px;">
+              ${firstWeekPreviewLines(weekPreview).map(line => `<li>${line}</li>`).join('')}
+              <li style="opacity: 0.7; margin-top: 8px;">Разгон до ${selectedMin} мин в день.</li>
+            </ul>
           </div>
         ` : ''}
         <div class="onboard-actions" style="display: flex; gap: 8px;">
