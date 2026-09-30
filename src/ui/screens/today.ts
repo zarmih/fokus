@@ -428,8 +428,8 @@ export function renderToday(container: HTMLElement) {
       <div class="stat-row">
         ${renderStreakChip(snap, 'pill')}
         <div class="stat-pill">
-          <div class="stat-num">${streak}${profile.seriesGoalDays ? ` <span style="font-size: 16px; opacity: 0.5;">/ ${profile.seriesGoalDays}</span>` : ''}</div>
-          <div class="stat-lbl">${profile.seriesGoalDays ? 'цель серии' : (streak === 0 ? 'начни серию' : 'дней подряд')}</div>
+          <div class="stat-num">${streak > 0 ? streak : (snap.streak.consistency30 > 0 ? snap.streak.consistency30 + '%' : 0)}${profile.seriesGoalDays ? ` <span style="font-size: 16px; opacity: 0.5;">/ ${profile.seriesGoalDays}</span>` : ''}</div>
+          <div class="stat-lbl">${profile.seriesGoalDays ? 'цель серии' : (streak > 0 ? 'дней подряд' : (snap.streak.consistency30 > 0 ? 'регулярность' : 'начни серию'))}</div>
         </div>
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>

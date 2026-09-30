@@ -1,6 +1,7 @@
 import { REMINDER_LAST_KEY } from './privacy';
 import { storage } from './storage';
 import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey } from './streak';
+import { getWeeklyDomainTips } from './coach-intel';
 
 export { REMINDER_LAST_KEY };
 
@@ -65,7 +66,10 @@ export function maybeNotify(): void {
 
   let body = 'Короткая тренировка для поддержания ритма.';
   if (streak.status === 'open') {
-    body = `Ваш ритм: ${streak.current} ${streak.current === 1 ? 'день' : 'дней'}. Короткая сессия поможет закрепить результат.`;
+    const target = storage.getProfile().primaryGoal || 'attention';
+    const tips = getWeeklyDomainTips(target);
+    const dayOfYear = Math.floor(Date.now() / 86400000);
+    body = tips[dayOfYear % tips.length];
   } else if (streak.status === 'soft_return') {
     if (streak.consistency30 >= 80) {
       body = `Вы держите отличную регулярность (${streak.consistency30}% за месяц). Один короткий блок поможет закрепить результат.`;
