@@ -112,21 +112,42 @@ export function renderTrainers(container: HTMLElement) {
     `;
   }
 
-  let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">Все <span style="opacity:0.6; font-size:11px;">${catalog.length}</span></button>`;
-  
-  filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">Новое <span style="opacity:0.6; font-size:11px;">${untriedCount}</span></button>`;
+  const DOMAIN_ICONS: Record<string, string> = {
+    attention: '🎯',
+    memory: '🧠',
+    speed: '⚡',
+    flexibility: '🔀',
+    logic: '🧩'
+  };
 
-  filterHtml += validDomains.map((dom, i) => {
+  const DOMAIN_DESCRIPTIONS: Record<string, string> = {
+    attention: 'Концентрация и устойчивость к отвлечениям',
+    memory: 'Удержание и точное воспроизведение информации',
+    speed: 'Скорость реакции и обработки визуальных данных',
+    flexibility: 'Быстрое переключение между правилами и задачами',
+    logic: 'Анализ, пространственное мышление и вычисления'
+  };
+
+  let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">
+    <span style="font-size:14px; margin-right:4px;">🌐</span> Все <span style="opacity:0.6; font-size:11px; margin-left:4px;">${catalog.length}</span>
+  </button>`;
+  
+  filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">
+    <span style="font-size:14px; margin-right:4px;">✨</span> Новое <span style="opacity:0.6; font-size:11px; margin-left:4px;">${untriedCount}</span>
+  </button>`;
+
+  filterHtml += validDomains.map((dom) => {
     const count = domains.get(dom)!.length;
     const label = domainLabel(dom);
-    return `<button class="filter-chip" data-dom="${dom}" type="button" aria-pressed="false">${label} <span style="opacity:0.6; font-size:11px;">${count}</span></button>`;
+    const icon = DOMAIN_ICONS[dom] || '▪️';
+    return `<button class="filter-chip" data-dom="${dom}" type="button" aria-pressed="false">
+      <span style="font-size:14px; margin-right:4px;">${icon}</span> ${label} <span style="opacity:0.6; font-size:11px; margin-left:4px;">${count}</span>
+    </button>`;
   }).join('');
 
   let allCardsHtml = '';
 
-
-
-  validDomains.forEach((dom, i) => {
+  validDomains.forEach((dom) => {
     const exercises = domains.get(dom)!.sort((a, b) => {
       const intelA = getExerciseIntelligence(a.manifest.id);
       const intelB = getExerciseIntelligence(b.manifest.id);
@@ -137,16 +158,20 @@ export function renderTrainers(container: HTMLElement) {
       }
       return a.manifest.name.localeCompare(b.manifest.name, 'ru');
     });
-    const isActive = true;
     
     let gridHtml = exercises.map(renderCard).join('');
+    const icon = DOMAIN_ICONS[dom] || '▪️';
+    const desc = DOMAIN_DESCRIPTIONS[dom] || '';
 
     allCardsHtml += `
-      <div class="domain-group ${isActive ? '' : 'is-hidden'}" data-group="${dom}" style="margin-bottom: 32px;">
-        <h3 style="font-size: 20px; font-weight: 600; margin: 0 0 16px 4px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; color: var(--text);">
-          ${domainLabel(dom)}
-          <span class="domain-visible-count" style="font-size: 13px; font-weight: 500; color: var(--muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">${exercises.length}</span>
-        </h3>
+      <div class="domain-group" data-group="${dom}" style="margin-bottom: 40px;">
+        <div style="margin-bottom: 20px; padding-left: 4px;">
+          <h3 style="font-size: 22px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; color: var(--text);">
+            <span style="font-size: 24px;">${icon}</span> ${domainLabel(dom)}
+            <span class="domain-visible-count" style="font-size: 13px; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--line); padding: 2px 10px; border-radius: 12px; margin-left: 4px;">${exercises.length}</span>
+          </h3>
+          ${desc ? `<p style="font-size: 14px; color: var(--muted); margin: 0; padding-left: 36px; line-height: 1.4;">${desc}</p>` : ''}
+        </div>
         <div class="trainers-grid">
           ${gridHtml}
         </div>
@@ -156,27 +181,34 @@ export function renderTrainers(container: HTMLElement) {
 
   content.innerHTML = `
     <div class="today-head" style="margin-bottom: 24px;">
-      <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px;">Каталог</h2>
-      <p class="today-date" id="catalog-count-label" style="opacity: 0.7;" aria-live="polite">
-        ${catalog.length} упражнений. Свободная практика — без влияния на Fokus Index.
+      <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px; font-weight: 700;">Каталог</h2>
+      <p class="today-date" id="catalog-count-label" style="opacity: 0.7; font-size: 15px;" aria-live="polite">
+        Свободная практика — тренируйтесь без влияния на Fokus Index. Всего ${catalog.length} упражнений.
       </p>
     </div>
     
-    <div style="margin-bottom: 24px;">
-      <input type="search" id="catalog-search" placeholder="Поиск по названию или навыку..." style="width: 100%; padding: 12px 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px; outline: none; transition: border-color 0.2s;" aria-label="Поиск упражнений" autocomplete="off">
+    <div style="margin-bottom: 24px; position: relative;">
+      <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); opacity: 0.5; pointer-events: none; font-size: 16px;">🔍</span>
+      <input type="search" id="catalog-search" placeholder="Поиск по названию или навыку..." style="width: 100%; padding: 14px 16px 14px 44px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px; outline: none; transition: all 0.2s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);" aria-label="Поиск упражнений" autocomplete="off">
     </div>
 
-    <div class="domain-filters" role="group" aria-label="Фильтры доменов" style="margin-bottom: 24px;">
+    <div class="domain-filters" role="group" aria-label="Фильтры доменов" style="margin-bottom: 32px; display: flex; flex-wrap: wrap; gap: 8px;">
       ${filterHtml}
     </div>
     
     <div class="catalog-groups-container" aria-live="polite">
-      ${validDomains.length === 0 ? '<div style="opacity: 0.6; padding: 24px 0; text-align: center;">Нет доступных упражнений</div>' : allCardsHtml}
-      <div id="catalog-empty-state" style="display: none; padding: 48px 24px; text-align: center; background: var(--surface); border-radius: var(--radius); border: 1px dashed var(--line);" role="status">
-        <div id="empty-state-icon" style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;" aria-hidden="true">🔍</div>
-        <div id="empty-state-title" style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Ничего не найдено</div>
-        <div id="empty-state-desc" style="color: var(--muted); font-size: 14px; margin-bottom: 24px;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
-        <button type="button" id="catalog-clear-search" style="padding: 10px 20px; background: rgba(255,255,255,0.1); color: var(--text); border: none; border-radius: var(--radius); font-weight: 600; font-size: 14px; cursor: pointer; transition: background 0.2s;">Сбросить поиск</button>
+      ${validDomains.length === 0 ? `
+        <div style="padding: 48px 24px; text-align: center; background: var(--surface); border-radius: 20px; border: 1px solid var(--line);">
+          <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📭</div>
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Каталог пуст</div>
+          <div style="color: var(--muted); font-size: 14px;">Упражнения временно недоступны.</div>
+        </div>
+      ` : allCardsHtml}
+      <div id="catalog-empty-state" style="display: none; padding: 56px 24px; text-align: center; background: linear-gradient(145deg, rgba(255,255,255,0.02), transparent); border-radius: 24px; border: 1px dashed var(--line);" role="status">
+        <div id="empty-state-icon" style="font-size: 56px; margin-bottom: 20px; opacity: 0.8; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));" aria-hidden="true">🔍</div>
+        <div id="empty-state-title" style="font-size: 20px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em;">Ничего не найдено</div>
+        <div id="empty-state-desc" style="color: var(--muted); font-size: 15px; margin-bottom: 28px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.5;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
+        <button type="button" id="catalog-clear-search" style="padding: 12px 24px; background: var(--accent); color: var(--bg); border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">Сбросить поиск</button>
       </div>
     </div>
   `;
