@@ -23,19 +23,19 @@ const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
   // Easy
   { id: 'e1', type: 'blocks', difficulty: 'easy', target: 3, title: 'Разминка', description: 'Завершите 3 блока', xpReward: 30 },
   { id: 'e2', type: 'accuracy', difficulty: 'easy', target: 80, title: 'Точность', description: 'Наберите 80% точности в любом блоке', xpReward: 30 },
-  { id: 'e3', type: 'score', difficulty: 'easy', target: 300, title: 'Первые шаги', description: 'Наберите суммарно 300 очков за день', xpReward: 30 },
+  { id: 'e3', type: 'score', difficulty: 'easy', target: 300, title: 'Первые шаги', description: 'Наберите суммарно 300 очков', xpReward: 30 },
   { id: 'e4', type: 'domain', difficulty: 'easy', target: 2, domainId: 'memory', title: 'Тренировка памяти', description: 'Пройдите 2 игры на память', xpReward: 40 },
   { id: 'e5', type: 'domain', difficulty: 'easy', target: 2, domainId: 'attention', title: 'Фокус внимания', description: 'Пройдите 2 игры на внимание', xpReward: 40 },
   // Medium
-  { id: 'm1', type: 'blocks', difficulty: 'medium', target: 5, title: 'Марафонец', description: 'Завершите 5 блоков за день', xpReward: 60 },
+  { id: 'm1', type: 'blocks', difficulty: 'medium', target: 5, title: 'Марафонец', description: 'Завершите 5 блоков', xpReward: 60 },
   { id: 'm2', type: 'accuracy', difficulty: 'medium', target: 90, title: 'Снайпер', description: 'Достигните точности 90% в любом блоке', xpReward: 60 },
-  { id: 'm3', type: 'score', difficulty: 'medium', target: 800, title: 'Рекордсмен', description: 'Наберите суммарно 800 очков за день', xpReward: 60 },
+  { id: 'm3', type: 'score', difficulty: 'medium', target: 800, title: 'Рекордсмен', description: 'Наберите суммарно 800 очков', xpReward: 60 },
   { id: 'm4', type: 'diversity', difficulty: 'medium', target: 3, title: 'Разносторонний', description: 'Сыграйте в 3 разные игры', xpReward: 70 },
   { id: 'm5', type: 'perfect', difficulty: 'medium', target: 1, title: 'Безупречность', description: 'Завершите блок со 100% точностью', xpReward: 80 },
   { id: 'm6', type: 'domain', difficulty: 'medium', target: 3, domainId: 'math', title: 'Быстрый счет', description: 'Пройдите 3 математические игры', xpReward: 70 },
   // Hard
-  { id: 'h1', type: 'blocks', difficulty: 'hard', target: 10, title: 'Неутомимый', description: 'Завершите 10 блоков за день', xpReward: 150 },
-  { id: 'h2', type: 'score', difficulty: 'hard', target: 1500, title: 'Чемпион', description: 'Наберите суммарно 1500 очков за день', xpReward: 150 },
+  { id: 'h1', type: 'blocks', difficulty: 'hard', target: 8, title: 'Неутомимый', description: 'Завершите 8 блоков', xpReward: 150 },
+  { id: 'h2', type: 'score', difficulty: 'hard', target: 1200, title: 'Чемпион', description: 'Наберите суммарно 1200 очков', xpReward: 150 },
   { id: 'h3', type: 'perfect', difficulty: 'hard', target: 3, title: 'Идеал', description: 'Завершите 3 блока со 100% точностью', xpReward: 200 },
   { id: 'h4', type: 'accuracy', difficulty: 'hard', target: 98, title: 'Хирург', description: 'Достигните точности 98% в любом блоке', xpReward: 120 }
 ];
