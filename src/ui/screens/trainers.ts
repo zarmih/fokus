@@ -145,7 +145,7 @@ export function renderTrainers(container: HTMLElement) {
       <div class="domain-group ${isActive ? '' : 'is-hidden'}" data-group="${dom}" style="margin-bottom: 32px;">
         <h3 style="font-size: 20px; font-weight: 600; margin: 0 0 16px 4px; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; color: var(--text);">
           ${domainLabel(dom)}
-          <span style="font-size: 13px; font-weight: 500; color: var(--muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">${exercises.length}</span>
+          <span class="domain-visible-count" style="font-size: 13px; font-weight: 500; color: var(--muted); background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 10px;">${exercises.length}</span>
         </h3>
         <div class="trainers-grid">
           ${gridHtml}
@@ -213,6 +213,8 @@ export function renderTrainers(container: HTMLElement) {
       });
       
       group.classList.toggle('is-hidden', groupVisibleCount === 0);
+      const countEl = group.querySelector('.domain-visible-count');
+      if (countEl) countEl.textContent = groupVisibleCount.toString();
       count += groupVisibleCount;
     });
     
