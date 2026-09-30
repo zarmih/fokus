@@ -85,8 +85,8 @@ export function renderOnboarding(container: HTMLElement) {
           <div class="onboard-week-preview" style="margin-top: 24px;" aria-live="polite">
             <h2 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">План на первую неделю:</h2>
             <ul style="list-style: none; padding: 0; margin: 0 0 12px; font-size: 14px; opacity: 0.9; display: flex; flex-direction: column; gap: 6px;">
-              ${firstWeekPreviewLines(weekPreview).slice(0, 3).map(line => `<li>${line}</li>`).join('')}
-              <li style="opacity: 0.7;">...и плавный разгон до ${selectedMin} мин в день.</li>
+              ${firstWeekPreviewLines(weekPreview).map(line => `<li>${line}</li>`).join('')}
+              <li style="opacity: 0.7; margin-top: 8px;">Разгон до ${selectedMin} мин в день.</li>
             </ul>
           </div>
         ` : ''}

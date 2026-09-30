@@ -21,23 +21,23 @@ export interface Quest {
 
 const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
   // Easy
-  { id: 'e1', type: 'blocks', difficulty: 'easy', target: 3, title: 'Разминка', description: 'Завершите 3 блока', xpReward: 30 },
+  { id: 'e1', type: 'blocks', difficulty: 'easy', target: 2, title: 'Разминка', description: 'Завершите 2 блока', xpReward: 30 },
   { id: 'e2', type: 'accuracy', difficulty: 'easy', target: 80, title: 'Точность', description: 'Наберите 80% точности в любом блоке', xpReward: 30 },
   { id: 'e3', type: 'score', difficulty: 'easy', target: 300, title: 'Первые шаги', description: 'Наберите суммарно 300 очков', xpReward: 30 },
-  { id: 'e4', type: 'domain', difficulty: 'easy', target: 2, domainId: 'memory', title: 'Тренировка памяти', description: 'Пройдите 2 игры на память', xpReward: 40 },
-  { id: 'e5', type: 'domain', difficulty: 'easy', target: 2, domainId: 'attention', title: 'Фокус внимания', description: 'Пройдите 2 игры на внимание', xpReward: 40 },
+  { id: 'e4', type: 'domain', difficulty: 'easy', target: 1, domainId: 'memory', title: 'Тренировка памяти', description: 'Пройдите 1 игру на память', xpReward: 40 },
+  { id: 'e5', type: 'domain', difficulty: 'easy', target: 1, domainId: 'attention', title: 'Фокус внимания', description: 'Пройдите 1 игру на внимание', xpReward: 40 },
   // Medium
-  { id: 'm1', type: 'blocks', difficulty: 'medium', target: 5, title: 'Марафонец', description: 'Завершите 5 блоков', xpReward: 60 },
+  { id: 'm1', type: 'blocks', difficulty: 'medium', target: 3, title: 'Погружение', description: 'Завершите 3 блока', xpReward: 60 },
   { id: 'm2', type: 'accuracy', difficulty: 'medium', target: 90, title: 'Снайпер', description: 'Достигните точности 90% в любом блоке', xpReward: 60 },
-  { id: 'm3', type: 'score', difficulty: 'medium', target: 800, title: 'Рекордсмен', description: 'Наберите суммарно 800 очков', xpReward: 60 },
-  { id: 'm4', type: 'diversity', difficulty: 'medium', target: 3, title: 'Разносторонний', description: 'Сыграйте в 3 разные игры', xpReward: 70 },
+  { id: 'm3', type: 'score', difficulty: 'medium', target: 500, title: 'Уверенный темп', description: 'Наберите суммарно 500 очков', xpReward: 60 },
+  { id: 'm4', type: 'diversity', difficulty: 'medium', target: 2, title: 'Разносторонний', description: 'Сыграйте в 2 разные игры', xpReward: 70 },
   { id: 'm5', type: 'perfect', difficulty: 'medium', target: 1, title: 'Безупречность', description: 'Завершите блок со 100% точностью', xpReward: 80 },
-  { id: 'm6', type: 'domain', difficulty: 'medium', target: 3, domainId: 'math', title: 'Быстрый счет', description: 'Пройдите 3 математические игры', xpReward: 70 },
+  { id: 'm6', type: 'domain', difficulty: 'medium', target: 2, domainId: 'math', title: 'Быстрый счет', description: 'Пройдите 2 математические игры', xpReward: 70 },
   // Hard
-  { id: 'h1', type: 'blocks', difficulty: 'hard', target: 8, title: 'Неутомимый', description: 'Завершите 8 блоков', xpReward: 150 },
-  { id: 'h2', type: 'score', difficulty: 'hard', target: 1200, title: 'Чемпион', description: 'Наберите суммарно 1200 очков', xpReward: 150 },
-  { id: 'h3', type: 'perfect', difficulty: 'hard', target: 3, title: 'Идеал', description: 'Завершите 3 блока со 100% точностью', xpReward: 200 },
-  { id: 'h4', type: 'accuracy', difficulty: 'hard', target: 98, title: 'Хирург', description: 'Достигните точности 98% в любом блоке', xpReward: 120 }
+  { id: 'h1', type: 'blocks', difficulty: 'hard', target: 4, title: 'Основательный подход', description: 'Завершите 4 блока', xpReward: 150 },
+  { id: 'h2', type: 'score', difficulty: 'hard', target: 800, title: 'Отличный результат', description: 'Наберите суммарно 500 очков', xpReward: 150 },
+  { id: 'h3', type: 'perfect', difficulty: 'hard', target: 2, title: 'Идеал', description: 'Завершите 2 блока со 100% точностью', xpReward: 200 },
+  { id: 'h4', type: 'accuracy', difficulty: 'hard', target: 95, title: 'Хирург', description: 'Достигните точности 95% в любом блоке', xpReward: 120 }
 ];
 
 function getTodayStr() {
@@ -67,7 +67,7 @@ export function getDailyQuests(): Quest[] {
       selected[0] = {
         id: 'recovery_quest',
         title: 'Мягкий возврат',
-        description: 'Пройдите 1 короткий блок, чтобы восстановить ритм после паузы',
+        description: 'Пройдите 1 короткий блок, чтобы восстановить ритм',
         type: 'blocks',
         difficulty: 'easy',
         target: 1,
@@ -80,7 +80,7 @@ export function getDailyQuests(): Quest[] {
       selected[0] = {
         id: 'fresh_start_quest',
         title: 'Новый старт',
-        description: 'Завершите 1 любой блок без спешки',
+        description: 'Завершите 1 любой блок',
         type: 'blocks',
         difficulty: 'easy',
         target: 1,
@@ -92,11 +92,11 @@ export function getDailyQuests(): Quest[] {
     } else if (ds.status === 'active' && ds.current > 0 && ds.current % 3 === 0) {
       selected[1] = {
         id: 'streak_bonus',
-        title: 'Сила привычки',
-        description: `Завершите 3 блока, чтобы поддержать свой ритм`,
+        title: 'Стабильность',
+        description: `Завершите 2 блока`,
         type: 'blocks',
         difficulty: 'medium',
-        target: 3,
+        target: 2,
         progress: 0,
         completed: false,
         claimed: false,
