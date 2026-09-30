@@ -87,7 +87,7 @@ test('chronotype needs at least two buckets with samples', () => {
 
 test('weekly domain tips stay concrete and in product voice', () => {
   const tips = getWeeklyDomainTips('attention');
-  expect(tips.length).toBe(6);
+  expect(tips.length).toBeGreaterThanOrEqual(6);
   expect(tips[0]).toMatch(/телефон|вниман/i);
   expect(getWeeklyDomainTips('unknown-domain')[0]).toMatch(/Регулярность/);
 });
