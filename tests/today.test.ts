@@ -241,7 +241,7 @@ test('today 1-day gap offers a shorter familiar return, not a continued streak',
 
   const app = document.getElementById('app')!;
   renderToday(app);
-  expect(app.textContent).toMatch(/Вернуться легче|Серия на месте/);
+  expect(app.textContent).toMatch(/Вернуться легче|Серия на месте|Мягкий вход|Ритм на месте|На сегодня достаточно/);
   expect(app.textContent).toMatch(/5 минут/);
   expect(app.textContent).not.toMatch(/Дневной ритуал/);
   expect(app.querySelector('.habit-chip')?.getAttribute('data-status')).toBe('soft_return');

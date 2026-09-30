@@ -428,7 +428,7 @@ function pickNudges(params: {
       id: 'very_long_pause',
       kind: 'resume',
       title: 'Новый старт',
-      body: 'Длинная пауза — отличный повод освежить навыки. Fokus мягко откалибрует сложность под ваш сегодняшний ритм.',
+      body: 'После длинной паузы Fokus мягко подстроит сложность под сегодняшний ритм — без гонки за прошлым объёмом.',
       priority: 95
     });
   } else if (!params.playedToday && params.gapDays >= 7) {
@@ -436,7 +436,7 @@ function pickNudges(params: {
       id: 'long_pause',
       kind: 'resume',
       title: 'Спустя время',
-      body: 'После долгой паузы Fokus обнуляет ожидания. Пройдите одну комфортную сессию в своём темпе.',
+      body: 'После долгой паузы ожидания сброшены. Одна комфортная сессия в своём темпе — достаточно.',
       priority: 90
     });
   } else if (!params.playedToday && params.gapDays >= 2) {
