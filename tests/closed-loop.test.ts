@@ -106,7 +106,7 @@ describe('Cognitive Engine Closed Loop', () => {
     // User A should get a memory exercise due to weaknessPriority
     const exA = registry.find(r => r.manifest.id === planA.items[0].exerciseId)!;
     expect(exA.manifest.domain).toBe('memory');
-    expect(planA.items[0].reason).toMatch(/День \d+: акцент на отстающий навык|Первое знакомство \(сбор данных\)|Сбор данных для адаптации|Неделя \d+: цель и отстающий навык|Неделя \d+: работа над целью/);
+    expect(planA.items[0].reason).toMatch(/Неделя \d+ · Отстающий навык|Неделя \d+ · День \d+ · Знакомство|Неделя \d+ · День \d+ · Сбор данных|Неделя \d+ · Цель и отстающий навык|Неделя \d+ · Работа над целью/);
 
     // User B should NOT get memory as their primary weakness, likely something else
     const exB = registry.find(r => r.manifest.id === planB.items[0].exerciseId)!;
