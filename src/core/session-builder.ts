@@ -57,8 +57,9 @@ export function buildTrainingPlan(params: {
   if (targetBlocks > 6) targetBlocks = 6;
 
   const sortedDomains = [...domains].sort((a, b) => a.value - b.value);
-  const weakestDomain = sortedDomains.length > 0 ? sortedDomains[0].domain : null;
-  const secondWeakestDomain = sortedDomains.length > 1 ? sortedDomains[1].domain : null;
+  const isGlobalSparse = states.length < 9;
+  const weakestDomain = (!isGlobalSparse && sortedDomains.length > 0) ? sortedDomains[0].domain : null;
+  const secondWeakestDomain = (!isGlobalSparse && sortedDomains.length > 1) ? sortedDomains[1].domain : null;
 
   const focusDomains = new Set<string>();
   if (primaryGoal && primaryGoal !== 'balance') focusDomains.add(primaryGoal);
@@ -83,10 +84,18 @@ export function buildTrainingPlan(params: {
       }
 
       let weaknessPriority = 0;
-      if (weakestDomain === manifest.domain) {
-        weaknessPriority = 35; 
-      } else if (secondWeakestDomain === manifest.domain) {
-        weaknessPriority = 15;
+      const domainStates = states.filter(s => {
+        const m = catalog.find(c => c.manifest.id === s.exerciseId);
+        return m && m.manifest.domain === manifest.domain;
+      });
+      const isSparse = domainStates.length < 3;
+
+      if (!isSparse) {
+        if (weakestDomain === manifest.domain) {
+          weaknessPriority = 35; 
+        } else if (secondWeakestDomain === manifest.domain) {
+          weaknessPriority = 15;
+        }
       }
       const weeklyFocus = weeklyFocusBias(manifest.domain, focusOfTheWeek);
 
@@ -145,16 +154,10 @@ export function buildTrainingPlan(params: {
       const score = goalAlignment + weaknessPriority + weeklyFocus + skillNeed + neglected + novelty + maintenance - repetitionPenalty - plateauPenalty + sessionBalance;
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
-      
-      const domainStates = states.filter(s => {
-        const m = catalog.find(c => c.manifest.id === s.exerciseId);
-        return m && m.manifest.domain === manifest.domain;
-      });
-      const isSparse = domainStates.length < 3;
 
       let reason = 'Сбалансированная тренировка';
       if (isSparse) {
-        reason = novelty > 0 ? 'Первое знакомство' : 'Сбор данных';
+        reason = novelty > 0 ? 'Первое знакомство (сбор данных)' : 'Сбор данных для адаптации';
       } else if (maintenance > 0 && skillNeed < 5) {
         reason = `Поддержание тонуса`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {
@@ -162,11 +165,11 @@ export function buildTrainingPlan(params: {
       } else if (neglected > 0) {
         reason = `Давно не тренировали`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Цель и фокус: день ${programDay || 1}`;
+        reason = `Неделя ${programWeek || 1}: цель и отстающий навык`;
       } else if (goalAlignment > 0) {
-        reason = `Ваша цель: неделя ${programWeek || 1}`;
+        reason = `Неделя ${programWeek || 1}: работа над целью`;
       } else if (weaknessPriority > 0) {
-        reason = `Точечная нагрузка: день ${programDay || 1}`;
+        reason = `День ${programDay || 1}: акцент на отстающий навык`;
       } else if (weeklyFocus > 0) {
         reason = `Фокус ${programWeek ? programWeek + '-й недели' : 'недели'}`;
       } else if (skillNeed > 10) {

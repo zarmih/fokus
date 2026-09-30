@@ -89,7 +89,9 @@ export function buildAdaptivePlan(
       primaryGoal: params.primaryGoal,
       nowMs,
       excludeIds: params.excludeIds,
-      rng: params.rng
+      rng: params.rng,
+      programWeek: params.programWeek,
+      programDay: params.programDay
     });
 
     if (!ritual.items.length) {

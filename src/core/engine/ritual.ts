@@ -23,6 +23,8 @@ export interface ComposeRitualParams {
   nowMs: number;
   excludeIds?: string[];
   rng?: () => number;
+  programWeek?: number;
+  programDay?: number;
 }
 
 export function composeRitual(params: ComposeRitualParams): RitualPlan {
@@ -89,8 +91,10 @@ function scoreCatalog(params: ComposeRitualParams & {
   selectedDomains: DomainId[];
   goal: string;
   rng: () => number;
+  programWeek?: number;
+  programDay?: number;
 }): ScoredCandidate[] {
-  const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng } = params;
+  const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng, programWeek, programDay } = params;
 
   return catalog.map((item) => {
     const spacing = getSpacing(model, item.id);
@@ -150,7 +154,9 @@ function scoreCatalog(params: ComposeRitualParams & {
       plateau,
       goal,
       itemDomain: item.domain,
-      conf
+      conf,
+      programWeek,
+      programDay
     });
 
     const trace = `I:${info.toFixed(2)} Urg:${urgency(spacing, nowMs).toFixed(2)} Need:${need.toFixed(2)} Slot:${slotMatch} Goal:${goalPts} Div:${diversity} Rep:${repeat} Plat:${plateau} Nov:${novelty} = ${score.toFixed(1)}`;
@@ -178,27 +184,29 @@ function reasonFor(args: {
   goal: string;
   itemDomain: DomainId;
   conf: number;
+  programWeek?: number;
+  programDay?: number;
 }): string {
   const isSparse = args.conf < 0.4;
   if (args.plateau < 0) return 'Смена контекста для прорыва';
   if (args.wantedSlot === 'overdue' || args.slot === 'overdue') return SLOT_REASON.overdue;
   
   if (args.goalPts > 0 && args.need > 0.6) {
-    if (isSparse) return 'Ваша цель (идёт сбор данных)';
-    return 'Ваша цель и зона роста';
+    if (isSparse) return `Ваша цель: день ${args.programDay || 1} (сбор данных)`;
+    return `Цель и фокус: день ${args.programDay || 1}`;
   }
   
-  if (args.goalPts > 0) return 'Работа над вашей целью';
+  if (args.goalPts > 0) return `Ваша цель: неделя ${args.programWeek || 1}`;
   
   if (args.need > 0.7) {
     if (isSparse) return 'Калибровка области (мало данных)';
-    return 'Укрепление слабой области';
+    return `Точечная нагрузка: день ${args.programDay || 1}`;
   }
 
   if (args.novelty > 0 && args.wantedSlot === 'fresh') return SLOT_REASON.fresh;
   if (args.wantedSlot === 'due' || args.slot === 'due') return SLOT_REASON.due;
   if (args.novelty > 0) return SLOT_REASON.fresh;
-  return 'Сбалансированная тренировка';
+  return `Фокус ${args.programWeek ? args.programWeek + '-й недели' : 'недели'}`;
 }
 
 function pickWithExplore(ranked: ScoredCandidate[], rng: () => number): ScoredCandidate | null {
