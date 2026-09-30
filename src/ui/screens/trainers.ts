@@ -190,13 +190,26 @@ export function renderTrainers(container: HTMLElement) {
     const query = (searchInput?.value || '').toLowerCase().trim();
     let count = 0;
     
+    let allMatches = 0;
+    let discoveryMatches = 0;
+    const domainMatches = new Map<string, number>();
+
     content.querySelectorAll('.domain-group').forEach(group => {
       let groupVisibleCount = 0;
+      let groupMatchCount = 0;
       const groupDom = (group as HTMLElement).dataset.group;
       
       group.querySelectorAll('.trainer-card').forEach(card => {
         const el = card as HTMLElement;
         const isUntried = el.dataset.untried === 'true';
+        const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
+        
+        if (matchesSearch) {
+          allMatches++;
+          if (isUntried) discoveryMatches++;
+          groupMatchCount++;
+        }
+
         let matchesDom = false;
         if (activeDom === 'all') {
           matchesDom = true;
@@ -205,17 +218,32 @@ export function renderTrainers(container: HTMLElement) {
         } else {
           matchesDom = activeDom === groupDom;
         }
-        const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
         
         const show = matchesDom && matchesSearch;
         el.style.display = show ? '' : 'none';
         if (show) groupVisibleCount++;
       });
       
+      if (groupDom) domainMatches.set(groupDom, groupMatchCount);
       group.classList.toggle('is-hidden', groupVisibleCount === 0);
       const countEl = group.querySelector('.domain-visible-count');
       if (countEl) countEl.textContent = groupVisibleCount.toString();
       count += groupVisibleCount;
+    });
+
+    content.querySelectorAll('.filter-chip').forEach(chip => {
+      const c = chip as HTMLButtonElement;
+      const dom = c.dataset.dom;
+      let matches = 0;
+      if (dom === 'all') matches = allMatches;
+      else if (dom === 'discovery') matches = discoveryMatches;
+      else if (dom) matches = domainMatches.get(dom) || 0;
+      
+      const countSpan = c.querySelector('span');
+      if (countSpan) countSpan.textContent = matches.toString();
+      
+      c.disabled = matches === 0 && activeDom !== dom;
+      c.style.opacity = (matches === 0 && activeDom !== dom) ? '0.4' : '1';
     });
     
     const countLabel = content.querySelector('#catalog-count-label');
