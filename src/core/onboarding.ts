@@ -20,11 +20,11 @@ const COMPLEMENT: Record<string, CognitiveDomain[]> = {
 
 const DAY_LABELS = [
   'Знакомство с форматом',
-  'Входим в ритм',
+  'Входим в ритм (адаптация)',
   'Расширяем зону фокуса',
-  'Лёгкий день для отдыха',
-  'Усиление слабой зоны',
-  'Сборка навыков',
+  'Лёгкий день (отдых важен)',
+  'Усиление слабых мест',
+  'Синтез навыков',
   'Первый полный ритуал'
 ];
 
@@ -288,6 +288,6 @@ export function abilityCaption(snapshot: ProbeSnapshot): string {
 export function firstWeekPreviewLines(plan: FirstWeekPlan): string[] {
   return plan.days.map((d) => {
     const minutes = Math.round(d.durationSec / 60);
-    return `День ${d.day} · ${d.label} · ${minutes} мин`;
+    return `<span style="font-weight: 600; min-width: 55px; display: inline-block;">День ${d.day}</span> &middot; <span style="opacity: 0.85;">${minutes} мин</span> &middot; ${d.label}`;
   });
 }

@@ -253,14 +253,14 @@ export function renderProgress(container: HTMLElement) {
     if (achSection) {
       const userAchievements = profile.achievements || [];
       if (userAchievements.length > 0) {
-        let html = '<h3 style="margin-bottom: 16px;">Достижения</h3><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px;">';
+        let html = '<h3 style="margin-bottom: 16px;">Достижения</h3><div role="list" aria-label="Ваши достижения" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 12px;">';
         userAchievements.forEach(id => {
           const def = ACHIEVEMENTS_DEF.find(a => a.id === id);
           if (def) {
             html += `
-              <div class="surface" style="padding: 12px 8px; text-align: center; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);">
-                <div style="font-size: 32px; margin-bottom: 4px;">${def.icon}</div>
-                <div style="font-size: 11px; font-weight: 700; line-height: 1.1;">${def.name}</div>
+              <div role="listitem" aria-label="Достижение: ${def.name}. ${def.description}" class="surface" style="padding: 12px 8px; text-align: center; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);">
+                <div aria-hidden="true" style="font-size: 32px; margin-bottom: 4px;">${def.icon}</div>
+                <div aria-hidden="true" style="font-size: 11px; font-weight: 700; line-height: 1.1;">${def.name}</div>
               </div>
             `;
           }

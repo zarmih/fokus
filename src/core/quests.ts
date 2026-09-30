@@ -21,23 +21,23 @@ export interface Quest {
 
 const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
   // Easy
-  { id: 'e1', type: 'blocks', difficulty: 'easy', target: 2, title: 'Разминка', description: 'Завершите 2 блока', xpReward: 30 },
-  { id: 'e2', type: 'accuracy', difficulty: 'easy', target: 80, title: 'Точность', description: 'Наберите 80% точности в любом блоке', xpReward: 30 },
-  { id: 'e3', type: 'score', difficulty: 'easy', target: 300, title: 'Первые шаги', description: 'Наберите суммарно 300 очков', xpReward: 30 },
-  { id: 'e4', type: 'domain', difficulty: 'easy', target: 1, domainId: 'memory', title: 'Тренировка памяти', description: 'Пройдите 1 игру на память', xpReward: 40 },
-  { id: 'e5', type: 'domain', difficulty: 'easy', target: 1, domainId: 'attention', title: 'Фокус внимания', description: 'Пройдите 1 игру на внимание', xpReward: 40 },
+  { id: 'e1', type: 'blocks', difficulty: 'easy', target: 2, title: 'Мягкий старт', description: 'Пройдите 2 блока в комфортном темпе', xpReward: 30 },
+  { id: 'e2', type: 'accuracy', difficulty: 'easy', target: 80, title: 'Внимание к деталям', description: 'Постарайтесь достичь 80% точности, не спеша', xpReward: 30 },
+  { id: 'e3', type: 'score', difficulty: 'easy', target: 300, title: 'Первые шаги', description: 'Соберите 300 очков за сессию без давления на результат', xpReward: 30 },
+  { id: 'e4', type: 'domain', difficulty: 'easy', target: 1, domainId: 'memory', title: 'Память', description: 'Пройдите 1 игру на память, когда будет удобно', xpReward: 40 },
+  { id: 'e5', type: 'domain', difficulty: 'easy', target: 1, domainId: 'attention', title: 'Внимание', description: 'Уделите немного времени 1 игре на фокус', xpReward: 40 },
   // Medium
-  { id: 'm1', type: 'blocks', difficulty: 'medium', target: 3, title: 'Погружение', description: 'Завершите 3 блока', xpReward: 60 },
-  { id: 'm2', type: 'accuracy', difficulty: 'medium', target: 90, title: 'Снайпер', description: 'Достигните точности 90% в любом блоке', xpReward: 60 },
-  { id: 'm3', type: 'score', difficulty: 'medium', target: 500, title: 'Уверенный темп', description: 'Наберите суммарно 500 очков', xpReward: 60 },
-  { id: 'm4', type: 'diversity', difficulty: 'medium', target: 2, title: 'Разносторонний', description: 'Сыграйте в 2 разные игры', xpReward: 70 },
-  { id: 'm5', type: 'perfect', difficulty: 'medium', target: 1, title: 'Безупречность', description: 'Завершите блок со 100% точностью', xpReward: 80 },
-  { id: 'm6', type: 'domain', difficulty: 'medium', target: 2, domainId: 'math', title: 'Быстрый счет', description: 'Пройдите 2 математические игры', xpReward: 70 },
+  { id: 'm1', type: 'blocks', difficulty: 'medium', target: 3, title: 'Погружение', description: 'Пройдите 3 блока, если чувствуете силы', xpReward: 60 },
+  { id: 'm2', type: 'accuracy', difficulty: 'medium', target: 90, title: 'Точность', description: 'Сделайте акцент на безошибочность (90% в одном блоке)', xpReward: 60 },
+  { id: 'm3', type: 'score', difficulty: 'medium', target: 500, title: 'Уверенный темп', description: 'Пройдите упражнения на 500 очков в своём ритме', xpReward: 60 },
+  { id: 'm4', type: 'diversity', difficulty: 'medium', target: 2, title: 'Разносторонний фокус', description: 'Попробуйте 2 разных формата упражнений', xpReward: 70 },
+  { id: 'm5', type: 'perfect', difficulty: 'medium', target: 1, title: 'Концентрация', description: 'Попробуйте пройти 1 блок без ошибок', xpReward: 80 },
+  { id: 'm6', type: 'domain', difficulty: 'medium', target: 2, domainId: 'math', title: 'Счёт', description: 'Уделите время двум математическим играм', xpReward: 70 },
   // Hard
-  { id: 'h1', type: 'blocks', difficulty: 'hard', target: 4, title: 'Основательный подход', description: 'Завершите 4 блока', xpReward: 150 },
-  { id: 'h2', type: 'score', difficulty: 'hard', target: 600, title: 'Отличный результат', description: 'Наберите суммарно 600 очков', xpReward: 150 },
-  { id: 'h3', type: 'perfect', difficulty: 'hard', target: 2, title: 'Идеал', description: 'Завершите 2 блока со 100% точностью', xpReward: 200 },
-  { id: 'h4', type: 'accuracy', difficulty: 'hard', target: 95, title: 'Хирург', description: 'Достигните точности 95% в любом блоке', xpReward: 120 }
+  { id: 'h1', type: 'blocks', difficulty: 'hard', target: 4, title: 'Объёмная сессия', description: 'Пройдите 4 блока (только если есть настроение)', xpReward: 150 },
+  { id: 'h2', type: 'score', difficulty: 'hard', target: 600, title: 'Отличный результат', description: 'Наберите 600 очков, наслаждаясь процессом', xpReward: 150 },
+  { id: 'h3', type: 'perfect', difficulty: 'hard', target: 2, title: 'Глубокий фокус', description: 'Постарайтесь пройти 2 блока без ошибок', xpReward: 200 },
+  { id: 'h4', type: 'accuracy', difficulty: 'hard', target: 95, title: 'Филигранность', description: 'Достигните 95% точности в одном блоке, не торопясь', xpReward: 120 }
 ];
 
 function getTodayStr() {
@@ -92,8 +92,8 @@ export function getDailyQuests(): Quest[] {
     } else if (ds.status === 'active' && ds.current > 0 && ds.current % 3 === 0) {
       selected[1] = {
         id: 'streak_bonus',
-        title: 'Стабильность',
-        description: `Завершите 2 блока`,
+        title: 'Регулярность',
+        description: `Пройдите 2 блока для поддержания ритма, без лишнего давления`,
         type: 'blocks',
         difficulty: 'medium',
         target: 2,

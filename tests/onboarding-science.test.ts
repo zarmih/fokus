@@ -61,7 +61,7 @@ describe('First-week ritual', () => {
     expect(missed).toBe(2);
     const today = getTodayRitual(plan, '2026-09-14', [{ date: '2026-09-11' }]);
     expect(today.day).toBe(4);
-    expect(today.ritualDay?.label).toBe('Лёгкий день для отдыха');
+    expect(today.ritualDay?.label).toBe('Лёгкий день (отдых важен)');
   });
 
   test('week is complete after 7 calendar days', () => {
