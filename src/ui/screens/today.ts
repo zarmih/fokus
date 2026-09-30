@@ -286,7 +286,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Загрузка</div>
         <h3>Собираем план...</h3>
         <p>Fokus анализирует вашу активность.</p>
-        <button class="btn-primary" type="button" disabled aria-disabled="true">Подождите</button>
+        <button class="btn-primary" type="button" disabled aria-disabled="true" style="width: 100%;">Подождите</button>
       </div>
     `;
   } else if (errorState) {
@@ -295,7 +295,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Ошибка</div>
         <h3>Что-то пошло не так</h3>
         <p>Не удалось составить персональную сессию. Попробуйте обновить страницу.</p>
-        <button id="btn-retry" class="btn-secondary" type="button">Обновить</button>
+        <button id="btn-retry" class="btn-secondary" type="button" style="width: 100%;">Обновить</button>
       </div>
     `;
   } else if (!navigator.onLine) {
@@ -313,7 +313,10 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">${spark.title}</div>
         <h3>Калибровка уровня</h3>
         <p class="workout-coach-insight">${spark.body}</p>
-        <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
+        <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
+          <span>Пройти калибровку</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
       </div>
     `;
   } else if (unfinishedSession) {
@@ -331,7 +334,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-chips" role="list" aria-label="Оставшиеся упражнения" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>Продолжить тренировку</span>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         </button>
       </div>
     `;
@@ -342,7 +345,7 @@ export function renderToday(container: HTMLElement) {
         <h3>План выполнен</h3>
         ${trendChipHtml}
         <p class="workout-coach-insight">${spark.body}</p>
-        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
+        <button id="btn-start" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">Ещё одна сессия</button>
       </div>
     `;
   } else if (noPlanState) {
@@ -351,7 +354,7 @@ export function renderToday(container: HTMLElement) {
         <div class="workout-kicker">Отдых</div>
         <h3>На сегодня всё</h3>
         <p>Fokus рекомендует полный отдых или пока нет подходящих упражнений.</p>
-        <button class="btn-secondary" type="button" disabled aria-disabled="true">Сессия недоступна</button>
+        <button class="btn-secondary" type="button" disabled aria-disabled="true" style="width: 100%;">Сессия недоступна</button>
       </div>
     `;
   } else if (snap.ritual.active) {
