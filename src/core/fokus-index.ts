@@ -56,7 +56,7 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
       phase: 'empty',
       explain: {
         state: 'Недостаточно данных.',
-        action: 'Сбор статистики начнётся после первой сессии. Fokus не рисует фиктивные стартовые баллы — только реальная статистика.'
+        action: 'Сбор статистики начнётся после первой сессии. Fokus Index (индекс формы) формируется на основе ваших реальных результатов, а не демографических ожиданий. Пройдите первую тренировку, чтобы начать калибровку.'
       }
     };
   }
@@ -75,11 +75,11 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   if (coverage < 3) {
     phase = 'calibrating';
     stateStr = `Открыто ${coverage} из 5 областей.`;
-    actionStr = `Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : 'области'} для открытия индекса. Fokus собирает честную базу перед первой оценкой.`;
+    actionStr = `Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : (3 - coverage === 2 ? 'области' : 'областей')} для расчёта индекса. Fokus накапливает статистику, чтобы первая оценка была объективной, а не случайной.`;
   } else {
     phase = 'established';
     stateStr = `Уверенность ${confidence}%.`;
-    actionStr = 'Индекс — снимок формы на сегодня. Базируется только на фактах (скорость и точность).';
+    actionStr = 'Индекс — снимок формы на сегодня. Оценка опирается исключительно на подтверждённые данные: точность и скорость реакций.';
   }
 
   return {
@@ -111,7 +111,7 @@ export function indexDelta(current: number, previous: number | null, daysAgo: nu
   }
   const delta = current - previous;
   const labelSuffix = daysAgo === 7 ? 'прошлой недели' : 'вчера';
-  if (Math.abs(delta) <= 8) return { delta, label: `на уровне ${labelSuffix}` };
+  if (Math.abs(delta) <= 8) return { delta, label: `естественные колебания (${labelSuffix})` };
   if (delta > 8) return { delta, label: `+${delta} ${labelSuffix === 'вчера' ? 'ко вчерашнему дню' : 'к прошлой неделе'}` };
   return { delta, label: `${delta} ${labelSuffix === 'вчера' ? 'ко вчерашнему дню' : 'к прошлой неделе'}` };
 }

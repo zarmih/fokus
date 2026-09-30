@@ -166,7 +166,7 @@ export function renderProgress(container: HTMLElement) {
 
     const emptyStateHtml = dSkills.length === 0 ? `
       <div style="padding: 16px 12px; text-align: center; color: var(--muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-top: 12px;">
-        Пока нет данных. Пройдите упражнения на ${domainLabel(d.id).toLowerCase()}, чтобы открыть аналитику навыков.
+        Пока нет данных. Тренируйте «${domainLabel(d.id).toLowerCase()}», чтобы открыть честную аналитику по навыкам.
       </div>
     ` : '';
 
@@ -363,9 +363,9 @@ export function renderProgress(container: HTMLElement) {
   const fiExplainHtml = `
     <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
       <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
-      <p style="margin: 0 0 8px 0; color: var(--muted);">Это интегральный срез вашей текущей тренировочной формы, основанный строго на скорости и точности.</p>
-      <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> показывает, насколько полны данные: она растёт с охватом областей (${fi.coverage} из 5) и освоением каталога (${fi.depth.explored}).</p>
-      <p style="margin: 0; color: var(--muted);">Нормально, что индекс колеблется. Это маркер вашей сегодняшней концентрации, а не приговор способностям.</p>
+      <p style="margin: 0 0 8px 0; color: var(--muted);">Это прозрачный индикатор вашей текущей тренировочной формы. Он не пытается выставить вам оценку, а лишь отражает реальную скорость и точность в упражнениях.</p>
+      <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> показывает полноту собранных данных: показатель растёт по мере охвата разных областей (${fi.coverage} из 5) и освоения каталога (${fi.depth.explored}).</p>
+      <p style="margin: 0; color: var(--muted);">Небольшие колебания индекса — нормальное явление. Они зависят от усталости, качества сна и фокуса в конкретный день. Мы показываем тренды без прикрас и искусственного завышения.</p>
     </div>
   `;
 
@@ -393,7 +393,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-value" style="font-size: 24px; color: var(--text); opacity: 0.8; margin: 8px 0;">Калибровка...</div>
         <div class="fi-meta" style="margin-bottom: 12px; color: var(--text); opacity: 0.9;">${fi.explain.state}<br>${fi.explain.action}</div>
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Пока данных мало для оценки — индекс скрыт, а не угадан.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Пока данных мало для оценки. Индекс временно скрыт, так как мы не придумываем результаты, а ждём реальных метрик.</p>
         ${btnExplain}
         ${fiExplainHtml}
       </div>

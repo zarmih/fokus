@@ -1,0 +1,116 @@
+
+> fokus@0.5.0 test
+> vitest run
+
+
+ RUN  v3.2.7 /workspace/developer/github/fokus-wt/A4
+
+ ❯ tests/progress-index-ui.test.ts (2 tests | 1 failed) 326ms
+   × progress index UI explains index honestly without junk metrics 260ms
+     → expected '\n    Перейти к содержимому\n    \n  …' to match /тренировочную форму|фактические резул…/
+   ✓ progress index UI shows empty state properly 64ms
+ ✓ tests/today.test.ts (12 tests) 729ms
+ ✓ tests/trainers-ui.test.ts (2 tests) 1017ms
+   ✓ renderTrainers uses honest counts and groups domains including All  598ms
+   ✓ renderTrainers filter click toggles domain groups and updates count  417ms
+ ✓ tests/catalog-discovery.test.ts (2 tests) 1034ms
+   ✓ Catalog Discovery > renders domain chips including All filter  637ms
+   ✓ Catalog Discovery > domain chip toggles groups and updates count  396ms
+ ✓ tests/a11y.test.ts (7 tests) 874ms
+   ✓ trainer cards are buttons and filters expose pressed state  656ms
+ ✓ tests/motion.test.ts (13 tests) 848ms
+   ✓ screen wiring > catalog cards get press physics  552ms
+ ✓ tests/weekly-review.test.ts (7 tests) 266ms
+ ✓ tests/simulation.test.ts (1 test) 2106ms
+   ✓ 30-Day Multi-Day Simulation: Divergence of Plans for Different Latent Profiles  2105ms
+ ✓ tests/habit-streak-ui.test.ts (6 tests) 233ms
+ ✓ tests/privacy-ui.test.ts (5 tests) 458ms
+ ✓ tests/transfer-ui.test.ts (4 tests) 362ms
+ ✓ tests/closed-loop.test.ts (8 tests) 507ms
+ ✓ tests/settings-sync.test.ts (4 tests) 477ms
+ ✓ tests/progress-retention.test.ts (2 tests) 325ms
+ ✓ tests/result.test.ts (9 tests) 493ms
+ ✓ tests/settings-adaptive-depth.test.ts (1 test) 277ms
+ ✓ tests/duel-screen.test.ts (2 tests) 126ms
+ ✓ tests/onboarding.test.ts (2 tests) 264ms
+ ✓ tests/session-recovery-ui.test.ts (2 tests) 280ms
+ ✓ tests/settings-soundscape.test.ts (3 tests) 375ms
+ ✓ tests/retention.test.ts (12 tests) 41ms
+ ✓ tests/fatigue.test.ts (1 test) 109ms
+ ✓ tests/recovery.test.ts (10 tests) 37ms
+ ✓ tests/offline-banner.test.ts (1 test) 25ms
+ ✓ tests/adaptive-engine.test.ts (24 tests) 75ms
+ ✓ tests/storage.test.ts (22 tests) 86ms
+ ✓ tests/continuity.test.ts (14 tests) 35ms
+ ✓ tests/streak.test.ts (17 tests) 76ms
+ ✓ tests/audio.test.ts (7 tests) 50ms
+ ✓ tests/calibration.test.ts (16 tests) 23ms
+ ✓ tests/offline-sync.test.ts (20 tests) 17ms
+ ✓ tests/sync-queue.test.ts (3 tests) 55ms
+ ✓ tests/catalog.test.ts (4 tests) 15ms
+ ✓ tests/coach-intel.test.ts (17 tests) 52ms
+ ✓ tests/quests.test.ts (2 tests) 52ms
+ ✓ tests/duel-intel.test.ts (19 tests) 29ms
+ ✓ tests/coach.test.ts (6 tests) 39ms
+ ✓ tests/achievements.test.ts (2 tests) 35ms
+ ✓ tests/session-quality.test.ts (9 tests) 51ms
+ ✓ tests/ritual-targeter.test.ts (6 tests) 15ms
+ ✓ tests/transfer.test.ts (7 tests) 9ms
+ ✓ tests/onboarding-science.test.ts (8 tests) 27ms
+ ✓ tests/privacy.test.ts (16 tests) 68ms
+ ✓ tests/soundscape.test.ts (22 tests) 27ms
+ ✓ tests/transfer-insights.test.ts (17 tests) 31ms
+ ✓ tests/e2e_scenarios.test.ts (6 tests) 20ms
+ ✓ tests/haptics.test.ts (6 tests) 8ms
+ ✓ src/exercises/helix-flip/engine.test.ts (2 tests) 3ms
+ ✓ tests/vowel-count.test.ts (1 test) 7ms
+ ✓ tests/selectors.test.ts (3 tests) 5ms
+ ✓ tests/spaced-difficulty.test.ts (6 tests) 17ms
+ ✓ src/exercises/ember-lane/engine.test.ts (1 test) 12ms
+ ✓ tests/pwa-install.test.ts (3 tests) 16ms
+ ✓ tests/pulley.test.ts (7 tests) 24ms
+ ✓ tests/ability-trajectory.test.ts (5 tests) 5ms
+ ✓ tests/mirror-match.test.ts (1 test) 2ms
+ ✓ tests/theme.test.ts (1 test) 5ms
+ ✓ tests/adaptive.test.ts (7 tests) 32ms
+ ✓ src/exercises/digit-filter/engine.test.ts (1 test) 23ms
+ ✓ tests/scoring.test.ts (1 test) 2ms
+ ✓ tests/pairs.test.ts (2 tests) 22ms
+ ✓ tests/fokus-index.test.ts (5 tests) 27ms
+ ✓ tests/registry.test.ts (3 tests) 29ms
+ ✓ tests/swings.test.ts (4 tests) 15ms
+ ✓ tests/pattern-next.test.ts (2 tests) 3ms
+ ✓ tests/area-compare.test.ts (1 test) 2ms
+ ✓ tests/session-builder.test.ts (3 tests) 27ms
+ ✓ tests/stroop.test.ts (3 tests) 3ms
+ ✓ tests/switch-rule.test.ts (5 tests) 3ms
+ ✓ src/exercises/word-color-link/engine.test.ts (1 test) 2ms
+ ✓ tests/sw.test.ts (2 tests) 21ms
+ ✓ tests/color-frequency.test.ts (2 tests) 5ms
+ ✓ tests/target-shade.test.ts (1 test) 3ms
+ ✓ tests/word-unscramble.test.ts (2 tests) 3ms
+ ✓ tests/xp.test.ts (1 test) 3ms
+ ✓ tests/grid-memory.test.ts (4 tests) 6ms
+ ✓ tests/dominant-color.test.ts (1 test) 3ms
+ ✓ tests/shape-equation.test.ts (1 test) 3ms
+ ✓ tests/time-estimation.test.ts (2 tests) 16ms
+ ✓ tests/math-sprint.test.ts (2 tests) 3ms
+ ✓ tests/odd-one.test.ts (1 test) 3ms
+ ✓ tests/letter-case-match.test.ts (1 test) 5ms
+ ✓ tests/even-odd-math.test.ts (1 test) 11ms
+ ✓ tests/sequence.test.ts (3 tests) 8ms
+ ✓ src/exercises/triple-match/engine.test.ts (1 test) 17ms
+ ✓ tests/shape-color-target.test.ts (1 test) 2ms
+ ✓ tests/letter-number-switch.test.ts (1 test) 7ms
+ ✓ tests/shape-sides-match.test.ts (1 test) 3ms
+ ✓ tests/word-length-sort.test.ts (1 test) 2ms
+ ✓ tests/hidden-rule.test.ts (1 test) 2ms
+ ✓ tests/vowel-consonant-count.test.ts (1 test) 7ms
+ ✓ tests/season-match.test.ts (1 test) 6ms
+ ✓ tests/symbol-match.test.ts (1 test) 2ms
+
+ Test Files  1 failed | 92 passed (93)
+      Tests  1 failed | 488 passed (489)
+   Start at  20:19:29
+   Duration  36.58s (transform 3.68s, setup 0ms, collect 41.72s, tests 12.91s, environment 117.04s, prepare 19.53s)
+
