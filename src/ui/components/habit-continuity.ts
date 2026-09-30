@@ -106,11 +106,11 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
   }
 
   if (streak.status === 'soft_return') {
-    return `Небольшая пауза — это нормально. Счётчик дней обнулился, но навык остался. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы вернуться в ритм.${zoneNote}`;
+    return `Небольшая пауза — это нормально. Навык остаётся с вами. Ваш следующий шаг: ${familiarPhrase(ritual)}, чтобы вернуться в ритм.${zoneNote}`;
   }
 
   if (streak.status === 'fresh_start') {
-    return `Новый заход. Счётчик дней обнулился, но накопленный навык остаётся с вами. Следующий шаг: пройдите сегодняшнюю сессию в комфортном темпе.${zoneNote}`;
+    return `Новый заход. Накопленный навык остаётся с вами. Следующий шаг: пройдите сегодняшнюю сессию в комфортном темпе.${zoneNote}`;
   }
 
   if (streak.status === 'returned') {

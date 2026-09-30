@@ -316,25 +316,6 @@ export function renderToday(container: HTMLElement) {
         <button id="btn-start" class="btn-primary" type="button">Пройти калибровку</button>
       </div>
     `;
-  } else if (playedToday) {
-    actionHtml = `
-      <div class="workout-card done fx-celebrate coach-${spark.tone}" role="region" aria-label="Тренировка выполнена">
-        <div class="workout-kicker">${spark.title}</div>
-        <h3>План выполнен</h3>
-        ${trendChipHtml}
-        <p class="workout-coach-insight">${spark.body}</p>
-        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
-      </div>
-    `;
-  } else if (noPlanState) {
-    actionHtml = `
-      <div class="workout-card done fx-enter" role="region" aria-label="Сессия недоступна" aria-live="polite">
-        <div class="workout-kicker">Отдых</div>
-        <h3>На сегодня всё</h3>
-        <p>Fokus рекомендует полный отдых или пока нет подходящих упражнений.</p>
-        <button class="btn-secondary" type="button" disabled aria-disabled="true">Сессия недоступна</button>
-      </div>
-    `;
   } else if (unfinishedSession) {
     actionHtml = `
       <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-labelledby="cta-resume-title">
@@ -352,6 +333,25 @@ export function renderToday(container: HTMLElement) {
           <span>Продолжить тренировку</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
+      </div>
+    `;
+  } else if (playedToday) {
+    actionHtml = `
+      <div class="workout-card done fx-celebrate coach-${spark.tone}" role="region" aria-label="Тренировка выполнена">
+        <div class="workout-kicker">${spark.title}</div>
+        <h3>План выполнен</h3>
+        ${trendChipHtml}
+        <p class="workout-coach-insight">${spark.body}</p>
+        <button id="btn-start" class="btn-secondary" type="button">Ещё одна сессия</button>
+      </div>
+    `;
+  } else if (noPlanState) {
+    actionHtml = `
+      <div class="workout-card done fx-enter" role="region" aria-label="Сессия недоступна" aria-live="polite">
+        <div class="workout-kicker">Отдых</div>
+        <h3>На сегодня всё</h3>
+        <p>Fokus рекомендует полный отдых или пока нет подходящих упражнений.</p>
+        <button class="btn-secondary" type="button" disabled aria-disabled="true">Сессия недоступна</button>
       </div>
     `;
   } else if (snap.ritual.active) {
