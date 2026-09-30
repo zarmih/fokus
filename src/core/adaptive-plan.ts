@@ -2,6 +2,7 @@ import { registry } from '../exercises/registry';
 import { buildAdaptivePlan } from './session-builder';
 import { storage } from './storage';
 import { loadContinuitySnapshot, ritualDurationSec, applyGentleReturnBias } from './continuity';
+import { rotatingTipDomain } from './transfer';
 import {
   applyObservation,
   catalogFromManifests,
@@ -54,7 +55,8 @@ export function planForNow(opts?: {
     excludeIds: Array.from(toExclude),
     nowMs: opts?.nowMs,
     programWeek: weekIndex,
-    programDay: dayInWeek
+    programDay: dayInWeek,
+    focusOfTheWeek: rotatingTipDomain(new Date(opts?.nowMs ?? Date.now()))
   });
 
   const biased = applyGentleReturnBias(

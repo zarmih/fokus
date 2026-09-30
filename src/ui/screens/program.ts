@@ -98,10 +98,12 @@ export function renderProgram(container: HTMLElement) {
     coachMessage = 'Мягкий возврат после паузы. Знакомые задания для лёгкого старта.';
   } else if (ritual.snapshot.gate.active) {
     coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
-  } else if (focusDomainsText) {
-    coachMessage = isSparseModel 
+  } else if (isSparseModel) {
+    coachMessage = focusDomainsText
       ? `Пока мы собираем данные. Сегодня тренируем: ${focusDomainsText}.`
-      : `План на день ${dayInWeek} построен по истории сессий. Акцент на: ${focusDomainsText}.`;
+      : `Пока мы собираем данные для точной настройки вашей программы.`;
+  } else if (focusDomainsText) {
+    coachMessage = `План на день ${dayInWeek} построен по истории сессий. Акцент на: ${focusDomainsText}.`;
   }
 
   let hero = '';
@@ -168,7 +170,7 @@ export function renderProgram(container: HTMLElement) {
               return `<div aria-label="${ariaLabel}" style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
-          <p class="muted" style="font-size:13px; margin:0;">${isSparseModel ? 'Для точной настройки сложности завершите первую неделю.' : `День ${dayInWeek}: адаптивный маршрут сбалансирован.`}</p>
+          <p class="muted" style="font-size:13px; margin:0;">${weekIndex === 1 ? 'Для точной настройки сложности завершите первую неделю.' : `Неделя ${weekIndex}, день ${dayInWeek}: адаптивный маршрут сбалансирован.`}</p>
         </div>
         <div class="surface" style="margin-bottom:16px;">
           <h3>Ваш ритм</h3>
