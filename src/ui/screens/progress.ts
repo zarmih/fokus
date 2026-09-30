@@ -259,7 +259,7 @@ export function renderProgress(container: HTMLElement) {
           if (def) {
             html += `
               <div class="surface" style="padding: 12px 8px; text-align: center; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);">
-                <div style="font-size: 32px; margin-bottom: 4px; filter: drop-shadow(0 2px 4px rgba(16, 185, 129, 0.4));">${def.icon}</div>
+                <div style="font-size: 32px; margin-bottom: 4px;">${def.icon}</div>
                 <div style="font-size: 11px; font-weight: 700; line-height: 1.1;">${def.name}</div>
               </div>
             `;
@@ -371,29 +371,29 @@ export function renderProgress(container: HTMLElement) {
 
   const btnExplain = `<button id="btn-explain-index" class="btn-text" style="font-size: 11px; color: var(--accent); padding: 4px 0; margin-top: 8px; cursor: pointer; border: none; background: transparent; display: inline-block;" aria-expanded="false" aria-controls="fi-explainer">Как считается индекс?</button>`;
 
-  const fiHtml = fi.coverage >= 3 ? `
+  const fiHtml = fi.phase === 'established' ? `
     <div class="fi-hero">
       <div class="fi-copy">
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value">${fi.value}</div>
-        <div class="fi-meta">${fi.coverage} из 5 областей · уверенность ${fi.confidence}%</div>
+        <div class="fi-meta">${fi.coverage} из 5 областей · ${fi.explain.state}</div>
         ${pbNote}
         ${sparkHtml}
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс — снимок формы сегодня, не рейтинг личности.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">${fi.explain.action}</p>
         ${btnExplain}
         ${fiExplainHtml}
       </div>
       <div class="fi-radar" aria-label="Диаграмма Фокус Индекса по областям">${renderRadarChart(fi.byDomain, { size: 200, max: 1200 })}</div>
     </div>
-  ` : fi.coverage > 0 ? `
+  ` : fi.phase === 'calibrating' ? `
     <div class="fi-hero sparse" style="display: flex; align-items: center; justify-content: center; text-align: center; padding: 32px 16px;">
       <div class="fi-copy" style="width: 100%;">
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value" style="font-size: 24px; color: var(--text); opacity: 0.8; margin: 8px 0;">Калибровка...</div>
-        <div class="fi-meta" style="margin-bottom: 12px; color: var(--text); opacity: 0.9;">Открыто ${fi.coverage} из 5 областей.<br>Пройдите упражнения ещё в ${3 - fi.coverage} ${3 - fi.coverage === 1 ? 'области' : 'областях'}, чтобы увидеть индекс.</div>
+        <div class="fi-meta" style="margin-bottom: 12px; color: var(--text); opacity: 0.9;">${fi.explain.state}<br>${fi.explain.action}</div>
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Пока данных мало для честной оценки — индекс скрыт, а не угадан.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Пока данных мало для оценки — индекс скрыт, а не угадан.</p>
         ${btnExplain}
         ${fiExplainHtml}
       </div>
@@ -403,9 +403,9 @@ export function renderProgress(container: HTMLElement) {
       <div class="fi-copy" style="width: 100%;">
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value" style="font-size: 24px; color: var(--muted); margin: 8px 0;">—</div>
-        <div class="fi-meta" style="color: var(--muted);">Недостаточно данных. Несколько сессий в разных областях дадут стартовую оценку формы — без выдуманных цифр.</div>
+        <div class="fi-meta" style="color: var(--muted);">${fi.explain.state}</div>
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">Без выдуманных цифр — только фактические результаты в тренажёрах.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">${fi.explain.action}</p>
         ${btnExplain}
         ${fiExplainHtml}
       </div>
@@ -440,7 +440,7 @@ export function renderProgress(container: HTMLElement) {
         <span>Прогресс</span>
         <span>${goal.progress} / ${goal.target}</span>
       </div>
-      <div class="scale-track" style="height: 6px; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${goalProgressPct}%; background: var(--dom-${goal.domain}); box-shadow: 0 0 8px var(--dom-${goal.domain});"></div></div>
+      <div class="scale-track" style="height: 6px; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${goalProgressPct}%; background: var(--dom-${goal.domain});"></div></div>
     </div>
   `;
 
