@@ -41,9 +41,9 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 1 ? `
           <h1 id="onboard-heading">Главная цель</h1>
           <p class="onboard-lead">Выберите фокус ежедневной сессии. Вы сможете изменить цель позже.</p>
-          <div class="goal-grid" role="group" aria-label="Главная цель">
+          <div class="goal-grid" role="radiogroup" aria-label="Главная цель">
             ${GOAL_COPY.map((g) => `
-              <button class="goal-card ${selectedGoal === g.id ? 'active' : ''}" data-goal="${g.id}" type="button" aria-pressed="${selectedGoal === g.id ? 'true' : 'false'}">
+              <button class="goal-card ${selectedGoal === g.id ? 'active' : ''}" data-goal="${g.id}" type="button" role="radio" aria-checked="${selectedGoal === g.id ? 'true' : 'false'}">
                 <div class="goal-title">${g.title}</div>
                 <div class="goal-desc">${g.desc}</div>
               </button>
@@ -53,10 +53,10 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 2 ? `
           <h1 id="onboard-heading">Сколько времени в день?</h1>
           <p class="onboard-lead">Для устойчивого эффекта лучше заниматься понемногу, но каждый день.</p>
-          <div class="time-stack" role="group" aria-label="Длительность сессии">
-            <button class="btn-time ${selectedMin === 5 ? 'btn-primary' : 'btn-secondary'}" data-m="5" type="button" aria-pressed="${selectedMin === 5}">5 минут · ежедневный минимум</button>
-            <button class="btn-time ${selectedMin === 8 ? 'btn-primary' : 'btn-secondary'}" data-m="8" type="button" aria-pressed="${selectedMin === 8}">8 минут · сбалансированный темп</button>
-            <button class="btn-time ${selectedMin === 12 ? 'btn-primary' : 'btn-secondary'}" data-m="12" type="button" aria-pressed="${selectedMin === 12}">12 минут · глубокое погружение</button>
+          <div class="time-stack" role="radiogroup" aria-label="Длительность сессии">
+            <button class="btn-time ${selectedMin === 5 ? 'btn-primary' : 'btn-secondary'}" data-m="5" type="button" role="radio" aria-checked="${selectedMin === 5}">5 минут · ежедневный минимум</button>
+            <button class="btn-time ${selectedMin === 8 ? 'btn-primary' : 'btn-secondary'}" data-m="8" type="button" role="radio" aria-checked="${selectedMin === 8}">8 минут · сбалансированный темп</button>
+            <button class="btn-time ${selectedMin === 12 ? 'btn-primary' : 'btn-secondary'}" data-m="12" type="button" role="radio" aria-checked="${selectedMin === 12}">12 минут · глубокое погружение</button>
           </div>
         ` : ''}
         ${step === 3 ? `
@@ -67,7 +67,8 @@ export function renderOnboarding(container: HTMLElement) {
           
           <h2 style="margin-top: 32px; font-size: 1.25rem;">Напоминания</h2>
           <p class="onboard-lead" style="margin-bottom: 12px;">Уведомления помогут не забывать о тренировках. Их всегда можно отключить.</p>
-          <div class="time-stack" role="radiogroup" aria-label="Время напоминания">
+          <fieldset class="time-stack" style="border: none; padding: 0; margin: 0;">
+            <legend class="sr-only">Время напоминания</legend>
             <label class="btn-time ${selectedReminderHour === 9 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
               <span>В 09:00 (Утро)</span>
               <input type="radio" name="onboard-reminder" value="9" class="sr-only" ${selectedReminderHour === 9 ? 'checked' : ''} />
@@ -80,7 +81,7 @@ export function renderOnboarding(container: HTMLElement) {
               <span>Не нужно</span>
               <input type="radio" name="onboard-reminder" value="null" class="sr-only" ${selectedReminderHour === null ? 'checked' : ''} />
             </label>
-          </div>
+          </fieldset>
 
           <div class="onboard-week-preview" style="margin-top: 24px;" aria-live="polite">
             <h2 style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">План на первую неделю:</h2>

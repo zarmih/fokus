@@ -229,7 +229,7 @@ export function renderToday(container: HTMLElement) {
       ${quests.map((q: any) => {
         const pct = Math.min(100, (q.progress / q.target) * 100);
         const diffLabel = q.difficulty === 'hard' ? 'Сложно' : q.difficulty === 'easy' ? 'Легко' : 'Средне';
-        const diffColor = q.difficulty === 'hard' ? 'var(--warn)' : q.difficulty === 'easy' ? 'var(--ok)' : 'var(--accent)';
+        const diffColor = q.difficulty === 'hard' ? 'var(--accent-2)' : q.difficulty === 'easy' ? 'var(--ok)' : 'var(--accent)';
         return `
           <div class="quest-row" style="margin-bottom: 16px;" role="group" aria-label="${q.title}. ${q.description}. ${q.completed ? 'Выполнено' : `Прогресс ${q.progress} из ${q.target}`}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">

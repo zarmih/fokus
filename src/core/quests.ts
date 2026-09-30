@@ -35,7 +35,7 @@ const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
   { id: 'm6', type: 'domain', difficulty: 'medium', target: 2, domainId: 'math', title: 'Быстрый счет', description: 'Пройдите 2 математические игры', xpReward: 70 },
   // Hard
   { id: 'h1', type: 'blocks', difficulty: 'hard', target: 4, title: 'Основательный подход', description: 'Завершите 4 блока', xpReward: 150 },
-  { id: 'h2', type: 'score', difficulty: 'hard', target: 800, title: 'Отличный результат', description: 'Наберите суммарно 500 очков', xpReward: 150 },
+  { id: 'h2', type: 'score', difficulty: 'hard', target: 600, title: 'Отличный результат', description: 'Наберите суммарно 600 очков', xpReward: 150 },
   { id: 'h3', type: 'perfect', difficulty: 'hard', target: 2, title: 'Идеал', description: 'Завершите 2 блока со 100% точностью', xpReward: 200 },
   { id: 'h4', type: 'accuracy', difficulty: 'hard', target: 95, title: 'Хирург', description: 'Достигните точности 95% в любом блоке', xpReward: 120 }
 ];

@@ -27,6 +27,10 @@ self.addEventListener('fetch', (event) => {
           cache.put(event.request, response.clone());
           return response;
         });
+      }).catch(() => {
+        if (event.request.mode === 'navigate') {
+          return caches.match('/');
+        }
       });
     })
   );
