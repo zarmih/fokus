@@ -90,7 +90,8 @@ export function renderProgram(container: HTMLElement) {
   const isSparseModel = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3) || isSparse;
   const isPersonalized = profile.calibrated && !isSparseModel;
   const programTitle = isPersonalized ? 'Персональный план' : 'Базовая программа';
-  const subtitle = isPersonalized ? `Программа: день ${playedCount + (playedToday ? 0 : 1)} · Неделя ${weekIndex}` : `Сбор данных: день ${playedCount + (playedToday ? 0 : 1)}`;
+  const dayNum = playedCount + (playedToday ? 0 : 1);
+  const subtitle = (isPersonalized ? 'Программа' : 'Сбор данных') + `: день ${dayNum} · Неделя ${weekIndex}`;
 
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
   if (snapshot.ritual.active) {
@@ -99,8 +100,8 @@ export function renderProgram(container: HTMLElement) {
     coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
   } else if (focusDomainsText) {
     coachMessage = isSparseModel 
-      ? `Для точной адаптации нужно больше данных. Сегодня фокус на: ${focusDomainsText}.`
-      : `План на день ${dayInWeek} построен по истории сессий. Фокус на: ${focusDomainsText}.`;
+      ? `Пока мы собираем данные. Сегодня тренируем: ${focusDomainsText}.`
+      : `План на день ${dayInWeek} построен по истории сессий. Акцент на: ${focusDomainsText}.`;
   }
 
   let hero = '';
@@ -163,7 +164,8 @@ export function renderProgram(container: HTMLElement) {
               const isCurrent = i === activeDayZeroIndexed;
               const bg = isCompleted ? 'var(--ok)' : isCurrent ? 'var(--primary)' : 'rgba(255,255,255,0.05)';
               const color = isCompleted || isCurrent ? '#fff' : 'var(--muted)';
-              return `<div style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
+              const ariaLabel = isCompleted ? `День ${i + 1} завершён` : isCurrent ? `День ${i + 1} сегодня` : `День ${i + 1}`;
+              return `<div aria-label="${ariaLabel}" style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
           <p class="muted" style="font-size:13px; margin:0;">${isSparseModel ? 'Для точной настройки сложности завершите первую неделю.' : `День ${dayInWeek}: адаптивный маршрут сбалансирован.`}</p>

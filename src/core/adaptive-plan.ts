@@ -63,9 +63,16 @@ export function planForNow(opts?: {
     registry.map(c => ({ id: c.manifest.id, domain: c.manifest.domain }))
   );
 
+  const model = currentModel(opts?.nowMs);
+  const honestFocusDomains = (biased.focusDomains || []).filter(fd => {
+    if (fd === profile.primaryGoal) return true;
+    const d = model.domains.find(x => x.domain === fd);
+    return d && d.sources.length >= 3;
+  });
+
   return {
     ...plan,
-    focusDomains: biased.focusDomains,
+    focusDomains: honestFocusDomains,
     items: biased.items as any
   };
 }

@@ -49,7 +49,7 @@ test('sparse history triggers correct weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toBe('Первое знакомство');
+  expect(plan.items[0].reason).toBe('Первое знакомство (сбор данных)');
 });
 
 test('sufficient history triggers normal weak-domain bias copy', () => {
@@ -65,13 +65,9 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
       { domain: 'B', value: 200, updatedAt: '' }
     ],
     skills: [],
-    states: [
-      { exerciseId: 'a1', level: 1, difficulty: 1, performance: 100, lastPlayedAt: '', lastAccuracy: 1, attempts: 1 },
-      { exerciseId: 'a1', level: 1, difficulty: 1, performance: 100, lastPlayedAt: '', lastAccuracy: 1, attempts: 1 },
-      { exerciseId: 'a1', level: 1, difficulty: 1, performance: 100, lastPlayedAt: '', lastAccuracy: 1, attempts: 1 }
-    ],
+    states: Array.from({length: 10}).map(() => ({ exerciseId: 'a1', level: 1, difficulty: 1, performance: 100, lastPlayedAt: '', lastAccuracy: 1, attempts: 1, stability: 0.9, consecutivePlateau: 0, mastery: 50 })),
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toMatch(/^Точечная нагрузка(: день \d+)?$/);
+  expect(plan.items[0].reason).toMatch(/^День \d+: акцент на отстающий навык$/);
 });
