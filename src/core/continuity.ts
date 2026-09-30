@@ -386,14 +386,14 @@ export function getContinuityMessage(snapshot: ContinuitySnapshot): ContinuityMe
   if (snapshot.streak.status === 'returned') {
     return {
       title: 'С возвращением',
-      body: 'Пауза позади. Серия начата заново, но навык остался с вами.',
+      body: 'Пауза позади. Навык остался с вами.',
       actionHint: 'Главное — продолжать'
     };
   }
   if (snapshot.streak.status === 'fresh_start') {
     return {
       title: 'Новый заход',
-      body: 'Счётчик дней обнулился, но ваш навык остался.',
+      body: 'Накопленный навык остался с вами.',
       actionHint: 'Отличный старт'
     };
   }
