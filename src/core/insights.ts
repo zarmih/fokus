@@ -196,8 +196,8 @@ export function generateInsights(
   if (totalDays >= 5 && activeDays >= 5) {
     insights.push({
       type: 'consistency',
-      title: 'Привычка держится',
-      description: `${activeDays} тренировок за последние 7 дней. Регулярность важнее длины сессии.`,
+      title: 'Сила микрошагов',
+      description: `${activeDays} тренировок за последние 7 дней. Короткие, но регулярные усилия формируют нейронные связи гораздо надёжнее, чем редкие марафоны.`,
       confidence: 'high',
       priority: 75
     });
@@ -210,8 +210,8 @@ export function generateInsights(
   if (possible30 >= 14 && played30 / possible30 >= 0.8) {
     insights.push({
       type: 'consistency',
-      title: 'Честная серия',
-      description: 'Ваша стабильность выше 80%. Единичные пропуски — это часть нормального ритма, они больше не перечеркивают накопленный прогресс.',
+      title: 'Честная стабильность',
+      description: `Ваша регулярность за месяц — ${Math.round((played30 / possible30) * 100)}%. Fokus ценит долгосрочный ритм: единичные пропуски — это здоровый отдых, который не обнуляет прогресс.`,
       confidence: 'high',
       priority: 79
     });
