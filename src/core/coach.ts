@@ -118,13 +118,13 @@ export function getDailySpark(params: {
     if (retention) {
       const t = retention.title.toLowerCase();
       // Allow specific nudges that apply after a session
-      if (t.includes('достаточно') || t.includes('возвращением') || t.includes('стабильность')) {
+      if (t.includes('достаточно') || t.includes('восстановлен') || t.includes('стабильность')) {
         return retention;
       }
     }
     return {
       title: 'На сегодня достаточно',
-      body: 'Регулярность важнее усталости. Завтра Fokus соберёт новую сессию по сегодняшним данным — без гонки за объёмом.',
+      body: 'Мозгу нужно время на консолидацию памяти. Завтра Fokus соберёт новую сессию без гонки за объёмом.',
       tone: 'habit'
     };
   }
@@ -132,7 +132,7 @@ export function getDailySpark(params: {
   if (skippedYesterday && streak > 0) {
     return {
       title: 'Ритм на месте',
-      body: 'Один пропуск — обычная пауза, не сбой. Короткий блок сегодня спокойнее, чем попытка наверстать всё сразу.',
+      body: 'Пропущенный день — это просто отдых, а не провал. Ваша честная серия защищена, поэтому короткий блок сегодня — это всё, что нужно.',
       tone: 'recovery'
     };
   }
@@ -140,7 +140,7 @@ export function getDailySpark(params: {
   if (streak === 0 && daySummaries.length > 0) {
     return {
       title: 'Мягкий вход',
-      body: 'Наверстывать всё сразу не нужно. Знакомый короткий блок — спокойный способ снова войти в ритм.',
+      body: 'Вам не нужно компенсировать пропущенные дни. Fokus предлагает начать с короткой сессии в комфортном темпе.',
       tone: 'recovery'
     };
   }

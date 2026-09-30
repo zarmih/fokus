@@ -399,8 +399,8 @@ function pickNudges(params: {
     out.push({
       id: 'praise_return',
       kind: 'praise_return',
-      title: 'С возвращением',
-      body: 'Отличная работа, ритм восстанавливается. Серия начинается заново, но ваш навык сохранён.',
+      title: 'Ритм восстановлен',
+      body: 'Возвращение после паузы важнее идеальной серии без единого пропуска. Вы сохранили навык и честно продолжаете работу.',
       priority: 95
     });
   } else if (params.playedToday && params.consistency30 >= 80 && params.streak % 5 === 0 && params.streak > 0) {
@@ -408,7 +408,7 @@ function pickNudges(params: {
       id: 'praise_consistency',
       kind: 'praise_consistency',
       title: 'Высокая стабильность',
-      body: `Ваша регулярность за 30 дней — ${params.consistency30}%. Это сильный показатель честной привычки.`,
+      body: `Ваша регулярность за месяц — ${params.consistency30}%. Fokus ценит честную привычку больше, чем бесконечную серию без отдыха.`,
       priority: 85
     });
   }
@@ -427,8 +427,8 @@ function pickNudges(params: {
     out.push({
       id: 'very_long_pause',
       kind: 'resume',
-      title: 'Новый старт',
-      body: 'После длинной паузы Fokus мягко подстроит сложность под сегодняшний ритм — без гонки за прошлым объёмом.',
+      title: 'Без чувства вины',
+      body: 'Длинная пауза — не повод расстраиваться. Fokus сбросил лишние ожидания и готов подстроить первую сессию под ваш текущий ритм.',
       priority: 95
     });
   } else if (!params.playedToday && params.gapDays >= 7) {
@@ -443,8 +443,8 @@ function pickNudges(params: {
     out.push({
       id: 'soft_return',
       kind: 'resume',
-      title: 'Мягкий возврат',
-      body: 'Честная серия прощает короткие паузы. Прогресс сохранён, достаточно лёгкой разминки для возврата в ритм.',
+      title: 'Мягкое возвращение',
+      body: 'Пропуски — это нормально. Честный подход Fokus не требует идеальности. Достаточно одной спокойной сессии, чтобы вернуться в ритм.',
       priority: 88
     });
   } else if (!params.playedToday && params.gapDays >= 2) {
@@ -461,8 +461,8 @@ function pickNudges(params: {
     out.push({
       id: 'protect_streak',
       kind: 'protect_streak',
-      title: 'Ритм сохраняется',
-      body: 'Ваша серия активна. Даже короткий блок сегодня поможет закрепить привычку без надрыва.',
+      title: 'Ритм без напряжения',
+      body: 'Ваша серия позволяет сделать короткую паузу. Но если есть минутка — лёгкий блок мягко закрепит ритм.',
       priority: 75
     });
   }
@@ -471,8 +471,8 @@ function pickNudges(params: {
     out.push({
       id: 'short_session',
       kind: 'short_session',
-      title: 'Короче обычного',
-      body: 'После паузы мы снизили нагрузку. Короткий ритуал поможет вернуться, а сложность адаптируется сама.',
+      title: 'Меньше давления',
+      body: 'После паузы Fokus снизил нагрузку. Никакого чувства вины — просто одна комфортная сессия.',
       priority: 68
     });
   }
