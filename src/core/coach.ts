@@ -129,7 +129,7 @@ export function getDailySpark(params: {
     };
   }
 
-  if (skippedYesterday && streak > 0) {
+  if (skippedYesterday && daySummaries.length > 0) {
     return {
       title: 'Ритм на месте',
       body: 'Пропущенный день — это просто отдых, а не провал. Ваша честная серия защищена, поэтому короткий блок сегодня — это всё, что нужно.',
