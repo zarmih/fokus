@@ -358,7 +358,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
               <div class="wr-trajectory-card ${trClass}" tabindex="0" role="group" aria-label="${domainLabel(t.domain)}: ${trLabel}. ${desc}">
                 <div class="wr-traj-header">
                   <span class="wr-traj-domain">${domainLabel(t.domain)}</span>
-                  <span class="wr-traj-icon" aria-hidden="true" style="color: ${isRising ? 'var(--ok)' : isFalling ? 'var(--danger)' : 'var(--muted)'}; opacity: 0.8;">${trIcon}</span>
+                  <span class="wr-traj-icon" aria-hidden="true" style="color: var(--text); opacity: 0.6;">${trIcon}</span>
                 </div>
                 <div class="wr-traj-state" style="font-weight: 600;">${trLabel}</div>
                 <div class="wr-traj-desc" style="color: var(--muted); font-size: 12px; margin-top: 4px;">${desc}</div>

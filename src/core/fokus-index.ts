@@ -56,7 +56,7 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
       phase: 'empty',
       explain: {
         state: 'Недостаточно данных.',
-        action: 'Без выдуманных цифр — только фактические результаты в тренажёрах.'
+        action: 'Сбор статистики начнётся после первой сессии. Без выдуманных цифр — только фактические результаты в тренажёрах.'
       }
     };
   }
@@ -75,11 +75,11 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   if (coverage < 3) {
     phase = 'calibrating';
     stateStr = `Открыто ${coverage} из 5 областей.`;
-    actionStr = `Нужна ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : 'области'} для открытия индекса.`;
+    actionStr = `Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : 'области'} для открытия индекса.`;
   } else {
     phase = 'established';
     stateStr = `Уверенность ${confidence}%.`;
-    actionStr = 'Индекс — снимок формы сегодня, не рейтинг личности.';
+    actionStr = 'Индекс — снимок формы сегодня, отражающий только ваши фактические результаты.';
   }
 
   return {

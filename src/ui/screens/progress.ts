@@ -144,10 +144,10 @@ export function renderProgress(container: HTMLElement) {
       const isReliable = s.confidence >= 10;
       
       const trendStr = s.trend > 0 ? '↑' : s.trend < 0 ? '↓' : '→';
-      const trendColor = s.trend > 0 ? 'var(--ok)' : s.trend < 0 ? 'var(--danger)' : 'var(--muted)';
+      const trendColor = 'var(--text)';
       const skillName = skillLabel(s.skill);
       
-      const valueText = isReliable ? `<span style="color: ${trendColor}; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
+      const valueText = isReliable ? `<span style="color: ${trendColor}; opacity: 0.6; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
       
       return `
         <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid ${isReliable ? 'var(--line)' : 'rgba(255,255,255,0.05)'};">
@@ -175,7 +175,7 @@ export function renderProgress(container: HTMLElement) {
     const isWeakest = d.id === weakestDomainId && dScore > 0;
     return `
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); position: relative;">
-        ${isWeakest ? `<div style="position: absolute; top: -10px; right: 16px; background: var(--dom-${d.id}); color: #000; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Фокус внимания</div>` : ''}
+        ${isWeakest ? `<div style="position: absolute; top: -10px; right: 16px; background: var(--line); color: var(--text); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Фокус внимания</div>` : ''}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${(dSkills.length > 0 || dScore === 0) ? '12px' : '0'};">
           <div style="font-weight: 700; font-size: 16px; color: ${dScore > 0 ? `var(--dom-${d.id})` : 'var(--muted)'}; opacity: ${dScore > 0 ? '1' : '0.6'};">${domainLabel(d.id)}</div>
           ${trLabel && dScore > 0 ? `<div style="font-size: 11px; color: var(--muted); margin-left: 8px;">${trLabel}</div>` : ""}
@@ -233,7 +233,7 @@ export function renderProgress(container: HTMLElement) {
     const nextEx = getManifest(nextItem.exerciseId);
     if (nextEx) {
       nextStepHtml = `
-        <div class="surface" style="margin-bottom: 24px; background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);">
+        <div class="surface" style="margin-bottom: 24px;">
           <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Следующий шаг</div>
           <div style="display: flex; align-items: center; justify-content: space-between;">
             <div>
