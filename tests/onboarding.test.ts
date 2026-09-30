@@ -21,12 +21,14 @@ test('onboarding collects goal, duration and starts calibration', () => {
 
   expect(app.textContent).toMatch(/Главная цель/i);
 
-  const memory = [...app.querySelectorAll('.goal-card')].find(el => (el as HTMLElement).dataset.goal === 'memory') as HTMLButtonElement;
-  memory.click();
+  const memory = app.querySelector('input[name="onboard-goal"][value="memory"]') as HTMLInputElement;
+  memory.checked = true;
+  memory.dispatchEvent(new Event('change', { bubbles: true }));
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
-  const eight = app.querySelector('[data-m="8"]') as HTMLButtonElement;
-  eight.click();
+  const eight = app.querySelector('input[name="onboard-time"][value="8"]') as HTMLInputElement;
+  eight.checked = true;
+  eight.dispatchEvent(new Event('change', { bubbles: true }));
   (app.querySelector('#btn-next') as HTMLButtonElement).click();
 
   const name = app.querySelector('#onboard-name') as HTMLInputElement;
