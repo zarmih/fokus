@@ -16,6 +16,7 @@ import { abilityCaption, pickTransferTip } from '../../core/onboarding';
 import { setScreenTitle } from '../a11y';
 import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 import { buildTransferSurface } from '../../core/transfer-insights';
+import { getTodayRitual } from '../../core/onboarding';
 import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
@@ -222,7 +223,8 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   }
 
   const continuity = loadContinuitySnapshot(storage, session.startedAt);
-  const continuityMsg = getContinuityMessage(continuity);
+  const weekRitual = getTodayRitual(profile.firstWeekPlan, session.startedAt, dsList);
+  const continuityMsg = getContinuityMessage(continuity, weekRitual);
   
   const showContinuity = !isCalibration && !isRecalibration && !noData && !isOffline;
 

@@ -256,3 +256,37 @@ test('renderResult - V6 Feedback Loop interactions', () => {
     expect((b as HTMLElement).style.display).toBe('none');
   });
 });
+
+test('renderResult - First week continuity message', () => {
+  const container = document.getElementById('app')!;
+  
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.firstWeekPlan = {
+    startDate: new Date().toISOString().slice(0, 10),
+    targetSessionSec: 300,
+    primaryGoal: 'balance',
+    skipPolicy: 'one-forgiven',
+    days: [
+      { day: 1, durationSec: 300, focusDomains: ['attention'], intensity: 'gentle', label: 'Знакомство' }
+    ]
+  };
+  storage.setProfile(p);
+  
+  const session: Session = {
+    id: 'test-session-first-week',
+    startedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
+    durationSec: 300,
+    items: [
+      { exerciseId: 'stroop', level: 2, accuracy: 0.8, avgRtMs: 1000, score: 30 } as SessionItem
+    ]
+  };
+
+  renderResult(container, { session });
+  
+  const html = container.innerHTML;
+  expect(html).toContain('Первая неделя: День 1');
+  expect(html).toContain('Идём по плану');
+});
+

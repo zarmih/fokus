@@ -382,7 +382,18 @@ export function formatDaysPlural(n: number): string {
   return `${n} дней`;
 }
 
-export function getContinuityMessage(snapshot: ContinuitySnapshot): ContinuityMessage {
+export function getContinuityMessage(
+  snapshot: ContinuitySnapshot,
+  weekRitual?: { inFirstWeek: boolean; day: number | null; copy?: string }
+): ContinuityMessage {
+  if (weekRitual && weekRitual.inFirstWeek) {
+    return {
+      title: `Первая неделя: День ${weekRitual.day}`,
+      body: weekRitual.copy || 'Разгоняемся. Навёрстывать дни не нужно.',
+      actionHint: 'Идём по плану'
+    };
+  }
+
   if (snapshot.streak.status === 'returned') {
     return {
       title: 'С возвращением',
