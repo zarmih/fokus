@@ -158,7 +158,7 @@ export function renderTrainers(container: HTMLElement) {
     <div class="today-head" style="margin-bottom: 24px;">
       <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px;">Каталог</h2>
       <p class="today-date" id="catalog-count-label" style="opacity: 0.7;" aria-live="polite">
-        ${catalog.length} упражнений. Практика без влияния на Fokus Index.
+        ${catalog.length} упражнений. Свободная практика — без влияния на Fokus Index.
       </p>
     </div>
     
@@ -226,7 +226,7 @@ export function renderTrainers(container: HTMLElement) {
         return forms[2];
       }
       const labelText = count === catalog.length 
-        ? `${catalog.length} упражнений. Практика без влияния на Fokus Index.`
+        ? `${catalog.length} упражнений. Свободная практика — без влияния на Fokus Index.`
         : `Найдено ${count} ${pluralize(count, ['упражнение', 'упражнения', 'упражнений'])}.`;
       countLabel.textContent = labelText;
     }
@@ -241,12 +241,17 @@ export function renderTrainers(container: HTMLElement) {
         if (activeDom === 'discovery' && query === '') {
           if (icon) icon.textContent = '🎉';
           if (title) title.textContent = 'Вы попробовали все упражнения!';
-          if (desc) desc.textContent = 'В каталоге больше нет новых тренировок. Возвращайтесь к знакомым упражнениям, чтобы улучшить свои результаты.';
+          if (desc) desc.textContent = 'Новых упражнений в каталоге сейчас нет — это нормально. Можно вернуться к знакомым блокам или открыть все разделы.';
+          if (btn) btn.style.display = 'none';
+        } else if (activeDom !== 'all' && query === '') {
+          if (icon) icon.textContent = '📂';
+          if (title) title.textContent = 'В этом разделе пусто';
+          if (desc) desc.textContent = 'В выбранном домене сейчас нет упражнений по фильтру. Откройте «Все» или другой раздел.';
           if (btn) btn.style.display = 'none';
         } else {
           if (icon) icon.textContent = '🔍';
           if (title) title.textContent = 'Ничего не найдено';
-          if (desc) desc.textContent = 'По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.';
+          if (desc) desc.textContent = 'По этому запросу и фильтру ничего нет. Сбросьте поиск или выберите другой раздел — без потери прогресса.';
           if (btn) btn.style.display = 'inline-block';
         }
       } else {
