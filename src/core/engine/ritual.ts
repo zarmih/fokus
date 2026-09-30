@@ -193,14 +193,14 @@ function reasonFor(args: {
   
   if (args.goalPts > 0 && args.need > 0.6) {
     if (isSparse) return `Ваша цель: день ${args.programDay || 1} (сбор данных)`;
-    return `Цель и фокус: день ${args.programDay || 1}`;
+    return `Неделя ${args.programWeek || 1}: цель и отстающий навык`;
   }
   
-  if (args.goalPts > 0) return `Ваша цель: неделя ${args.programWeek || 1}`;
+  if (args.goalPts > 0) return `Неделя ${args.programWeek || 1}: работа над целью`;
   
   if (args.need > 0.7) {
-    if (isSparse) return 'Калибровка области (мало данных)';
-    return `Точечная нагрузка: день ${args.programDay || 1}`;
+    if (isSparse) return 'Сбор данных для адаптации';
+    return `День ${args.programDay || 1}: акцент на отстающий навык`;
   }
 
   if (args.novelty > 0 && args.wantedSlot === 'fresh') return SLOT_REASON.fresh;
