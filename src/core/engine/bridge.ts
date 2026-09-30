@@ -54,6 +54,7 @@ export interface AdaptivePlanParams {
   rng?: () => number;
   programWeek?: number;
   programDay?: number;
+  focusOfTheWeek?: string | null;
 }
 
 /**
@@ -87,6 +88,7 @@ export function buildAdaptivePlan(
       states: params.states || [],
       durationSec: params.durationSec,
       primaryGoal: params.primaryGoal,
+      focusOfTheWeek: params.focusOfTheWeek,
       nowMs,
       excludeIds: params.excludeIds,
       rng: params.rng,
