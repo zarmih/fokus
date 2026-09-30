@@ -335,6 +335,25 @@ export function renderToday(container: HTMLElement) {
         <button class="btn-secondary" type="button" disabled aria-disabled="true">Сессия недоступна</button>
       </div>
     `;
+  } else if (unfinishedSession) {
+    actionHtml = `
+      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-labelledby="cta-resume-title">
+        <div class="workout-kicker" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Возвращение к сессии
+        </div>
+        <h3 id="cta-resume-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Продолжить с того места</h3>
+        <p style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">
+          Осталось ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
+        </p>
+        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">Вы уже начали эту тренировку сегодня. Продолжаем.</p>
+        <div class="workout-chips" role="list" aria-label="Оставшиеся упражнения" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
+          <span>Продолжить тренировку</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </button>
+      </div>
+    `;
   } else if (snap.ritual.active) {
     const returnFocus = plan.focusDomains.length > 0
       ? plan.focusDomains.map(d => domainLabel(d)).join(', ')
@@ -343,16 +362,16 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-labelledby="cta-return-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          ${unfinishedSession ? 'Возвращение к сессии' : spark.title}
+          ${spark.title}
         </div>
-        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${unfinishedSession ? 'Продолжить с того места' : 'Возвращение в ритм'}</h3>
+        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Мягкое возвращение</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-2); margin-bottom: 12px;">
-          ${unfinishedSession ? 'Осталось ' : ''}${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
+          ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>${unfinishedSession ? 'Продолжить тренировку' : 'Мягкий старт'}</span>
+          <span>Мягкий старт</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
@@ -364,17 +383,17 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone}" role="region" aria-labelledby="cta-today-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-          ${unfinishedSession ? 'Возвращение к сессии' : finalKicker}
+          ${finalKicker}
         </div>
-        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${unfinishedSession ? 'Продолжить с того места' : 'Тренировка дня'}</h3>
+        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Тренировка дня</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">
-          ${unfinishedSession ? 'Осталось ' : ''}${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
+          ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
         ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>${unfinishedSession ? 'Продолжить тренировку' : 'Начать тренировку'}</span>
+          <span>Начать тренировку</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
