@@ -89,9 +89,8 @@ export function renderProgram(container: HTMLElement) {
 
   const isSparseModel = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3) || isSparse;
   const isPersonalized = profile.calibrated && !isSparseModel;
-  const programTitle = isPersonalized ? 'Персональный план' : 'Базовая программа';
-  const dayNum = playedCount + (playedToday ? 0 : 1);
-  const subtitle = (isPersonalized ? 'Программа' : 'Сбор данных') + `: день ${dayNum} · Неделя ${weekIndex}`;
+  const programTitle = isPersonalized ? 'Персональный план' : (profile.calibrated ? 'Сбор данных' : 'Базовая программа');
+  const subtitle = `Неделя ${weekIndex} · День ${dayInWeek}`;
 
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
   if (snapshot.ritual.active) {
@@ -100,10 +99,10 @@ export function renderProgram(container: HTMLElement) {
     coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
   } else if (isSparseModel) {
     coachMessage = focusDomainsText
-      ? `Пока мы собираем данные. Сегодня тренируем: ${focusDomainsText}.`
+      ? `Пока мы собираем данные для точной настройки. Сегодня тренируем: ${focusDomainsText}.`
       : `Пока мы собираем данные для точной настройки вашей программы.`;
   } else if (focusDomainsText) {
-    coachMessage = `План на день ${dayInWeek} построен по истории сессий. Акцент на: ${focusDomainsText}.`;
+    coachMessage = `Неделя ${weekIndex}, день ${dayInWeek}. План построен по вашей истории. Акцент на: ${focusDomainsText}.`;
   }
 
   let hero = '';

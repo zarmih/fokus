@@ -49,7 +49,7 @@ test('sparse history triggers correct weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toMatch(/День 1: Первое знакомство/);
+  expect(plan.items[0].reason).toMatch(/Неделя 1 · День 1 · Знакомство/);
 });
 
 test('sufficient history triggers normal weak-domain bias copy', () => {
@@ -69,5 +69,5 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toMatch(/^День \d+: акцент на отстающий навык$/);
+  expect(plan.items[0].reason).toMatch(/^Неделя \d+ · Отстающий навык$/);
 });

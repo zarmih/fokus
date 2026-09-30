@@ -158,9 +158,10 @@ export function buildTrainingPlan(params: {
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
 
       let reason = 'Сбалансированная тренировка';
+      const pw = programWeek || 1;
+      const pd = programDay || 1;
       if (isSparse || isSparseDomain) {
-        const pd = programDay || 1;
-        reason = novelty > 0 ? `День ${pd}: Первое знакомство (сбор данных)` : `День ${pd}: Сбор данных для адаптации`;
+        reason = novelty > 0 ? `Неделя ${pw} · День ${pd} · Знакомство` : `Неделя ${pw} · День ${pd} · Сбор данных`;
       } else if (maintenance > 0 && skillNeed < 5) {
         reason = `Поддержание тонуса`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {
@@ -168,13 +169,13 @@ export function buildTrainingPlan(params: {
       } else if (neglected > 0) {
         reason = `Давно не тренировали`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Неделя ${programWeek || 1}: цель и отстающий навык`;
+        reason = `Неделя ${pw} · Цель и отстающий навык`;
       } else if (goalAlignment > 0) {
-        reason = `Неделя ${programWeek || 1}: работа над целью`;
+        reason = `Неделя ${pw} · Работа над целью`;
       } else if (weaknessPriority > 0) {
-        reason = `День ${programDay || 1}: акцент на отстающий навык`;
+        reason = `Неделя ${pw} · Отстающий навык`;
       } else if (weeklyFocus > 0) {
-        reason = `Фокус ${programWeek ? programWeek + '-й недели' : 'недели'}`;
+        reason = `Неделя ${pw} · Фокус недели`;
       } else if (skillNeed > 10) {
         reason = `Актуальная задача`;
       } else if (novelty > 0) {
