@@ -439,6 +439,14 @@ function pickNudges(params: {
       body: 'После долгой паузы ожидания сброшены. Одна комфортная сессия в своём темпе — достаточно.',
       priority: 90
     });
+  } else if (!params.playedToday && params.status === 'soft_return') {
+    out.push({
+      id: 'soft_return',
+      kind: 'resume',
+      title: 'Мягкий возврат',
+      body: 'Честная серия прощает короткие паузы. Прогресс сохранён, достаточно лёгкой разминки для возврата в ритм.',
+      priority: 88
+    });
   } else if (!params.playedToday && params.gapDays >= 2) {
     out.push({
       id: 'resume',

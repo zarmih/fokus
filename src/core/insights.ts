@@ -203,6 +203,20 @@ export function generateInsights(
     });
   }
 
+  // Honest Streak
+  const last30 = daySummaries.slice(-30);
+  const played30 = last30.filter(d => !d.skipped && d.totalScore > 0).length;
+  const possible30 = Math.min(30, totalDays);
+  if (possible30 >= 14 && played30 / possible30 >= 0.8) {
+    insights.push({
+      type: 'consistency',
+      title: 'Честная серия',
+      description: 'Ваша стабильность выше 80%. Единичные пропуски — это часть нормального ритма, они больше не перечеркивают накопленный прогресс.',
+      confidence: 'high',
+      priority: 79
+    });
+  }
+
   // Recovery after a dip
   if (week.length >= 4) {
     const scores = week.map((d) => d.totalScore);
