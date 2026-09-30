@@ -67,15 +67,9 @@ export function planForNow(opts?: {
   );
 
   const model = currentModel(opts?.nowMs);
-  const honestFocusDomains = (biased.focusDomains || []).filter(fd => {
-    if (fd === profile.primaryGoal) return true;
-    const d = model.domains.find(x => x.domain === fd);
-    return d && d.sources.length >= 3;
-  });
-
   return {
     ...plan,
-    focusDomains: honestFocusDomains,
+    focusDomains: biased.focusDomains || [],
     items: biased.items as any
   };
 }
