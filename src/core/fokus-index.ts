@@ -76,7 +76,7 @@ export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: st
 
 export function indexDelta(current: number, previous: number | null, daysAgo: number = 1): { delta: number; label: string } {
   if (previous === null || previous === 0) {
-    return { delta: 0, label: 'базовая оценка' };
+    return { delta: 0, label: 'ранняя оценка — мало истории' };
   }
   const delta = current - previous;
   const labelSuffix = daysAgo === 7 ? 'прошлой недели' : 'вчера';

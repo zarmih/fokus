@@ -24,7 +24,7 @@ export function renderIntelPanel(intel: CoachIntel): string {
   const sparkHtml =
     sparkCount >= 2
       ? renderIndexSparkline(intel.sparkline)
-      : `<p class="intel-empty">Fokus Index появится на графике после нескольких дней с данными по областям.</p>`;
+      : `<p class="intel-empty">Fokus Index появится на графике после нескольких дней с данными — раньше цифры были бы нечестными.</p>`;
 
   const pb = intel.personalBest;
   const pbHtml = pb
@@ -267,7 +267,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     whatChangedHtml = `
       <section class="surface wr-section" aria-labelledby="wr-changed-title">
         <h3 id="wr-changed-title" class="wr-section-title">Что изменилось</h3>
-        <p class="wr-empty-desc">Пока недостаточно подтверждённых изменений. Fokus продолжает калибровку ваших результатов.</p>
+        <p class="wr-empty-desc">Пока недостаточно подтверждённых изменений — это нормально на раннем этапе. Калибровка продолжается без догадок.</p>
       </section>
     `;
   }
@@ -283,7 +283,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     generatedInsightsHtml = `
       <section class="surface wr-section" aria-labelledby="wr-insights-title">
         <h3 id="wr-insights-title" class="wr-section-title">Инсайты недели</h3>
-        <p class="wr-trajectory-desc">Честный анализ вашей формы и результаты без пустых обещаний.</p>
+        <p class="wr-trajectory-desc">Короткий разбор формы по фактам недели — без пустых обещаний.</p>
         <div class="wr-trajectory-grid">
           ${rawInsights.slice(0, 3).map(ins => `
             <div class="wr-trajectory-card" tabindex="0" role="group" aria-label="${ins.title}: ${ins.description}">
@@ -345,14 +345,14 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     trajectoryHtml = `
       <section class="surface wr-section wr-trajectory" aria-labelledby="wr-trajectory-title">
         <h3 id="wr-trajectory-title" class="wr-section-title">Траектории способностей</h3>
-        <p class="wr-trajectory-desc">Оценка динамики на основе последних сессий. Fokus анализирует изменения вашей формы без преувеличений.</p>
+        <p class="wr-trajectory-desc">Динамика по последним сессиям без преувеличений. Ранние колебания — ожидаемы, не диагноз.</p>
         <div class="wr-trajectory-grid">
           ${readyTrajectories.map(t => {
             const isRising = t.trend === 'rising';
             const isFalling = t.trend === 'falling';
             const trIcon = isRising ? '↑' : isFalling ? '↓' : '→';
             const trLabel = isRising ? 'Растёт' : isFalling ? 'Снижается' : 'Стабильна';
-            const desc = isRising ? 'Вы показываете прогресс в последних сессиях' : isFalling ? 'Форма немного просела, требуется фокус' : 'Результаты закрепились на плато';
+            const desc = isRising ? 'В последних сессиях заметнее уверенность' : isFalling ? 'Форма чуть мягче обычного — обычные колебания' : 'Результаты удерживаются на плато';
             const trClass = `wr-trend-${t.trend}`;
             return `
               <div class="wr-trajectory-card ${trClass}" tabindex="0" role="group" aria-label="${domainLabel(t.domain)}: ${trLabel}. ${desc}">
