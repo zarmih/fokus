@@ -9,6 +9,8 @@ export interface DomainSlice {
   trend: number;
 }
 
+export type FokusPhase = 'empty' | 'calibrating' | 'established';
+
 export interface FokusIndex {
   value: number;
   confidence: number;
@@ -20,9 +22,12 @@ export interface FokusIndex {
     total: number;
     percent: number;
   };
+  phase: FokusPhase;
+  explain: {
+    state: string;
+    action: string;
+  };
 }
-
-
 
 export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseState[] = []): FokusIndex {
   const byDomain: DomainSlice[] = DOMAIN_ORDER.map((id) => {
@@ -43,19 +48,45 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   const depth = { explored, total, percent };
 
   const ready = byDomain.filter((d) => d.ready);
-  if (ready.length === 0) {
-    return { value: 0, confidence: 0, coverage: 0, byDomain, trend: 0, depth };
+  const coverage = ready.length;
+  
+  if (coverage === 0) {
+    return {
+      value: 0, confidence: 0, coverage: 0, byDomain, trend: 0, depth,
+      phase: 'empty',
+      explain: {
+        state: 'Недостаточно данных.',
+        action: 'Без выдуманных цифр — только фактические результаты в тренажёрах.'
+      }
+    };
   }
 
   const mean = ready.reduce((sum, d) => sum + d.value, 0) / ready.length;
   const value = Math.round(mean);
-  const coverage = ready.length;
   const coverageRatio = coverage / DOMAIN_ORDER.length;
   const explorationFactor = Math.min(1, explored / 10);
   const confidence = Math.round((coverageRatio * 0.6 + explorationFactor * 0.4) * 100);
   const trend = ready.reduce((sum, d) => sum + d.trend, 0) / ready.length;
 
-  return { value, confidence, coverage, byDomain, trend, depth };
+  let phase: FokusPhase = 'empty';
+  let stateStr = '';
+  let actionStr = '';
+
+  if (coverage < 3) {
+    phase = 'calibrating';
+    stateStr = `Открыто ${coverage} из 5 областей.`;
+    actionStr = `Нужна ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : 'области'} для открытия индекса.`;
+  } else {
+    phase = 'established';
+    stateStr = `Уверенность ${confidence}%.`;
+    actionStr = 'Индекс — снимок формы сегодня, не рейтинг личности.';
+  }
+
+  return {
+    value, confidence, coverage, byDomain, trend, depth,
+    phase,
+    explain: { state: stateStr, action: actionStr }
+  };
 }
 
 export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: string, daysAgo: number = 1): number | null {
