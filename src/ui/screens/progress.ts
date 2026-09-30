@@ -57,7 +57,7 @@ export function renderProgress(container: HTMLElement) {
       </div>
   `;
   if (activeDays === 0) {
-    chartHtml += `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">График активности пока пуст.<br>После первой сессии здесь появится честная картина регулярности — без декоративного шума.</p></div></div>`;
+    chartHtml += `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">График активности пока пуст.<br>После первой тренировки здесь появится честная картина регулярности, отражающая вашу реальную вовлечённость.</p></div></div>`;
   } else {
     chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
@@ -77,7 +77,7 @@ export function renderProgress(container: HTMLElement) {
 
   let historyHtml = '';
   if (history.length === 0) {
-    historyHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02); margin: 16px 0;"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">В истории пока нет записей.<br>Здесь будут отображаться результаты ваших завершённых сессий.</p></div>';
+    historyHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02); margin: 16px 0;"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">В истории пока нет записей.<br>Здесь будут отображаться результаты ваших завершённых сессий, формируя базу для анализа формы.</p></div>';
   } else {
     historyHtml = history.map(h => {
       const d = new Date(h.date);
@@ -128,7 +128,7 @@ export function renderProgress(container: HTMLElement) {
 
   let profileHtml = '';
   if (!hasProfileData) {
-    profileHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Профиль навыков пока пуст.<br>Он появится после первых тренировок и покажет точность и скорость — только рабочие метрики тренажёров.</p></div>';
+    profileHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Профиль навыков пока пуст.<br>Он появится после первых тренировок и покажет вашу точность и скорость в конкретных упражнениях.</p></div>';
   } else {
     profileHtml = allDomains.map(d => {
       const dVal = domains.find(x => x.domain === d.id);
@@ -363,9 +363,9 @@ export function renderProgress(container: HTMLElement) {
   const fiExplainHtml = `
     <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
       <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
-      <p style="margin: 0 0 8px 0; color: var(--muted);">Fokus Index — снимок текущей тренировочной формы по скорости и точности в упражнениях, без лишних ярлыков.</p>
-      <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> растёт по мере того, как вы открываете новые области (${fi.coverage} из 5) и осваиваете упражнения (${fi.depth.explored} освоено).</p>
-      <p style="margin: 0; color: var(--muted);">Индекс будет колебаться — это нормально: усталость, паузы и фокус дня. Колебания ≠ «потеря способностей».</p>
+      <p style="margin: 0 0 8px 0; color: var(--muted);">Это интегральный срез вашей текущей тренировочной формы, основанный строго на скорости и точности.</p>
+      <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> показывает, насколько полны данные: она растёт с охватом областей (${fi.coverage} из 5) и освоением каталога (${fi.depth.explored}).</p>
+      <p style="margin: 0; color: var(--muted);">Нормально, что индекс колеблется. Это маркер вашей сегодняшней концентрации, а не приговор способностям.</p>
     </div>
   `;
 
