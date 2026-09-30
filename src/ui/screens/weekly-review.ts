@@ -24,7 +24,7 @@ export function renderIntelPanel(intel: CoachIntel): string {
   const sparkHtml =
     sparkCount >= 2
       ? renderIndexSparkline(intel.sparkline)
-      : `<p class="intel-empty">Fokus Index появится на графике после нескольких дней с данными — раньше цифры были бы нечестными.</p>`;
+      : `<p class="intel-empty" style="color: var(--muted); font-size: 13px;">Fokus Index появится на графике после нескольких дней регулярных тренировок. Мы показываем только реальные подтверждённые тренды.</p>`;
 
   const pb = intel.personalBest;
   const pbHtml = pb
@@ -351,8 +351,8 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
             const isRising = t.trend === 'rising';
             const isFalling = t.trend === 'falling';
             const trIcon = isRising ? '↑' : isFalling ? '↓' : '→';
-            const trLabel = isRising ? 'Растёт' : isFalling ? 'Снижается' : 'Стабильна';
-            const desc = isRising ? 'В последних сессиях заметнее уверенность' : isFalling ? 'Форма чуть мягче обычного — обычные колебания' : 'Результаты удерживаются на плато';
+            const trLabel = isRising ? 'Тенденция к росту' : isFalling ? 'Небольшой спад' : 'Стабильный уровень';
+            const desc = isRising ? 'В последних сессиях отмечается уверенный прогресс.' : isFalling ? 'Естественное колебание формы на фоне усталости или пауз.' : 'Результаты надёжно удерживаются на рабочем плато.';
             const trClass = `wr-trend-${t.trend}`;
             return `
               <div class="wr-trajectory-card ${trClass}" tabindex="0" role="group" aria-label="${domainLabel(t.domain)}: ${trLabel}. ${desc}">
