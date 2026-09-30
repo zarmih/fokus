@@ -267,7 +267,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     whatChangedHtml = `
       <section class="surface wr-section" aria-labelledby="wr-changed-title">
         <h3 id="wr-changed-title" class="wr-section-title">Что изменилось</h3>
-        <p class="wr-empty-desc">Пока недостаточно подтверждённых изменений — это нормально на раннем этапе. Калибровка продолжается без догадок.</p>
+        <p class="wr-empty-desc">Пока недостаточно подтверждённых изменений. Калибровка продолжается на основе фактов, без искусственного сглаживания и догадок.</p>
       </section>
     `;
   }
@@ -345,7 +345,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     trajectoryHtml = `
       <section class="surface wr-section wr-trajectory" aria-labelledby="wr-trajectory-title">
         <h3 id="wr-trajectory-title" class="wr-section-title">Траектории способностей</h3>
-        <p class="wr-trajectory-desc">Динамика по последним сессиям без преувеличений. Ранние колебания — ожидаемы, не диагноз.</p>
+        <p class="wr-trajectory-desc">Честная динамика по последним сессиям. Ранние колебания — нормальный процесс адаптации, а не диагноз.</p>
         <div class="wr-trajectory-grid">
           ${readyTrajectories.map(t => {
             const isRising = t.trend === 'rising';
