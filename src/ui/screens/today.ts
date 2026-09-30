@@ -52,7 +52,7 @@ export function renderToday(container: HTMLElement) {
   if (gapDays >= 2 && !playedToday) {
     insights.unshift({
       title: 'С возвращением',
-      description: 'Исследования показывают, что восстановление после паузы укрепляет нейронные связи. Fokus подобрал мягкий старт для сегодняшней сессии.',
+      description: 'Пауза — обычная часть ритма. Fokus подобрал короткий знакомый старт — без наверстывания и без давления.',
       confidence: 'high',
       type: 'recovery',
       priority: 100
@@ -354,7 +354,7 @@ export function renderToday(container: HTMLElement) {
           ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
-        <div class="workout-chips" role="list" aria-label="Упражнения для мягкого возврата" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>${unfinishedSession ? 'Продолжить тренировку' : 'Мягкий старт'}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -370,7 +370,7 @@ export function renderToday(container: HTMLElement) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${unfinishedSession ? 'Возвращение к сессии' : finalKicker}
         </div>
-        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${unfinishedSession ? 'Продолжить сессию' : 'Тренировка дня'}</h3>
+        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${unfinishedSession ? 'Продолжить с того места' : 'Тренировка дня'}</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">
           ${unfinishedSession ? 'Осталось ' : ''}${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
