@@ -37,11 +37,7 @@ export function renderToday(container: HTMLElement) {
   const playedToday = snap.streak.playedToday;
   const streak = snap.streak.current;
   const skippedYesterday = snap.streak.openMisses === 1;
-  let yesterdayScore = 0;
   const gapDays = snap.streak.openMisses;
-  if (snap.streak.status === 'open' && ds.length > 0) {
-    yesterdayScore = Math.round(ds[ds.length - 1].totalScore);
-  }
 
   const domains = storage.getDomains();
   const skills = storage.getSkills();
@@ -347,11 +343,11 @@ export function renderToday(container: HTMLElement) {
       <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-labelledby="cta-return-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          ${spark.title}
+          ${unfinishedSession ? 'Возвращение к сессии' : spark.title}
         </div>
-        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Возвращение в ритм</h3>
+        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${unfinishedSession ? 'Продолжить с того места' : 'Возвращение в ритм'}</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-2); margin-bottom: 12px;">
-          ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
+          ${unfinishedSession ? 'Осталось ' : ''}${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
@@ -426,7 +422,6 @@ export function renderToday(container: HTMLElement) {
         </div>
       </div>
       ${renderContinuityHint(snap, 'today')}
-      ${yesterdayScore > 0 && !playedToday ? `<p class="yesterday-hint">Вчерашний результат · <span class="highlight-score">${yesterdayScore} XP</span></p>` : ''}
       ${retentionHtml}
 
 
