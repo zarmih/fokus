@@ -20,7 +20,7 @@ test('Scenario A: Fresh user gets baseline-like balanced plan', () => {
   // With no data, domains are empty, so focusDomains is empty. It should pick exploration reasons.
   expect(plan.focusDomains.length).toBe(0);
   expect(plan.items.length).toBe(2); // 5 min
-  expect(plan.items[0].reason).toBe('Первое знакомство (сбор данных)');
+  expect(plan.items[0].reason).toMatch(/День 1: Первое знакомство/);
 });
 
 test('Scenario B: Weak Memory user', () => {
