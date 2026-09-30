@@ -57,7 +57,7 @@ export function renderProgress(container: HTMLElement) {
       </div>
   `;
   if (activeDays === 0) {
-    chartHtml += `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">График активности пока пуст.<br>Пройдите первую сессию, чтобы начать отслеживать регулярность тренировок.</p></div></div>`;
+    chartHtml += `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">График активности пока пуст.<br>После первой сессии здесь появится честная картина регулярности — без декоративного шума.</p></div></div>`;
   } else {
     chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
@@ -128,7 +128,7 @@ export function renderProgress(container: HTMLElement) {
 
   let profileHtml = '';
   if (!hasProfileData) {
-    profileHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Профиль навыков пока пуст.<br>Он начнёт формироваться после первых тренировок. Система оценивает реальные показатели точности и скорости.</p></div>';
+    profileHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Профиль навыков пока пуст.<br>Он появится после первых тренировок и покажет точность и скорость — только рабочие метрики тренажёров.</p></div>';
   } else {
     profileHtml = allDomains.map(d => {
       const dVal = domains.find(x => x.domain === d.id);
@@ -363,9 +363,9 @@ export function renderProgress(container: HTMLElement) {
   const fiExplainHtml = `
     <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
       <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
-      <p style="margin: 0 0 8px 0; color: var(--muted);">Fokus Index оценивает вашу текущую тренировочную форму. Он строится на основе скорости и точности в упражнениях — без медицинских ярлыков.</p>
+      <p style="margin: 0 0 8px 0; color: var(--muted);">Fokus Index — снимок текущей тренировочной формы по скорости и точности в упражнениях, без лишних ярлыков.</p>
       <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> растёт по мере того, как вы открываете новые области (${fi.coverage} из 5) и осваиваете упражнения (${fi.depth.explored} освоено).</p>
-      <p style="margin: 0; color: var(--muted);">Индекс будет колебаться — это нормально. Он отражает усталость, перерывы и фокус, как физическая форма.</p>
+      <p style="margin: 0; color: var(--muted);">Индекс будет колебаться — это нормально: усталость, паузы и фокус дня. Колебания ≠ «потеря способностей».</p>
     </div>
   `;
 
@@ -380,7 +380,7 @@ export function renderProgress(container: HTMLElement) {
         ${pbNote}
         ${sparkHtml}
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс отражает текущую тренировочную форму.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Индекс — снимок формы сегодня, не рейтинг личности.</p>
         ${btnExplain}
         ${fiExplainHtml}
       </div>
@@ -393,7 +393,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-value" style="font-size: 24px; color: var(--text); opacity: 0.8; margin: 8px 0;">Калибровка...</div>
         <div class="fi-meta" style="margin-bottom: 12px; color: var(--text); opacity: 0.9;">Открыто ${fi.coverage} из 5 областей.<br>Пройдите упражнения ещё в ${3 - fi.coverage} ${3 - fi.coverage === 1 ? 'области' : 'областях'}, чтобы увидеть индекс.</div>
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Системе нужно больше данных для честной оценки вашей формы.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Пока данных мало для честной оценки — индекс скрыт, а не угадан.</p>
         ${btnExplain}
         ${fiExplainHtml}
       </div>
@@ -403,9 +403,9 @@ export function renderProgress(container: HTMLElement) {
       <div class="fi-copy" style="width: 100%;">
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value" style="font-size: 24px; color: var(--muted); margin: 8px 0;">—</div>
-        <div class="fi-meta" style="color: var(--muted);">Недостаточно данных. Пройдите первые сессии в разных областях, чтобы мы могли оценить стартовую форму.</div>
+        <div class="fi-meta" style="color: var(--muted);">Недостаточно данных. Несколько сессий в разных областях дадут стартовую оценку формы — без выдуманных цифр.</div>
         ${depthHtml}
-        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">Без ложных обещаний — только ваши фактические результаты в тренажёрах.</p>
+        <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">Без выдуманных цифр — только фактические результаты в тренажёрах.</p>
         ${btnExplain}
         ${fiExplainHtml}
       </div>

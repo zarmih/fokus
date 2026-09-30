@@ -27,7 +27,7 @@ test('progress index UI explains index honestly without junk metrics', () => {
   
   const text = document.body.textContent || '';
   expect(text).toMatch(/Fokus Index/);
-  expect(text).toMatch(/тренировочную форму|фактические результаты/);
+  expect(text).toMatch(/тренировочную форму|фактические результаты|снимок формы|выдуманных цифр/);
   const fiHero = document.querySelector('.fi-hero');
   expect(fiHero).toBeTruthy();
   const heroText = fiHero?.textContent || '';
@@ -47,7 +47,7 @@ test('progress index UI explains index honestly without junk metrics', () => {
   
   const explainText = explainer.textContent || '';
   expect(explainText).toMatch(/Как работает Fokus Index/);
-  expect(explainText).toMatch(/текущую тренировочную форму/);
+  expect(explainText).toMatch(/тренировочной формы|тренировочную форму|не IQ/);
   expect(explainText).not.toMatch(/улучшение мозга|прокачка/i);
   
   btn.click();

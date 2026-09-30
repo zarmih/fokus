@@ -36,7 +36,7 @@ test('index is honest and unbounded', () => {
 });
 
 test('delta labels stay honest without a previous value', () => {
-  expect(indexDelta(500, null).label).toBe('базовая оценка');
+  expect(indexDelta(500, null).label).toBe('ранняя оценка — мало истории');
   expect(indexDelta(520, 500).label).toContain('+20');
   expect(indexDelta(480, 500).label).toContain('-20');
 });

@@ -65,7 +65,7 @@ test('renderWeeklyReview - insufficient evidence (1 session)', () => {
   const html = container.innerHTML;
   
   expect(html).toContain('1</div>'); // 1 day
-  expect(html).toContain('Пока недостаточно подтверждённых изменений.'); // Honest message
+  expect(html).toContain('Пока недостаточно подтверждённых изменений'); // Honest message (deepened AQ4)
   expect(html).not.toContain('вырос на 5'); // Delta not shown due to low conf
 });
 
