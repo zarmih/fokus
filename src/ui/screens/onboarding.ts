@@ -41,23 +41,35 @@ export function renderOnboarding(container: HTMLElement) {
         ${step === 1 ? `
           <h1 id="onboard-heading">Главная цель</h1>
           <p class="onboard-lead">Выберите фокус ежедневной сессии. Вы сможете изменить цель позже.</p>
-          <div class="goal-grid" role="radiogroup" aria-label="Главная цель">
+          <fieldset class="goal-grid" style="border: none; padding: 0; margin: 0;">
+            <legend class="sr-only">Главная цель</legend>
             ${GOAL_COPY.map((g) => `
-              <button class="goal-card ${selectedGoal === g.id ? 'active' : ''}" data-goal="${g.id}" type="button" role="radio" aria-checked="${selectedGoal === g.id ? 'true' : 'false'}">
+              <label class="goal-card ${selectedGoal === g.id ? 'active' : ''}" style="cursor: pointer;">
+                <input type="radio" name="onboard-goal" value="${g.id}" class="sr-only" ${selectedGoal === g.id ? 'checked' : ''} />
                 <div class="goal-title">${g.title}</div>
                 <div class="goal-desc">${g.desc}</div>
-              </button>
+              </label>
             `).join('')}
-          </div>
+          </fieldset>
         ` : ''}
         ${step === 2 ? `
           <h1 id="onboard-heading">Сколько времени в день?</h1>
           <p class="onboard-lead">Для устойчивого эффекта лучше заниматься понемногу, но каждый день.</p>
-          <div class="time-stack" role="radiogroup" aria-label="Длительность сессии">
-            <button class="btn-time ${selectedMin === 5 ? 'btn-primary' : 'btn-secondary'}" data-m="5" type="button" role="radio" aria-checked="${selectedMin === 5}">5 минут · ежедневный минимум</button>
-            <button class="btn-time ${selectedMin === 8 ? 'btn-primary' : 'btn-secondary'}" data-m="8" type="button" role="radio" aria-checked="${selectedMin === 8}">8 минут · сбалансированный темп</button>
-            <button class="btn-time ${selectedMin === 12 ? 'btn-primary' : 'btn-secondary'}" data-m="12" type="button" role="radio" aria-checked="${selectedMin === 12}">12 минут · глубокое погружение</button>
-          </div>
+          <fieldset class="time-stack" style="border: none; padding: 0; margin: 0;">
+            <legend class="sr-only">Длительность сессии</legend>
+            <label class="btn-time ${selectedMin === 5 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <span>5 минут · ежедневный минимум</span>
+              <input type="radio" name="onboard-time" value="5" class="sr-only" ${selectedMin === 5 ? 'checked' : ''} />
+            </label>
+            <label class="btn-time ${selectedMin === 8 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <span>8 минут · сбалансированный темп</span>
+              <input type="radio" name="onboard-time" value="8" class="sr-only" ${selectedMin === 8 ? 'checked' : ''} />
+            </label>
+            <label class="btn-time ${selectedMin === 12 ? 'btn-primary' : 'btn-secondary'}" style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+              <span>12 минут · глубокое погружение</span>
+              <input type="radio" name="onboard-time" value="12" class="sr-only" ${selectedMin === 12 ? 'checked' : ''} />
+            </label>
+          </fieldset>
         ` : ''}
         ${step === 3 ? `
           <h1 id="onboard-heading">Как к вам обращаться?</h1>
@@ -117,17 +129,16 @@ export function renderOnboarding(container: HTMLElement) {
       render();
     });
 
-    container.querySelectorAll('.goal-card').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        selectedGoal = (btn as HTMLElement).dataset.goal || 'balance';
+    container.querySelectorAll('input[name="onboard-goal"]').forEach((radio) => {
+      radio.addEventListener('change', (e) => {
+        selectedGoal = (e.target as HTMLInputElement).value;
         render();
       });
     });
 
-    container.querySelectorAll('.btn-time').forEach((btn) => {
-      if (btn.querySelector('input[type="radio"]')) return;
-      btn.addEventListener('click', (e) => {
-        selectedMin = parseInt((e.currentTarget as HTMLElement).dataset.m || '5', 10);
+    container.querySelectorAll('input[name="onboard-time"]').forEach((radio) => {
+      radio.addEventListener('change', (e) => {
+        selectedMin = parseInt((e.target as HTMLInputElement).value, 10);
         render();
       });
     });
