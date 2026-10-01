@@ -157,30 +157,34 @@ export function buildTrainingPlan(params: {
       
       const trace = `Goal:${goalAlignment} Weak:${weaknessPriority} Skill:${skillNeed.toFixed(1)} Negl:${neglected} Nov:${novelty} Maint:${maintenance} Rep:-${repetitionPenalty} Plat:-${plateauPenalty} Bal:${sessionBalance} = ${score.toFixed(1)}`;
 
-      let reason = 'Сбалансированная тренировка';
+      let baseReason = 'Сбалансированная тренировка';
       const pw = programWeek || 1;
       const pd = programDay || 1;
+      const dayPrefix = `Неделя ${pw} · День ${pd} · `;
+      
       if (isSparse || isSparseDomain) {
-        reason = novelty > 0 ? `Неделя ${pw} · День ${pd} · Знакомство` : `Неделя ${pw} · День ${pd} · Сбор данных`;
+        baseReason = novelty > 0 ? `Знакомство` : `Сбор данных`;
       } else if (maintenance > 0 && skillNeed < 5) {
-        reason = `Поддержание тонуса`;
+        baseReason = `Поддержание тонуса`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {
-        reason = `Смена контекста`;
+        baseReason = `Смена контекста`;
       } else if (neglected > 0) {
-        reason = `Давно не тренировали`;
+        baseReason = `Давно не тренировали`;
       } else if (goalAlignment > 0 && weaknessPriority > 0) {
-        reason = `Неделя ${pw} · Цель и отстающий навык`;
+        baseReason = `Цель и отстающий навык`;
       } else if (goalAlignment > 0) {
-        reason = `Неделя ${pw} · Работа над целью`;
+        baseReason = `Работа над целью`;
       } else if (weaknessPriority > 0) {
-        reason = `Неделя ${pw} · Отстающий навык`;
+        baseReason = `Отстающий навык`;
       } else if (weeklyFocus > 0) {
-        reason = `Неделя ${pw} · Фокус недели`;
+        baseReason = `Фокус недели`;
       } else if (skillNeed > 10) {
-        reason = `Актуальная задача`;
+        baseReason = `Актуальная задача`;
       } else if (novelty > 0) {
-        reason = `Новая задача`;
+        baseReason = `Новая задача`;
       }
+
+      const reason = `${dayPrefix}${baseReason}`;
 
       return {
         exerciseId: manifest.id,

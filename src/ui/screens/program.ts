@@ -10,6 +10,7 @@ import { domainLabel } from '../../core/labels';
 import type { DomainId } from '../../core/engine/types';
 import { loadContinuitySnapshot, getContinuityMessage, applyGentleReturnBias, ritualDurationSec } from '../../core/continuity';
 import { planWithRecovery } from '../../core/recovery';
+import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -52,6 +53,17 @@ export function renderProgram(container: HTMLElement) {
   
   const { weekIndex, dayInWeek, playedCount, isSparse, playedToday: pt } = getProgramPosition(snapshot, profile as any);
   const planDurationMins = plan.items.length * 3;
+
+  const adaptiveDepth = describeAdaptiveDepth({
+    sessions: sessions as any,
+    domains: domains as any,
+    states: states as any,
+    catalog: registry.map(c => ({ manifest: c.manifest })) as any,
+    durationSec: ritualDuration,
+    primaryGoal: profile.primaryGoal,
+    now: Date.now()
+  });
+  const chip = adaptiveDepth.chip;
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
     const d = getDomain(model, id);
@@ -97,6 +109,8 @@ export function renderProgram(container: HTMLElement) {
     coachMessage = 'Мягкий возврат после паузы. Знакомые задания для лёгкого старта.';
   } else if (ritual.snapshot.gate.active) {
     coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
+  } else if (adaptiveDepth.why) {
+    coachMessage = adaptiveDepth.why;
   } else if (isSparseModel) {
     coachMessage = focusDomainsText
       ? `Пока мы собираем данные для точной настройки. Сегодня тренируем: ${focusDomainsText}.`
@@ -149,9 +163,12 @@ export function renderProgram(container: HTMLElement) {
 
   shell.innerHTML = `
     <div class="program-screen">
-      <div class="today-head">
-        <h2>${programTitle}</h2>
-        <p class="today-date">${subtitle}</p>
+      <div class="today-head" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div>
+          <h2 style="margin: 0;">${programTitle}</h2>
+          <p class="today-date" style="margin: 4px 0 0 0;">${subtitle}</p>
+        </div>
+        ${chip ? `<div class="trend-chip" aria-label="${chip.aria}" style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: #fff;">${chip.label}</div>` : ''}
       </div>
       ${hero}
       ${profile.calibrated ? `

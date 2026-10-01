@@ -69,5 +69,5 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toMatch(/^Неделя \d+ · Отстающий навык$/);
+  expect(plan.items[0].reason).toMatch(/^Неделя \d+ · День \d+ · Отстающий навык$/);
 });
