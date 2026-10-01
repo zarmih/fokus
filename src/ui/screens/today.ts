@@ -540,7 +540,7 @@ export function renderToday(container: HTMLElement) {
 
       ${snap.ritual.active ? '' : transferCardHtml}
 
-      ${snap.ritual.active ? '' : questsHtml}
+      ${questsHtml}
 
     </div>
   `;
