@@ -12,6 +12,7 @@ import { loadContinuitySnapshot, getContinuityMessage, applyGentleReturnBias, ri
 import { planWithRecovery } from '../../core/recovery';
 import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
+import { explainTodayPlan, applyRetentionRitualOrder } from '../../core/today-plan';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -67,13 +68,50 @@ export function renderProgram(container: HTMLElement) {
     recoveryHintsEnabled: profile.recoveryHints !== false
   });
 
+  const catalogHints = registry.map(c => ({ id: c.manifest.id, domain: c.manifest.domain }));
   const biased = applyGentleReturnBias(
     ritual.plan as any,
     snapshot.ritual,
-    registry.map(c => ({ id: c.manifest.id, domain: c.manifest.domain }))
+    catalogHints
   );
-  
-  const plan = { ...ritual.plan, items: biased.items, focusDomains: biased.focusDomains };
+
+  let plan = { ...ritual.plan, items: biased.items, focusDomains: biased.focusDomains };
+
+  let planExplain = null as ReturnType<typeof explainTodayPlan> | null;
+  try {
+    const retSnap = assessRetention({
+      daySummaries: ds,
+      sessions,
+      domains,
+      playedToday,
+      streak: snapshot.streak.current,
+      skippedYesterday: snapshot.streak.status === 'soft_return' || snapshot.streak.status === 'fresh_start',
+      sessionLengthSec: profileLengthSec,
+      shieldCharges: (profile as any).shieldCharges,
+      now: new Date()
+    });
+    const ordered = applyRetentionRitualOrder(plan as any, {
+      focusDomain: programRetention?.focusDomain ?? retSnap.neglectedDomain,
+      band: retSnap.band,
+      gapDays: retSnap.gapDays,
+      softReturnActive: snapshot.ritual.active,
+      catalog: catalogHints
+    });
+    plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
+    planExplain = explainTodayPlan({
+      calibrated: !!profile.calibrated,
+      playedToday,
+      continuity: snapshot,
+      retention: retSnap,
+      programRetention,
+      focusDomains: plan.focusDomains,
+      planItems: plan.items,
+      adaptiveWhy: null,
+      recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null
+    });
+  } catch {
+    planExplain = null;
+  }
   const recal = ritual.recalibration;
   const showRecal = profile.calibrated && isRecalibrationActive(recal);
   const model = currentModel();
@@ -91,6 +129,35 @@ export function renderProgram(container: HTMLElement) {
     now: Date.now()
   });
   const chip = adaptiveDepth.chip;
+
+  if (planExplain && adaptiveDepth.why && (planExplain.source === 'default' || planExplain.source === 'adaptive')) {
+    try {
+      const retSnap2 = assessRetention({
+        daySummaries: ds,
+        sessions,
+        domains,
+        playedToday,
+        streak: snapshot.streak.current,
+        skippedYesterday: snapshot.streak.status === 'soft_return' || snapshot.streak.status === 'fresh_start',
+        sessionLengthSec: profileLengthSec,
+        shieldCharges: (profile as any).shieldCharges,
+        now: new Date()
+      });
+      planExplain = explainTodayPlan({
+        calibrated: !!profile.calibrated,
+        playedToday,
+        continuity: snapshot,
+        retention: retSnap2,
+        programRetention,
+        focusDomains: plan.focusDomains,
+        planItems: plan.items,
+        adaptiveWhy: adaptiveDepth.why,
+        recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null
+      });
+    } catch {
+      /* keep prior planExplain */
+    }
+  }
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
     const d = getDomain(model, id);
@@ -131,8 +198,14 @@ export function renderProgram(container: HTMLElement) {
   const programTitle = isPersonalized ? 'Персональный план' : (profile.calibrated ? 'Сбор данных' : 'Базовая программа');
   const subtitle = `Неделя ${weekIndex} · День ${dayInWeek}`;
 
+  // Shared Today/Program/Coach story — same object as Today hero.
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
-  if (snapshot.ritual.active) {
+  if (planExplain) {
+    coachMessage = planExplain.body;
+    if (adaptiveDepth.why && planExplain.source === 'default') {
+      coachMessage = adaptiveDepth.why;
+    }
+  } else if (snapshot.ritual.active) {
     coachMessage = 'Мягкий возврат после паузы. Знакомые задания для лёгкого старта.';
   } else if (programRetention?.coachOverride) {
     coachMessage = programRetention.coachOverride;
@@ -149,6 +222,9 @@ export function renderProgram(container: HTMLElement) {
   } else if (programRetention?.focusDomain) {
     coachMessage = `Сегодня план подтягивает область «${domainLabel(programRetention.focusDomain as DomainId)}».`;
   }
+  const coachWhy = planExplain?.whyExercises && planExplain.whyExercises !== coachMessage
+    ? planExplain.whyExercises
+    : '';
 
   let hero = '';
   if (!profile.calibrated) {
@@ -184,10 +260,11 @@ export function renderProgram(container: HTMLElement) {
   } else {
     hero = `
       <div class="workout-card">
-        <div class="workout-kicker">${contMsg.title}</div>
+        <div class="workout-kicker">${planExplain?.title || contMsg.title}</div>
         <h3>Тренировка дня · ~${planDurationMins} мин</h3>
-        <p class="muted coach-rationale">${coachMessage}</p>
-        <button id="btn-program-start" class="btn-primary" type="button">${programRetention?.softenCta ? 'Короткий блок' : 'Начать тренировку'}</button>
+        <p class="muted coach-rationale" data-plan-source="${planExplain?.source || 'legacy'}">${coachMessage}</p>
+        ${coachWhy ? `<p class="ritual-why plan-why" style="margin-top:8px">${coachWhy}</p>` : ''}
+        <button id="btn-program-start" class="btn-primary" type="button">${(planExplain?.softenCta || programRetention?.softenCta) ? 'Короткий блок' : (planExplain?.nextAction || 'Начать тренировку')}</button>
       </div>
     `;
   }
