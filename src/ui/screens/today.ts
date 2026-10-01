@@ -336,6 +336,7 @@ export function renderToday(container: HTMLElement) {
           <span>Продолжить тренировку</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         </button>
+        <button id="btn-restart" class="btn-secondary" type="button" style="margin-top: 8px; width: 100%;">Начать заново</button>
       </div>
     `;
   } else if (playedToday) {
@@ -377,6 +378,7 @@ export function renderToday(container: HTMLElement) {
           <span>Мягкий старт</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
+        <button id="btn-full-start" class="btn-secondary" type="button" style="margin-top: 8px; width: 100%;">Обычная нагрузка</button>
       </div>
     `;
   } else {
@@ -504,7 +506,7 @@ export function renderToday(container: HTMLElement) {
     }
   });
   
-  content.querySelector('#btn-start')?.addEventListener('click', () => {
+  const handleStart = (itemsToPlay: any[], duration: number) => {
     const startSession = () => {
       if (!profile.calibrated) {
         navigateTo('session', {
@@ -515,7 +517,7 @@ export function renderToday(container: HTMLElement) {
           })
         });
       } else {
-        navigateTo('session', { mode: 'normal', items: plan.items, durationSec: ritualDuration });
+        navigateTo('session', { mode: 'normal', items: itemsToPlay, durationSec: duration });
       }
     };
 
@@ -604,6 +606,26 @@ export function renderToday(container: HTMLElement) {
       });
     } else {
       startSession();
+    }
+  };
+
+  content.querySelector('#btn-start')?.addEventListener('click', () => {
+    handleStart(plan.items, ritualDuration);
+  });
+
+  content.querySelector('#btn-full-start')?.addEventListener('click', () => {
+    if (ritual && ritual.plan) {
+      handleStart(ritual.plan.items, ritual.snapshot.durationSec);
+    }
+  });
+
+  content.querySelector('#btn-restart')?.addEventListener('click', () => {
+    const pSessions = storage.getSessions();
+    const idx = pSessions.findIndex(s => s.id === unfinishedSession?.id);
+    if (idx !== -1) {
+      pSessions[idx].finishedAt = new Date().toISOString();
+      storage.setSessions(pSessions);
+      renderToday(container);
     }
   });
 }

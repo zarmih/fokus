@@ -237,6 +237,7 @@ export class Storage {
   }
 
   getSessions(): Session[] { return this.getState().sessions; }
+  setSessions(sessions: Session[]) { const s = this.getState(); s.sessions = sessions; this.saveState(s); }
   addSession(session: Session) { const s = this.getState(); s.sessions.push(session); this.saveState(s); }
 
   getHistory(): HistoryItem[] { return this.getState().history || []; }
