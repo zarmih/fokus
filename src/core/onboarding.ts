@@ -6,6 +6,7 @@ import type {
   RitualIntensity
 } from './types';
 import { PROBE_DOMAINS, precisionLabel } from './calibration';
+import { domainLabel } from './labels';
 
 export const FIRST_WEEK_DAYS = 7;
 
@@ -290,4 +291,76 @@ export function firstWeekPreviewLines(plan: FirstWeekPlan): string[] {
     const minutes = Math.round(d.durationSec / 60);
     return `<span style="font-weight: 600; min-width: 55px; display: inline-block;">День ${d.day}</span> &middot; <span style="opacity: 0.85;">${minutes} мин</span> &middot; ${d.label}`;
   });
+}
+
+
+export type FirstWeekTone = 'start' | 'recovery' | 'habit';
+
+/** Shared first-week story for Today / Program / Coach / result continuity. */
+export interface FirstWeekContinuity {
+  title: string;
+  body: string;
+  whyExercises: string;
+  nextAction: string;
+  softenCta: boolean;
+  tone: FirstWeekTone;
+  focusDomains: CognitiveDomain[];
+  durationSec: number | null;
+  day: number | null;
+  label: string | null;
+}
+
+/**
+ * Turn getTodayRitual() into a concrete day-1…7 handoff — not a generic stub.
+ * Callers feed this into explainTodayPlan so CTA / coach / week card share one voice.
+ */
+export function describeFirstWeekContinuity(ritual: TodayRitual): FirstWeekContinuity | null {
+  if (!ritual.inFirstWeek || !ritual.ritualDay) return null;
+
+  const d = ritual.ritualDay;
+  const minutes = Math.max(1, Math.round(d.durationSec / 60));
+  const focusNames = d.focusDomains.map((id) => domainLabel(id)).filter(Boolean);
+  const focusLine =
+    focusNames.length === 0
+      ? 'Сбалансированный набор на сегодня.'
+      : focusNames.length === 1
+        ? `Акцент дня: ${focusNames[0]}.`
+        : `Акцент дня: ${focusNames.join(' + ')}.`;
+
+  const soften =
+    d.intensity === 'gentle' || ritual.skipState === 'forgiven' || ritual.skipState === 'resume';
+
+  let nextAction = 'Идём по плану';
+  if (d.intensity === 'gentle') nextAction = 'Лёгкий старт';
+  else if (d.day === 7 || d.intensity === 'full') nextAction = 'Полный ритуал';
+  else if (d.intensity === 'steady') nextAction = 'Продолжить ритуал';
+
+  let tone: FirstWeekTone = 'start';
+  if (ritual.skipState === 'forgiven' || ritual.skipState === 'resume') tone = 'recovery';
+  else if (d.day >= 5) tone = 'habit';
+
+  const skipBit = ritual.copy?.trim() || '';
+  const dayBit =
+    d.intensity === 'gentle'
+      ? `${d.label}. Сегодня короче обычного — около ${minutes} мин.`
+      : `${d.label}. Около ${minutes} мин в выбранном темпе.`;
+
+  // Prefer day identity; keep skip policy visible without drowning the ritual.
+  const body =
+    ritual.skipState === 'on-track'
+      ? `${dayBit} ${focusLine}`
+      : `${dayBit} ${skipBit}`.trim();
+
+  return {
+    title: `День ${d.day} · ${d.label}`,
+    body,
+    whyExercises: focusLine,
+    nextAction,
+    softenCta: soften,
+    tone,
+    focusDomains: [...d.focusDomains],
+    durationSec: d.durationSec,
+    day: d.day,
+    label: d.label
+  };
 }

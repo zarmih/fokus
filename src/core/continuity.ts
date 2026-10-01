@@ -1,4 +1,5 @@
 import type { DaySummary, ExerciseState, HistoryItem, Session } from './types';
+import { describeFirstWeekContinuity, type TodayRitual } from './onboarding';
 import {
   addCalendarDays,
   calendarDayKey,
@@ -384,9 +385,21 @@ export function formatDaysPlural(n: number): string {
 
 export function getContinuityMessage(
   snapshot: ContinuitySnapshot,
-  weekRitual?: { inFirstWeek: boolean; day: number | null; copy?: string }
+  weekRitual?: TodayRitual | { inFirstWeek: boolean; day: number | null; copy?: string; ritualDay?: TodayRitual['ritualDay']; skipState?: TodayRitual['skipState'] }
 ): ContinuityMessage {
   if (weekRitual && weekRitual.inFirstWeek) {
+    const full = weekRitual as TodayRitual;
+    const fw =
+      full.ritualDay && full.skipState
+        ? describeFirstWeekContinuity(full)
+        : null;
+    if (fw) {
+      return {
+        title: fw.title,
+        body: fw.body,
+        actionHint: fw.nextAction
+      };
+    }
     return {
       title: `Первая неделя: День ${weekRitual.day}`,
       body: weekRitual.copy || 'Разгоняемся. Навёрстывать дни не нужно.',

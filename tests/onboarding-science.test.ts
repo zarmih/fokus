@@ -7,7 +7,8 @@ import {
   TRANSFER_TIPS,
   firstWeekPreviewLines,
   skipCopy,
-  countMissedDays
+  countMissedDays,
+  describeFirstWeekContinuity
 } from '../src/core/onboarding';
 import { bootstrapFromProbe } from '../src/core/calibration';
 
@@ -113,5 +114,61 @@ describe('Transfer framing', () => {
   test('skip copy never asks to make up missed days', () => {
     expect(skipCopy('forgiven')).not.toMatch(/наверста|догони|штраф/i);
     expect(skipCopy('resume')).toMatch(/сегодняшнего/);
+  });
+});
+
+
+describe('describeFirstWeekContinuity — handoff into today-plan', () => {
+  test('day 1 carries ritual label, focus and soft CTA tone', () => {
+    const plan = buildFirstWeekPlan({
+      primaryGoal: 'memory',
+      sessionLengthSec: 480,
+      startDate: '2026-09-11'
+    });
+    const ritual = getTodayRitual(plan, '2026-09-11', []);
+    const fw = describeFirstWeekContinuity(ritual);
+    expect(fw).not.toBeNull();
+    expect(fw!.day).toBe(1);
+    expect(fw!.title).toMatch(/День 1/);
+    expect(fw!.title).toMatch(/Знакомство/);
+    expect(fw!.whyExercises).toMatch(/Память|память/i);
+    expect(fw!.nextAction).toBeTruthy();
+    expect(fw!.body).not.toMatch(/wikium|прокачай мозг|iq/i);
+    expect(fw!.durationSec).toBe(300);
+  });
+
+  test('forgiven skip softens CTA and keeps calendar day', () => {
+    const plan = buildFirstWeekPlan({
+      primaryGoal: 'attention',
+      sessionLengthSec: 480,
+      startDate: '2026-09-11'
+    });
+    const ritual = getTodayRitual(plan, '2026-09-13', [
+      { date: '2026-09-11T09:00:00.000Z' },
+      { date: '2026-09-13T09:00:00.000Z' }
+    ]);
+    expect(ritual.skipState).toBe('forgiven');
+    const fw = describeFirstWeekContinuity(ritual)!;
+    expect(fw.softenCta).toBe(true);
+    expect(fw.tone).toBe('recovery');
+    expect(fw.day).toBe(3);
+    expect(fw.body).toMatch(/навёрстывать|продолж/i);
+  });
+
+  test('gentle day 4 prefers лёгкий старт', () => {
+    const plan = buildFirstWeekPlan({
+      primaryGoal: 'attention',
+      sessionLengthSec: 720,
+      startDate: '2026-09-11'
+    });
+    const ritual = getTodayRitual(plan, '2026-09-14', [
+      { date: '2026-09-11' },
+      { date: '2026-09-12' },
+      { date: '2026-09-13' }
+    ]);
+    expect(ritual.ritualDay?.intensity).toBe('gentle');
+    const fw = describeFirstWeekContinuity(ritual)!;
+    expect(fw.nextAction).toMatch(/Лёгкий/);
+    expect(fw.softenCta).toBe(true);
   });
 });

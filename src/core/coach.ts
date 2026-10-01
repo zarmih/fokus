@@ -6,6 +6,7 @@ import { assessRetention, sparkFromRetention } from './retention';
 import { buildCoachIntel } from './coach-intel';
 import { explainTodayPlan } from './today-plan';
 import type { ContinuitySnapshot } from './continuity';
+import type { TodayRitual } from './onboarding';
 
 export interface CoachSpark {
   title: string;
@@ -76,6 +77,7 @@ export function getDailySpark(params: {
   continuity?: ContinuitySnapshot;
   adaptiveWhy?: string | null;
   planItems?: Array<{ exerciseId: string; reason: string; domain?: string }>;
+  weekRitual?: TodayRitual | null;
 }): CoachSpark {
   const {
     domains,
@@ -93,7 +95,8 @@ export function getDailySpark(params: {
     topInsight,
     continuity,
     adaptiveWhy,
-    planItems
+    planItems,
+    weekRitual
   } = params;
 
   if (!calibrated) {
@@ -124,7 +127,10 @@ export function getDailySpark(params: {
         retention: snap,
         focusDomains: focusDomains || [],
         planItems: planItems || [],
-        adaptiveWhy: adaptiveWhy ?? null
+        adaptiveWhy: adaptiveWhy ?? null,
+        inFirstWeek: !!weekRitual?.inFirstWeek,
+        weekRitualCopy: weekRitual?.copy || null,
+        weekRitual: weekRitual || null
       });
       return { title: exp.title, body: exp.body, tone: exp.tone };
     } catch {

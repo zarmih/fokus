@@ -12,6 +12,10 @@ import {
   type RetentionSnapshot
 } from './retention';
 import type { ContinuitySnapshot } from './continuity';
+import {
+  describeFirstWeekContinuity,
+  type TodayRitual
+} from './onboarding';
 import type { DaySummary, DomainIndex, Session } from './types';
 
 export type PlanTone = 'start' | 'habit' | 'focus' | 'recovery' | 'science' | 'time';
@@ -22,6 +26,7 @@ export type PlanExplainSource =
   | 'retention'
   | 'adaptive'
   | 'done'
+  | 'first_week'
   | 'default';
 
 export interface TodayPlanItem {
@@ -74,6 +79,8 @@ export interface ExplainTodayPlanInput {
   recoveryHint?: string | null;
   weekRitualCopy?: string | null;
   inFirstWeek?: boolean;
+  /** Full first-week ritual from getTodayRitual — preferred over copy-only. */
+  weekRitual?: TodayRitual | null;
 }
 
 /**
@@ -91,7 +98,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
     adaptiveWhy = null,
     recoveryHint = null,
     weekRitualCopy = null,
-    inFirstWeek = false
+    inFirstWeek = false,
+    weekRitual = null
   } = input;
 
   const programRetention =
@@ -213,24 +221,37 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
     };
   }
 
-  if (inFirstWeek && weekRitualCopy) {
-    return {
-      title: 'Первая неделя',
-      body: weekRitualCopy,
-      whyExercises: exerciseWhy,
-      nextAction: 'Идём по плану',
-      tone: 'start',
-      rhythmLine: programRetention.rhythmLine,
-      band: retention.band,
-      rhythm: retention.rhythm,
-      softenCta: false,
-      durationSec: null,
-      focusDomain,
-      recoveryPath: false,
-      aria: weekRitualCopy,
-      source: 'default',
-      programRetention
-    };
+  if (inFirstWeek) {
+    const fw =
+      (weekRitual && describeFirstWeekContinuity(weekRitual)) ||
+      null;
+    if (fw || weekRitualCopy) {
+      const title = fw?.title || 'Первая неделя';
+      const body = fw?.body || weekRitualCopy || '';
+      const why = fw?.whyExercises || exerciseWhy;
+      const nextAction = fw?.nextAction || 'Идём по плану';
+      const soften = fw?.softenCta ?? false;
+      const tone = fw?.tone || 'start';
+      const durationSec = fw?.durationSec ?? null;
+      const fwFocus = fw?.focusDomains?.[0] || focusDomain;
+      return {
+        title,
+        body,
+        whyExercises: why,
+        nextAction,
+        tone,
+        rhythmLine: programRetention.rhythmLine,
+        band: retention.band,
+        rhythm: retention.rhythm,
+        softenCta: soften,
+        durationSec,
+        focusDomain: fwFocus,
+        recoveryPath: soften,
+        aria: `${title}. ${body}`,
+        source: 'first_week',
+        programRetention
+      };
+    }
   }
 
   if (recoveryHint) {
@@ -448,6 +469,7 @@ export function buildTodayPlanExplanation(params: {
   recoveryHint?: string | null;
   weekRitualCopy?: string | null;
   inFirstWeek?: boolean;
+  weekRitual?: TodayRitual | null;
   now?: Date;
 }): {
   retention: RetentionSnapshot;
@@ -480,7 +502,8 @@ export function buildTodayPlanExplanation(params: {
     adaptiveWhy: params.adaptiveWhy,
     recoveryHint: params.recoveryHint,
     weekRitualCopy: params.weekRitualCopy,
-    inFirstWeek: params.inFirstWeek
+    inFirstWeek: params.inFirstWeek,
+    weekRitual: params.weekRitual
   });
   return { retention, explanation };
 }

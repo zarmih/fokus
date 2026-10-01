@@ -286,7 +286,7 @@ test('renderResult - First week continuity message', () => {
   renderResult(container, { session });
   
   const html = container.innerHTML;
-  expect(html).toContain('Первая неделя: День 1');
-  expect(html).toContain('Идём по плану');
+  expect(html).toContain('День 1 · Знакомство');
+  expect(html).toMatch(/Акцент дня|Лёгкий старт|короче обычного/i);
 });
 
