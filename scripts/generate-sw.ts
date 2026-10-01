@@ -83,12 +83,19 @@ self.addEventListener('fetch', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
+  const soft = event.notification && event.notification.tag === 'fokus-soft-return';
+  const target = soft
+    ? self.registration.scope.replace(/\/?$/, '/') + '?return=soft'
+    : self.registration.scope;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
       for (const client of clients) {
-        if ('focus' in client) return client.focus();
+        if ('focus' in client) {
+          try { client.postMessage({ type: 'fokus-reminder', softReturn: !!soft }); } catch (_) {}
+          return client.focus();
+        }
       }
-      if (self.clients.openWindow) return self.clients.openWindow(self.registration.scope);
+      if (self.clients.openWindow) return self.clients.openWindow(target);
     })
   );
 });
