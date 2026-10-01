@@ -21,7 +21,8 @@ import { renderRadarChart } from '../components/charts';
 import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
-import { assessRetention, bandLabel } from '../../core/retention';
+import { assessRetention, describeProgramRetention } from '../../core/retention';
+import { explainTodayPlan, applyRetentionRitualOrder } from '../../core/today-plan';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
@@ -95,7 +96,44 @@ export function renderToday(container: HTMLElement) {
     const catalogHints = catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain }));
     const biased = applyGentleReturnBias(plan as any, snap.ritual, catalogHints);
     plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
-    ritualDuration = Math.min(ritual.snapshot.durationSec, effectiveDurationSec);
+
+    let retSnapForOrder = null as ReturnType<typeof assessRetention> | null;
+    let programRet = null as ReturnType<typeof describeProgramRetention> | null;
+    try {
+      retSnapForOrder = assessRetention({
+        daySummaries: ds,
+        sessions,
+        domains,
+        playedToday,
+        streak,
+        skippedYesterday,
+        sessionLengthSec: profile.sessionLengthSec,
+        shieldCharges: typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
+          ? (profile as { shieldCharges?: number }).shieldCharges
+          : undefined
+      });
+      programRet = describeProgramRetention(retSnapForOrder, {
+        profileLengthSec: profile.sessionLengthSec,
+        softReturnActive: snap.ritual.active,
+        playedToday
+      });
+      if (programRet.durationSec != null && !snap.ritual.active) {
+        ritualDuration = Math.min(effectiveDurationSec, programRet.durationSec);
+      }
+      const ordered = applyRetentionRitualOrder(plan as any, {
+        focusDomain: programRet.focusDomain,
+        band: retSnapForOrder.band,
+        gapDays: retSnapForOrder.gapDays,
+        softReturnActive: snap.ritual.active,
+        catalog: catalogHints
+      });
+      plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
+    } catch {
+      retSnapForOrder = null;
+      programRet = null;
+    }
+
+    ritualDuration = Math.min(ritual.snapshot.durationSec, ritualDuration || effectiveDurationSec);
     recal = ritual.recalibration;
     depth = describeAdaptiveDepth({
       sessions,
@@ -109,9 +147,22 @@ export function renderToday(container: HTMLElement) {
     if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
       plan.items = depth.ritual.items.map((s: any) => ({
         exerciseId: s.exerciseId,
-        reason: s.reasonLabel
+        reason: s.reasonLabel,
+        domain: s.domain
       }));
       plan.focusDomains = depth.ritual.focusDomains;
+    }
+
+    // Retention → ritual order must run after depth overwrite so neglect wins visibly.
+    if (programRet && retSnapForOrder) {
+      const ordered = applyRetentionRitualOrder(plan as any, {
+        focusDomain: programRet.focusDomain,
+        band: retSnapForOrder.band,
+        gapDays: retSnapForOrder.gapDays,
+        softReturnActive: snap.ritual.active,
+        catalog: catalogHints
+      });
+      plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
     }
     
     if (plan.items.length === 0) {
@@ -162,27 +213,10 @@ export function renderToday(container: HTMLElement) {
     ? (profile as { shieldCharges?: number }).shieldCharges
     : undefined;
 
-  const spark = getDailySpark({
-    domains,
-    skills,
-    states,
-    daySummaries: ds,
-    sessions,
-    calibrated: !!profile.calibrated,
-    playedToday,
-    streak,
-    skippedYesterday,
-    primaryGoal: profile.primaryGoal,
-    focusDomains: plan.focusDomains,
-    shieldCharges,
-    trajectory: depth.trajectory,
-    topInsight
-  });
-
-  const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
-  let retentionHtml = '';
+  let retSnap = null as ReturnType<typeof assessRetention> | null;
+  let programRetView = null as ReturnType<typeof describeProgramRetention> | null;
   try {
-    const snap = assessRetention({
+    retSnap = assessRetention({
       daySummaries: ds,
       sessions,
       domains,
@@ -192,15 +226,58 @@ export function renderToday(container: HTMLElement) {
       sessionLengthSec: profile.sessionLengthSec,
       shieldCharges
     });
-    if (profile.calibrated && snap.confidence >= 20) {
-      const extra = snap.primaryNudge && snap.primaryNudge.title !== spark.title
-        ? ` · ${snap.primaryNudge.title.toLowerCase()}`
-        : '';
-      retentionHtml = `<p class="rhythm-line band-${snap.band}" data-rhythm="${snap.rhythm}">Ритм ${snap.rhythm} · ${bandLabel(snap.band)}${extra}</p>`;
-    }
+    programRetView = describeProgramRetention(retSnap, {
+      profileLengthSec: profile.sessionLengthSec,
+      softReturnActive: snap.ritual.active,
+      playedToday
+    });
   } catch {
-    retentionHtml = '';
+    retSnap = null;
+    programRetView = null;
   }
+
+  const planExplain = retSnap
+    ? explainTodayPlan({
+        calibrated: !!profile.calibrated,
+        playedToday,
+        continuity: snap,
+        retention: retSnap,
+        programRetention: programRetView,
+        focusDomains: plan.focusDomains,
+        planItems: plan.items,
+        adaptiveWhy: depth.why,
+        recoveryHint: ritual?.snapshot?.gate?.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint?.body) : null,
+        weekRitualCopy: weekRitual.copy || null,
+        inFirstWeek: weekRitual.inFirstWeek
+      })
+    : null;
+
+  // Shared story wins; fall back to legacy spark only if retention assess failed.
+  const spark = planExplain
+    ? { title: planExplain.title, body: planExplain.body, tone: planExplain.tone }
+    : getDailySpark({
+        domains,
+        skills,
+        states,
+        daySummaries: ds,
+        sessions,
+        calibrated: !!profile.calibrated,
+        playedToday,
+        streak,
+        skippedYesterday,
+        primaryGoal: profile.primaryGoal,
+        focusDomains: plan.focusDomains,
+        shieldCharges,
+        trajectory: depth.trajectory,
+        topInsight
+      });
+
+  const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
+  let retentionHtml = '';
+  if (profile.calibrated && planExplain?.rhythmLine && retSnap && retSnap.confidence >= 20) {
+    retentionHtml = `<p class="rhythm-line band-${planExplain.band}" data-rhythm="${planExplain.rhythm}" data-plan-source="${planExplain.source}">${planExplain.rhythmLine}</p>`;
+  }
+  void ritualWhyHtml;
 
 
   const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
@@ -395,10 +472,11 @@ export function renderToday(container: HTMLElement) {
           ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
         ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
-        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
+        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 8px;">${spark.body}</p>
+        ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : '<div style="margin-bottom: 8px;"></div>'}
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>Начать тренировку</span>
+          <span>${planExplain?.softenCta ? 'Короткий блок' : (planExplain?.nextAction || 'Начать тренировку')}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
