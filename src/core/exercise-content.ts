@@ -52,11 +52,13 @@ const BANDS: DifficultyBand[] = [
 const DOMAIN_TIPS: Record<Domain, string[]> = {
   attention: [
     'Следите за одним признаком за раз — возвращаться к задаче важнее, чем «не отвлекаться».',
-    'Если взгляд уплыл, мягко вернитесь к цели. Упражнение учит возврату, а не идеальной концентрации.'
+    'Если взгляд уплыл, мягко вернитесь к цели. Упражнение учит возврату, а не идеальной концентрации.',
+    'Для задач с «окном» реакции: лучше чуть позже уверенно, чем тап наугад на подходе.'
   ],
   memory: [
     'Повторите цепочку про себя один раз перед ответом — так легче удержать короткий ряд.',
-    'Не пытайтесь запомнить «всё сразу»: достаточно следующего шага.'
+    'Не пытайтесь запомнить «всё сразу»: достаточно следующего шага.',
+    'Два якоря проще, чем список: свяжите левый и правый знак короткой историей.'
   ],
   speed: [
     'Скорость растёт из спокойных правильных ответов, а не из спешки в первые секунды.',
@@ -85,8 +87,16 @@ export function difficultyBandLabel(difficulty: number): string {
   return difficultyBand(difficulty).label;
 }
 
+const EXERCISE_TIPS: Record<string, string> = {
+  'tide-gate':
+    'Дышите ровно и смотрите на полосу ворот, а не на саму метку — периферия подскажет момент.',
+  'anchor-pair':
+    'Проговорите «слева …, справа …» шёпотом один раз — так пара держится дольше паузы.'
+};
+
 /** Stable tip pick from domain pool (no Math.random — uses floor(difficulty)). */
-export function domainSessionTip(domain: Domain | string, difficulty = 1): string {
+export function domainSessionTip(domain: Domain | string, difficulty = 1, exerciseId?: string): string {
+  if (exerciseId && EXERCISE_TIPS[exerciseId]) return EXERCISE_TIPS[exerciseId];
   const key = (DOMAIN_TIPS[domain as Domain] ? domain : 'attention') as Domain;
   const pool = DOMAIN_TIPS[key];
   const idx = Math.abs(Math.floor(difficulty)) % pool.length;
@@ -102,9 +112,10 @@ export function buildSessionContent(params: {
   difficulty: number;
   domain: Domain | string;
   instruction?: string;
+  exerciseId?: string;
 }): SessionContent {
   const band = difficultyBand(params.difficulty);
-  const tip = domainSessionTip(params.domain, params.difficulty);
+  const tip = domainSessionTip(params.domain, params.difficulty, params.exerciseId);
   const domainName = domainLabel(String(params.domain));
   return {
     band,

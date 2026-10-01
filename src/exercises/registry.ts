@@ -176,6 +176,8 @@ import arrowPathModule from './arrow-path';
 import colorCountModule from './color-count';
 import letterNumberSwitchModule from './letter-number-switch';
 import symbolMatchModule from './symbol-match';
+import tideGateModule from './tide-gate';
+import anchorPairModule from './anchor-pair';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -354,6 +356,8 @@ export const registry: ExerciseModule[] = [
   arrowPathModule,
   colorCountModule,
   letterNumberSwitchModule,
-  symbolMatchModule
+  symbolMatchModule,
+  tideGateModule,
+  anchorPairModule
 ];
 

@@ -5,7 +5,8 @@ import {
   CONTENT_BANNED,
   difficultyBand,
   difficultyBandLabel,
-  domainSessionTip
+  domainSessionTip,
+
 } from '../src/core/exercise-content';
 
 describe('exercise-content — original RU difficulty/hints', () => {
@@ -58,3 +59,17 @@ describe('exercise-content — original RU difficulty/hints', () => {
     }
   });
 });
+
+test('exercise-specific tips for original tide-gate / anchor-pair', () => {
+  expect(domainSessionTip('attention', 1, 'tide-gate')).toMatch(/ворот/i);
+  expect(domainSessionTip('memory', 1, 'anchor-pair')).toMatch(/слева|справа/i);
+  const c = buildSessionContent({
+    blockIndex: 2,
+    difficulty: 6,
+    domain: 'attention',
+    exerciseId: 'tide-gate'
+  });
+  expect(c.hintLine).toMatch(/ворот/i);
+  expect(assertOriginalCopy(c.hintLine)).toBe(true);
+});
+
