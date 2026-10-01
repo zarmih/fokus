@@ -106,7 +106,7 @@ describe('Cognitive Engine Closed Loop', () => {
     // User A should get a memory exercise due to weaknessPriority
     const exA = registry.find(r => r.manifest.id === planA.items[0].exerciseId)!;
     expect(exA.manifest.domain).toBe('memory');
-    expect(planA.items[0].reason).toMatch(/Неделя \d+ · Отстающий навык|Неделя \d+ · День \d+ · Знакомство|Неделя \d+ · День \d+ · Сбор данных|Неделя \d+ · Цель и отстающий навык|Неделя \d+ · Работа над целью/);
+    expect(planA.items[0].reason).toMatch(/Неделя \d+ · День \d+ · (Отстающий навык|Знакомство|Сбор данных|Цель и отстающий навык|Работа над целью)/);
 
     // User B should NOT get memory as their primary weakness, likely something else
     const exB = registry.find(r => r.manifest.id === planB.items[0].exerciseId)!;
@@ -150,7 +150,7 @@ describe('Cognitive Engine Closed Loop', () => {
     const plan = user.buildPlan();
     const item = plan.items.find(i => registry.find(r => r.manifest.id === i.exerciseId)?.manifest.skills.includes('visual_memory'));
     expect(item).toBeDefined();
-    expect(item!.reason).toBe('Давно не тренировали');
+    expect(item!.reason).toMatch(/Неделя \d+ · День \d+ · Давно не тренировали/);
   });
 
   test('Mastery Causal Test: Confidence caps mastery, stability preserves it', () => {
