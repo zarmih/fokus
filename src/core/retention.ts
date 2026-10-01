@@ -233,6 +233,116 @@ export function sparkFromRetention(snap: RetentionSnapshot): SoftSpark | null {
   };
 }
 
+/** Soft duration cap when retention asks for a short return session (seconds). */
+export const RETENTION_SHORT_DURATION_SEC = 360;
+
+/**
+ * Program ← Retention glue (Wikium-MVP product loop).
+ * Pure view-model: maps churn snapshot into Program "Ваш ритм" + coach rationale
+ * without inventing IQ claims or FOMO copy. Continuity soft-return keeps ownership
+ * of duration when already active.
+ */
+export interface ProgramRetentionView {
+  rhythm: number;
+  band: ChurnBand;
+  bandText: string;
+  confidence: number;
+  /** Compact strip: "Ритм 72 · устойчивый". */
+  rhythmLine: string;
+  /** Supporting copy under the rhythm strip. */
+  body: string;
+  /** Inject into Program coach rationale when stronger than adaptive defaults. */
+  coachOverride: string | null;
+  /** Suggested ritual length; null = keep caller / continuity duration. */
+  durationSec: number | null;
+  /** Neglected domain to surface when rebalance is primary. */
+  focusDomain: string | null;
+  aria: string;
+  /** Soften primary CTA wording (no guilt, short block). */
+  softenCta: boolean;
+  nudgeKind: NudgeKind | null;
+}
+
+export function describeProgramRetention(
+  snap: RetentionSnapshot,
+  opts: {
+    profileLengthSec?: number;
+    softReturnActive?: boolean;
+    playedToday?: boolean;
+  } = {}
+): ProgramRetentionView {
+  const profileLengthSec = opts.profileLengthSec ?? 900;
+  const softReturnActive = !!opts.softReturnActive;
+  const playedToday = opts.playedToday ?? false;
+  const bandText = bandLabel(snap.band);
+  const nudge = snap.primaryNudge;
+  const rhythmLine = `Ритм ${snap.rhythm} · ${bandText}`;
+
+  const calmBody =
+    snap.confidence < 30
+      ? 'Пока мало данных для точного ритма — одна спокойная сессия сегодня поможет Fokus сориентироваться.'
+      : snap.band === 'stable'
+        ? 'Ритм устойчивый. Регулярность важнее объёма — держите привычный блок без гонки.'
+        : 'Честный ритм без давления. Fokus подстроит длину и акцент под ваш темп.';
+
+  const body = nudge?.body ?? calmBody;
+
+  let coachOverride: string | null = null;
+  if (snap.confidence >= 24 && !softReturnActive) {
+    if (nudge && (nudge.kind === 'resume' || nudge.kind === 'short_session' || nudge.kind === 'protect_streak')) {
+      coachOverride = `${nudge.title}. ${nudge.body}`;
+    } else if (nudge && nudge.kind === 'rebalance' && snap.neglectedDomain) {
+      const name = domainLabel(snap.neglectedDomain);
+      coachOverride = `Акцент на «${name}»: зона давно без нагрузки — план дня возвращает баланс.`;
+    } else if (playedToday && nudge?.kind === 'rest') {
+      coachOverride = nudge.body;
+    } else if (playedToday && (nudge?.kind === 'praise_return' || nudge?.kind === 'praise_consistency')) {
+      coachOverride = nudge.body;
+    }
+  }
+
+  let durationSec: number | null = null;
+  if (!softReturnActive && !playedToday && nudge) {
+    const wantsShort =
+      nudge.kind === 'short_session' ||
+      nudge.kind === 'resume' ||
+      (nudge.kind === 'protect_streak' && snap.gapDays >= 1);
+    if (wantsShort && (snap.gapDays >= 2 || snap.band === 'at_risk' || snap.band === 'critical')) {
+      durationSec = Math.min(profileLengthSec, RETENTION_SHORT_DURATION_SEC);
+    }
+  }
+
+  const focusDomain =
+    snap.neglectedDomain &&
+    (nudge?.kind === 'rebalance' ||
+      snap.signals.some((s) => s.id === 'domain_neglect' && s.score >= 50))
+      ? snap.neglectedDomain
+      : null;
+
+  const softenCta =
+    !playedToday &&
+    !!nudge &&
+    (nudge.kind === 'resume' || nudge.kind === 'short_session' || nudge.kind === 'protect_streak');
+
+  const aria = `Ритм привычки ${snap.rhythm} из 100, состояние: ${bandText}. ${body}`;
+
+  return {
+    rhythm: snap.rhythm,
+    band: snap.band,
+    bandText,
+    confidence: snap.confidence,
+    rhythmLine,
+    body,
+    coachOverride,
+    durationSec,
+    focusDomain,
+    aria,
+    softenCta,
+    nudgeKind: nudge?.kind ?? null
+  };
+}
+
+
 function lastActiveDay(summaries: DaySummary[], sessions: Session[], playedToday: string | null): string | null {
   if (playedToday) return playedToday;
   for (let i = summaries.length - 1; i >= 0; i--) {
