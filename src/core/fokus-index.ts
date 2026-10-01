@@ -55,8 +55,8 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
       value: 0, confidence: 0, coverage: 0, byDomain, trend: 0, depth,
       phase: 'empty',
       explain: {
-        state: 'Недостаточно данных.',
-        action: 'Сбор статистики начнётся после первой сессии. Fokus Index (индекс формы) формируется на основе ваших реальных результатов, а не демографических ожиданий. Пройдите первую тренировку, чтобы начать калибровку.'
+        state: 'Недостаточно данных',
+        action: 'Сбор статистики начнётся после первой сессии. Ваш Fokus Index формируется исключительно на основе реальных фактов: точности и времени реакций, а не абстрактных ожиданий.'
       }
     };
   }
@@ -75,11 +75,11 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   if (coverage < 3) {
     phase = 'calibrating';
     stateStr = `Открыто ${coverage} из 5 областей.`;
-    actionStr = `Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : (3 - coverage === 2 ? 'области' : 'областей')} для расчёта индекса. Fokus накапливает статистику, чтобы первая оценка была объективной, а не случайной.`;
+    actionStr = `Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : (3 - coverage === 2 ? 'области' : 'областей')} для оценки. Fokus накапливает статистику, чтобы показатель отражал вашу фактическую форму, а не случайную догадку.`;
   } else {
     phase = 'established';
     stateStr = `Уверенность ${confidence}%.`;
-    actionStr = 'Индекс — снимок формы на сегодня. Оценка опирается исключительно на подтверждённые данные: точность и скорость реакций.';
+    actionStr = 'Индекс — честный снимок вашей формы на сегодня. Мы показываем только те тренды, которые подтверждены данными сессий.';
   }
 
   return {
@@ -107,11 +107,11 @@ export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: st
 
 export function indexDelta(current: number, previous: number | null, daysAgo: number = 1): { delta: number; label: string } {
   if (previous === null || previous === 0) {
-    return { delta: 0, label: 'ранняя оценка — мало истории' };
+    return { delta: 0, label: 'сбор данных — история формируется' };
   }
   const delta = current - previous;
-  const labelSuffix = daysAgo === 7 ? 'прошлой недели' : 'вчера';
-  if (Math.abs(delta) <= 8) return { delta, label: `естественные колебания (${labelSuffix})` };
-  if (delta > 8) return { delta, label: `+${delta} ${labelSuffix === 'вчера' ? 'ко вчерашнему дню' : 'к прошлой неделе'}` };
-  return { delta, label: `${delta} ${labelSuffix === 'вчера' ? 'ко вчерашнему дню' : 'к прошлой неделе'}` };
+  const labelSuffix = daysAgo === 7 ? 'к прошлой неделе' : 'ко вчерашнему дню';
+  if (Math.abs(delta) <= 8) return { delta, label: `естественный фон (${labelSuffix})` };
+  const sign = delta > 0 ? '+' : '';
+  return { delta, label: `${sign}${delta} ${labelSuffix}` };
 }
