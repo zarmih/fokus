@@ -4,6 +4,7 @@ import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayK
 import { getWeeklyDomainTips } from './coach-intel';
 
 export { REMINDER_LAST_KEY };
+import { assessRetention } from './retention';
 
 export function preferredReminderHour(): number {
   const h = storage.getProfile().reminderHour;
@@ -64,26 +65,27 @@ export function maybeNotify(): void {
     /* ignore quota */
   }
 
+  const sessions = storage.getSessions();
+  const domains = storage.getDomains();
+  
+  const snap = assessRetention({
+    daySummaries: summaries,
+    sessions,
+    domains,
+    playedToday: false,
+    streak: streak.current,
+    skippedYesterday: streak.openMisses > 0,
+    sessionLengthSec: storage.getProfile().sessionLengthSec
+  });
+
   let body = 'Короткая тренировка для поддержания ритма.';
-  if (streak.status === 'open') {
+  if (snap.primaryNudge) {
+    body = snap.primaryNudge.body;
+  } else if (streak.status === 'open') {
     const target = storage.getProfile().primaryGoal || 'attention';
     const tips = getWeeklyDomainTips(target);
     const dayOfYear = Math.floor(Date.now() / 86400000);
     body = tips[dayOfYear % tips.length];
-  } else if (streak.status === 'soft_return') {
-    if (streak.consistency30 >= 80) {
-      body = `Вы держите отличную регулярность (${streak.consistency30}% за месяц). Один короткий блок поможет закрепить результат без лишнего напряжения.`;
-    } else {
-      body = 'Пропуски — это часть пути. Мягкий возврат в ритм через одну лёгкую сессию без чувства вины.';
-    }
-  } else if (streak.status === 'fresh_start') {
-    if (streak.openMisses === 3) {
-      body = 'Паузы помогают избегать выгорания. Fokus готов к короткой сессии в вашем темпе — без марафонов.';
-    } else if (streak.openMisses === 7) {
-      body = 'Фокус не пропадает за неделю. Спокойная разминка поможет снова включиться в ритм, когда вы будете готовы.';
-    } else {
-      body = 'Честный подход к тренировкам: никакого чувства вины за пропуски. Начнём с лёгкой разминки?';
-    }
   }
 
   const n = new Notification('Fokus', {
