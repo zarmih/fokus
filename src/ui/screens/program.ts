@@ -13,13 +13,16 @@ import { planWithRecovery } from '../../core/recovery';
 import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan, applyRetentionRitualOrder } from '../../core/today-plan';
+import { getTodayRitual } from '../../core/onboarding';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
   const profile = storage.getProfile();
   
   const snapshot = loadContinuitySnapshot(storage as any);
-  const contMsg = getContinuityMessage(snapshot);
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, storage.getDaySummaries());
+  const contMsg = getContinuityMessage(snapshot, weekRitual);
   const playedToday = snapshot.streak.playedToday;
   
   const ds = storage.getDaySummaries();
@@ -107,7 +110,10 @@ export function renderProgram(container: HTMLElement) {
       focusDomains: plan.focusDomains,
       planItems: plan.items,
       adaptiveWhy: null,
-      recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null
+      recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null,
+      inFirstWeek: weekRitual.inFirstWeek,
+      weekRitualCopy: weekRitual.copy || null,
+      weekRitual
     });
   } catch {
     planExplain = null;
@@ -152,7 +158,10 @@ export function renderProgram(container: HTMLElement) {
         focusDomains: plan.focusDomains,
         planItems: plan.items,
         adaptiveWhy: adaptiveDepth.why,
-        recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null
+        recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null,
+        inFirstWeek: weekRitual.inFirstWeek,
+        weekRitualCopy: weekRitual.copy || null,
+        weekRitual
       });
     } catch {
       /* keep prior planExplain */

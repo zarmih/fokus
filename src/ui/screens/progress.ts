@@ -13,6 +13,7 @@ import { transferCardFromStorage } from '../components/transfer-card';
 import { renderQualityCard } from '../components/quality-card';
 import { assessRetention, bandLabel, signalLabel, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan } from '../../core/today-plan';
+import { getTodayRitual } from '../../core/onboarding';
 import { buildCoachIntel } from '../../core/coach-intel';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
@@ -305,13 +306,17 @@ export function renderProgress(container: HTMLElement) {
         softReturnActive: snap.ritual.active,
         playedToday
       });
+      const weekRitual = getTodayRitual(profile.firstWeekPlan, new Date().toISOString().slice(0, 10), ds);
       const planExplain = explainTodayPlan({
         calibrated: !!profile.calibrated,
         playedToday,
         continuity: snap,
         retention: retSnap,
         programRetention,
-        focusDomains: programRetention.focusDomain ? [programRetention.focusDomain] : []
+        focusDomains: programRetention.focusDomain ? [programRetention.focusDomain] : [],
+        inFirstWeek: weekRitual.inFirstWeek,
+        weekRitualCopy: weekRitual.copy || null,
+        weekRitual
       });
       const rows = retSnap.signals.map(s => {
         const pct = Math.max(4, s.score);

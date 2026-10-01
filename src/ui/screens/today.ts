@@ -248,7 +248,8 @@ export function renderToday(container: HTMLElement) {
         adaptiveWhy: depth.why,
         recoveryHint: ritual?.snapshot?.gate?.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint?.body) : null,
         weekRitualCopy: weekRitual.copy || null,
-        inFirstWeek: weekRitual.inFirstWeek
+        inFirstWeek: weekRitual.inFirstWeek,
+        weekRitual
       })
     : null;
 
@@ -272,7 +273,8 @@ export function renderToday(container: HTMLElement) {
         topInsight,
         continuity: snap,
         adaptiveWhy: depth.why,
-        planItems: plan.items
+        planItems: plan.items,
+        weekRitual
       });
 
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
@@ -470,7 +472,7 @@ export function renderToday(container: HTMLElement) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${finalKicker}
         </div>
-        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Тренировка дня</h3>
+        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'first_week' ? planExplain.title : 'Тренировка дня'}</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">
           ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>

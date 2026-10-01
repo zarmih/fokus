@@ -7,6 +7,7 @@ import {
 import { assessRetention, describeProgramRetention } from '../src/core/retention';
 import { buildContinuitySnapshot } from '../src/core/continuity';
 import type { DaySummary, DomainIndex, Session, SessionItem } from '../src/core/types';
+import { buildFirstWeekPlan, getTodayRitual } from '../src/core/onboarding';
 
 const NOW = new Date(2026, 8, 11, 12, 0, 0); // 2026-09-11
 
@@ -179,6 +180,40 @@ describe('explainTodayPlan — shared Today/Program/Coach story', () => {
     expect(exp.softenCta).toBe(false);
     expect(exp.body).not.toMatch(SPAM);
   });
+
+  test('first-week day uses first_week source with ritual label CTA', () => {
+    const plan = buildFirstWeekPlan({
+      primaryGoal: 'attention',
+      sessionLengthSec: 480,
+      startDate: '2026-09-11'
+    });
+    const weekRitual = getTodayRitual(plan, '2026-09-11', []);
+    const retention = assessRetention({
+      daySummaries: [],
+      sessions: [],
+      domains: [],
+      playedToday: false,
+      streak: 0,
+      now: NOW
+    });
+    const continuity = buildContinuitySnapshot({ now: NOW });
+    const exp = explainTodayPlan({
+      calibrated: true,
+      playedToday: false,
+      continuity,
+      retention,
+      inFirstWeek: true,
+      weekRitual,
+      focusDomains: weekRitual.ritualDay?.focusDomains || [],
+      planItems: [{ exerciseId: 'odd-one', reason: 'goal', domain: 'attention' }]
+    });
+    expect(exp.source).toBe('first_week');
+    expect(exp.title).toMatch(/День 1/);
+    expect(exp.nextAction).toBeTruthy();
+    expect(exp.body).not.toMatch(SPAM);
+    expect(exp.whyExercises).toBeTruthy();
+  });
+
 });
 
 describe('applyRetentionRitualOrder — neglect / gap reorders slots', () => {
