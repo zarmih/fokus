@@ -63,6 +63,14 @@ export const KNOWN_STORES: KnownStoreSpec[] = [
     description: 'Системная дата отправки уведомления для предотвращения дублей. Не содержит личных данных.',
     mayContainPii: false,
     category: 'preference'
+  },
+  {
+    id: 'feedback',
+    key: 'fokus.feedback.v1',
+    title: 'Обратная связь и локальные счётчики',
+    description: 'Заметки обратной связи и опциональные счётчики ритуалов. Только на устройстве, без отправки.',
+    mayContainPii: false,
+    category: 'preference'
   }
 ];
 

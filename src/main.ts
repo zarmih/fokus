@@ -12,7 +12,10 @@ import { safeError } from './core/log';
 import { renderOfflineBanner } from './ui/components/offline-banner';
 
 initInstallPrompt();
-consumeSoftReturnQuery();
+const softBoot = consumeSoftReturnQuery();
+if (softBoot) {
+  import('./core/feedback-io').then(({ trackLocal }) => trackLocal('soft_return_open')).catch(() => {});
+}
 
 type ScreenFn = (el: HTMLElement, params?: any) => void;
 

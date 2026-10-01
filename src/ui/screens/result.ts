@@ -406,4 +406,8 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   if (primaryBtn) {
     requestAnimationFrame(() => primaryBtn.focus());
   }
+
+  if (!params.calibration && !params.recalibration) {
+    import('../../core/feedback-io').then(({ trackLocal }) => trackLocal('ritual_completed')).catch(() => {});
+  }
 }
