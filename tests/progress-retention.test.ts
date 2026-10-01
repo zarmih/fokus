@@ -47,3 +47,49 @@ test('progress shows rhythm signals after a few sessions', () => {
   expect(document.body.textContent).toMatch(/Регулярность/);
   expect(document.body.textContent).not.toMatch(/нейрофитнес|прокачай мозг/i);
 });
+
+test('progress rhythm card uses shared today-plan story (same body family as Today/Coach)', () => {
+  const days = [];
+  for (let i = 8; i >= 2; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push({
+      date: d.toISOString(),
+      totalScore: 110,
+      domainDeltas: { attention: 5, memory: 1 },
+      streak: 1,
+      skipped: false
+    });
+  }
+  days.forEach((d) => storage.addDaySummary(d));
+  // Last play a few days ago → recovery/retention path, not empty cold start
+  const last = days[days.length - 1].date;
+  storage.setDomains([
+    { domain: 'attention', value: 740, trend: 3, updatedAt: last },
+    { domain: 'memory', value: 480, trend: -2, updatedAt: days[0].date },
+    { domain: 'speed', value: 600, trend: 0, updatedAt: last },
+    { domain: 'flexibility', value: 580, trend: 0, updatedAt: last },
+    { domain: 'logic', value: 560, trend: 0, updatedAt: last }
+  ]);
+  storage.addSession({
+    id: 's-gap',
+    startedAt: last,
+    finishedAt: last,
+    durationSec: 300,
+    items: [{ exerciseId: 'stroop', level: 2, accuracy: 0.9, avgRtMs: 500, score: 80 }]
+  });
+  storage.setProfile({ ...storage.getProfile(), calibrated: true, onboarded: true, sessionLengthSec: 600 });
+
+  renderProgress(document.getElementById('app')!);
+  const card = document.querySelector('.rhythm-card') as HTMLElement | null;
+  expect(card).toBeTruthy();
+  expect(card!.getAttribute('data-plan-source')).toBeTruthy();
+  expect(card!.getAttribute('data-rhythm')).toBeTruthy();
+  expect(document.querySelector('.rhythm-nudge')).toBeTruthy();
+  expect(document.querySelector('.rhythm-nudge-title')).toBeTruthy();
+  expect(document.body.textContent).not.toMatch(/нейрофитнес|прокачай мозг|не пропусти|IQ-тест/i);
+  // Shared story copy is present (title or body from explainTodayPlan)
+  const title = document.querySelector('.rhythm-nudge-title')?.textContent || '';
+  const body = document.querySelector('.rhythm-nudge')?.textContent || '';
+  expect(title.length + body.length).toBeGreaterThan(20);
+});
