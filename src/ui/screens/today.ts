@@ -269,7 +269,10 @@ export function renderToday(container: HTMLElement) {
         focusDomains: plan.focusDomains,
         shieldCharges,
         trajectory: depth.trajectory,
-        topInsight
+        topInsight,
+        continuity: snap,
+        adaptiveWhy: depth.why,
+        planItems: plan.items
       });
 
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });

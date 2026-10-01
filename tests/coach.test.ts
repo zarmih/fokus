@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { getDailySpark, analyzeChronotype, getWeeklyDomainTips } from '../src/core/coach';
+import { buildContinuitySnapshot } from '../src/core/continuity';
 import type { Session } from '../src/core/types';
 
 test('uncalibrated users get a calibration spark', () => {
@@ -90,4 +91,48 @@ test('weekly domain tips stay concrete and in product voice', () => {
   expect(tips.length).toBeGreaterThanOrEqual(6);
   expect(tips[0]).toMatch(/телефон|вниман/i);
   expect(getWeeklyDomainTips('unknown-domain')[0]).toMatch(/Регулярность/);
+});
+
+test('getDailySpark with continuity matches shared today-plan story', () => {
+  const day = (d: string) => ({
+    date: d,
+    totalScore: 100,
+    domainDeltas: { attention: 4 },
+    streak: 1,
+    skipped: false
+  });
+  const session = (startedAt: string) => ({
+    id: startedAt,
+    startedAt,
+    finishedAt: startedAt,
+    durationSec: 300,
+    items: [{ exerciseId: 'stroop', level: 2, accuracy: 0.9, avgRtMs: 500, score: 80 }]
+  });
+  const now = new Date(2026, 8, 11, 12, 0, 0);
+  const daySummaries = [day('2026-09-01'), day('2026-09-02'), day('2026-09-03')];
+  const sessions = [session('2026-09-01T10:00:00'), session('2026-09-02T10:00:00'), session('2026-09-03T10:00:00')];
+  const domains = [
+    { domain: 'attention', value: 700, trend: 0, updatedAt: '2026-09-03T10:00:00' },
+    { domain: 'memory', value: 640, trend: 0, updatedAt: '2026-09-03T10:00:00' },
+    { domain: 'speed', value: 610, trend: 0, updatedAt: '2026-09-03T10:00:00' },
+    { domain: 'flexibility', value: 580, trend: 0, updatedAt: '2026-09-03T10:00:00' },
+    { domain: 'logic', value: 560, trend: 0, updatedAt: '2026-09-03T10:00:00' }
+  ];
+  const continuity = buildContinuitySnapshot({ now, daySummaries, sessions });
+  const spark = getDailySpark({
+    domains,
+    skills: [],
+    states: [],
+    daySummaries,
+    sessions,
+    calibrated: true,
+    playedToday: false,
+    streak: 0,
+    now,
+    continuity,
+    focusDomains: ['attention']
+  });
+  expect(spark.body).not.toMatch(/прокачай|нейрофитнес|не пропусти|IQ/i);
+  expect(spark.title.length).toBeGreaterThan(0);
+  expect(spark.body.length).toBeGreaterThan(10);
 });
