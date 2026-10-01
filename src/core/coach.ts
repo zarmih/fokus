@@ -4,6 +4,8 @@ import { domainLabel } from './labels';
 import { computeFokusIndex } from './fokus-index';
 import { assessRetention, sparkFromRetention } from './retention';
 import { buildCoachIntel } from './coach-intel';
+import { explainTodayPlan } from './today-plan';
+import type { ContinuitySnapshot } from './continuity';
 
 export interface CoachSpark {
   title: string;
@@ -70,6 +72,10 @@ export function getDailySpark(params: {
   shieldCharges?: number;
   trajectory?: import('./ability-trajectory').AbilityTrajectory;
   topInsight?: import('./insights').CognitiveInsight;
+  /** When provided, Coach tip uses the same today-plan story as Today/Program. */
+  continuity?: ContinuitySnapshot;
+  adaptiveWhy?: string | null;
+  planItems?: Array<{ exerciseId: string; reason: string; domain?: string }>;
 }): CoachSpark {
   const {
     domains,
@@ -84,7 +90,10 @@ export function getDailySpark(params: {
     now,
     shieldCharges,
     trajectory,
-    topInsight
+    topInsight,
+    continuity,
+    adaptiveWhy,
+    planItems
   } = params;
 
   if (!calibrated) {
@@ -93,6 +102,34 @@ export function getDailySpark(params: {
       body: 'Пройдите калибровку (около 90 секунд), чтобы Fokus узнал вашу стартовую скорость. Это защитит от слишком сложных или скучных блоков.',
       tone: 'start'
     };
+  }
+
+  // Shared Today/Program/Coach story when continuity snapshot is available.
+  if (continuity) {
+    try {
+      const snap = assessRetention({
+        daySummaries,
+        sessions,
+        domains,
+        playedToday,
+        streak,
+        skippedYesterday,
+        shieldCharges,
+        now
+      });
+      const exp = explainTodayPlan({
+        calibrated: true,
+        playedToday,
+        continuity,
+        retention: snap,
+        focusDomains: focusDomains || [],
+        planItems: planItems || [],
+        adaptiveWhy: adaptiveWhy ?? null
+      });
+      return { title: exp.title, body: exp.body, tone: exp.tone };
+    } catch {
+      /* fall through to legacy paths */
+    }
   }
 
   const retentionSpark = (): CoachSpark | null => {
