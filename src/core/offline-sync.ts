@@ -612,6 +612,29 @@ export function applyImport(
   return { ok: true, state, report, preview, warnings: parsed.warnings };
 }
 
+export type SyncPoster = (
+  snapshot: unknown[],
+  signal: AbortSignal
+) => Promise<Response | null>;
+
+/** Override for tests / progress-sync transport. Default: POST /api/sync. */
+let syncPoster: SyncPoster = async (snapshot, signal) => {
+  try {
+    return await fetch('/api/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(snapshot),
+      signal
+    });
+  } catch {
+    return null;
+  }
+};
+
+export function setSyncPoster(poster: SyncPoster) {
+  syncPoster = poster;
+}
+
 export type SyncState = 'online' | 'offline' | 'queued' | 'syncing' | 'error' | 'unknown';
 
 export interface SyncStatus {
@@ -730,12 +753,7 @@ export class SyncQueue extends EventTarget {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       
-      const res = await fetch('/api/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(snapshot),
-        signal: controller.signal
-      }).catch(() => null); 
+      const res = await syncPoster(snapshot, controller.signal);
       
       clearTimeout(timeoutId);
       
