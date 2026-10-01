@@ -25,6 +25,9 @@ import {
   serializeSpectatorSummary,
   setPoints,
   spectatorSummary,
+  practiceGhost,
+  runPracticeBout,
+  describePracticeOffer,
   type Duelant
 } from '../src/core/duelIntel';
 
@@ -248,5 +251,43 @@ describe('spectator-safe summary', () => {
     const fair = describeMatch(matchQuality(duelant({ id: 'a', fokusIndex: 500 }), duelant({ id: 'b', fokusIndex: 505 })));
     expect(fair).toMatch(/Близкий уровень/);
     expect(fair).not.toMatch(/нейрофитнес|прокачай|brain|лига чемпионов/i);
+  });
+});
+
+
+describe('practice bout loop', () => {
+  test('practiceGhost stays near local index and is playable', () => {
+    const self = duelant({ id: 'local', fokusIndex: 520, alias: 'Mikhail' });
+    const ghost = practiceGhost(self);
+    expect(ghost.id).toBe('practice-ghost');
+    expect(Math.abs(ghost.fokusIndex - self.fokusIndex)).toBeLessThanOrEqual(80);
+    const q = matchQuality(self, ghost);
+    expect(q.playable).toBe(true);
+  });
+
+  test('runPracticeBout finishes with spectator-safe summary', () => {
+    const self = duelant({ id: 'local', fokusIndex: 500, alias: 'Mikhail' });
+    const { bout, summary, quality } = runPracticeBout(
+      self,
+      [
+        { accuracy: 0.9 },
+        { accuracy: 0.85 },
+        { accuracy: 0.92 },
+        { accuracy: 0.88 },
+        { accuracy: 0.95 }
+      ],
+      { now: new Date('2026-10-01T12:00:00Z') }
+    );
+    expect(bout.finished).toBe(true);
+    expect(summary.fighters).toHaveLength(2);
+    expect(summary.fighters[0].alias).not.toMatch(/@/);
+    expect(summary.domain).toBeTruthy();
+    expect(quality.playable).toBe(true);
+    expect(describePracticeOffer(self)).toMatch(/Тренировка|очков/);
+  });
+
+  test('describePracticeOffer before calibration is honest empty-state', () => {
+    const self = duelant({ id: 'local', fokusIndex: 0, alias: 'You', domainAbility: {} });
+    expect(describePracticeOffer(self)).toMatch(/калибровк/i);
   });
 });
