@@ -11,7 +11,8 @@ import { domainLabel, skillLabel } from '../../core/labels';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
 import { renderQualityCard } from '../components/quality-card';
-import { assessRetention, bandLabel, signalLabel } from '../../core/retention';
+import { assessRetention, bandLabel, signalLabel, describeProgramRetention } from '../../core/retention';
+import { explainTodayPlan } from '../../core/today-plan';
 import { buildCoachIntel } from '../../core/coach-intel';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
@@ -279,50 +280,66 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  const playedToday = ds.some(d => d.date.startsWith(todayStr));
-  let lastStreak = 0;
-  if (ds.length > 0) {
-    const last = ds[ds.length - 1];
-    if (playedToday || last.date.startsWith(todayStr)) lastStreak = last.streak;
-    else {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      if (last.date.startsWith(yesterday.toISOString().split('T')[0])) lastStreak = last.streak;
-    }
-  }
+  // Align Progress/Stats with Today/Program/Coach: same continuity + today-plan story.
+  const playedToday = snap.streak.playedToday;
+  const lastStreak = snap.streak.current;
+  const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
+    ? (profile as { shieldCharges?: number }).shieldCharges
+    : undefined;
 
   let rhythmHtml = '';
   try {
-    const snap = assessRetention({
+    const retSnap = assessRetention({
       daySummaries: ds,
-      sessions: storage.getSessions(),
+      sessions,
       domains,
       playedToday,
       streak: lastStreak,
-      sessionLengthSec: profile.sessionLengthSec
+      skippedYesterday: snap.streak.openMisses === 1,
+      sessionLengthSec: profile.sessionLengthSec,
+      shieldCharges
     });
-    if (snap.confidence >= 15) {
-      const rows = snap.signals.map(s => {
+    if (retSnap.confidence >= 15) {
+      const programRetention = describeProgramRetention(retSnap, {
+        profileLengthSec: profile.sessionLengthSec,
+        softReturnActive: snap.ritual.active,
+        playedToday
+      });
+      const planExplain = explainTodayPlan({
+        calibrated: !!profile.calibrated,
+        playedToday,
+        continuity: snap,
+        retention: retSnap,
+        programRetention,
+        focusDomains: programRetention.focusDomain ? [programRetention.focusDomain] : []
+      });
+      const rows = retSnap.signals.map(s => {
         const pct = Math.max(4, s.score);
         return `<div class="rhythm-signal">
           <div class="rhythm-signal-head"><span>${signalLabel(s.id)}</span><span>${s.score}</span></div>
           <div class="scale-track rhythm-track"><div class="scale-fill" style="width:${pct}%;"></div></div>
         </div>`;
       }).join('');
-      const nudge = snap.primaryNudge
-        ? `<p class="rhythm-nudge">${snap.primaryNudge.body}</p>`
-        : `<p class="rhythm-nudge">Ритм держится. Регулярность важнее длины сессии.</p>`;
+      // Progress projection of the shared story: same body/tone, stats-facing kicker.
+      const storyTitle = planExplain.title;
+      const storyBody = planExplain.body;
+      const rhythmLine = planExplain.rhythmLine || `Ритм ${retSnap.rhythm} · ${bandLabel(retSnap.band)}`;
+      const whyLine =
+        planExplain.whyExercises && planExplain.whyExercises !== storyBody
+          ? `<p class="rhythm-why plan-why" data-plan-source="${planExplain.source}">${planExplain.whyExercises}</p>`
+          : '';
       rhythmHtml = `
-        <div class="surface rhythm-card band-${snap.band}" data-rhythm="${snap.rhythm}">
+        <div class="surface rhythm-card band-${retSnap.band} coach-${planExplain.tone}" data-rhythm="${retSnap.rhythm}" data-plan-source="${planExplain.source}" aria-label="${planExplain.aria.replace(/"/g, '&quot;')}">
           <div class="rhythm-head">
             <div>
               <div class="fi-kicker">Ритм тренировок</div>
-              <div class="rhythm-value">${snap.rhythm}</div>
-              <div class="fi-meta">${bandLabel(snap.band)} · уверенность ${snap.confidence}%</div>
+              <div class="rhythm-value">${retSnap.rhythm}</div>
+              <div class="fi-meta">${rhythmLine} · уверенность ${retSnap.confidence}%</div>
             </div>
           </div>
-          ${nudge}
+          <p class="rhythm-nudge-title" data-plan-title="${planExplain.source}">${storyTitle}</p>
+          <p class="rhythm-nudge">${storyBody}</p>
+          ${whyLine}
           ${rows}
         </div>`;
     }
