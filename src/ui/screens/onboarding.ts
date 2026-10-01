@@ -45,9 +45,9 @@ export function renderOnboarding(container: HTMLElement) {
             <legend class="sr-only">Главная цель</legend>
             ${GOAL_COPY.map((g) => `
               <label class="goal-card ${selectedGoal === g.id ? 'active' : ''}" style="cursor: pointer;">
-                <input type="radio" name="onboard-goal" value="${g.id}" class="sr-only" ${selectedGoal === g.id ? 'checked' : ''} />
+                <input type="radio" name="onboard-goal" value="${g.id}" class="sr-only" ${selectedGoal === g.id ? 'checked' : ''} aria-describedby="desc-${g.id}" />
                 <div class="goal-title">${g.title}</div>
-                <div class="goal-desc">${g.desc}</div>
+                <div class="goal-desc" id="desc-${g.id}">${g.desc}</div>
               </label>
             `).join('')}
           </fieldset>
@@ -75,7 +75,7 @@ export function renderOnboarding(container: HTMLElement) {
           <h1 id="onboard-heading">Как к вам обращаться?</h1>
           <p class="onboard-lead">Имя сохраняется только на вашем устройстве.</p>
           <label class="sr-only" for="onboard-name">Имя или ник</label>
-          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Введите имя..." autocomplete="nickname" value="${displayName.replace(/"/g, '&quot;')}" />
+          <input id="onboard-name" class="onboard-input" maxlength="24" placeholder="Введите имя..." autocomplete="nickname" aria-required="true" value="${displayName.replace(/"/g, '&quot;')}" />
           
           <h2 style="margin-top: 32px; font-size: 1.25rem;">Напоминания</h2>
           <p class="onboard-lead" style="margin-bottom: 12px;">Уведомления помогут не забывать о тренировках. Их всегда можно отключить.</p>
@@ -129,17 +129,29 @@ export function renderOnboarding(container: HTMLElement) {
       render();
     });
 
+    container.querySelectorAll('input[name="onboard-time"]').forEach((radio) => {
+      radio.addEventListener('change', (e) => {
+        selectedMin = parseInt((e.target as HTMLInputElement).value, 10);
+        render();
+      });
+      radio.addEventListener('focus', (e) => {
+        (e.target as HTMLInputElement).closest('label')?.classList.add('focused');
+      });
+      radio.addEventListener('blur', (e) => {
+        (e.target as HTMLInputElement).closest('label')?.classList.remove('focused');
+      });
+    });
+
     container.querySelectorAll('input[name="onboard-goal"]').forEach((radio) => {
       radio.addEventListener('change', (e) => {
         selectedGoal = (e.target as HTMLInputElement).value;
         render();
       });
-    });
-
-    container.querySelectorAll('input[name="onboard-time"]').forEach((radio) => {
-      radio.addEventListener('change', (e) => {
-        selectedMin = parseInt((e.target as HTMLInputElement).value, 10);
-        render();
+      radio.addEventListener('focus', (e) => {
+        (e.target as HTMLInputElement).closest('label')?.classList.add('focused');
+      });
+      radio.addEventListener('blur', (e) => {
+        (e.target as HTMLInputElement).closest('label')?.classList.remove('focused');
       });
     });
 
@@ -148,6 +160,12 @@ export function renderOnboarding(container: HTMLElement) {
         const val = (e.target as HTMLInputElement).value;
         selectedReminderHour = val === 'null' ? null : parseInt(val, 10);
         render();
+      });
+      radio.addEventListener('focus', (e) => {
+        (e.target as HTMLInputElement).closest('label')?.classList.add('focused');
+      });
+      radio.addEventListener('blur', (e) => {
+        (e.target as HTMLInputElement).closest('label')?.classList.remove('focused');
       });
     });
 
