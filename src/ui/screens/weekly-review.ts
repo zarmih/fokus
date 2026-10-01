@@ -351,8 +351,8 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
             const isRising = t.trend === 'rising';
             const isFalling = t.trend === 'falling';
             const trIcon = isRising ? '↑' : isFalling ? '↓' : '→';
-            const trLabel = isRising ? 'Тенденция к росту' : isFalling ? 'Небольшой спад' : 'Стабильный уровень';
-            const desc = isRising ? 'В последних сессиях отмечается уверенный прогресс.' : isFalling ? 'Естественное колебание формы на фоне усталости или пауз.' : 'Результаты надёжно удерживаются на рабочем плато.';
+            const trLabel = isRising ? 'Тенденция к росту' : isFalling ? 'Временный спад' : 'Стабильный уровень';
+            const desc = isRising ? 'Данные последних сессий подтверждают улучшение скорости и точности.' : isFalling ? 'Временное снижение метрик, вероятен фактор усталости или перерыва.' : 'Показатели скорости и точности надёжно удерживаются на рабочем плато.';
             const trClass = `wr-trend-${t.trend}`;
             return `
               <div class="wr-trajectory-card ${trClass}" tabindex="0" role="group" aria-label="${domainLabel(t.domain)}: ${trLabel}. ${desc}">
