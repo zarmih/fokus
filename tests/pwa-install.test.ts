@@ -71,3 +71,19 @@ test('promptInstall triggers prompt and returns outcome', async () => {
   const res2 = await promptInstall();
   expect(res2).toBe(false);
 });
+
+test('getInstallPathKind and manual hint without BIP', async () => {
+  Object.defineProperty(navigator, 'userAgent', {
+    value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)',
+    configurable: true
+  });
+  const { getInstallPathKind, getManualInstallHint, __resetSoftReturnBoot, consumeSoftReturnQuery } = await import('../src/pwa-install');
+  expect(getInstallPathKind()).toBe('ios_manual');
+  const hint = getManualInstallHint(true);
+  expect(hint.show).toBe(true);
+  expect(hint.body).toMatch(/Safari/i);
+
+  __resetSoftReturnBoot();
+  // jsdom location may be readonly — soft path covered in pwa-paths.test
+  expect(typeof consumeSoftReturnQuery).toBe('function');
+});

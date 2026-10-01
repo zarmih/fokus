@@ -258,6 +258,7 @@ export function renderSettings(container: HTMLElement) {
       <div class="surface" id="install-container" style="display: none; margin-bottom: 16px;" role="region" aria-labelledby="install-heading" aria-live="polite">
         <h4 id="install-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Установка приложения</h4>
         <button id="btn-install" class="btn-primary" type="button" style="width: 100%; margin-bottom: 8px;" aria-label="Установить Fokus на устройство">Установить Fokus на устройство</button>
+        <p id="install-manual-hint" class="muted" style="display:none; font-size: 13px; line-height: 1.4; margin-top: 8px;"></p>
         <div style="font-size: 12px; color: var(--muted); text-align: center;">Доступ прямо с экрана без браузера.</div>
       </div>
 
@@ -381,23 +382,35 @@ export function renderSettings(container: HTMLElement) {
     import('../../core/motion').then(m => m.applyMotionPreference());
   });
 
-  import('../../pwa-install').then(({ onInstallPrompt }) => {
+  import('../../pwa-install').then(({ onInstallPrompt, promptInstall, getManualInstallHint, isInstalled }) => {
     if (typeof document === 'undefined') return;
     const installContainer = document.getElementById('install-container');
-    const btnInstall = document.getElementById('btn-install');
+    const btnInstall = document.getElementById('btn-install') as HTMLButtonElement | null;
+    const hintEl = document.getElementById('install-manual-hint');
     if (installContainer && btnInstall) {
-      onInstallPrompt((prompt: any) => {
+      onInstallPrompt((prompt: any, installed: boolean) => {
+        if (installed || isInstalled) {
+          installContainer.style.display = 'none';
+          return;
+        }
+        installContainer.style.display = 'block';
         if (prompt) {
-          installContainer.style.display = 'block';
+          if (hintEl) hintEl.style.display = 'none';
+          btnInstall.textContent = 'Установить Fokus на устройство';
           btnInstall.onclick = async () => {
-            prompt.prompt();
-            const { outcome } = await prompt.userChoice;
-            if (outcome === 'accepted') {
-              installContainer.style.display = 'none';
-            }
+            const ok = await promptInstall();
+            if (ok) installContainer.style.display = 'none';
           };
         } else {
-          installContainer.style.display = 'none';
+          const hint = getManualInstallHint(false);
+          if (hintEl) {
+            hintEl.style.display = 'block';
+            hintEl.textContent = hint.body;
+          }
+          btnInstall.textContent = hint.cta || 'Как установить';
+          btnInstall.onclick = () => {
+            if (hintEl) hintEl.style.display = 'block';
+          };
         }
       });
     }

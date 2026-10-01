@@ -1,32 +1,33 @@
 # Deploy (GitHub Pages)
 
-Fokus already ships a static deploy path: `.github/workflows/deploy.yml`.
+Fokus ships a static deploy path: `.github/workflows/deploy.yml`.
 
 - **Trigger**: push to `main` or manual `workflow_dispatch`
 - **Build**: `npm ci` → `npm run build` → upload `./dist`
 - **Base URL**: Vite `base` is `/fokus/` (see `vite.config.ts`)
-- **Expected URL** (once Pages is enabled): `https://zarmih.github.io/fokus/`
+- **Site URL**: `https://zarmih.github.io/fokus/`
 
-## Current status (2026-10-01)
+## Status (2026-10-01)
 
-Workflow runs **fail** at `actions/configure-pages` with:
+GitHub Pages **enabled** via API (`build_type: workflow`). Repository `homepage` points at the Pages URL.
 
-> Get Pages site failed. Please verify that the repository has Pages enabled and configured to build using GitHub Actions
+| Check | Result |
+| --- | --- |
+| `GET /repos/zarmih/fokus/pages` | `build_type=workflow`, `html_url=https://zarmih.github.io/fokus/` |
+| Source | GitHub Actions (not branch `/docs`) |
+| Workflow | `.github/workflows/deploy.yml` → environment `github-pages` |
 
-The repository **does not** yet have a GitHub Pages site. No secrets are missing for this path — only a one-time repo setting.
+First green deploy after enablement may take a few minutes. If a run fails at `configure-pages`, re-check Settings → Pages → Source = **GitHub Actions**, then re-run the workflow.
 
-## Exact next human step
+## Soft-return / PWA install paths
 
-1. Open **https://github.com/zarmih/fokus/settings/pages**
-2. Under **Build and deployment → Source**, choose **GitHub Actions**
-3. Save (no custom domain required)
-4. Re-run the failed workflow: Actions → «Deploy static content to Pages» → latest run → **Re-run jobs**  
-   (or push any commit to `main` / run workflow via `workflow_dispatch`)
-5. Confirm the site at `https://zarmih.github.io/fokus/`
+- SW `notificationclick` with tag `fokus-soft-return` opens `?return=soft` under the registration scope (`/fokus/`).
+- App boot consumes that query (see `consumeSoftReturnQuery`) and cleans the URL.
+- When `beforeinstallprompt` is missing (typical iOS Safari), Today/Settings show **manual** install copy instead of hiding the card.
 
-Optional: create an environment named `github-pages` if GitHub prompts for one (the workflow already references it).
+Phone GUI cannot be fully exercised on the agent box — coverage is unit tests for SW/manifest/reminder/install-path helpers.
 
-## Local release assets (no hosting invent)
+## Local release assets
 
 ```bash
 npm ci
