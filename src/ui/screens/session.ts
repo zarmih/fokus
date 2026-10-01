@@ -26,6 +26,7 @@ import type { SessionItem } from '../../core/types';
 import { announce, bindDialog, setScreenTitle, focusMain, prefersReducedMotion } from '../a11y';
 import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
+import { buildSessionContent } from '../../core/exercise-content';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
   const {items, mode = 'normal'} = params;
@@ -106,6 +107,13 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       </div>
     ` : '';
 
+    const contentHints = buildSessionContent({
+      blockIndex: currentIndex + 1,
+      difficulty: state.difficulty,
+      domain: manifest.domain,
+      instruction: manifest.instruction
+    });
+
     content.dataset.sessionPhase = 'intro';
     content.innerHTML = `
       <div class="session-header">
@@ -123,7 +131,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
         <p>${manifest.instruction}</p>
-        <div class="instruction-meta">Блок ${currentIndex + 1} · уровень ${Math.floor(state.difficulty)}</div>
+        <div class="instruction-meta">${contentHints.metaLine}</div>
+        <p class="instruction-hint">${contentHints.hintLine}</p>
       </div>
       <button id="btn-next" class="btn-primary" type="button">Начать</button>
       <div id="game-container" class="play-arena"></div>
