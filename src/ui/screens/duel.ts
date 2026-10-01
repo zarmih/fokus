@@ -22,6 +22,18 @@ import {
   type Duelant
 } from '../../core/duelIntel';
 
+
+/** Friend-room signaling: only when an explicit WS URL is configured or we are on localhost. */
+export function resolveSignalUrl(): string | null {
+  const envUrl = (import.meta as any).env?.VITE_DUEL_SIGNAL_URL as string | undefined;
+  if (envUrl && /^wss?:\/\//i.test(envUrl)) return envUrl;
+  if (typeof location !== 'undefined') {
+    const host = location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'ws://localhost:8080';
+  }
+  return null;
+}
+
 let p2p: P2PConnection | null = null;
 
 export function renderDuel(container: HTMLElement) {
@@ -66,6 +78,9 @@ export function renderDuel(container: HTMLElement) {
     <p class="duel-empty">Ещё не было схваток. Итог появится здесь в виде короткой карточки без времени реакции и без аккаунтов.</p>
   `;
 
+  const signalUrl = resolveSignalUrl();
+  const roomsAvailable = !!signalUrl;
+
   content.innerHTML = `
     <div class="today-head">
       <h2>Дуэль</h2>
@@ -96,14 +111,17 @@ export function renderDuel(container: HTMLElement) {
     <div class="surface" style="margin-bottom: 24px; text-align: center;" data-practice="1">
       <h3 style="margin-bottom: 8px;">Тренировочная схватка</h3>
       <p style="color: var(--muted); margin-bottom: 16px; font-size: 13px; line-height: 1.4;">${describePracticeOffer(self)}</p>
-      <button id="btn-practice" class="btn-secondary" type="button" style="width: 100%;" ${fi.coverage > 0 ? '' : 'disabled'}>Сыграть тренировку</button>
+      <button id="btn-practice" class="btn-secondary" type="button" style="width: 100%;" ${fi.coverage > 0 ? '' : 'disabled'} ${fi.coverage > 0 ? '' : 'aria-disabled="true"'}>Сыграть тренировку</button>
+      ${fi.coverage > 0 ? '' : '<p class="muted" style="margin-top:12px;font-size:13px;line-height:1.4;">Сначала пройдите калибровку на экране «Сегодня» — без Fokus Index тренировка дуэли недоступна.</p>'}
       <p id="practice-result" style="display:none; margin-top: 12px; font-weight: 600;" role="status"></p>
     </div>
 
-    <div class="surface" style="margin-bottom: 24px; text-align: center;">
+    <div class="surface" style="margin-bottom: 24px; text-align: center;" data-rooms="${roomsAvailable ? '1' : '0'}">
       <h3 style="margin-bottom: 8px;">Комната с другом</h3>
-      <p style="color: var(--muted); margin-bottom: 16px; font-size: 13px; line-height: 1.4;">Код — приглашение, не матчмейкинг. Подбор по индексу появится в Фазе 4, без живого видео.</p>
-      <button id="btn-host" class="btn-primary" type="button" style="width: 100%;">Получить код</button>
+      <p style="color: var(--muted); margin-bottom: 16px; font-size: 13px; line-height: 1.4;">${roomsAvailable
+        ? 'Код — приглашение, не матчмейкинг. Подбор по индексу появится в Фазе 4, без живого видео.'
+        : 'Комнаты с другом сейчас недоступны в этой сборке (нет сигнального сервера). Доступна тренировочная схватка выше — без WebRTC.'}</p>
+      <button id="btn-host" class="btn-primary" type="button" style="width: 100%;" ${roomsAvailable ? '' : 'disabled'}>Получить код</button>
       <div id="host-code-container" style="margin-top: 16px; display: none;">
         <div style="font-size: 12px; color: var(--muted); margin-bottom: 8px;">Ваш код для друга:</div>
         <div id="host-code" style="font-size: 32px; font-weight: 800; letter-spacing: 4px; color: var(--accent);">----</div>
@@ -114,7 +132,7 @@ export function renderDuel(container: HTMLElement) {
       <h3 style="margin-bottom: 16px;">Присоединиться</h3>
       <label class="sr-only" for="input-code">Код комнаты</label>
       <input type="text" id="input-code" class="input" placeholder="Введите 4 цифры" inputmode="numeric" autocomplete="one-time-code" aria-label="Код комнаты" style="width: 100%; text-align: center; font-size: 24px; letter-spacing: 4px; margin-bottom: 16px;" maxlength="4" />
-      <button id="btn-join" class="btn-secondary" type="button" style="width: 100%;">Подключиться</button>
+      <button id="btn-join" class="btn-secondary" type="button" style="width: 100%;" ${roomsAvailable ? '' : 'disabled'}>Подключиться</button>
     </div>
 
     <div id="status-msg" style="margin-top: 24px; text-align: center; font-weight: 600; color: var(--ok); display: none;"></div>
@@ -135,7 +153,8 @@ export function renderDuel(container: HTMLElement) {
 
   const wireP2p = () => {
     if (p2p) p2p.close();
-    p2p = new P2PConnection('ws://localhost:8080');
+    if (!signalUrl) throw new Error('Сигнальный сервер не настроен');
+    p2p = new P2PConnection(signalUrl);
     p2p.onCode = (code) => {
       btnHost.style.display = 'none';
       hostCodeContainer.style.display = 'block';
@@ -225,8 +244,11 @@ export function renderDuel(container: HTMLElement) {
 
   btnJoin.addEventListener('click', () => {
     const code = inputCode.value.trim();
-    if (code.length !== 4) {
-      alert('Введите 4-значный код');
+    if (!/^\d{4}$/.test(code)) {
+      statusMsg.style.display = 'block';
+      statusMsg.style.color = 'var(--danger)';
+      statusMsg.textContent = 'Введите 4 цифры кода комнаты';
+      inputCode.focus();
       return;
     }
     const currentCooldown = rematchStatus(lastBoutAt);
