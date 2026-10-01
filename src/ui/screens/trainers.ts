@@ -2,6 +2,7 @@ import { navigateTo } from '../router';
 import { catalog } from '../../exercises/catalog';
 import { loadExercise } from '../../exercises/load-exercise';
 import { renderShell } from '../shell';
+import { emptyPlanCopy } from '../../core/today-plan';
 import { storage } from '../../core/storage';
 import { getExerciseIntelligence } from '../../core/selectors';
 import { domainLabel, DOMAIN_ORDER, skillLabel } from '../../core/labels';
@@ -313,10 +314,14 @@ export function renderTrainers(container: HTMLElement) {
           if (desc) desc.textContent = 'В выбранном домене сейчас нет упражнений по фильтру. Откройте «Все» или другой раздел.';
           if (btn) btn.style.display = 'none';
         } else {
+          const searchEmpty = emptyPlanCopy('search');
           if (icon) icon.textContent = '🔍';
-          if (title) title.textContent = 'Ничего не найдено';
-          if (desc) desc.textContent = 'По этому запросу и фильтру ничего нет. Сбросьте поиск или выберите другой раздел — без потери прогресса.';
-          if (btn) btn.style.display = 'inline-block';
+          if (title) title.textContent = searchEmpty.title;
+          if (desc) desc.textContent = searchEmpty.body;
+          if (btn) {
+            btn.style.display = 'inline-block';
+            btn.textContent = searchEmpty.cta;
+          }
         }
       } else {
         emptyState.style.display = 'none';

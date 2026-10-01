@@ -22,7 +22,7 @@ import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
-import { explainTodayPlan, applyRetentionRitualOrder } from '../../core/today-plan';
+import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPlanCopy } from '../../core/today-plan';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
@@ -363,6 +363,8 @@ export function renderToday(container: HTMLElement) {
     </div>
   ` : '';
 
+  const offlineCopy = emptyPlanCopy('offline');
+  const noPlanCopy = emptyPlanCopy('no_plan');
   let actionHtml = '';
   const isLoading = catalog.length === 0;
 
@@ -387,10 +389,10 @@ export function renderToday(container: HTMLElement) {
   } else if (!navigator.onLine) {
     actionHtml = `
       <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" aria-live="polite" tabindex="-1" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
-        <div class="workout-kicker">Офлайн режим</div>
-        <h3 id="cta-offline-title">Нет подключения</h3>
-        <p>Для создания персональной тренировки требуется сеть. Ваши данные в безопасности.</p>
-        <button id="btn-retry" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">Проверить сеть</button>
+        <div class="workout-kicker">${offlineCopy.kicker}</div>
+        <h3 id="cta-offline-title">${offlineCopy.title}</h3>
+        <p>${offlineCopy.body}</p>
+        <button id="btn-retry" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">${offlineCopy.cta}</button>
       </div>
     `;
   } else if (!profile.calibrated) {
@@ -438,10 +440,10 @@ export function renderToday(container: HTMLElement) {
   } else if (noPlanState) {
     actionHtml = `
       <div class="workout-card done fx-enter" role="region" aria-label="Сессия недоступна" aria-live="polite">
-        <div class="workout-kicker">Отдых</div>
-        <h3>На сегодня всё</h3>
-        <p>Fokus рекомендует полный отдых или пока нет подходящих упражнений.</p>
-        <button class="btn-secondary" type="button" disabled aria-disabled="true" style="width: 100%;">Сессия недоступна</button>
+        <div class="workout-kicker">${noPlanCopy.kicker}</div>
+        <h3>${noPlanCopy.title}</h3>
+        <p>${noPlanCopy.body}</p>
+        <button class="btn-secondary" type="button" disabled aria-disabled="true" style="width: 100%;">${noPlanCopy.cta}</button>
       </div>
     `;
   } else if (snap.ritual.active) {
@@ -454,14 +456,14 @@ export function renderToday(container: HTMLElement) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           ${spark.title}
         </div>
-        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Мягкое возвращение</h3>
+        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'soft_return' && planExplain.title ? planExplain.title : 'Мягкое возвращение'}</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-2); margin-bottom: 12px;">
           ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>Мягкий старт</span>
+          <span>${ctaLabelFromPlan(planExplain, 'Мягкий старт')}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
         <button id="btn-full-start" class="btn-secondary" type="button" style="margin-top: 8px; width: 100%;">Обычная нагрузка</button>
@@ -485,7 +487,7 @@ export function renderToday(container: HTMLElement) {
         ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : '<div style="margin-bottom: 8px;"></div>'}
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>${planExplain?.softenCta ? 'Короткий блок' : (planExplain?.nextAction || 'Начать тренировку')}</span>
+          <span>${ctaLabelFromPlan(planExplain)}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>

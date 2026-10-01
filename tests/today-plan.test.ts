@@ -2,7 +2,9 @@ import { describe, expect, test } from 'vitest';
 import {
   explainTodayPlan,
   applyRetentionRitualOrder,
-  buildTodayPlanExplanation
+  buildTodayPlanExplanation,
+  ctaLabelFromPlan,
+  emptyPlanCopy
 } from '../src/core/today-plan';
 import { assessRetention, describeProgramRetention } from '../src/core/retention';
 import { buildContinuitySnapshot } from '../src/core/continuity';
@@ -311,5 +313,32 @@ describe('applyRetentionRitualOrder — neglect / gap reorders slots', () => {
     });
     expect(out.applied).toBe(true);
     expect(out.items[0].exerciseId).toBe('grid-memory');
+  });
+});
+
+describe('ctaLabelFromPlan + emptyPlanCopy — thin UX voice', () => {
+  test('prefers nextAction over softenCta generic label', () => {
+    expect(
+      ctaLabelFromPlan({ nextAction: 'Лёгкий старт', softenCta: true, source: 'first_week' })
+    ).toBe('Лёгкий старт');
+    expect(
+      ctaLabelFromPlan({ nextAction: 'Мягкий старт', softenCta: true, source: 'soft_return' })
+    ).toBe('Мягкий старт');
+    expect(
+      ctaLabelFromPlan({ nextAction: '', softenCta: true, source: 'retention' })
+    ).toBe('Короткий блок');
+    expect(ctaLabelFromPlan(null)).toBe('Начать тренировку');
+  });
+
+  test('empty states stay FOMO-free and offer a calm CTA', () => {
+    const spam = /прокачай|не пропусти|last chance|wikium|brain training/i;
+    for (const kind of ['no_history', 'no_plan', 'offline', 'search'] as const) {
+      const copy = emptyPlanCopy(kind);
+      expect(copy.title).toBeTruthy();
+      expect(copy.body).not.toMatch(spam);
+      expect(copy.cta).toBeTruthy();
+    }
+    expect(emptyPlanCopy('no_history').cta).toMatch(/плану|сегодня/i);
+    expect(emptyPlanCopy('offline').tone).toBe('recovery');
   });
 });
