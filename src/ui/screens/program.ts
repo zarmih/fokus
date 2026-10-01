@@ -14,6 +14,7 @@ import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan } from '../../core/today-plan';
 import { getTodayRitual } from '../../core/onboarding';
+import { describeProgramPhase } from '../../core/program-phases';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -204,8 +205,15 @@ export function renderProgram(container: HTMLElement) {
 
   const isSparseModel = model.domains.some(d => plan.focusDomains.includes(d.domain) && d.sources.length < 3) || isSparse;
   const isPersonalized = profile.calibrated && !isSparseModel;
+  const phaseView = describeProgramPhase({
+    weekIndex,
+    dayInWeek,
+    primaryGoal: profile.primaryGoal,
+    isSparse: isSparseModel,
+    calibrated: !!profile.calibrated
+  });
   const programTitle = isPersonalized ? 'Персональный план' : (profile.calibrated ? 'Сбор данных' : 'Базовая программа');
-  const subtitle = `Неделя ${weekIndex} · День ${dayInWeek}`;
+  const subtitle = phaseView.subtitle;
 
   // Shared Today/Program/Coach story — same object as Today hero.
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
@@ -227,9 +235,11 @@ export function renderProgram(container: HTMLElement) {
       ? `Пока мы собираем данные для точной настройки. Сегодня тренируем: ${focusDomainsText}.`
       : `Пока мы собираем данные для точной настройки вашей программы.`;
   } else if (focusDomainsText) {
-    coachMessage = `Неделя ${weekIndex}, день ${dayInWeek}. План построен по вашей истории. Акцент на: ${focusDomainsText}.`;
+    coachMessage = `${phaseView.phase.title}. Акцент сегодня: ${focusDomainsText}.`;
   } else if (programRetention?.focusDomain) {
     coachMessage = `Сегодня план подтягивает область «${domainLabel(programRetention.focusDomain as DomainId)}».`;
+  } else {
+    coachMessage = phaseView.phaseCoach;
   }
   const coachWhy = planExplain?.whyExercises && planExplain.whyExercises !== coachMessage
     ? planExplain.whyExercises
@@ -289,9 +299,16 @@ export function renderProgram(container: HTMLElement) {
       </div>
       ${hero}
       ${profile.calibrated ? `
-        <div class="surface" style="margin-bottom:16px;">
-          <h3 style="margin-bottom:12px;">Неделя ${weekIndex}</h3>
-          <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+        <div class="surface phase-card" style="margin-bottom:16px;" aria-label="${phaseView.aria.replace(/"/g, '&quot;')}">
+          <div class="workout-kicker">Фаза ${phaseView.phase.index} из 4 · 2–4 недели</div>
+          <h3 style="margin-bottom:8px;">${phaseView.phase.title}</h3>
+          <p style="margin:0 0 8px 0; font-weight:600;">Цель: ${phaseView.goalLine}</p>
+          <p class="muted" style="font-size:13px; margin:0 0 12px 0;">${phaseView.phase.body}</p>
+          <div class="scale-track phase-progress" role="progressbar" aria-valuenow="${Math.round(phaseView.progressInPhase * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="Прогресс фазы" style="height:6px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:12px;">
+            <div class="scale-fill" style="height:100%;width:${Math.round(phaseView.progressInPhase * 100)}%;background:var(--accent);"></div>
+          </div>
+          <p class="muted" style="font-size:12px; margin:0 0 12px 0;">${phaseView.weekDayLine}</p>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
             ${Array.from({ length: 7 }).map((_, i) => {
               const activeDayZeroIndexed = playedToday ? -1 : (dayInWeek - 1);
               const completedBeforeZeroIndexed = playedToday ? dayInWeek : (dayInWeek - 1);
@@ -303,7 +320,7 @@ export function renderProgram(container: HTMLElement) {
               return `<div aria-label="${ariaLabel}" style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
-          <p class="muted" style="font-size:13px; margin:0;">${weekIndex === 1 ? 'Для точной настройки сложности завершите первую неделю.' : `Неделя ${weekIndex}, день ${dayInWeek}: адаптивный маршрут сбалансирован.`}</p>
+          <p class="muted" style="font-size:13px; margin:0;">${phaseView.phase.nextHint}</p>
         </div>
         <div class="surface" style="margin-bottom:16px;" ${programRetention ? `aria-label="${programRetention.aria.replace(/"/g, '&quot;')}"` : ''}>
           <h3>Ваш ритм</h3>
