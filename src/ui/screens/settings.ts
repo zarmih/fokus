@@ -71,12 +71,15 @@ function privacyPanelHtml(report: InventoryReport): string {
       </label>
       <div id="sync-health-meta" style="font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.5;" aria-live="polite"></div>
       
+      <p id="progress-sync-blurb" class="privacy-copy" style="font-size: 13px; line-height: 1.45;"></p>
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <button type="button" id="btn-export" class="btn-primary" style="flex: 1;" aria-label="Скачать файл экспорта">Экспорт</button>
+        <button type="button" id="btn-clipboard-export" class="btn-secondary" style="flex: 1;" aria-label="Скопировать резервную копию">В буфер</button>
         <button type="button" id="btn-import" class="btn-secondary" style="flex: 1;" aria-label="Загрузить файл импорта">Импорт</button>
         <label class="sr-only" for="file-input">Файл импорта JSON</label>
         <input type="file" id="file-input" accept=".json,application/json" style="display: none;" tabindex="-1">
       </div>
+      <p id="clipboard-sync-status" role="status" aria-live="polite" style="font-size: 13px; margin-top: 8px; min-height: 1.2em;"></p>
       <div id="import-preview" style="display: none; margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.5;" aria-live="polite"></div>
       <button id="btn-restore-snap" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; display: none;">Вернуть резервную копию до импорта</button>
       
@@ -520,6 +523,29 @@ export function renderSettings(container: HTMLElement) {
     if (restoreBtn) restoreBtn.style.display = h.hasSnapshot ? 'block' : 'none';
   };
   paintHealth();
+
+  import('../../core/progress-sync').then(({ syncStatusBlurb, designSummaryRu, backupForClipboard }) => {
+    const blurb = document.getElementById('progress-sync-blurb');
+    if (blurb) {
+      blurb.textContent = `${syncStatusBlurb({ state: 'online', pendingCount: 0, lastAttempt: null })} ${designSummaryRu()}`;
+    }
+    document.getElementById('btn-clipboard-export')?.addEventListener('click', async () => {
+      const status = document.getElementById('clipboard-sync-status');
+      const redact = (document.getElementById('export-redact') as HTMLInputElement | null)?.checked !== false;
+      const raw = redact ? buildExportFile(storage.exportJson(), true).body : storage.exportJson();
+      const packed = backupForClipboard(raw);
+      if (!packed.ok) {
+        if (status) status.textContent = 'Не удалось подготовить копию.';
+        return;
+      }
+      try {
+        await navigator.clipboard.writeText(packed.text);
+        if (status) status.textContent = 'Резервная копия в буфере — вставьте на другом устройстве через Импорт (файл) или сохраните как .json.';
+      } catch {
+        if (status) status.textContent = 'Буфер недоступен. Используйте кнопку «Экспорт».';
+      }
+    });
+  }).catch(() => {});
 
   document.getElementById('btn-export')?.addEventListener('click', () => {
     const redact = (document.getElementById('export-redact') as HTMLInputElement | null)?.checked !== false;

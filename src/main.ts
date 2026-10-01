@@ -12,6 +12,7 @@ import { safeError } from './core/log';
 import { renderOfflineBanner } from './ui/components/offline-banner';
 
 initInstallPrompt();
+import('./core/progress-sync').then(({ installProgressSyncBridge }) => installProgressSyncBridge()).catch(() => {});
 const softBoot = consumeSoftReturnQuery();
 if (softBoot) {
   import('./core/feedback-io').then(({ trackLocal }) => trackLocal('soft_return_open')).catch(() => {});
