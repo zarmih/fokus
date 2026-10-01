@@ -129,19 +129,21 @@ export function renderTrainers(container: HTMLElement) {
   };
 
   let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">
-    <span style="font-size:14px; margin-right:4px;">🌐</span> Все <span style="opacity:0.6; font-size:11px; margin-left:4px;">${catalog.length}</span>
+    <span style="font-size:14px; margin-right:4px;">🌐</span> Все <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${catalog.length}</span>
   </button>`;
   
   filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">
-    <span style="font-size:14px; margin-right:4px;">✨</span> Новое <span style="opacity:0.6; font-size:11px; margin-left:4px;">${untriedCount}</span>
+    <span style="font-size:14px; margin-right:4px;">✨</span> Новое <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${untriedCount}</span>
   </button>`;
+
+  filterHtml += `<div style="width: 1px; height: 24px; background: var(--line); margin: 0 8px; align-self: center; opacity: 0.5;"></div>`;
 
   filterHtml += validDomains.map((dom) => {
     const count = domains.get(dom)!.length;
     const label = domainLabel(dom);
     const icon = DOMAIN_ICONS[dom] || '▪️';
     return `<button class="filter-chip" data-dom="${dom}" type="button" aria-pressed="false">
-      <span style="font-size:14px; margin-right:4px;">${icon}</span> ${label} <span style="opacity:0.6; font-size:11px; margin-left:4px;">${count}</span>
+      <span style="font-size:14px; margin-right:4px;">${icon}</span> ${label} <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${count}</span>
     </button>`;
   }).join('');
 
@@ -271,7 +273,7 @@ export function renderTrainers(container: HTMLElement) {
       else if (dom === 'discovery') matches = discoveryMatches;
       else if (dom) matches = domainMatches.get(dom) || 0;
       
-      const countSpan = c.querySelector('span');
+      const countSpan = c.querySelector('.chip-count');
       if (countSpan) countSpan.textContent = matches.toString();
       
       c.disabled = matches === 0 && activeDom !== dom;

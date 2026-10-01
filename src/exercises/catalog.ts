@@ -6,8 +6,7 @@ export const catalog: { manifest: ExerciseManifest }[] = [];
 
 for (const mod of registry) {
   if (seenIds.has(mod.manifest.id)) {
-    console.warn(`Duplicate exercise id ignored: ${mod.manifest.id}`);
-    continue;
+    throw new Error(`Duplicate exercise id detected: ${mod.manifest.id}`);
   }
   seenIds.add(mod.manifest.id);
   catalog.push({ manifest: mod.manifest });
