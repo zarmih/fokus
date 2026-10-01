@@ -11,6 +11,7 @@ import type { DomainId } from '../../core/engine/types';
 import { loadContinuitySnapshot, getContinuityMessage, applyGentleReturnBias, ritualDurationSec } from '../../core/continuity';
 import { planWithRecovery } from '../../core/recovery';
 import { describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { assessRetention, describeProgramRetention } from '../../core/retention';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -26,7 +27,33 @@ export function renderProgram(container: HTMLElement) {
   const skills = storage.getSkills();
   const states = storage.getExerciseStates();
 
-  const ritualDuration = ritualDurationSec(profile.sessionLengthSec || 900, snapshot.ritual);
+  const profileLengthSec = profile.sessionLengthSec || 900;
+  let ritualDuration = ritualDurationSec(profileLengthSec, snapshot.ritual);
+
+  let programRetention = null as ReturnType<typeof describeProgramRetention> | null;
+  try {
+    const retSnap = assessRetention({
+      daySummaries: ds,
+      sessions,
+      domains,
+      playedToday,
+      streak: snapshot.streak.current,
+      skippedYesterday: snapshot.streak.status === 'soft_return' || snapshot.streak.status === 'fresh_start',
+      sessionLengthSec: profileLengthSec,
+      shieldCharges: (profile as any).shieldCharges,
+      now: new Date()
+    });
+    programRetention = describeProgramRetention(retSnap, {
+      profileLengthSec,
+      softReturnActive: snapshot.ritual.active,
+      playedToday
+    });
+    if (programRetention.durationSec != null) {
+      ritualDuration = Math.min(ritualDuration, programRetention.durationSec);
+    }
+  } catch {
+    programRetention = null;
+  }
 
   const ritual = planWithRecovery({
     durationSec: ritualDuration,
@@ -107,6 +134,8 @@ export function renderProgram(container: HTMLElement) {
   let coachMessage = 'Сбалансированная тренировка для поддержания формы.';
   if (snapshot.ritual.active) {
     coachMessage = 'Мягкий возврат после паузы. Знакомые задания для лёгкого старта.';
+  } else if (programRetention?.coachOverride) {
+    coachMessage = programRetention.coachOverride;
   } else if (ritual.snapshot.gate.active) {
     coachMessage = ritual.snapshot.gate.reason || ritual.snapshot.hint.body;
   } else if (adaptiveDepth.why) {
@@ -117,6 +146,8 @@ export function renderProgram(container: HTMLElement) {
       : `Пока мы собираем данные для точной настройки вашей программы.`;
   } else if (focusDomainsText) {
     coachMessage = `Неделя ${weekIndex}, день ${dayInWeek}. План построен по вашей истории. Акцент на: ${focusDomainsText}.`;
+  } else if (programRetention?.focusDomain) {
+    coachMessage = `Сегодня план подтягивает область «${domainLabel(programRetention.focusDomain as DomainId)}».`;
   }
 
   let hero = '';
@@ -156,7 +187,7 @@ export function renderProgram(container: HTMLElement) {
         <div class="workout-kicker">${contMsg.title}</div>
         <h3>Тренировка дня · ~${planDurationMins} мин</h3>
         <p class="muted coach-rationale">${coachMessage}</p>
-        <button id="btn-program-start" class="btn-primary" type="button">Начать тренировку</button>
+        <button id="btn-program-start" class="btn-primary" type="button">${programRetention?.softenCta ? 'Короткий блок' : 'Начать тренировку'}</button>
       </div>
     `;
   }
@@ -188,9 +219,10 @@ export function renderProgram(container: HTMLElement) {
           </div>
           <p class="muted" style="font-size:13px; margin:0;">${weekIndex === 1 ? 'Для точной настройки сложности завершите первую неделю.' : `Неделя ${weekIndex}, день ${dayInWeek}: адаптивный маршрут сбалансирован.`}</p>
         </div>
-        <div class="surface" style="margin-bottom:16px;">
+        <div class="surface" style="margin-bottom:16px;" ${programRetention ? `aria-label="${programRetention.aria.replace(/"/g, '&quot;')}"` : ''}>
           <h3>Ваш ритм</h3>
-          <p class="muted" style="margin-bottom:12px">${contMsg.body}</p>
+          ${programRetention ? `<p class="rhythm-line band-${programRetention.band}" data-rhythm="${programRetention.rhythm}" style="margin:0 0 8px 0; font-weight:600;">${programRetention.rhythmLine}</p>
+          <p class="muted" style="margin-bottom:12px">${programRetention.body}</p>` : `<p class="muted" style="margin-bottom:12px">${contMsg.body}</p>`}
           <div style="display:flex; gap:16px;">
             <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
               <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${snapshot.streak.current}</div>
@@ -200,6 +232,11 @@ export function renderProgram(container: HTMLElement) {
             <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
               <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${Math.round(snapshot.weekly.score * 100)}%</div>
               <div style="font-size:13px; color:var(--muted); margin-top:4px;">Регулярность</div>
+            </div>
+            ` : programRetention ? `
+            <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
+              <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${programRetention.rhythm}</div>
+              <div style="font-size:13px; color:var(--muted); margin-top:4px;">Ритм</div>
             </div>
             ` : ''}
           </div>
