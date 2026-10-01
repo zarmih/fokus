@@ -576,25 +576,43 @@ export function renderToday(container: HTMLElement) {
     window.location.reload();
   });
 
-  import('../../pwa-install').then(({ onInstallPrompt }) => {
+  import('../../pwa-install').then(({ onInstallPrompt, promptInstall, getManualInstallHint, isInstalled }) => {
     const card = content.querySelector('#today-install-card') as HTMLElement;
-    const btn = content.querySelector('#btn-today-install');
-    if (card && btn) {
-      onInstallPrompt((prompt: any) => {
-        if (prompt) {
-          card.style.display = 'block';
-          btn.addEventListener('click', async () => {
-            prompt.prompt();
-            const { outcome } = await prompt.userChoice;
-            if (outcome === 'accepted') {
-              card.style.display = 'none';
-            }
-          }, { once: true });
-        } else {
-          card.style.display = 'none';
-        }
-      });
-    }
+    const btn = content.querySelector('#btn-today-install') as HTMLButtonElement | null;
+    const titleEl = content.querySelector('#install-title') as HTMLElement | null;
+    const bodyEl = card?.querySelector('p.muted') as HTMLElement | null;
+    if (!card || !btn) return;
+    const soft = card.dataset.softReturn === '1';
+    const applyManual = () => {
+      const hint = getManualInstallHint(soft);
+      if (!hint.show || isInstalled) {
+        card.style.display = 'none';
+        return;
+      }
+      if (titleEl) titleEl.textContent = hint.title;
+      if (bodyEl) bodyEl.textContent = hint.body;
+      btn.textContent = hint.cta;
+      card.style.display = 'block';
+      btn.onclick = () => {
+        /* iOS / no BIP: copy is instructional; keep card visible */
+        btn.setAttribute('aria-pressed', 'true');
+      };
+    };
+    onInstallPrompt((prompt: any, installed: boolean) => {
+      if (installed) {
+        card.style.display = 'none';
+        return;
+      }
+      if (prompt) {
+        card.style.display = 'block';
+        btn.onclick = async () => {
+          const ok = await promptInstall();
+          if (ok) card.style.display = 'none';
+        };
+      } else {
+        applyManual();
+      }
+    });
   });
   
   const handleStart = (itemsToPlay: any[], duration: number) => {

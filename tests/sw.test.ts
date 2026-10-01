@@ -20,3 +20,10 @@ test('service worker precaches hashed assets and keeps a shell fallback', () => 
   expect(sw).toContain('skipWaiting');
   expect(sw).toContain('clients.claim');
 });
+
+test('service worker notificationclick opens soft-return query', () => {
+  const sw = generateServiceWorker(['index.html'], 'softpath01');
+  expect(sw).toContain("fokus-soft-return");
+  expect(sw).toContain("?return=soft");
+  expect(sw).toContain('notificationclick');
+});

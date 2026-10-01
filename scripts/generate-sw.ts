@@ -84,6 +84,7 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const soft = event.notification && event.notification.tag === 'fokus-soft-return';
+  // soft-return open path: scope + ?return=soft (see softReturnOpenUrl)
   const target = soft
     ? self.registration.scope.replace(/\/?$/, '/') + '?return=soft'
     : self.registration.scope;

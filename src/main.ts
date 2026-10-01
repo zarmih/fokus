@@ -5,13 +5,14 @@ import { applyTheme } from './ui/theme';
 import { initI18n } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 import { unlockAudio } from './core/audio';
-import { initInstallPrompt } from './pwa-install';
+import { initInstallPrompt, consumeSoftReturnQuery } from './pwa-install';
 import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
 import { safeError } from './core/log';
 import { renderOfflineBanner } from './ui/components/offline-banner';
 
 initInstallPrompt();
+consumeSoftReturnQuery();
 
 type ScreenFn = (el: HTMLElement, params?: any) => void;
 
