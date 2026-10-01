@@ -12,7 +12,7 @@ import { loadContinuitySnapshot, getContinuityMessage, applyGentleReturnBias, ri
 import { planWithRecovery } from '../../core/recovery';
 import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
-import { explainTodayPlan, applyRetentionRitualOrder } from '../../core/today-plan';
+import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan } from '../../core/today-plan';
 import { getTodayRitual } from '../../core/onboarding';
 
 export function renderProgram(container: HTMLElement) {
@@ -273,7 +273,7 @@ export function renderProgram(container: HTMLElement) {
         <h3>Тренировка дня · ~${planDurationMins} мин</h3>
         <p class="muted coach-rationale" data-plan-source="${planExplain?.source || 'legacy'}">${coachMessage}</p>
         ${coachWhy ? `<p class="ritual-why plan-why" style="margin-top:8px">${coachWhy}</p>` : ''}
-        <button id="btn-program-start" class="btn-primary" type="button">${(planExplain?.softenCta || programRetention?.softenCta) ? 'Короткий блок' : (planExplain?.nextAction || 'Начать тренировку')}</button>
+        <button id="btn-program-start" class="btn-primary" type="button">${ctaLabelFromPlan(planExplain, programRetention?.softenCta ? 'Короткий блок' : 'Начать тренировку')}</button>
       </div>
     `;
   }

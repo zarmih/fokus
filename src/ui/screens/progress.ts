@@ -1,3 +1,4 @@
+import { navigateTo } from '../router';
 import { generateInsights } from "../../core/insights";
 import { planWithRecovery } from "../../core/recovery";
 import { loadContinuitySnapshot } from '../../core/continuity';
@@ -12,7 +13,7 @@ import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
 import { renderQualityCard } from '../components/quality-card';
 import { assessRetention, bandLabel, signalLabel, describeProgramRetention } from '../../core/retention';
-import { explainTodayPlan } from '../../core/today-plan';
+import { explainTodayPlan, emptyPlanCopy } from '../../core/today-plan';
 import { getTodayRitual } from '../../core/onboarding';
 import { buildCoachIntel } from '../../core/coach-intel';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
@@ -79,7 +80,8 @@ export function renderProgress(container: HTMLElement) {
 
   let historyHtml = '';
   if (history.length === 0) {
-    historyHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02); margin: 16px 0;"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">В истории пока нет записей.<br>Здесь будут отображаться результаты ваших завершённых сессий, формируя базу для анализа формы.</p></div>';
+    const histEmpty = emptyPlanCopy('no_history');
+    historyHtml = `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02); margin: 16px 0;" role="status"><p style="color: var(--muted); margin: 0 0 12px; font-size: 13px; line-height: 1.5;"><strong style="display:block;color:var(--text);margin-bottom:6px;">${histEmpty.title}</strong>${histEmpty.body}</p><button type="button" class="btn-secondary empty-cta-today" style="width:100%;" data-nav="today">${histEmpty.cta}</button></div>`;
   } else {
     historyHtml = history.map(h => {
       const d = new Date(h.date);
@@ -526,5 +528,9 @@ export function renderProgress(container: HTMLElement) {
       explainer.style.display = isHidden ? 'block' : 'none';
       btn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     }
+  });
+
+  content.querySelectorAll('.empty-cta-today').forEach((btn) => {
+    btn.addEventListener('click', () => navigateTo('today'));
   });
 }

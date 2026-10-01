@@ -507,3 +507,61 @@ export function buildTodayPlanExplanation(params: {
   });
   return { retention, explanation };
 }
+
+
+/** Prefer shared nextAction so first-week / soft-return CTAs stay in one voice. */
+export function ctaLabelFromPlan(
+  exp: Pick<TodayPlanExplanation, 'nextAction' | 'softenCta' | 'source'> | null | undefined,
+  fallback = 'Начать тренировку'
+): string {
+  if (!exp) return fallback;
+  if (exp.nextAction && exp.nextAction.trim()) return exp.nextAction;
+  if (exp.softenCta) return 'Короткий блок';
+  return fallback;
+}
+
+export interface EmptyPlanCopy {
+  kicker: string;
+  title: string;
+  body: string;
+  cta: string;
+  tone: PlanTone;
+}
+
+/** Calm empty / no-data states matching explainTodayPlan tone (no FOMO). */
+export function emptyPlanCopy(kind: 'no_history' | 'no_plan' | 'offline' | 'search'): EmptyPlanCopy {
+  if (kind === 'offline') {
+    return {
+      kicker: 'Офлайн',
+      title: 'Нет подключения',
+      body: 'План на устройстве сохранён. Когда сеть вернётся — продолжим без наверстывания.',
+      cta: 'Проверить сеть',
+      tone: 'recovery'
+    };
+  }
+  if (kind === 'no_plan') {
+    return {
+      kicker: 'Отдых',
+      title: 'На сегодня всё',
+      body: 'Сейчас нет подходящего набора блоков. Это не штраф — можно вернуться к короткому ритуалу позже.',
+      cta: 'К плану дня',
+      tone: 'habit'
+    };
+  }
+  if (kind === 'search') {
+    return {
+      kicker: 'Каталог',
+      title: 'Ничего не найдено',
+      body: 'По запросу нет упражнений. Сбросьте поиск или откройте другой раздел — знакомые блоки никуда не делись.',
+      cta: 'Сбросить поиск',
+      tone: 'science'
+    };
+  }
+  return {
+    kicker: 'Статистика',
+    title: 'Пока нет истории',
+    body: 'После первой тренировки здесь появится честная картина ритма — без приблизительных баллов.',
+    cta: 'К плану дня',
+    tone: 'start'
+  };
+}

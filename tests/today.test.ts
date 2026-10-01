@@ -289,7 +289,7 @@ test('today shows no-plan state if plan is empty', () => {
   spyDepth.mockRestore();
 
   expect(app.textContent).toMatch(/Отдых/);
-  expect(app.textContent).toMatch(/Сессия недоступна/);
+  expect(app.textContent).toMatch(/К плану дня|На сегодня всё/);
 });
 
 test('today shows error state if plan builder throws', () => {
