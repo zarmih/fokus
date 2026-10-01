@@ -533,4 +533,11 @@ export function renderProgress(container: HTMLElement) {
   content.querySelectorAll('.empty-cta-today').forEach((btn) => {
     btn.addEventListener('click', () => navigateTo('today'));
   });
+
+  import('../components/feedback-panel').then(({ mountFeedbackButton }) => {
+    if (typeof document === 'undefined' || !content.isConnected) return;
+    if (!content.querySelector('#fokus-feedback-mount')) {
+      mountFeedbackButton(content, { screen: 'progress' });
+    }
+  }).catch(() => {});
 }

@@ -80,6 +80,8 @@ function privacyPanelHtml(report: InventoryReport): string {
       <div id="import-preview" style="display: none; margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.5;" aria-live="polite"></div>
       <button id="btn-restore-snap" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; display: none;">Вернуть резервную копию до импорта</button>
       
+      <div id="fokus-feedback-settings" style="margin-top: 8px;"></div>
+      
       <h4 style="margin: 24px 0 12px; font-size: 14px; color: var(--danger);">Удаление данных</h4>
       <div class="privacy-actions" style="display: flex; flex-direction: column; gap: 8px;">
         <button type="button" id="btn-clear-name" class="btn-secondary">Убрать имя</button>
@@ -480,6 +482,14 @@ export function renderSettings(container: HTMLElement) {
         alert('Ваш браузер не поддерживает уведомления.');
       }
     });
+  }
+
+  const fbHost = content.querySelector('#fokus-feedback-settings') as HTMLElement | null;
+  if (fbHost) {
+    import('../components/feedback-panel').then(({ renderFeedbackPanel }) => {
+      if (!fbHost.isConnected) return;
+      renderFeedbackPanel(fbHost, { screen: 'settings' });
+    }).catch(() => {});
   }
 
   const healthEl = document.getElementById('sync-health-meta');

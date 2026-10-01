@@ -719,6 +719,7 @@ export function renderToday(container: HTMLElement) {
   };
 
   content.querySelector('#btn-start')?.addEventListener('click', () => {
+    import('../../core/feedback-io').then(({ trackLocal }) => trackLocal('ritual_started')).catch(() => {});
     handleStart(plan.items, ritualDuration);
   });
 
