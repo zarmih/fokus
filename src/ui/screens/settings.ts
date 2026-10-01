@@ -1,4 +1,5 @@
 import { storage } from '../../core/storage';
+import { reminderSettingsBlurb } from '../../core/reminders';
 import { loadContinuitySnapshot } from '../../core/continuity';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
@@ -271,7 +272,7 @@ export function renderSettings(container: HTMLElement) {
           <button type="button" role="radio" data-val="19" class="${profile.reminderHour === 19 ? 'active' : ''}" aria-checked="${profile.reminderHour === 19 ? 'true' : 'false'}">19:00</button>
           <button type="button" role="radio" data-val="off" class="${profile.reminderHour === null ? 'active' : ''}" aria-checked="${profile.reminderHour === null ? 'true' : 'false'}">Выкл</button>
         </div>
-        <div style="font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.4;">Локальные напоминания на устройстве. Работают без интернета и рекламных сервисов.</div>
+        <div id="reminder-blurb" style="font-size: 12px; color: var(--muted); margin-top: 12px; line-height: 1.4;">${reminderSettingsBlurb()}</div>
       </div>
     </section>
 
