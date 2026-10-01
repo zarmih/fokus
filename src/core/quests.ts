@@ -1,6 +1,7 @@
 import { storage } from './storage';
 import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone } from './streak';
 import { getManifest } from '../exercises/catalog';
+import { domainLabel } from './labels';
 
 export type QuestType = 'blocks' | 'accuracy' | 'score' | 'diversity' | 'perfect' | 'domain';
 export type QuestDifficulty = 'easy' | 'medium' | 'hard';
@@ -40,56 +41,124 @@ const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
   { id: 'h4', type: 'accuracy', difficulty: 'hard', target: 95, title: 'Филигранность', description: 'Достигните 95% точности в одном блоке, не торопясь', xpReward: 120 }
 ];
 
-function getTodayStr() {
-  return new Date().toISOString().split('T')[0];
+
+/** Stable 32-bit seed from YYYY-MM-DD (no Math.random in selection). */
+export function daySeed(dateStr: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < dateStr.length; i++) {
+    h ^= dateStr.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
 }
 
-export function getDailyQuests(): Quest[] {
-  const p = storage.getProfile();
-  if (!p.quests || p.questsDate !== getTodayStr()) {
-    const easy = QUEST_POOL.filter(q => q.difficulty === 'easy').sort(() => 0.5 - Math.random())[0];
-    const medium = QUEST_POOL.filter(q => q.difficulty === 'medium').sort(() => 0.5 - Math.random())[0];
-    const hard = QUEST_POOL.filter(q => q.difficulty === 'hard').sort(() => 0.5 - Math.random())[0];
+function seededShuffle<T>(items: T[], seed: number): T[] {
+  const arr = [...items];
+  let s = seed || 1;
+  for (let i = arr.length - 1; i > 0; i--) {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    const j = s % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
-    const selected = [easy, medium, hard].map(q => ({
-      ...q,
+function cloneQuest(q: Omit<Quest, 'progress' | 'completed' | 'claimed'>): Quest {
+  return { ...q, progress: 0, completed: false, claimed: false };
+}
+
+function pickDomainQuest(domainId: string, difficulty: QuestDifficulty, seed: number): Quest | null {
+  const pool = QUEST_POOL.filter(
+    (q) => q.type === 'domain' && q.domainId === domainId && (q.difficulty || 'medium') === difficulty
+  );
+  if (pool.length === 0) {
+    const anyDom = QUEST_POOL.filter((q) => q.type === 'domain' && q.domainId === domainId);
+    if (anyDom.length === 0) return null;
+    return cloneQuest(seededShuffle(anyDom, seed)[0]);
+  }
+  return cloneQuest(seededShuffle(pool, seed)[0]);
+}
+
+function pickByDifficulty(difficulty: QuestDifficulty, seed: number, excludeIds: Set<string>): Quest {
+  const pool = QUEST_POOL.filter((q) => (q.difficulty || 'medium') === difficulty && !excludeIds.has(q.id));
+  const picked = seededShuffle(pool.length ? pool : QUEST_POOL.filter((q) => !excludeIds.has(q.id)), seed)[0];
+  return cloneQuest(picked);
+}
+
+export interface SelectQuestSetInput {
+  dateStr: string;
+  streakStatus?: string;
+  /** Today's plan focus domains (from ritual / adaptive). */
+  focusDomains?: string[];
+  /** First-week ritual primary focus, if in week. */
+  firstWeekFocus?: string | null;
+  inFirstWeek?: boolean;
+}
+
+/**
+ * Pure daily quest set. Soft-return / first-week / plan focus bias retention loops
+ * without empty stub cards. Deterministic for a given dateStr.
+ */
+export function selectQuestSet(input: SelectQuestSetInput): Quest[] {
+  const seed = daySeed(input.dateStr);
+  const used = new Set<string>();
+  let easy = pickByDifficulty('easy', seed, used);
+  used.add(easy.id);
+  let medium = pickByDifficulty('medium', seed + 17, used);
+  used.add(medium.id);
+  let hard = pickByDifficulty('hard', seed + 41, used);
+  used.add(hard.id);
+
+  const focus = input.firstWeekFocus || (input.focusDomains && input.focusDomains[0]) || null;
+
+  if (input.inFirstWeek && focus) {
+    const fw = pickDomainQuest(focus, 'easy', seed + 3);
+    if (fw) {
+      easy = {
+        ...fw,
+        id: 'first_week_quest',
+        title: 'Ритуал дня',
+        description: `Короткий шаг первой недели: одна игра на «${domainLabel(focus)}». Без наверстывания.`,
+        xpReward: Math.max(fw.xpReward, 60)
+      };
+    }
+  } else if (focus && easy.type !== 'domain') {
+    const biased = pickDomainQuest(focus, 'easy', seed + 5);
+    if (biased) easy = biased;
+  }
+
+  const selected = [easy, medium, hard];
+  const status = input.streakStatus || 'active';
+
+  if (status === 'soft_return') {
+    selected[0] = {
+      id: 'recovery_quest',
+      title: 'Мягкий возврат',
+      description: 'Пройдите 1 короткий блок, чтобы восстановить ритм. Никаких штрафов за пропуск.',
+      type: 'blocks',
+      difficulty: 'easy',
+      target: 1,
       progress: 0,
       completed: false,
-      claimed: false
-    })) as Quest[];
-    
-    const tz = resolveFokusTimeZone().timeZone;
-    const todayKey = calendarDayKey(new Date(), tz);
-    const played = extractPlayedDays({ daySummaries: storage.getDaySummaries(), sessions: storage.getSessions() }, tz);
-    const ds = computeDayStreak(played, todayKey);
-    
-    if (ds.status === 'soft_return') {
-      selected[0] = {
-        id: 'recovery_quest',
-        title: 'Мягкий возврат',
-        description: 'Пройдите 1 короткий блок, чтобы восстановить ритм. Никаких штрафов за пропуск.',
-        type: 'blocks',
-        difficulty: 'easy',
-        target: 1,
-        progress: 0,
-        completed: false,
-        claimed: false,
-        xpReward: 100
-      };
-    } else if (ds.status === 'fresh_start') {
-      selected[0] = {
-        id: 'fresh_start_quest',
-        title: 'Новый старт',
-        description: 'Завершите 1 любой блок. Начинаем без спешки.',
-        type: 'blocks',
-        difficulty: 'easy',
-        target: 1,
-        progress: 0,
-        completed: false,
-        claimed: false,
-        xpReward: 150
-      };
-    } else if (ds.status === 'active' && ds.current > 0 && ds.current % 3 === 0) {
+      claimed: false,
+      xpReward: 100
+    };
+  } else if (status === 'fresh_start') {
+    selected[0] = {
+      id: 'fresh_start_quest',
+      title: 'Новый старт',
+      description: 'Завершите 1 любой блок. Начинаем без спешки.',
+      type: 'blocks',
+      difficulty: 'easy',
+      target: 1,
+      progress: 0,
+      completed: false,
+      claimed: false,
+      xpReward: 150
+    };
+  } else if (status === 'active') {
+    // Streak milestone every 3 days — derived from seed bit, not random.
+    if ((seed % 3) === 0 && !input.inFirstWeek) {
       selected[1] = {
         id: 'streak_bonus',
         title: 'Устойчивый ритм',
@@ -102,7 +171,7 @@ export function getDailyQuests(): Quest[] {
         claimed: false,
         xpReward: 100
       };
-    } else if (Math.random() > 0.8) {
+    } else if ((seed % 10) >= 8 && !input.inFirstWeek) {
       selected[2] = {
         id: 'mindful_rest',
         title: 'Слушай себя',
@@ -116,6 +185,34 @@ export function getDailyQuests(): Quest[] {
         xpReward: 50
       };
     }
+  }
+
+  return selected;
+}
+
+function getTodayStr() {
+  return new Date().toISOString().split('T')[0];
+}
+
+export function getDailyQuests(opts?: {
+  focusDomains?: string[];
+  firstWeekFocus?: string | null;
+  inFirstWeek?: boolean;
+}): Quest[] {
+  const p = storage.getProfile();
+  if (!p.quests || p.questsDate !== getTodayStr()) {
+    const tz = resolveFokusTimeZone().timeZone;
+    const todayKey = calendarDayKey(new Date(), tz);
+    const played = extractPlayedDays({ daySummaries: storage.getDaySummaries(), sessions: storage.getSessions() }, tz);
+    const ds = computeDayStreak(played, todayKey);
+
+    const selected = selectQuestSet({
+      dateStr: getTodayStr(),
+      streakStatus: ds.status,
+      focusDomains: opts?.focusDomains,
+      firstWeekFocus: opts?.firstWeekFocus,
+      inFirstWeek: opts?.inFirstWeek
+    });
 
     p.quests = selected;
     p.questsDate = getTodayStr();

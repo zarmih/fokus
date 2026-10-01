@@ -396,3 +396,90 @@ function latestBout(a?: string | null, b?: string | null): string | null {
   if (!b) return a;
   return Date.parse(a) >= Date.parse(b) ? a : b;
 }
+
+/** Offline practice opponent near local Fokus Index — no WebRTC, no leaderboard. */
+export function practiceGhost(self: Duelant, delta = 35): Duelant {
+  const ghostIndex = clamp(self.fokusIndex + (self.fokusIndex % 2 === 0 ? delta : -delta), 120, 980);
+  const domainAbility: Record<string, number> = {};
+  for (const [id, v] of Object.entries(self.domainAbility)) {
+    domainAbility[id] = clamp(v + (ghostIndex - self.fokusIndex), 150, 1100);
+  }
+  if (Object.keys(domainAbility).length === 0) {
+    domainAbility.attention = ghostIndex;
+  }
+  return {
+    id: 'practice-ghost',
+    alias: 'Тренировочный соперник',
+    fokusIndex: ghostIndex,
+    domainAbility,
+    lastBoutAt: null
+  };
+}
+
+export interface PracticeRound {
+  accuracy: number;
+  ghostAccuracy?: number;
+}
+
+/**
+ * Local practice bout with the same rules as a live match.
+ * Usable retention loop without a friend-code room.
+ */
+export function runPracticeBout(
+  self: Duelant,
+  rounds: PracticeRound[],
+  opts?: { domain?: string; now?: Date }
+): { bout: BoutState; summary: SpectatorSummary; quality: MatchQuality; ghost: Duelant } {
+  const ghost = practiceGhost(self);
+  const quality = matchQuality(self, ghost, opts?.domain);
+  const opening = openingPoints(quality, [self.id, ghost.id]);
+  const now = opts?.now ?? new Date();
+  let bout = createBout([self.id, ghost.id], {
+    startedAtMs: now.getTime(),
+    openingPoints: opening
+  });
+
+  let t = 0;
+  for (const round of rounds) {
+    if (bout.finished) break;
+    t += 4000;
+    const localAcc = clamp(round.accuracy, 0, 1);
+    const ghostAcc = clamp(round.ghostAccuracy ?? Math.max(0.55, localAcc - 0.08), 0, 1);
+    bout = applyTick(bout, {
+      playerId: self.id,
+      accuracy: localAcc,
+      avgRtMs: 700,
+      atMs: bout.startedAtMs + t
+    });
+    if (bout.finished) break;
+    bout = applyTick(bout, {
+      playerId: ghost.id,
+      accuracy: ghostAcc,
+      avgRtMs: 720,
+      atMs: bout.startedAtMs + t + 200
+    });
+  }
+
+  if (!bout.finished) {
+    bout = closeOnTime(bout, bout.startedAtMs + bout.durationSec * 1000);
+  }
+
+  const summary = spectatorSummary({
+    boutId: newBoutId(now),
+    domain: quality.preferredDomain,
+    durationSec: bout.durationSec,
+    state: bout,
+    aliases: { [self.id]: self.alias, [ghost.id]: ghost.alias },
+    fairMatch: quality.fair
+  });
+
+  return { bout, summary, quality, ghost };
+}
+
+export function describePracticeOffer(self: Duelant): string {
+  if (self.fokusIndex <= 0) {
+    return 'После калибровки появится тренировочная схватка по тем же правилам, без комнаты с другом.';
+  }
+  const ghost = practiceGhost(self);
+  return `Тренировка: до ${BOUT_TARGET_POINTS} очков · ${BOUT_DURATION_SEC} с · коридор ±${FAIR_INDEX_GAP}. Соперник рядом с индексом ${ghost.fokusIndex}, без рейтинга.`;
+}

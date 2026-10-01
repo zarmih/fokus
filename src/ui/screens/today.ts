@@ -298,7 +298,11 @@ export function renderToday(container: HTMLElement) {
     </div>
   ` : '';
 
-  const quests = getDailyQuests();
+  const quests = getDailyQuests({
+    focusDomains: plan.focusDomains,
+    firstWeekFocus: weekRitual.ritualDay?.focusDomains?.[0] || null,
+    inFirstWeek: weekRitual.inFirstWeek
+  });
   const questsHtml = `
     <div class="surface quests-card">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">

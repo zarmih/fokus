@@ -11,11 +11,14 @@ import {
   POINT_ACCURACY_THRESHOLD,
   REMATCH_COOLDOWN_MS,
   describeMatch,
+  describePracticeOffer,
   duelantFromLocal,
   formatCooldown,
   matchQuality,
   parseSpectatorSummary,
   rematchStatus,
+  runPracticeBout,
+  serializeSpectatorSummary,
   type Duelant
 } from '../../core/duelIntel';
 
@@ -89,6 +92,14 @@ export function renderDuel(container: HTMLElement) {
 
     ${lastHtml}
 
+
+    <div class="surface" style="margin-bottom: 24px; text-align: center;" data-practice="1">
+      <h3 style="margin-bottom: 8px;">Тренировочная схватка</h3>
+      <p style="color: var(--muted); margin-bottom: 16px; font-size: 13px; line-height: 1.4;">${describePracticeOffer(self)}</p>
+      <button id="btn-practice" class="btn-secondary" type="button" style="width: 100%;" ${fi.coverage > 0 ? '' : 'disabled'}>Сыграть тренировку</button>
+      <p id="practice-result" style="display:none; margin-top: 12px; font-weight: 600;" role="status"></p>
+    </div>
+
     <div class="surface" style="margin-bottom: 24px; text-align: center;">
       <h3 style="margin-bottom: 8px;">Комната с другом</h3>
       <p style="color: var(--muted); margin-bottom: 16px; font-size: 13px; line-height: 1.4;">Код — приглашение, не матчмейкинг. Подбор по индексу появится в Фазе 4, без живого видео.</p>
@@ -159,6 +170,45 @@ export function renderDuel(container: HTMLElement) {
       }
     }, 1000);
   }
+
+
+  const btnPractice = content.querySelector('#btn-practice') as HTMLButtonElement | null;
+  const practiceResult = content.querySelector('#practice-result') as HTMLElement | null;
+  btnPractice?.addEventListener('click', () => {
+    if (fi.coverage <= 0) return;
+    const recent = storage.getSessions().slice(-3);
+    const accs = recent.flatMap((s) => s.items.map((i) => i.accuracy)).filter((a) => Number.isFinite(a));
+    const base = accs.length ? accs.reduce((a, b) => a + b, 0) / accs.length : 0.82;
+    const rounds = [0, 1, 2, 3, 4].map((i) => ({
+      accuracy: Math.max(0.5, Math.min(0.98, base + (i % 2 === 0 ? 0.04 : -0.05))),
+      ghostAccuracy: Math.max(0.5, Math.min(0.95, base - 0.06 + (i % 3) * 0.02))
+    }));
+    const { summary, quality } = runPracticeBout(self, rounds, { domain: ticketDomain });
+    try {
+      localStorage.setItem(DUEL_LAST_SUMMARY_KEY, serializeSpectatorSummary(summary));
+    } catch { /* ignore */ }
+    if (practiceResult) {
+      practiceResult.style.display = 'block';
+      practiceResult.style.color = 'var(--ok)';
+      const outcome =
+        summary.outcome === 'draw'
+          ? 'Ничья'
+          : summary.winnerAlias === self.alias
+            ? 'Победа в тренировке'
+            : 'Соперник сильнее сегодня — без штрафа к индексу';
+      practiceResult.textContent = `${outcome} · ${summary.fighters[0].points}:${summary.fighters[1].points} · ${describeMatch(quality)}`;
+    }
+    // Refresh last-summary card without full remount when possible
+    const empty = content.querySelector('.duel-empty');
+    if (empty) {
+      empty.outerHTML = `<div class="surface spectator-card" data-bout="${summary.boutId}">
+      <div class="fi-kicker">Последняя схватка · зрителям безопасно</div>
+      <div class="spectator-score">${summary.fighters[0].points} : ${summary.fighters[1].points}</div>
+      <p class="spectator-meta">${summary.fighters[0].alias} · ${summary.fighters[1].alias}</p>
+      <p class="spectator-meta">тренировка · ${summary.outcome === 'draw' ? 'ничья' : summary.winnerAlias ? `победа: ${summary.winnerAlias}` : 'результат'}</p>
+    </div>`;
+    }
+  });
 
   btnHost.addEventListener('click', () => {
     const currentCooldown = rematchStatus(lastBoutAt);
