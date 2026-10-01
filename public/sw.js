@@ -1,5 +1,5 @@
 /* Overwritten on production build by vite-plugin fokus-sw, but logic appended if supported. */
-const CACHE_NAME = 'fokus-cache-v1';
+const CACHE_NAME = 'fokus-cache-v2';
 const PRECACHE_URLS = [
   '/',
   '/index.html',
@@ -31,18 +31,34 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   if (!url.protocol.startsWith('http')) return;
   
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      return cached || fetch(event.request).then((response) => {
+  // Navigation requests (HTML) -> Network First
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).then((response) => {
         return caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, response.clone());
           return response;
         });
       }).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
-        }
-      });
+        return caches.match(event.request).then((cached) => {
+          return cached || caches.match('/');
+        });
+      })
+    );
+    return;
+  }
+
+  // Other assets -> Stale-While-Revalidate
+  event.respondWith(
+    caches.match(event.request).then((cached) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, networkResponse.clone());
+        });
+        return networkResponse;
+      }).catch(() => null);
+      
+      return cached || fetchPromise;
     })
   );
 });
@@ -58,4 +74,3 @@ self.addEventListener('sync', (event) => {
     );
   }
 });
-

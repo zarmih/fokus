@@ -30,8 +30,8 @@ const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
   { id: 'm1', type: 'blocks', difficulty: 'medium', target: 3, title: 'Погружение', description: 'Пройдите 3 блока, только если чувствуете силы', xpReward: 60 },
   { id: 'm2', type: 'accuracy', difficulty: 'medium', target: 90, title: 'Точность', description: 'Сделайте акцент на безошибочность (90% в одном блоке)', xpReward: 60 },
   { id: 'm3', type: 'score', difficulty: 'medium', target: 500, title: 'Уверенный темп', description: 'Пройдите упражнения на 500 очков в своём ритме', xpReward: 60 },
-  { id: 'm4', type: 'diversity', difficulty: 'medium', target: 2, title: 'Разносторонний фокус', description: 'Попробуйте 2 разных формата упражнений', xpReward: 70 },
-  { id: 'm5', type: 'perfect', difficulty: 'medium', target: 1, title: 'Концентрация', description: 'Попробуйте пройти 1 блок без ошибок (если хотите)', xpReward: 80 },
+  { id: 'm4', type: 'diversity', difficulty: 'medium', target: 2, title: 'Разносторонний фокус', description: 'Попробуйте 2 разных формата упражнений (для кругозора)', xpReward: 70 },
+  { id: 'm5', type: 'perfect', difficulty: 'medium', target: 1, title: 'Медитативность', description: 'Попробуйте пройти 1 блок без ошибок, полностью погрузившись в процесс', xpReward: 80 },
   { id: 'm6', type: 'domain', difficulty: 'medium', target: 2, domainId: 'math', title: 'Счёт', description: 'Уделите время двум математическим играм', xpReward: 70 },
   // Hard
   { id: 'h1', type: 'blocks', difficulty: 'hard', target: 4, title: 'Объёмная сессия', description: 'Пройдите 4 блока (отличный вызов по желанию)', xpReward: 150 },
@@ -92,15 +92,28 @@ export function getDailyQuests(): Quest[] {
     } else if (ds.status === 'active' && ds.current > 0 && ds.current % 3 === 0) {
       selected[1] = {
         id: 'streak_bonus',
-        title: 'Регулярность',
-        description: 'Пройдите 2 блока для поддержания ритма, без лишнего давления',
+        title: 'Устойчивый ритм',
+        description: 'Пройдите 2 блока. Вы уже в ритме — главное качество, а не количество.',
         type: 'blocks',
         difficulty: 'medium',
         target: 2,
         progress: 0,
         completed: false,
         claimed: false,
-        xpReward: 150
+        xpReward: 100
+      };
+    } else if (Math.random() > 0.8) {
+      selected[2] = {
+        id: 'mindful_rest',
+        title: 'Слушай себя',
+        description: 'Сделайте паузу, если устали. Либо пройдите 1 блок ради удовольствия.',
+        type: 'blocks',
+        difficulty: 'easy',
+        target: 1,
+        progress: 0,
+        completed: false,
+        claimed: false,
+        xpReward: 50
       };
     }
 
