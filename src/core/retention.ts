@@ -435,8 +435,16 @@ function pickNudges(params: {
     out.push({
       id: 'long_pause',
       kind: 'resume',
-      title: 'Спустя время',
-      body: 'Долгая пауза — это нормально. Одна короткая тренировка сегодня — и вы снова в деле.',
+      title: 'Спустя неделю',
+      body: 'Фокус не пропадает за неделю. Спокойная разминка поможет снова включиться в ритм, когда вы будете готовы.',
+      priority: 92
+    });
+  } else if (!params.playedToday && params.gapDays === 3) {
+    out.push({
+      id: 'pause_3_days',
+      kind: 'resume',
+      title: 'В вашем темпе',
+      body: 'Паузы помогают избегать выгорания. Fokus готов к короткой сессии в вашем темпе — без марафонов.',
       priority: 90
     });
   } else if (!params.playedToday && params.status === 'soft_return') {
@@ -474,6 +482,16 @@ function pickNudges(params: {
       title: 'Меньше давления',
       body: 'Fokus подстроил нагрузку под ваш перерыв. Одна короткая сессия без чувства вины вернёт вас в русло.',
       priority: 68
+    });
+  }
+
+  if (!params.playedToday && params.status === 'fresh_start' && params.gapDays === 0) {
+    out.push({
+      id: 'fresh_start',
+      kind: 'resume',
+      title: 'Честный подход',
+      body: 'Никакого чувства вины за пропуски. Начнём с лёгкой разминки?',
+      priority: 82
     });
   }
 
