@@ -256,8 +256,17 @@ function scoreCatalog(params: ComposeRitualParams & {
     const hoursSince = spacing.lastPlayedAt
       ? (nowMs - Date.parse(spacing.lastPlayedAt)) / 3600000
       : 999;
-    if (hoursSince < 10) repeat -= 48;
-    else if (hoursSince < 30) repeat -= 16;
+    
+    let timeRepeatPenalty = 0;
+    if (hoursSince < 10) timeRepeatPenalty = 48;
+    else if (hoursSince < 30) timeRepeatPenalty = 16;
+    
+    const isThinDomain = catalog.filter(c => c.domain === item.domain).length < 4;
+    if (isThinDomain) {
+      timeRepeatPenalty /= 2;
+    }
+    
+    repeat -= timeRepeatPenalty;
     score += repeat;
 
     let plateau = 0;

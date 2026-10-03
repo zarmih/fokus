@@ -63,6 +63,10 @@ describe('exercise-content — original RU difficulty/hints', () => {
 test('exercise-specific tips for original tide-gate / anchor-pair', () => {
   expect(domainSessionTip('attention', 1, 'tide-gate')).toMatch(/ворот/i);
   expect(domainSessionTip('memory', 1, 'anchor-pair')).toMatch(/слева|справа/i);
+  expect(domainSessionTip('speed', 1, 'slip-mark')).toMatch(/скольжени/i);
+  expect(domainSessionTip('speed', 1, 'cut-bar')).toMatch(/рубеж/i);
+  expect(assertOriginalCopy(domainSessionTip('speed', 1, 'slip-mark'))).toBe(true);
+  expect(assertOriginalCopy(domainSessionTip('speed', 1, 'cut-bar'))).toBe(true);
   const c = buildSessionContent({
     blockIndex: 2,
     difficulty: 6,

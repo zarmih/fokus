@@ -15,6 +15,8 @@ test('registry contains all exercises', () => {
   expect(ids).toContain('pulley');
   expect(ids).toContain('swings');
   expect(ids).toContain('math-sprint');
+  expect(ids).toContain('slip-mark');
+  expect(ids).toContain('cut-bar');
 });
 
 test('dispatch maps id to module', () => {
