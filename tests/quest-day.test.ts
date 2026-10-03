@@ -1,5 +1,5 @@
 import { expect, test, beforeEach, describe, vi, afterEach } from 'vitest';
-import { questCalendarDay, getDailyQuests, updateQuestProgress } from '../src/core/quests';
+import { questCalendarDay, getDailyQuests, updateQuestProgress, mondayOfMoscowWeek, getWeeklyGoal, updateWeeklyGoalProgress } from '../src/core/quests';
 import { storage } from '../src/core/storage';
 import { buildFirstWeekPlan } from '../src/core/onboarding';
 import type { Quest } from '../src/core/quests';
@@ -111,5 +111,45 @@ describe('Quest Day and Gentle Days', () => {
     checkDay('2026-10-04T12:00:00.000Z', true); // day 4
     checkDay('2026-10-05T12:00:00.000Z', false); // day 5
     checkDay('2026-10-06T12:00:00.000Z', false); // day 6
+  });
+});
+
+describe('Weekly Quest Goals (Moscow Week)', () => {
+  beforeEach(() => {
+    storage.reset();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  test('mondayOfMoscowWeek returns Monday for Moscow time, crossing UTC days correctly', () => {
+    // 2026-10-04 is a Sunday. Late UTC Sunday is already Monday in Moscow.
+    // 2026-10-04T22:30:00.000Z is 2026-10-05 01:30 MSK (Monday)
+    // The previous week started on 2026-09-28. The new week starts on 2026-10-05.
+    vi.setSystemTime(new Date('2026-10-04T22:30:00.000Z'));
+    expect(mondayOfMoscowWeek()).toBe('2026-10-05');
+    
+    // A bit earlier, 2026-10-04T19:00:00.000Z is 2026-10-04 22:00 MSK (Sunday)
+    // Week should still be 2026-09-28
+    vi.setSystemTime(new Date('2026-10-04T19:00:00.000Z'));
+    expect(mondayOfMoscowWeek()).toBe('2026-09-28');
+  });
+
+  test('getWeeklyGoal and updateWeeklyGoalProgress agree on same Moscow weekStart', () => {
+    // Set time to a boundary: Sunday night UTC, Monday morning MSK.
+    vi.setSystemTime(new Date('2026-10-04T23:00:00.000Z')); // 2026-10-05 02:00 MSK (Monday)
+    
+    const goal = getWeeklyGoal();
+    expect(goal.startIso).toBe('2026-10-05');
+    expect(goal.progress).toBe(0);
+
+    // Update progress
+    updateWeeklyGoalProgress(goal.domain, 5);
+    
+    const updated = getWeeklyGoal();
+    expect(updated.startIso).toBe('2026-10-05');
+    expect(updated.progress).toBe(5);
   });
 });
