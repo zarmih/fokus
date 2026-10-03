@@ -13,7 +13,7 @@ import type {
   ScoredCandidate
 } from './types';
 import type { ExerciseState } from '../types';
-import { phaseForWeek } from '../program-phases';
+import { phaseForWeek, isPhaseMilestoneDay, milestoneExerciseId, milestoneReason, MILESTONE_EXERCISE_IDS } from '../program-phases';
 
 export interface ComposeRitualParams {
   model: AbilityModel;
@@ -51,7 +51,49 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
   const selectedDomains: DomainId[] = [];
   const items: RitualItem[] = [];
 
-  mix.forEach((wanted) => {
+  const pw = params.programWeek || 1;
+  const pd = params.programDay || 1;
+  let lockedMilestone: { id: string; domain: DomainId; reason: string } | null = null;
+  
+  if (isPhaseMilestoneDay(pw, pd)) {
+    const desiredId = milestoneExerciseId(pw);
+    let lockedManifest = catalog.find(c => c.id === desiredId);
+    if (!lockedManifest) {
+      const fallbackId = MILESTONE_EXERCISE_IDS.find(id => id !== desiredId);
+      if (fallbackId) {
+        lockedManifest = catalog.find(c => c.id === fallbackId);
+      }
+    }
+    if (lockedManifest) {
+      lockedMilestone = {
+        id: lockedManifest.id,
+        domain: lockedManifest.domain,
+        reason: milestoneReason(pw)
+      };
+      selectedIds.add(lockedManifest.id);
+      selectedDomains.push(lockedManifest.domain);
+    }
+  }
+
+  mix.forEach((wanted, i) => {
+    if (lockedMilestone && i === targetBlocks - 1) {
+      const state = params.states.find(s => s.exerciseId === lockedMilestone!.id);
+      const stored = state?.difficulty ?? 3;
+      const item = catalog.find(c => c.id === lockedMilestone!.id)!;
+      const pick = selectDifficulty({ model: params.model, item, storedDifficulty: stored, rng });
+      
+      items.push({
+        exerciseId: lockedMilestone.id,
+        domain: lockedMilestone.domain,
+        slot: wanted,
+        reason: lockedMilestone.reason,
+        difficulty: pick.difficulty,
+        pSuccess: pick.pSuccess,
+        trace: 'Milestone lock'
+      });
+      return;
+    }
+
     const ranked = scoreCatalog({
       ...params,
       catalog,

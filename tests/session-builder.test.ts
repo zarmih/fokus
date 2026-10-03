@@ -141,3 +141,75 @@ test('fillRenderedSlotAlternatives sets one runner-up without raising domain max
   );
   expect(again[0].nextExerciseId).toBeUndefined();
 });
+
+import { buildAdaptivePlan } from '../src/core/session-builder';
+
+test('milestone lock forces tide-gate onto the last slot solely on milestone day', () => {
+  const catalog = [
+    { manifest: { id: 'a1', domain: 'A', skills: [] } },
+    { manifest: { id: 'b1', domain: 'B', skills: [] } },
+    { manifest: { id: 'tide-gate', domain: 'attention', skills: [] } }
+  ];
+  
+  const baseParams = {
+    durationSec: 600,
+    catalog: catalog as any,
+    domains: [
+      { domain: 'A', value: 100, updatedAt: '' },
+      { domain: 'B', value: 200, updatedAt: '' },
+      { domain: 'attention', value: 300, updatedAt: '' }
+    ],
+    skills: [],
+    states: [],
+    primaryGoal: 'balance' as const
+  };
+
+  // Not a milestone
+  const normalPlan = buildTrainingPlan({
+    ...baseParams,
+    programWeek: 2,
+    programDay: 3
+  });
+  
+  const lastNormal = normalPlan.items[normalPlan.items.length - 1];
+  expect(lastNormal.reason).not.toMatch(/Веха фазы/);
+
+  // Is a milestone
+  const milestonePlan = buildTrainingPlan({
+    ...baseParams,
+    programWeek: 2,
+    programDay: 7
+  });
+
+  const lastMilestone = milestonePlan.items[milestonePlan.items.length - 1];
+  expect(lastMilestone.exerciseId).toBe('tide-gate');
+  expect(lastMilestone.reason).toMatch(/Веха фазы/);
+  
+  const occurrences = milestonePlan.items.filter(i => i.exerciseId === 'tide-gate');
+  expect(occurrences.length).toBe(1);
+});
+
+test('buildAdaptivePlan (engine) milestone lock forces anchor-pair onto the last slot on phase 2 end', () => {
+  const catalog = [
+    { manifest: { id: 'a1', domain: 'A', skills: [] } },
+    { manifest: { id: 'b1', domain: 'B', skills: [] } },
+    { manifest: { id: 'anchor-pair', domain: 'memory', skills: [] } }
+  ];
+  
+  const plan = buildAdaptivePlan({
+    durationSec: 600,
+    catalog: catalog as any,
+    domains: [],
+    skills: [],
+    states: [],
+    programWeek: 4,
+    programDay: 7,
+    fatigueOrChurn: false,
+    excludeIds: [],
+    primaryGoal: 'balance'
+  });
+  
+  const last = plan.items[plan.items.length - 1];
+  expect(last.exerciseId).toBe('anchor-pair');
+  expect(last.reason).toMatch(/Веха фазы: Якорная пара/);
+});
