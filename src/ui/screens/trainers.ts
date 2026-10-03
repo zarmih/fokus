@@ -28,9 +28,12 @@ export function renderTrainers(container: HTMLElement) {
     }
   });
 
+  const RECENT_ORIGINALS = ['tide-gate', 'anchor-pair', 'slip-mark', 'cut-bar'];
+
   const untriedExercises = catalog.filter(ex => {
     const st = exStates.find(s => s.exerciseId === ex.manifest.id);
-    return !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
+    const isUntried = !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
+    return isUntried && RECENT_ORIGINALS.includes(ex.manifest.id);
   });
   const untriedCount = untriedExercises.length;
 
@@ -38,6 +41,7 @@ export function renderTrainers(container: HTMLElement) {
   function renderCard(ex: any) {
     const st = exStates.find(s => s.exerciseId === ex.manifest.id);
     const isUntried = !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
+    const isDiscovery = isUntried && RECENT_ORIGINALS.includes(ex.manifest.id);
     const lvl = st ? st.level : 1;
     const intel = getExerciseIntelligence(ex.manifest.id);
     
@@ -93,14 +97,17 @@ export function renderTrainers(container: HTMLElement) {
     const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
 
     return `
-      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-untried="${isUntried}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
+      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
         <div class="trainer-header-row">
           <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
           <div class="trainer-icon-wrap">
             <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="24" height="24" alt="" decoding="async" loading="lazy">
           </div>
         </div>
-        <div class="trainer-name">${ex.manifest.name}</div>
+        <div class="trainer-name" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+          ${ex.manifest.name}
+          ${isDiscovery ? `<span style="background: var(--accent); color: var(--bg); font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">New</span>` : ''}
+        </div>
         <div class="trainer-instruction">${ex.manifest.instruction}</div>
         <div style="margin-bottom: 8px;">
           ${(ex.manifest.skills || []).slice(0, 2).map((s: string) => `<span style="display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; margin-right: 4px; margin-top: 6px;">${skillLabel(s)}</span>`).join('')}
@@ -236,12 +243,12 @@ export function renderTrainers(container: HTMLElement) {
       
       group.querySelectorAll('.trainer-card').forEach(card => {
         const el = card as HTMLElement;
-        const isUntried = el.dataset.untried === 'true';
+        const isDiscovery = el.dataset.discovery === 'true';
         const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
         
         if (matchesSearch) {
           allMatches++;
-          if (isUntried) discoveryMatches++;
+          if (isDiscovery) discoveryMatches++;
           groupMatchCount++;
         }
 
@@ -249,7 +256,7 @@ export function renderTrainers(container: HTMLElement) {
         if (activeDom === 'all') {
           matchesDom = true;
         } else if (activeDom === 'discovery') {
-          matchesDom = isUntried;
+          matchesDom = isDiscovery;
         } else {
           matchesDom = activeDom === groupDom;
         }
