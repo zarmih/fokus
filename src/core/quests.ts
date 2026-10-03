@@ -1,6 +1,6 @@
 import { storage } from './storage';
 import { getTodayRitual } from './onboarding';
-import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone } from './streak';
+import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone, addCalendarDays } from './streak';
 import { getManifest } from '../exercises/catalog';
 import { domainLabel } from './labels';
 
@@ -232,6 +232,14 @@ export function questCalendarDay(now: Date = new Date()): string {
   return calendarDayKey(now, resolveFokusTimeZone().timeZone);
 }
 
+export function mondayOfMoscowWeek(now: Date = new Date()): string {
+  const moscowDay = questCalendarDay(now);
+  const d = new Date(moscowDay + 'T12:00:00Z');
+  const dow = d.getUTCDay();
+  const diff = dow === 0 ? 6 : dow - 1;
+  return addCalendarDays(moscowDay, -diff);
+}
+
 export function getDailyQuests(opts?: {
   focusDomains?: string[];
   firstWeekFocus?: string | null;
@@ -435,9 +443,7 @@ export function claimQuest(id: string): boolean {
 
 export function getWeeklyGoal() {
   const p = storage.getProfile();
-  const d = new Date();
-  d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
-  const weekStartStr = d.toISOString().split('T')[0];
+  const weekStartStr = mondayOfMoscowWeek();
   
   if (!p.weeklyGoal || p.weeklyGoal.startIso !== weekStartStr) {
     const domains = storage.getDomains();
@@ -459,9 +465,7 @@ export function updateWeeklyGoalProgress(domain: string, blocks: number) {
   const goal = p.weeklyGoal;
   if (!goal) return;
 
-  const d = new Date();
-  d.setDate(d.getDate() - (d.getDay() === 0 ? 6 : d.getDay() - 1));
-  const weekStartStr = d.toISOString().split('T')[0];
+  const weekStartStr = mondayOfMoscowWeek();
   
   if (goal.startIso === weekStartStr && goal.domain === domain) {
     if (goal.progress < goal.target) {
