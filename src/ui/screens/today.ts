@@ -5,7 +5,8 @@ import { planWithRecovery } from '../../core/recovery';
 import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from '../../core/continuity';
 import { navigateTo } from '../router';
-import { planForNow, snoozeRecalibration } from '../../core/adaptive-plan';
+import { planForNow, snoozeRecalibration, getProgramPosition } from '../../core/adaptive-plan';
+import { phaseForWeek } from '../../core/program-phases';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -237,6 +238,10 @@ export function renderToday(container: HTMLElement) {
     programRetView = null;
   }
 
+  const { weekIndex } = getProgramPosition(snap, profile as any);
+  const phaseId = phaseForWeek(weekIndex).id;
+  const fatigueOrChurn = snap.workload.fatigued.length > 0 || (retSnap && (retSnap.band === 'at_risk' || retSnap.band === 'critical')) || false;
+
   const planExplain = retSnap
     ? explainTodayPlan({
         calibrated: !!profile.calibrated,
@@ -250,7 +255,10 @@ export function renderToday(container: HTMLElement) {
         recoveryHint: ritual?.snapshot?.gate?.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint?.body) : null,
         weekRitualCopy: weekRitual.copy || null,
         inFirstWeek: weekRitual.inFirstWeek,
-        weekRitual
+        weekRitual,
+        programPhase: phaseId,
+        fatigueOrChurn,
+        primaryGoal: profile.primaryGoal
       })
     : null;
 

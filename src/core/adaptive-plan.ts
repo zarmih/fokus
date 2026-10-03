@@ -14,6 +14,7 @@ import {
 import type { AdaptivePlan } from './engine';
 import type { Observation } from './engine/types';
 import type { DifficultyPick } from './engine';
+import { phaseForWeek } from './program-phases';
 
 export function planForNow(opts?: {
   durationSec?: number;
@@ -56,6 +57,8 @@ export function planForNow(opts?: {
     nowMs: opts?.nowMs,
     programWeek: weekIndex,
     programDay: dayInWeek,
+    programPhase: phaseForWeek(weekIndex).id,
+    fatigueOrChurn: snapshot.workload.fatigued.length > 0,
     focusOfTheWeek: rotatingTipDomain(new Date(opts?.nowMs ?? Date.now())),
     isSparse
   });

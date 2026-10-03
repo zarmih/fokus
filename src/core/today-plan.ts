@@ -81,6 +81,9 @@ export interface ExplainTodayPlanInput {
   inFirstWeek?: boolean;
   /** Full first-week ritual from getTodayRitual — preferred over copy-only. */
   weekRitual?: TodayRitual | null;
+  programPhase?: string;
+  fatigueOrChurn?: boolean;
+  primaryGoal?: string;
 }
 
 /**
@@ -111,7 +114,20 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
 
   const focusDomain = programRetention.focusDomain;
   const focusNames = focusDomains.map((d) => domainLabel(d)).filter(Boolean);
-  const exerciseWhy = composeExerciseWhy({
+
+  let phaseClause = '';
+  if (input.programPhase === 'orient') {
+    phaseClause = ' (знакомый короткий блок)';
+  } else if (input.programPhase === 'balance') {
+    phaseClause = ' (акцент на слабые области)';
+  } else if (input.programPhase === 'focus') {
+    const gl = input.primaryGoal ? domainLabel(input.primaryGoal) : 'цель';
+    phaseClause = ` (фокус на ${gl})`;
+  } else if (input.programPhase === 'sustain' && input.fatigueOrChurn) {
+    phaseClause = ' (короче из-за усталости)';
+  }
+
+  const baseWhy = composeExerciseWhy({
     focusNames,
     focusDomain,
     items: planItems,
@@ -119,6 +135,7 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
     band: retention.band,
     gapDays: retention.gapDays
   });
+  const exerciseWhy = phaseClause ? `${baseWhy} ${phaseClause}` : baseWhy;
 
   if (!calibrated) {
     return {
@@ -470,6 +487,9 @@ export function buildTodayPlanExplanation(params: {
   weekRitualCopy?: string | null;
   inFirstWeek?: boolean;
   weekRitual?: TodayRitual | null;
+  programPhase?: string;
+  fatigueOrChurn?: boolean;
+  primaryGoal?: string;
   now?: Date;
 }): {
   retention: RetentionSnapshot;
@@ -503,7 +523,10 @@ export function buildTodayPlanExplanation(params: {
     recoveryHint: params.recoveryHint,
     weekRitualCopy: params.weekRitualCopy,
     inFirstWeek: params.inFirstWeek,
-    weekRitual: params.weekRitual
+    weekRitual: params.weekRitual,
+    programPhase: params.programPhase,
+    fatigueOrChurn: params.fatigueOrChurn,
+    primaryGoal: params.primaryGoal
   });
   return { retention, explanation };
 }

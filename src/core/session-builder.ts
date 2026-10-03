@@ -6,6 +6,7 @@ import {
   type AdaptivePlan,
   type AdaptivePlanParams
 } from './engine/bridge';
+import { phaseForWeek } from './program-phases';
 
 export interface TrainingPlanItem {
   exerciseId: string;
@@ -33,6 +34,8 @@ export function buildAdaptivePlan(params: AdaptivePlanParams): AdaptivePlan {
       primaryGoal: p.primaryGoal,
       programWeek: p.programWeek,
       programDay: p.programDay,
+      programPhase: p.programPhase,
+      fatigueOrChurn: p.fatigueOrChurn,
       excludeIds: p.excludeIds,
       isSparse: p.isSparse
     })
@@ -49,14 +52,19 @@ export function buildTrainingPlan(params: {
   focusOfTheWeek?: string | null;
   programWeek?: number;
   programDay?: number;
+  programPhase?: string;
+  fatigueOrChurn?: boolean;
   excludeIds?: string[];
   isSparse?: boolean;
 }): TrainingPlan {
-  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, programWeek, programDay, excludeIds = [], isSparse = states.length < 9 } = params;
+  const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, programWeek, programDay, programPhase, fatigueOrChurn, excludeIds = [], isSparse = states.length < 9 } = params;
   
+  const phaseId = programPhase ?? phaseForWeek(programWeek ?? 1).id;
   const blockDurationSec = 180; // ~3 minutes per block
   let targetBlocks = Math.max(2, Math.round(durationSec / blockDurationSec));
   if (targetBlocks > 6) targetBlocks = 6;
+  if (phaseId === 'orient' && targetBlocks > 3) targetBlocks = 3;
+  if (phaseId === 'sustain' && fatigueOrChurn && targetBlocks > 2) targetBlocks = 2;
 
   const sortedDomains = [...domains].sort((a, b) => a.value - b.value);
   const isGlobalSparse = states.length < 9;
@@ -83,6 +91,8 @@ export function buildTrainingPlan(params: {
       let goalAlignment = 0;
       if (primaryGoal !== 'balance' && manifest.domain === primaryGoal) {
         goalAlignment = 40;
+        if (phaseId === 'focus') goalAlignment = 60;
+        if (phaseId === 'balance') goalAlignment = 20;
       }
 
       let weaknessPriority = 0;
@@ -94,9 +104,11 @@ export function buildTrainingPlan(params: {
 
       if (!isSparseDomain) {
         if (weakestDomain === manifest.domain) {
-          weaknessPriority = 35; 
+          weaknessPriority = 35;
+          if (phaseId === 'balance') weaknessPriority = 60;
         } else if (secondWeakestDomain === manifest.domain) {
           weaknessPriority = 15;
+          if (phaseId === 'balance') weaknessPriority = 25;
         }
       }
       const weeklyFocus = weeklyFocusBias(manifest.domain, focusOfTheWeek);
@@ -140,8 +152,9 @@ export function buildTrainingPlan(params: {
         if ((state.consecutivePlateau || 0) >= 3) {
           plateauPenalty = 30;
         }
+        if (phaseId === 'orient') novelty += 30;
       } else {
-        novelty = 20;
+        if (phaseId !== 'orient') novelty = 20;
       }
 
       let sessionBalance = 0;
@@ -162,8 +175,9 @@ export function buildTrainingPlan(params: {
       const pd = programDay || 1;
       const dayPrefix = `Неделя ${pw} · День ${pd} · `;
       
+      const isNew = !state;
       if (isSparse || isSparseDomain) {
-        baseReason = novelty > 0 ? `Знакомство` : `Сбор данных`;
+        baseReason = (novelty > 0 || isNew) ? `Знакомство` : `Сбор данных`;
       } else if (maintenance > 0 && skillNeed < 5) {
         baseReason = `Поддержание тонуса`;
       } else if (plateauPenalty > 0 && selectedDomains.has(manifest.domain) === false) {

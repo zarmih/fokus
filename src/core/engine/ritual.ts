@@ -13,6 +13,7 @@ import type {
   ScoredCandidate
 } from './types';
 import type { ExerciseState } from '../types';
+import { phaseForWeek } from '../program-phases';
 
 export interface ComposeRitualParams {
   model: AbilityModel;
@@ -26,6 +27,8 @@ export interface ComposeRitualParams {
   rng?: () => number;
   programWeek?: number;
   programDay?: number;
+  programPhase?: string;
+  fatigueOrChurn?: boolean;
   isSparse?: boolean;
 }
 
@@ -34,7 +37,13 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
   const goal = params.primaryGoal || 'balance';
   const exclude = new Set(params.excludeIds || []);
   const catalog = params.catalog.filter((c) => !exclude.has(c.id));
-  const targetBlocks = Math.min(targetBlockCount(params.durationSec), Math.max(1, catalog.length));
+  const phaseId = params.programPhase ?? phaseForWeek(params.programWeek ?? 1).id;
+
+  let maxBlocks = targetBlockCount(params.durationSec);
+  if (phaseId === 'orient' && maxBlocks > 3) maxBlocks = 3;
+  if (phaseId === 'sustain' && params.fatigueOrChurn && maxBlocks > 2) maxBlocks = 2;
+
+  const targetBlocks = Math.min(maxBlocks, Math.max(1, catalog.length));
   const mix = slotMix(targetBlocks).slice(0, targetBlocks);
 
   const focus = focusDomains(params.model, goal);
@@ -50,7 +59,8 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
       wantedSlot: wanted,
       selectedIds,
       selectedDomains,
-      goal
+      goal,
+      phaseId
     });
     const chosen = pickWithExplore(ranked, rng);
     if (!chosen) return;
@@ -97,8 +107,9 @@ function scoreCatalog(params: ComposeRitualParams & {
   programDay?: number;
   focusOfTheWeek?: string | null;
   isSparse?: boolean;
+  phaseId: string;
 }): ScoredCandidate[] {
-  const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng, programWeek, programDay, focusOfTheWeek, isSparse } = params;
+  const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng, programWeek, programDay, focusOfTheWeek, isSparse, phaseId } = params;
 
   return catalog.map((item) => {
     const spacing = getSpacing(model, item.id);
@@ -125,7 +136,11 @@ function scoreCatalog(params: ComposeRitualParams & {
     score += slotMatch;
 
     let goalPts = 0;
-    if (goal !== 'balance' && item.domain === goal) goalPts = 34;
+    if (goal !== 'balance' && item.domain === goal) {
+      goalPts = 34;
+      if (phaseId === 'focus') goalPts = 55;
+      if (phaseId === 'balance') goalPts = 10;
+    }
     score += goalPts;
 
     let weeklyFocusPts = 0;
@@ -150,7 +165,12 @@ function scoreCatalog(params: ComposeRitualParams & {
     score += plateau;
 
     let novelty = 0;
-    if (!state || spacing.repetitions === 0) novelty = 16;
+    const isUnplayed = (!state || spacing.repetitions === 0);
+    if (isUnplayed) {
+      if (phaseId !== 'orient') novelty = 16;
+    } else {
+      if (phaseId === 'orient') novelty = 24;
+    }
     score += novelty;
 
     const reason = reasonFor({

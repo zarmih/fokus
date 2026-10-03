@@ -323,7 +323,8 @@ describe('ritual composer', () => {
       durationSec: 900,
       primaryGoal: 'memory',
       nowMs: NOW,
-      rng
+      rng,
+      programPhase: 'sustain'
     });
     expect(plan.items.length).toBe(5);
     const ids = plan.items.map((i) => i.exerciseId);
