@@ -95,6 +95,8 @@ export interface ProgramPhaseView {
   phaseNarrative: string;
   /** Preview of the upcoming milestone day. */
   milestonePreview: string | null;
+  /** Habit carried forward to the next phase (last 2 days). */
+  carryLine: string | null;
 }
 
 export function describeProgramPhase(params: {
@@ -149,6 +151,25 @@ export function describeProgramPhase(params: {
     }
   }
 
+  let carryLine: string | null = null;
+  const isLastTwoDays = weekIndex === phase.weekTo && dayInWeek >= 6;
+  if (isLastTwoDays) {
+    switch (phase.id) {
+      case 'orient':
+        carryLine = 'В следующую фазу уходит ритм, не счётчик.';
+        break;
+      case 'balance':
+        carryLine = 'В следующую фазу уходит баланс, а не долг за пропуски.';
+        break;
+      case 'focus':
+        carryLine = 'Дальше с вами идёт способность к фокусу, без лишнего напряжения.';
+        break;
+      case 'sustain':
+        carryLine = 'С вами остаётся регулярность, которая важнее любых марафонов.';
+        break;
+    }
+  }
+
   return {
     phase,
     weekIndex,
@@ -160,7 +181,8 @@ export function describeProgramPhase(params: {
     progressInPhase,
     aria: `Фаза ${phase.index} из 4, ${phase.title}. Цель: ${goalLine}. ${weekLabel}, сейчас неделя ${weekIndex}, день ${dayInWeek}.`,
     phaseNarrative,
-    milestonePreview
+    milestonePreview,
+    carryLine
   };
 }
 

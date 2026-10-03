@@ -107,4 +107,31 @@ describe('program-phases — 2–4 week goals', () => {
     const today = describeProgramPhase({ weekIndex: 2, dayInWeek: 7, calibrated: true });
     expect(today.milestonePreview).toMatch(/Сегодня рубеж/);
   });
+
+  test('describeProgramPhase includes carryLine in the last 2 days of a phase', () => {
+    // Not near the end
+    const midPhase = describeProgramPhase({ weekIndex: 1, dayInWeek: 4 });
+    expect(midPhase.carryLine).toBeNull();
+
+    // Orient end
+    const orientEnd = describeProgramPhase({ weekIndex: 2, dayInWeek: 6 });
+    expect(orientEnd.carryLine).not.toBeNull();
+    expect(orientEnd.carryLine?.length).toBeGreaterThan(0);
+
+    // Balance end
+    const balanceEnd = describeProgramPhase({ weekIndex: 4, dayInWeek: 7 });
+    expect(balanceEnd.carryLine).not.toBeNull();
+    expect(balanceEnd.carryLine?.length).toBeGreaterThan(0);
+
+    // Strings differ
+    expect(orientEnd.carryLine).not.toBe(balanceEnd.carryLine);
+    
+    // Focus end
+    const focusEnd = describeProgramPhase({ weekIndex: 6, dayInWeek: 6 });
+    expect(focusEnd.carryLine).not.toBeNull();
+    
+    // Sustain end
+    const sustainEnd = describeProgramPhase({ weekIndex: 999, dayInWeek: 7 });
+    expect(sustainEnd.carryLine).not.toBeNull();
+  });
 });
