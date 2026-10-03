@@ -334,6 +334,7 @@ export function renderProgram(container: HTMLElement) {
             }).join('')}
           </div>
           ${phaseView.milestonePreview ? `<div class="milestone-preview" style="background: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent);">✦</span> ${phaseView.milestonePreview}</div>` : ''}
+          ${phaseView.carryLine ? `<p data-phase-carry="1" style="font-size: 13px; font-weight: 500; margin: 0 0 12px 0;">${phaseView.carryLine}</p>` : ''}
           <p class="muted" style="font-size:13px; margin:0;">${phaseView.phase.nextHint}</p>
         </div>
         <div class="surface" style="margin-bottom:16px;" ${programRetention ? `aria-label="${programRetention.aria.replace(/"/g, '&quot;')}"` : ''}>
