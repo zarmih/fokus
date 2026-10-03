@@ -89,6 +89,13 @@
   --motion-press-s: 0.97;
 }
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+}
 body {
   margin: 0;
   padding: 0;
@@ -106,6 +113,7 @@ body {
 #app {
   width: 100%;
   max-width: 440px;
+  min-width: 0;
   height: 100dvh;
   min-height: 100vh;
   position: relative;
@@ -113,7 +121,8 @@ body {
   flex-direction: column;
   background: transparent;
   box-shadow: var(--shadow-app);
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 #app::before {
   content: '';
@@ -215,6 +224,8 @@ p { margin: 0 0 16px; line-height: 1.6; color: var(--muted); }
   cursor: pointer;
   border: none;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   transition: transform var(--motion-fast) var(--ease-press), box-shadow var(--motion-fast) var(--ease-standard), background var(--motion-fast) var(--ease-standard);
   margin-bottom: 12px;
   box-shadow: var(--shadow);
@@ -552,6 +563,9 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
   margin-bottom: 24px;
 }
 .session-timer {
@@ -570,6 +584,8 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .instruction-card {
   position: relative;
   overflow: hidden;
+  max-width: 100%;
+  min-width: 0;
   background: linear-gradient(180deg, rgba(255,255,255,0.06), var(--surface));
   padding: 36px 24px 28px;
   border-radius: 24px;
@@ -1109,11 +1125,13 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 
 /* Onboarding */
 .onboard {
-  min-height: 100vh;
+  width: 100%;
+  max-width: 440px;
+  min-height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   padding: 28px 22px 32px;
-  max-width: 440px;
   margin: 0 auto;
 }
 .onboard-dots {
@@ -1143,8 +1161,22 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .onboard-steps { padding-left: 18px; color: var(--text); line-height: 1.55; }
 .onboard-steps li { margin-bottom: 12px; }
 .onboard-note { font-size: 13px; color: var(--muted); margin-top: 16px; }
-.onboard-actions { margin-top: auto; padding-top: 24px; display: flex; gap: 12px; }
-.onboard-actions .btn-primary, .onboard-actions .btn-secondary { margin-bottom: 0; }
+.onboard-actions {
+  width: 100%;
+  min-width: 0;
+  margin-top: auto;
+  padding-top: 24px;
+  display: flex;
+  gap: 12px;
+}
+.onboard-actions .btn-primary, .onboard-actions .btn-secondary {
+  width: auto;
+  max-width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  box-sizing: border-box;
+  margin-bottom: 0;
+}
 .onboard-input {
   width: 100%;
   box-sizing: border-box;

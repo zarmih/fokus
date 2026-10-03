@@ -86,7 +86,7 @@ self.addEventListener('notificationclick', (event) => {
   const soft = event.notification && event.notification.tag === 'fokus-soft-return';
   // soft-return open path: scope + ?return=soft (see softReturnOpenUrl)
   const target = soft
-    ? self.registration.scope.replace(/\/?$/, '/') + '?return=soft'
+    ? self.registration.scope.replace(/\\/?$/, '/') + '?return=soft'
     : self.registration.scope;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
