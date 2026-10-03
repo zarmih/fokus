@@ -123,7 +123,7 @@ export function durationForBlocks(blocks: number): number {
 }
 
 export const SLOT_LABEL: Record<RitualSlotKind, string> = {
-  overdue: 'Просрочено',
+  overdue: 'Повторение',
   due: 'Слот дня',
   fresh: 'Новое'
 };
