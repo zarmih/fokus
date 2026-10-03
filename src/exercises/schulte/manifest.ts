@@ -2,7 +2,7 @@ import type { ExerciseManifest } from '../types';
 
 export const schulteManifest: ExerciseManifest = {
   id: 'schulte',
-  name: 'Таблицы Шульте',
+  name: 'Числовая сетка',
   domain: 'attention',
   skills: ['visual_scanning', 'processing_speed'],
   metricModel: 'speed-accuracy',

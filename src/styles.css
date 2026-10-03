@@ -234,6 +234,10 @@ p { margin: 0 0 16px; line-height: 1.6; color: var(--muted); }
   transform: translateY(var(--motion-press-y)) scale(var(--motion-press-s)); 
   box-shadow: var(--shadow-sm); 
 }
+.btn-primary:focus-visible, .btn-secondary:focus-visible, .btn-danger:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
 .btn-primary { 
   background: linear-gradient(180deg, var(--accent-hover), var(--accent));
   color: var(--btn-text);

@@ -1,5 +1,5 @@
 import { storage } from './storage';
-import { getTodayRitual, gentleDayIndex } from './onboarding';
+import { getTodayRitual } from './onboarding';
 import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone } from './streak';
 import { getManifest } from '../exercises/catalog';
 import { domainLabel } from './labels';
@@ -228,8 +228,8 @@ export function selectQuestSet(input: SelectQuestSetInput): Quest[] {
   return selected;
 }
 
-function getTodayStr() {
-  return new Date().toISOString().split('T')[0];
+export function questCalendarDay(now: Date = new Date()): string {
+  return calendarDayKey(now, resolveFokusTimeZone().timeZone);
 }
 
 export function getDailyQuests(opts?: {
@@ -239,23 +239,24 @@ export function getDailyQuests(opts?: {
   firstWeekDay?: number | null;
 }): Quest[] {
   const p = storage.getProfile();
-  if (!p.quests || p.questsDate !== getTodayStr()) {
+  const today = questCalendarDay();
+  if (!p.quests || p.questsDate !== today) {
     const tz = resolveFokusTimeZone().timeZone;
-    const todayKey = calendarDayKey(new Date(), tz);
+    const todayKey = today;
     const played = extractPlayedDays({ daySummaries: storage.getDaySummaries(), sessions: storage.getSessions() }, tz);
     const ds = computeDayStreak(played, todayKey);
 
     let isGentleDay = false;
     if (p.firstWeekPlan) {
       const summaries = storage.getDaySummaries();
-      const ritual = getTodayRitual(p.firstWeekPlan, getTodayStr(), summaries);
-      if (ritual.inFirstWeek && ritual.ritualDay && ritual.ritualDay.day === gentleDayIndex(p.firstWeekPlan)) {
+      const ritual = getTodayRitual(p.firstWeekPlan, today, summaries);
+      if (ritual.inFirstWeek && ritual.ritualDay?.intensity === 'gentle') {
         isGentleDay = true;
       }
     }
 
     const selected = selectQuestSet({
-      dateStr: getTodayStr(),
+      dateStr: today,
       streakStatus: ds.status,
       focusDomains: opts?.focusDomains,
       firstWeekFocus: opts?.firstWeekFocus,
@@ -265,7 +266,7 @@ export function getDailyQuests(opts?: {
     });
 
     p.quests = selected;
-    p.questsDate = getTodayStr();
+    p.questsDate = today;
     storage.setProfile(p);
   }
 
@@ -294,10 +295,11 @@ export function getDailyQuests(opts?: {
 
 function syncQuestsProgress() {
   const p = storage.getProfile();
-  if (!p.quests || p.questsDate !== getTodayStr()) return;
+  const today = questCalendarDay();
+  if (!p.quests || p.questsDate !== today) return;
 
-  const today = getTodayStr();
-  const todaySessions = storage.getSessions().filter(s => s.startedAt.startsWith(today));
+  const tz = resolveFokusTimeZone().timeZone;
+  const todaySessions = storage.getSessions().filter(s => calendarDayKey(s.startedAt, tz) === today);
   
   let changed = false;
   
@@ -361,7 +363,7 @@ function syncQuestsProgress() {
 
 export function updateQuestProgress(type: string, value: number, exerciseId?: string) {
   const p = storage.getProfile();
-  if (!p.quests || p.questsDate !== getTodayStr()) return;
+  if (!p.quests || p.questsDate !== questCalendarDay()) return;
 
   let changed = false;
   p.quests.forEach((q: Quest) => {
