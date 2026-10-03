@@ -18,6 +18,7 @@ import { getTodayRitual } from '../../core/onboarding';
 import { buildCoachIntel } from '../../core/coach-intel';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
+import { calendarDayKey, addCalendarDays } from '../../core/streak';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -34,19 +35,17 @@ export function renderProgress(container: HTMLElement) {
   // Weekly chart logic
   let weeklyScore = 0;
   const bars = [];
-  const today = new Date();
-  
+
   let activeDays = 0;
   for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(today.getDate() - i);
-    const dStr = d.toISOString().split('T')[0];
-    const summary = ds.find(x => x.date.startsWith(dStr));
+    const dStr = addCalendarDays(snap.today, -i);
+    const summary = ds.find(x => calendarDayKey(x.date, snap.timeZone) === dStr);
     const score = Math.round(summary ? summary.totalScore : 0);
     if (score > 0) activeDays++;
     weeklyScore += score;
+    const label = new Intl.DateTimeFormat('ru-RU', {weekday: 'short', timeZone: 'UTC'}).format(new Date(`${dStr}T12:00:00Z`));
     bars.push({
-      label: d.toLocaleDateString('ru-RU', {weekday: 'short'}),
+      label,
       score,
       pct: score > 0 ? Math.max(10, Math.min(100, (score / 3000) * 100)) : 0
     });
@@ -313,7 +312,7 @@ export function renderProgress(container: HTMLElement) {
         softReturnActive: snap.ritual.active,
         playedToday
       });
-      const weekRitual = getTodayRitual(profile.firstWeekPlan, new Date().toISOString().slice(0, 10), ds);
+      const weekRitual = getTodayRitual(profile.firstWeekPlan, snap.today, ds);
       const planExplain = explainTodayPlan({
         calibrated: !!profile.calibrated,
         playedToday,

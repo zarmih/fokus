@@ -22,7 +22,7 @@ export function renderProgram(container: HTMLElement) {
   const profile = storage.getProfile();
   
   const snapshot = loadContinuitySnapshot(storage as any);
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = snapshot.today;
   const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, storage.getDaySummaries());
   const contMsg = getContinuityMessage(snapshot, weekRitual);
   const playedToday = snapshot.streak.playedToday;
