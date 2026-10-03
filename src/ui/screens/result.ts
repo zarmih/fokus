@@ -18,6 +18,7 @@ import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 import { buildTransferSurface } from '../../core/transfer-insights';
 import { getTodayRitual } from '../../core/onboarding';
 import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
+import { sessionCheckIn } from '../../core/coach';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'program', hideNav: true });
@@ -261,6 +262,31 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     </div>
   `;
 
+  let checkInHtml = '';
+  if (session.id) {
+    const checkIn = sessionCheckIn(session);
+    if (checkIn) {
+      const saved = typeof localStorage !== 'undefined' ? localStorage.getItem(`fokus-checkin:${session.id}`) : null;
+      if (saved) {
+        checkInHtml = `
+          <div class="surface checkin-card">
+            <div style="color: var(--ok); font-weight: 500;">Записали. Это только для вас, на устройстве.</div>
+          </div>
+        `;
+      } else {
+        checkInHtml = `
+          <div class="surface checkin-card" id="coach-checkin-card">
+            <h3 style="margin-bottom: 12px; font-size: 1.1rem;">${checkIn.question}</h3>
+            <div style="display:flex; gap:8px; flex-wrap: wrap;">
+              <button class="btn-secondary btn-checkin" data-val="yes">${checkIn.yes}</button>
+              <button class="btn-secondary btn-checkin" data-val="no">${checkIn.no}</button>
+            </div>
+          </div>
+        `;
+      }
+    }
+  }
+
   const feedbackHtml = (!isCalibration && !isRecalibration && !noData && !isOffline) ? `
     <div class="surface feedback-loop-card" aria-label="Обратная связь">
       <h3>Как прошла тренировка?</h3>
@@ -349,6 +375,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     </div>
 
     ${insightHtml}
+    ${checkInHtml}
     ${feedbackHtml}
     ${nextActionHtml}
   `;
@@ -385,6 +412,20 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       feedbackButtons.forEach(b => (b as HTMLElement).style.display = 'none');
       const thanks = content.querySelector('#feedback-thanks') as HTMLElement | null;
       if (thanks) thanks.style.display = 'block';
+    });
+  });
+
+  const checkinButtons = content.querySelectorAll('.btn-checkin');
+  checkinButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const val = (e.currentTarget as HTMLElement).dataset.val;
+      if (session.id && typeof localStorage !== 'undefined') {
+        localStorage.setItem(`fokus-checkin:${session.id}`, val || 'yes');
+      }
+      const card = content.querySelector('#coach-checkin-card') as HTMLElement | null;
+      if (card) {
+        card.innerHTML = `<div style="color: var(--ok); font-weight: 500;">Записали. Это только для вас, на устройстве.</div>`;
+      }
     });
   });
 

@@ -299,3 +299,66 @@ export function getDailySpark(params: {
 }
 
 export { getWeeklyDomainTips } from './coach-intel';
+
+export interface SessionCheckIn {
+  id: 'rushed' | 'short' | 'familiar';
+  question: string;
+  yes: string;
+  no: string;
+}
+
+export function sessionCheckIn(session: { id?: string; durationSec?: number; items?: { accuracy?: number; domain?: string }[] } | null): SessionCheckIn | null {
+  if (!session || !session.items || session.items.length === 0) {
+    return null;
+  }
+
+  const items = session.items;
+  let totalAcc = 0;
+  let hasAcc = false;
+  const domainCounts: Record<string, number> = {};
+
+  for (const item of items) {
+    if (typeof item.accuracy === 'number') {
+      totalAcc += item.accuracy;
+      hasAcc = true;
+    }
+    if (item.domain) {
+      domainCounts[item.domain] = (domainCounts[item.domain] || 0) + 1;
+    }
+  }
+
+  if (hasAcc) {
+    const meanAcc = totalAcc / items.length;
+    if (meanAcc < 0.55) {
+      return {
+        id: 'rushed',
+        question: 'Было ощущение спешки?',
+        yes: 'Да',
+        no: 'Нет'
+      };
+    }
+  }
+
+  if (typeof session.durationSec === 'number' && session.durationSec < 45) {
+    return {
+      id: 'short',
+      question: 'Планировали короткую сессию?',
+      yes: 'Да',
+      no: 'Нет'
+    };
+  }
+
+  const half = items.length / 2;
+  for (const [domain, count] of Object.entries(domainCounts)) {
+    if (count > half) {
+      return {
+        id: 'familiar',
+        question: `${domainLabel(domain)} — знакомая нагрузка?`,
+        yes: 'Да',
+        no: 'Нет'
+      };
+    }
+  }
+
+  return null;
+}
