@@ -7,6 +7,7 @@ import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration, getProgramPosition } from '../../core/adaptive-plan';
 import { phaseForWeek } from '../../core/program-phases';
+import { fillRenderedSlotAlternatives } from '../../core/session-builder';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -183,6 +184,8 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     
     if (plan.items.length === 0) {
       noPlanState = true;
+    } else {
+      plan.items = fillRenderedSlotAlternatives(plan.items, catalog);
     }
   } catch (err) {
     console.error('Plan generation error:', err);

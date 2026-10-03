@@ -436,3 +436,60 @@ export function rerollTrainingPlanSlot(params: {
 
   return { plan: { ...plan, items: newItems }, applied: true };
 }
+
+/** Fill a one-shot runner-up on rendered Today rows using scoredCandidates. */
+export function fillRenderedSlotAlternatives<T extends {
+  exerciseId: string;
+  domain?: string;
+  nextExerciseId?: string;
+  nextDomain?: string;
+  rerolled?: boolean;
+}>(items: T[], catalog: { manifest: ExerciseManifest }[]): T[] {
+  if (!items.length) return items;
+  const domainOf = (id: string, domain?: string) =>
+    domain || catalog.find((c) => c.manifest.id === id)?.manifest.domain;
+  const domainCounts: Record<string, number> = {};
+  for (const it of items) {
+    const d = domainOf(it.exerciseId, it.domain);
+    if (d) domainCounts[d] = (domainCounts[d] || 0) + 1;
+  }
+  const maxDomainCount = Math.max(0, ...Object.values(domainCounts), 0);
+  return items.map((item, i) => {
+    if (item.rerolled || item.nextExerciseId) return item;
+    const selectedExerciseIds = new Set<string>();
+    const selectedDomains = new Set<string>();
+    items.forEach((other, j) => {
+      if (j === i) return;
+      selectedExerciseIds.add(other.exerciseId);
+      const d = domainOf(other.exerciseId, other.domain);
+      if (d) selectedDomains.add(d);
+    });
+    const scoredCandidates = getScoredCandidates({
+      catalog,
+      domains: [],
+      skills: [],
+      states: [],
+      selectedExerciseIds,
+      selectedDomains,
+      isSparse: true
+    });
+    for (const c of scoredCandidates) {
+      if (c.exerciseId === item.exerciseId || selectedExerciseIds.has(c.exerciseId)) continue;
+      const temp: Record<string, number> = {};
+      items.forEach((other, j) => {
+        const d = j === i ? c.manifest.domain : domainOf(other.exerciseId, other.domain);
+        if (d) temp[d] = (temp[d] || 0) + 1;
+      });
+      const tempMax = Math.max(0, ...Object.values(temp), 0);
+      if (tempMax <= maxDomainCount) {
+        return {
+          ...item,
+          domain: item.domain || domainOf(item.exerciseId),
+          nextExerciseId: c.exerciseId,
+          nextDomain: c.manifest.domain
+        };
+      }
+    }
+    return item;
+  });
+}

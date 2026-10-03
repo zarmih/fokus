@@ -72,7 +72,7 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
   expect(plan.items[0].reason).toMatch(/^Неделя \d+ · День \d+ · Отстающий навык$/);
 });
 
-import { rerollTrainingPlanSlot } from '../src/core/session-builder';
+import { rerollTrainingPlanSlot, fillRenderedSlotAlternatives } from '../src/core/session-builder';
 
 test('rerollTrainingPlanSlot swaps one item, keeps others fixed, no second reroll', () => {
   const catalog = [
@@ -119,4 +119,25 @@ test('rerollTrainingPlanSlot swaps one item, keeps others fixed, no second rerol
     states: []
   }, rerolledPlan, 0);
   expect(appliedAgain).toBe(false);
+});
+
+test('fillRenderedSlotAlternatives sets one runner-up without raising domain max', () => {
+  const catalog = [
+    { manifest: { id: 'a1', domain: 'A', skills: [] } },
+    { manifest: { id: 'a2', domain: 'A', skills: [] } },
+    { manifest: { id: 'b1', domain: 'B', skills: [] } }
+  ];
+  const filled = fillRenderedSlotAlternatives([
+    { exerciseId: 'a1', domain: 'A', reason: 'x', nextExerciseId: undefined as string | undefined },
+    { exerciseId: 'b1', domain: 'B', reason: 'y', nextExerciseId: undefined as string | undefined }
+  ], catalog as any);
+  expect(filled[0].nextExerciseId).toBeTruthy();
+  expect(filled[0].nextExerciseId).not.toBe('a1');
+  expect(filled[0].nextExerciseId).not.toBe('b1');
+  expect(filled[1].exerciseId).toBe('b1');
+  const again = fillRenderedSlotAlternatives(
+    [{ ...filled[0], rerolled: true, nextExerciseId: undefined }],
+    catalog as any
+  );
+  expect(again[0].nextExerciseId).toBeUndefined();
 });
