@@ -643,3 +643,13 @@ export function rerollTodayPlanSlot(items: TodayPlanItem[], slotIndex: number): 
 
   return { items: newItems, applied: true };
 }
+
+export function applySlotSnooze(items: TodayPlanItem[], snoozedExerciseId: string | null): { items: TodayPlanItem[]; applied: boolean } {
+  if (!snoozedExerciseId) return { items, applied: false };
+  const targetIndex = items.findIndex((it) => it.exerciseId === snoozedExerciseId);
+  if (targetIndex === -1) return { items, applied: false };
+  if (items.length <= 1) return { items, applied: false };
+
+  const newItems = items.filter((_, idx) => idx !== targetIndex);
+  return { items: newItems, applied: true };
+}
