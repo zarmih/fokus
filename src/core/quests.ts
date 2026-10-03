@@ -34,6 +34,7 @@ const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
   { id: 'm4', type: 'diversity', difficulty: 'medium', target: 2, title: 'Разносторонний фокус', description: 'Попробуйте 2 разных формата упражнений (для кругозора)', xpReward: 70 },
   { id: 'm5', type: 'perfect', difficulty: 'medium', target: 1, title: 'Медитативность', description: 'Попробуйте пройти 1 блок без ошибок, полностью погрузившись в процесс', xpReward: 80 },
   { id: 'm6', type: 'domain', difficulty: 'medium', target: 2, domainId: 'math', title: 'Счёт', description: 'Уделите время двум математическим играм', xpReward: 70 },
+  { id: 'm7', type: 'blocks', difficulty: 'medium', target: 2, title: 'Свежий взгляд', description: 'Сыграйте 2 блока. Кстати, в каталоге иногда появляются новые упражнения на внимание и скорость — загляните, если хочется разнообразия.', xpReward: 65 },
   // Hard
   { id: 'h1', type: 'blocks', difficulty: 'hard', target: 4, title: 'Объёмная сессия', description: 'Пройдите 4 блока (отличный вызов по желанию)', xpReward: 150 },
   { id: 'h2', type: 'score', difficulty: 'hard', target: 600, title: 'Отличный результат', description: 'Наберите 600 очков, наслаждаясь процессом', xpReward: 150 },
@@ -93,6 +94,7 @@ export interface SelectQuestSetInput {
   /** First-week ritual primary focus, if in week. */
   firstWeekFocus?: string | null;
   inFirstWeek?: boolean;
+  firstWeekDay?: number | null;
 }
 
 /**
@@ -114,11 +116,30 @@ export function selectQuestSet(input: SelectQuestSetInput): Quest[] {
   if (input.inFirstWeek && focus) {
     const fw = pickDomainQuest(focus, 'easy', seed + 3);
     if (fw) {
+      let fTitle = 'Ритуал дня';
+      let fDesc = `Короткий шаг первой недели: одна игра на «${domainLabel(focus)}». Без наверстывания.`;
+      
+      if (input.firstWeekDay) {
+        if (input.firstWeekDay === 1) {
+          fTitle = 'День 1: Знакомство';
+          fDesc = `Пройдите первую игру на «${domainLabel(focus)}». Без спешки, привыкаем к формату.`;
+        } else if (input.firstWeekDay === 4) {
+          fTitle = 'День 4: Отдых';
+          fDesc = `Лёгкий день. Сыграйте одну игру на «${domainLabel(focus)}» и со спокойной совестью отдыхайте.`;
+        } else if (input.firstWeekDay === 7) {
+          fTitle = 'День 7: Полный ритуал';
+          fDesc = `Завершаем неделю. Сыграйте «${domainLabel(focus)}» в своём ритме.`;
+        } else {
+          fTitle = `День ${input.firstWeekDay}: В ритме`;
+          fDesc = `Продолжаем неделю: одна игра на «${domainLabel(focus)}». Не нужно ничего наверстывать, если пропустили.`;
+        }
+      }
+
       easy = {
         ...fw,
         id: 'first_week_quest',
-        title: 'Ритуал дня',
-        description: `Короткий шаг первой недели: одна игра на «${domainLabel(focus)}». Без наверстывания.`,
+        title: fTitle,
+        description: fDesc,
         xpReward: Math.max(fw.xpReward, 60)
       };
     }
@@ -198,6 +219,7 @@ export function getDailyQuests(opts?: {
   focusDomains?: string[];
   firstWeekFocus?: string | null;
   inFirstWeek?: boolean;
+  firstWeekDay?: number | null;
 }): Quest[] {
   const p = storage.getProfile();
   if (!p.quests || p.questsDate !== getTodayStr()) {
@@ -211,7 +233,8 @@ export function getDailyQuests(opts?: {
       streakStatus: ds.status,
       focusDomains: opts?.focusDomains,
       firstWeekFocus: opts?.firstWeekFocus,
-      inFirstWeek: opts?.inFirstWeek
+      inFirstWeek: opts?.inFirstWeek,
+      firstWeekDay: opts?.firstWeekDay
     });
 
     p.quests = selected;
