@@ -358,22 +358,22 @@ function composeExerciseWhy(params: {
   gapDays: number;
 }): string {
   if (params.softReturn) {
-    return 'Короткий знакомый набор — мягкий вход без наверстывания пропусков.';
+    return 'Короткий знакомый набор — для лёгкого включения в ритм без наверстывания.';
   }
   if (params.focusDomain) {
     const name = domainLabel(params.focusDomain);
-    return `В начале блока — «${name}»: зона давно без нагрузки, план возвращает баланс.`;
+    return `В начале блока — «${name}»: возвращаем баланс в давно не нагружавшуюся зону.`;
   }
   if (params.gapDays >= 2 || params.band === 'at_risk' || params.band === 'critical') {
-    return 'Слоты подобраны под возвращение: короче и спокойнее обычного ритма.';
+    return 'Слоты подобраны под возвращение: тренировка короче и спокойнее обычного ритма.';
   }
   if (params.items.length > 0 && params.focusNames.length > 0) {
-    return `Сегодня в плане: ${params.focusNames.join(' + ')} — по вашей истории и отстающим зонам.`;
+    return `Сегодня в плане: ${params.focusNames.join(' + ')} — адаптивный микс для равномерного развития.`;
   }
   if (params.focusNames.length > 0) {
     return `Акцент дня: ${params.focusNames.join(' и ')}.`;
   }
-  return 'Сбалансированный ритуал: слабая область, свежесть и привычный объём.';
+  return 'Сбалансированный тренировочный блок: поддержание тонуса и привычный объём.';
 }
 
 /**
@@ -452,7 +452,9 @@ export function applyRetentionRitualOrder(
           i === 0
             ? {
                 ...item,
-                reason: item.reason || 'Короткий блок возвращения в ритм'
+                reason: item.reason && /возвращ|коротк|мягк|ритм|якорь|закреп|этап|рубеж/i.test(item.reason)
+                  ? item.reason
+                  : 'Плавное возвращение в ритм'
               }
             : item
         );
@@ -469,9 +471,9 @@ export function applyRetentionRitualOrder(
     const annotated = {
       ...first,
       reason:
-        first.reason && /возвращ|коротк|мягк|ритм/i.test(first.reason)
+        first.reason && /возвращ|коротк|мягк|ритм|якорь|закреп|этап|рубеж/i.test(first.reason)
           ? first.reason
-          : 'Короткий блок возвращения в ритм'
+          : 'Плавное возвращение в ритм'
     };
     if (annotated.reason !== first.reason) {
       items = [annotated, ...items.slice(1)];
@@ -633,7 +635,7 @@ export function rerollTodayPlanSlot(items: TodayPlanItem[], slotIndex: number): 
     ...item,
     exerciseId: item.nextExerciseId,
     domain: item.nextDomain || item.domain,
-    reason: item.reason + ' · следующий вариант',
+    reason: item.reason + ' (альтернативный вариант)',
     nextExerciseId: undefined,
     nextDomain: undefined,
     rerolled: true

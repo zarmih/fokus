@@ -181,8 +181,13 @@ export function renderProgress(container: HTMLElement) {
       <div class="domain-card dom-${d.id}" style="margin-bottom: 16px; padding: 16px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); position: relative;">
         ${isWeakest ? `<div style="position: absolute; top: -10px; right: 16px; background: var(--line); color: var(--text); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Фокус внимания</div>` : ''}
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: ${(dSkills.length > 0 || dScore === 0) ? '12px' : '0'};">
-          <div style="font-weight: 700; font-size: 16px; color: ${dScore > 0 ? `var(--dom-${d.id})` : 'var(--muted)'}; opacity: ${dScore > 0 ? '1' : '0.6'};">${domainLabel(d.id)}</div>
-          ${trLabel && dScore > 0 ? `<div style="font-size: 11px; color: var(--muted); margin-left: 8px;">${trLabel}</div>` : ""}
+          <div>
+            <div style="display: flex; align-items: baseline; gap: 8px;">
+              <span style="font-weight: 700; font-size: 16px; color: ${dScore > 0 ? `var(--dom-${d.id})` : 'var(--muted)'}; opacity: ${dScore > 0 ? '1' : '0.6'};">${domainLabel(d.id)}</span>
+              ${trLabel && dScore > 0 ? `<span style="font-size: 11px; color: var(--muted);">${trLabel}</span>` : ""}
+            </div>
+            ${tr && tr.avgSpeedMs && dScore > 0 ? `<div style="font-size: 11px; color: var(--muted); margin-top: 2px;">Скорость реакции: ~${tr.avgSpeedMs} мс</div>` : ""}
+          </div>
           <div style="font-size: 18px; font-weight: 800; color: ${dScore > 0 ? 'inherit' : 'var(--muted)'};">${dScore > 0 ? dScore : '—'}</div>
         </div>
         ${skillsListHtml}
@@ -389,6 +394,7 @@ export function renderProgress(container: HTMLElement) {
       <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
       <p style="margin: 0 0 8px 0; color: var(--muted);">Это прозрачный индикатор вашей текущей тренировочной формы. Он опирается на фактические результаты, а не на выдуманные цифры, и отражает реальную скорость и точность в упражнениях.</p>
       <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> показывает полноту собранных данных: показатель растёт по мере охвата разных областей (${fi.coverage} из 5) и освоения каталога (${fi.depth.explored}).</p>
+      ${fi.explain.balanceStr ? `<p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Баланс:</strong> ${fi.explain.balanceStr}</p>` : ''}
       <p style="margin: 0; color: var(--muted);">Небольшие колебания индекса — нормальное физиологическое явление (усталость, качество сна). Мы показываем тренды без сглаживания и прикрас.</p>
     </div>
   `;
@@ -401,6 +407,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value">${fi.value}</div>
         <div class="fi-meta">${fi.coverage} из 5 областей · ${fi.explain.state}</div>
+        ${fi.balance !== 'unknown' && fi.explain.balanceStr ? `<div class="fi-meta" style="margin-top: 4px; opacity: 0.8; font-size: 12px; max-width: 280px; margin-left: auto; margin-right: auto; line-height: 1.3;">${fi.explain.balanceStr}</div>` : ''}
         ${pbNote}
         ${sparkHtml}
         ${depthHtml}
