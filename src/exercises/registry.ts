@@ -178,6 +178,8 @@ import letterNumberSwitchModule from './letter-number-switch';
 import symbolMatchModule from './symbol-match';
 import tideGateModule from './tide-gate';
 import anchorPairModule from './anchor-pair';
+import slipMarkModule from './slip-mark';
+import cutBarModule from './cut-bar';
 
 export const registry: ExerciseModule[] = [
   gridMemoryModule,
@@ -358,6 +360,8 @@ export const registry: ExerciseModule[] = [
   letterNumberSwitchModule,
   symbolMatchModule,
   tideGateModule,
-  anchorPairModule
+  anchorPairModule,
+  slipMarkModule,
+  cutBarModule
 ];
 

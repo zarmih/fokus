@@ -72,6 +72,55 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
   expect(plan.items[0].reason).toMatch(/^Неделя \d+ · День \d+ · Отстающий навык$/);
 });
 
+import { getScoredCandidates } from '../src/core/session-builder';
+
+test('thin domain halves the time repetition penalty but keeps +1000 selected id penalty', () => {
+  const catalog = [
+    { manifest: { id: 's1', domain: 'speed', skills: [] } },
+    { manifest: { id: 'l1', domain: 'logic', skills: [] } },
+    { manifest: { id: 'l2', domain: 'logic', skills: [] } },
+    { manifest: { id: 'l3', domain: 'logic', skills: [] } },
+    { manifest: { id: 'l4', domain: 'logic', skills: [] } },
+    { manifest: { id: 'l5', domain: 'logic', skills: [] } },
+    { manifest: { id: 'l6', domain: 'logic', skills: [] } },
+  ];
+  const lastPlayedAt = new Date(Date.now() - 1000 * 60 * 60).toISOString(); // 1 hour ago
+  const states = [
+    { exerciseId: 's1', lastPlayedAt, level: 1, difficulty: 1, performance: 0, lastAccuracy: 0 },
+    { exerciseId: 'l1', lastPlayedAt, level: 1, difficulty: 1, performance: 0, lastAccuracy: 0 }
+  ];
+  
+  const scored = getScoredCandidates({
+    catalog: catalog as any,
+    domains: [],
+    skills: [],
+    states: states as any,
+    selectedExerciseIds: new Set<string>(),
+    selectedDomains: new Set<string>()
+  });
+  
+  const s1 = scored.find(c => c.exerciseId === 's1');
+  const l1 = scored.find(c => c.exerciseId === 'l1');
+  
+  expect(s1?.trace).toMatch(/Rep:-25/);
+  expect(l1?.trace).toMatch(/Rep:-50/);
+  
+  const scoredWithSelected = getScoredCandidates({
+    catalog: catalog as any,
+    domains: [],
+    skills: [],
+    states: states as any,
+    selectedExerciseIds: new Set(['s1', 'l1']),
+    selectedDomains: new Set<string>()
+  });
+  
+  const s1Sel = scoredWithSelected.find(c => c.exerciseId === 's1');
+  const l1Sel = scoredWithSelected.find(c => c.exerciseId === 'l1');
+  
+  expect(s1Sel?.trace).toMatch(/Rep:-1025/);
+  expect(l1Sel?.trace).toMatch(/Rep:-1050/);
+});
+
 import { rerollTrainingPlanSlot, fillRenderedSlotAlternatives } from '../src/core/session-builder';
 
 test('rerollTrainingPlanSlot swaps one item, keeps others fixed, no second reroll', () => {

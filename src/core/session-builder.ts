@@ -134,6 +134,11 @@ export function getScoredCandidates(params: {
           novelty = 15;
         }
         
+        const isThinDomain = catalog.filter(c => c.manifest.domain === manifest.domain).length < 4;
+        if (isThinDomain) {
+          repetitionPenalty /= 2;
+        }
+        
         if ((state.consecutivePlateau || 0) >= 3) {
           plateauPenalty = 30;
         }
