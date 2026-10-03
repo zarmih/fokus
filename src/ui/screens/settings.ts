@@ -21,6 +21,8 @@ import {
   wipeAppCaches,
   type InventoryReport
 } from '../../core/privacy';
+import { qrChunksFromBackup, qrSvg, assembleQrChunks } from '../../core/device-transfer';
+import { parseBackup } from '../../core/offline-sync';
 
 function privacyPanelHtml(report: InventoryReport): string {
   const rows = report.items.map((item) => {
@@ -75,11 +77,20 @@ function privacyPanelHtml(report: InventoryReport): string {
       <div style="display: flex; gap: 12px; flex-wrap: wrap;">
         <button type="button" id="btn-export" class="btn-primary" style="flex: 1;" aria-label="Скачать файл экспорта">Экспорт</button>
         <button type="button" id="btn-clipboard-export" class="btn-secondary" style="flex: 1;" aria-label="Скопировать резервную копию">В буфер</button>
+        <button type="button" id="btn-qr-export" class="btn-secondary" style="flex: 1;" aria-label="QR-код для передачи на другое устройство">QR</button>
         <button type="button" id="btn-import" class="btn-secondary" style="flex: 1;" aria-label="Загрузить файл импорта">Импорт</button>
         <label class="sr-only" for="file-input">Файл импорта JSON</label>
         <input type="file" id="file-input" accept=".json,application/json" style="display: none;" tabindex="-1">
       </div>
       <p id="clipboard-sync-status" role="status" aria-live="polite" style="font-size: 13px; margin-top: 8px; min-height: 1.2em;"></p>
+      
+      <div id="qr-transfer" style="display: none; margin-top: 16px; padding: 16px; background: #fff; color: #000; border-radius: 12px; text-align: center;"></div>
+      
+      <div id="qr-import-container" style="margin-top: 16px;">
+        <textarea id="qr-import-text" aria-label="Текст из QR или буфера" style="width: 100%; min-height: 80px; padding: 8px; border-radius: 4px; border: 1px solid var(--border); font-family: monospace; font-size: 12px; margin-bottom: 8px;" placeholder="Вставьте текст из QR-кодов или полный текст резервной копии..."></textarea>
+        <button type="button" id="btn-qr-import" class="btn-secondary" style="width: 100%;">Собрать QR</button>
+      </div>
+
       <div id="import-preview" style="display: none; margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--surface-2); font-size: 13px; line-height: 1.5;" aria-live="polite"></div>
       <button id="btn-restore-snap" class="btn-secondary" type="button" style="width: 100%; margin-top: 12px; display: none;">Вернуть резервную копию до импорта</button>
       
@@ -561,6 +572,103 @@ export function renderSettings(container: HTMLElement) {
 
   document.getElementById('btn-import')?.addEventListener('click', () => {
     document.getElementById('file-input')?.click();
+  });
+
+  document.getElementById('btn-qr-export')?.addEventListener('click', () => {
+    const status = document.getElementById('clipboard-sync-status');
+    const qrContainer = document.getElementById('qr-transfer');
+    if (!qrContainer) return;
+    
+    const redact = (document.getElementById('export-redact') as HTMLInputElement | null)?.checked !== false;
+    let raw = storage.exportJson();
+    let usedFallback = false;
+    
+    if (redact) {
+      const redactedString = buildExportFile(raw, true).body;
+      if (parseBackup(redactedString).ok) {
+        raw = redactedString;
+      } else {
+        usedFallback = true;
+      }
+    }
+    
+    const res = qrChunksFromBackup(raw);
+    if (!res.ok) {
+      if (status) status.textContent = 'Ошибка генерации QR-кодов: ' + res.error;
+      return;
+    }
+    
+    if (status) {
+      status.textContent = usedFallback 
+        ? 'Невозможно собрать анонимную копию. Показан полный (неанонимный) QR-код.'
+        : 'Отсканируйте эти QR-коды на другом устройстве.';
+    }
+    
+    qrContainer.style.display = 'block';
+    qrContainer.innerHTML = '';
+    
+    res.chunks.forEach((chunk, idx) => {
+      const svg = qrSvg(chunk);
+      const div = document.createElement('div');
+      div.style.marginBottom = '24px';
+      
+      const title = document.createElement('div');
+      title.style.fontWeight = 'bold';
+      title.style.marginBottom = '8px';
+      title.textContent = `Часть ${idx + 1} из ${res.chunks.length}`;
+      
+      const imgWrapper = document.createElement('div');
+      imgWrapper.innerHTML = svg;
+      const svgEl = imgWrapper.querySelector('svg');
+      if (svgEl) {
+        svgEl.style.width = '200px';
+        svgEl.style.height = '200px';
+      }
+      
+      const copyBtn = document.createElement('button');
+      copyBtn.type = 'button';
+      copyBtn.className = 'btn-secondary';
+      copyBtn.style.marginTop = '8px';
+      copyBtn.style.padding = '4px 12px';
+      copyBtn.style.fontSize = '12px';
+      copyBtn.textContent = 'Копировать текст части';
+      copyBtn.onclick = () => navigator.clipboard.writeText(chunk).catch(() => {});
+      
+      div.appendChild(title);
+      div.appendChild(imgWrapper);
+      div.appendChild(copyBtn);
+      qrContainer.appendChild(div);
+    });
+  });
+
+  document.getElementById('btn-qr-import')?.addEventListener('click', () => {
+    const textEl = document.getElementById('qr-import-text') as HTMLTextAreaElement | null;
+    if (!textEl || !textEl.value) return;
+    const text = textEl.value.trim();
+    
+    if (text.includes('FOKUSQR1|')) {
+      const chunks: string[] = [];
+      let currentIndex = text.indexOf('FOKUSQR1|');
+      while (currentIndex !== -1) {
+        const nextIndex = text.indexOf('FOKUSQR1|', currentIndex + 9);
+        if (nextIndex !== -1) {
+          chunks.push(text.substring(currentIndex, nextIndex).trim());
+          currentIndex = nextIndex;
+        } else {
+          chunks.push(text.substring(currentIndex).trim());
+          break;
+        }
+      }
+      const res = assembleQrChunks(chunks);
+      if (res.ok) {
+        showPreview(res.body);
+      } else {
+        const status = document.getElementById('clipboard-sync-status');
+        if (status) status.textContent = 'Ошибка сборки QR: ' + res.error;
+      }
+    } else {
+      showPreview(text);
+    }
   });
 
   const showPreview = (json: string) => {
