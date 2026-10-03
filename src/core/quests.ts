@@ -1,4 +1,5 @@
 import { storage } from './storage';
+import { getTodayRitual, gentleDayIndex } from './onboarding';
 import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone } from './streak';
 import { getManifest } from '../exercises/catalog';
 import { domainLabel } from './labels';
@@ -95,6 +96,7 @@ export interface SelectQuestSetInput {
   firstWeekFocus?: string | null;
   inFirstWeek?: boolean;
   firstWeekDay?: number | null;
+  gentleDay?: boolean;
 }
 
 /**
@@ -208,6 +210,21 @@ export function selectQuestSet(input: SelectQuestSetInput): Quest[] {
     }
   }
 
+  if (input.gentleDay) {
+    selected[2] = {
+      id: 'rest_kept',
+      title: 'Короткий день',
+      description: 'Сегодня план короче. Одной лёгкой игры достаточно. Сложную задачу мы не ставим.',
+      type: 'blocks',
+      difficulty: 'easy',
+      target: 1,
+      progress: 0,
+      completed: false,
+      claimed: false,
+      xpReward: 40
+    };
+  }
+
   return selected;
 }
 
@@ -228,13 +245,23 @@ export function getDailyQuests(opts?: {
     const played = extractPlayedDays({ daySummaries: storage.getDaySummaries(), sessions: storage.getSessions() }, tz);
     const ds = computeDayStreak(played, todayKey);
 
+    let isGentleDay = false;
+    if (p.firstWeekPlan) {
+      const summaries = storage.getDaySummaries();
+      const ritual = getTodayRitual(p.firstWeekPlan, getTodayStr(), summaries);
+      if (ritual.inFirstWeek && ritual.ritualDay && ritual.ritualDay.day === gentleDayIndex(p.firstWeekPlan)) {
+        isGentleDay = true;
+      }
+    }
+
     const selected = selectQuestSet({
       dateStr: getTodayStr(),
       streakStatus: ds.status,
       focusDomains: opts?.focusDomains,
       firstWeekFocus: opts?.firstWeekFocus,
       inFirstWeek: opts?.inFirstWeek,
-      firstWeekDay: opts?.firstWeekDay
+      firstWeekDay: opts?.firstWeekDay,
+      gentleDay: isGentleDay
     });
 
     p.quests = selected;

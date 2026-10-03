@@ -2,7 +2,7 @@ import { navigateTo } from '../router';
 import { storage } from '../../core/storage';
 import { GOAL_COPY } from '../../core/labels';
 import { calibrationSessionItems } from '../../core/calibration';
-import { buildFirstWeekPlan, firstWeekPreviewLines } from '../../core/onboarding';
+import { buildFirstWeekPlan, firstWeekPreviewLines, gentleDayNote } from '../../core/onboarding';
 import { registry } from '../../exercises/registry';
 import { scheduleLocalReminder } from '../../core/reminders';
 import { bindPressPhysics, enterStage } from '../../core/motion';
@@ -100,6 +100,7 @@ export function renderOnboarding(container: HTMLElement) {
             <ul style="list-style: none; padding: 0; margin: 0 0 12px; font-size: 14px; opacity: 0.9; display: flex; flex-direction: column; gap: 6px;">
               ${firstWeekPreviewLines(weekPreview).map(line => `<li>${line}</li>`).join('')}
               <li style="opacity: 0.7; margin-top: 8px;">Разгон до ${selectedMin} мин в день.</li>
+              ${gentleDayNote(weekPreview) ? `<li style="opacity: 0.7; margin-top: 8px;" data-gentle-day="1">${gentleDayNote(weekPreview)}</li>` : ''}
             </ul>
           </div>
         ` : ''}
