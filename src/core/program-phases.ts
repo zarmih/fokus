@@ -91,6 +91,10 @@ export interface ProgramPhaseView {
   /** Progress within phase weeks (0…1). */
   progressInPhase: number;
   aria: string;
+  /** Narrative description of the current phase progression. */
+  phaseNarrative: string;
+  /** Preview of the upcoming milestone day. */
+  milestonePreview: string | null;
 }
 
 export function describeProgramPhase(params: {
@@ -122,6 +126,29 @@ export function describeProgramPhase(params: {
       ? `с ${phase.weekFrom}-й недели`
       : `недели ${phase.weekFrom}–${phase.weekTo}`;
 
+  let phaseNarrative = phase.body;
+  if (!params.calibrated) {
+    phaseNarrative = 'Первая калибровка важна: пройдите три сессии, чтобы мы подобрали стартовый уровень сложности для каждого навыка.';
+  } else if (params.isSparse && phase.id === 'orient') {
+    phaseNarrative = 'Мы бережно собираем данные о ваших способностях. Решайте без спешки — система сама адаптируется к вашему ритму.';
+  } else if (phase.id === 'focus' && params.primaryGoal && params.primaryGoal !== 'balance') {
+    phaseNarrative = `В этой фазе мы смещаем акцент на область «${domainLabel(params.primaryGoal)}», сохраняя комфортную длительность тренировок.`;
+  }
+
+  let milestonePreview: string | null = null;
+  const isMilestoneWeek = isPhaseMilestoneDay(weekIndex, 7);
+  if (isMilestoneWeek) {
+    const exId = milestoneExerciseId(weekIndex);
+    const mName = exId === 'tide-gate' ? 'Прилив у ворот' : 'Якорная пара';
+    if (dayInWeek >= 4 && dayInWeek < 7) {
+      const daysLeft = 7 - dayInWeek;
+      const daysWord = daysLeft === 1 ? 'день' : 'дня';
+      milestonePreview = `Через ${daysLeft} ${daysWord} рубеж фазы: ${mName}`;
+    } else if (dayInWeek === 7) {
+      milestonePreview = `Сегодня рубеж фазы: ${mName}`;
+    }
+  }
+
   return {
     phase,
     weekIndex,
@@ -131,7 +158,9 @@ export function describeProgramPhase(params: {
     goalLine,
     phaseCoach: `${phase.title}: ${goalLine}`,
     progressInPhase,
-    aria: `Фаза ${phase.index} из 4, ${phase.title}. Цель: ${goalLine}. ${weekLabel}, сейчас неделя ${weekIndex}, день ${dayInWeek}.`
+    aria: `Фаза ${phase.index} из 4, ${phase.title}. Цель: ${goalLine}. ${weekLabel}, сейчас неделя ${weekIndex}, день ${dayInWeek}.`,
+    phaseNarrative,
+    milestonePreview
   };
 }
 

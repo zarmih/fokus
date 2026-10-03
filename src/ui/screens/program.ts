@@ -14,7 +14,8 @@ import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan } from '../../core/today-plan';
 import { getTodayRitual } from '../../core/onboarding';
-import { describeProgramPhase } from '../../core/program-phases';
+import { describeProgramPhase, phaseForWeek } from '../../core/program-phases';
+import { getQuietCoachTip } from '../../core/coach';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -102,6 +103,15 @@ export function renderProgram(container: HTMLElement) {
       catalog: catalogHints
     });
     plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
+    const phaseId = phaseForWeek(getProgramPosition(snapshot, profile as any).weekIndex).id;
+    const quietTip = retSnap ? getQuietCoachTip({
+      continuity: snapshot,
+      retention: retSnap,
+      programPhase: phaseId,
+      inFirstWeek: weekRitual.inFirstWeek,
+      playedToday
+    }) : null;
+    
     planExplain = explainTodayPlan({
       calibrated: !!profile.calibrated,
       playedToday,
@@ -114,7 +124,8 @@ export function renderProgram(container: HTMLElement) {
       recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null,
       inFirstWeek: weekRitual.inFirstWeek,
       weekRitualCopy: weekRitual.copy || null,
-      weekRitual
+      weekRitual,
+      quietTip
     });
   } catch {
     planExplain = null;
@@ -162,7 +173,8 @@ export function renderProgram(container: HTMLElement) {
         recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null,
         inFirstWeek: weekRitual.inFirstWeek,
         weekRitualCopy: weekRitual.copy || null,
-        weekRitual
+        weekRitual,
+        quietTip: planExplain?.quietTip ?? null
       });
     } catch {
       /* keep prior planExplain */
@@ -282,6 +294,7 @@ export function renderProgram(container: HTMLElement) {
         <div class="workout-kicker">${planExplain?.title || contMsg.title}</div>
         <h3>Тренировка дня · ~${planDurationMins} мин</h3>
         <p class="muted coach-rationale" data-plan-source="${planExplain?.source || 'legacy'}">${coachMessage}</p>
+        ${planExplain?.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${planExplain.quietTip}</p>` : ''}
         ${coachWhy ? `<p class="ritual-why plan-why" style="margin-top:8px">${coachWhy}</p>` : ''}
         <button id="btn-program-start" class="btn-primary" type="button">${ctaLabelFromPlan(planExplain, programRetention?.softenCta ? 'Короткий блок' : 'Начать тренировку')}</button>
       </div>
@@ -303,7 +316,7 @@ export function renderProgram(container: HTMLElement) {
           <div class="workout-kicker">Фаза ${phaseView.phase.index} из 4 · 2–4 недели</div>
           <h3 style="margin-bottom:8px;">${phaseView.phase.title}</h3>
           <p style="margin:0 0 8px 0; font-weight:600;">Цель: ${phaseView.goalLine}</p>
-          <p class="muted" style="font-size:13px; margin:0 0 12px 0;">${phaseView.phase.body}</p>
+          <p class="muted" style="font-size:13px; margin:0 0 12px 0;">${phaseView.phaseNarrative}</p>
           <div class="scale-track phase-progress" role="progressbar" aria-valuenow="${Math.round(phaseView.progressInPhase * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="Прогресс фазы" style="height:6px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:12px;">
             <div class="scale-fill" style="height:100%;width:${Math.round(phaseView.progressInPhase * 100)}%;background:var(--accent);"></div>
           </div>
@@ -320,6 +333,7 @@ export function renderProgram(container: HTMLElement) {
               return `<div aria-label="${ariaLabel}" style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
+          ${phaseView.milestonePreview ? `<div class="milestone-preview" style="background: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent);">✦</span> ${phaseView.milestonePreview}</div>` : ''}
           <p class="muted" style="font-size:13px; margin:0;">${phaseView.phase.nextHint}</p>
         </div>
         <div class="surface" style="margin-bottom:16px;" ${programRetention ? `aria-label="${programRetention.aria.replace(/"/g, '&quot;')}"` : ''}>

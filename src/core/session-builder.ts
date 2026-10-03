@@ -163,7 +163,8 @@ export function getScoredCandidates(params: {
       let baseReason = 'Сбалансированная тренировка';
       const pw = programWeek || 1;
       const pd = programDay || 1;
-      const dayPrefix = `Неделя ${pw} · День ${pd} · `;
+      const phaseTitle = phaseForWeek(pw).title;
+      const dayPrefix = `${phaseTitle} · `;
       
       const isNew = !state;
       if (isSparse || isSparseDomain) {

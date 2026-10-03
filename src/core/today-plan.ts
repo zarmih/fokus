@@ -66,6 +66,8 @@ export interface TodayPlanExplanation {
   source: PlanExplainSource;
   /** Underlying Program←Retention view when available. */
   programRetention: ProgramRetentionView | null;
+  /** Coach quiet tip to render alongside the plan explanation. */
+  quietTip: string | null;
 }
 
 export interface ExplainTodayPlanInput {
@@ -87,6 +89,7 @@ export interface ExplainTodayPlanInput {
   programPhase?: string;
   fatigueOrChurn?: boolean;
   primaryGoal?: string;
+  quietTip?: string | null;
 }
 
 /**
@@ -156,7 +159,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: false,
       aria: 'Нужна калибровка перед персональным планом.',
       source: 'calibration',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -186,7 +190,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: false,
       aria: `План выполнен. ${body}`,
       source: 'done',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -210,7 +215,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: true,
       aria: `${title}. ${body}`,
       source: 'soft_return',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -237,7 +243,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: true,
       aria: programRetention.aria,
       source: 'retention',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -269,7 +276,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
         recoveryPath: soften,
         aria: `${title}. ${body}`,
         source: 'first_week',
-        programRetention
+        programRetention,
+        quietTip: input.quietTip ?? null
       };
     }
   }
@@ -290,7 +298,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: true,
       aria: recoveryHint,
       source: 'adaptive',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -310,7 +319,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: !!focusDomain,
       aria: adaptiveWhy,
       source: 'adaptive',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -334,7 +344,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
     recoveryPath: !!focusDomain || retention.gapDays >= 2,
     aria: `${defaultBody} Ритм ${retention.rhythm} · ${bandLabel(retention.band)}.`,
     source: 'default',
-    programRetention
+    programRetention,
+    quietTip: input.quietTip ?? null
   };
 }
 
@@ -347,22 +358,22 @@ function composeExerciseWhy(params: {
   gapDays: number;
 }): string {
   if (params.softReturn) {
-    return 'Короткий знакомый набор — мягкий вход без наверстывания пропусков.';
+    return 'Короткий знакомый набор — для лёгкого включения в ритм без наверстывания.';
   }
   if (params.focusDomain) {
     const name = domainLabel(params.focusDomain);
-    return `В начале блока — «${name}»: зона давно без нагрузки, план возвращает баланс.`;
+    return `В начале блока — «${name}»: возвращаем баланс в давно не нагружавшуюся зону.`;
   }
   if (params.gapDays >= 2 || params.band === 'at_risk' || params.band === 'critical') {
-    return 'Слоты подобраны под возвращение: короче и спокойнее обычного ритма.';
+    return 'Слоты подобраны под возвращение: тренировка короче и спокойнее обычного ритма.';
   }
   if (params.items.length > 0 && params.focusNames.length > 0) {
-    return `Сегодня в плане: ${params.focusNames.join(' + ')} — по вашей истории и отстающим зонам.`;
+    return `Сегодня в плане: ${params.focusNames.join(' + ')} — адаптивный микс для равномерного развития.`;
   }
   if (params.focusNames.length > 0) {
     return `Акцент дня: ${params.focusNames.join(' и ')}.`;
   }
-  return 'Сбалансированный ритуал: слабая область, свежесть и привычный объём.';
+  return 'Сбалансированный тренировочный блок: поддержание тонуса и привычный объём.';
 }
 
 /**
@@ -441,7 +452,9 @@ export function applyRetentionRitualOrder(
           i === 0
             ? {
                 ...item,
-                reason: item.reason || 'Короткий блок возвращения в ритм'
+                reason: item.reason && /возвращ|коротк|мягк|ритм|якорь|закреп|этап|рубеж/i.test(item.reason)
+                  ? item.reason
+                  : 'Плавное возвращение в ритм'
               }
             : item
         );
@@ -458,9 +471,9 @@ export function applyRetentionRitualOrder(
     const annotated = {
       ...first,
       reason:
-        first.reason && /возвращ|коротк|мягк|ритм/i.test(first.reason)
+        first.reason && /возвращ|коротк|мягк|ритм|якорь|закреп|этап|рубеж/i.test(first.reason)
           ? first.reason
-          : 'Короткий блок возвращения в ритм'
+          : 'Плавное возвращение в ритм'
     };
     if (annotated.reason !== first.reason) {
       items = [annotated, ...items.slice(1)];
@@ -622,7 +635,7 @@ export function rerollTodayPlanSlot(items: TodayPlanItem[], slotIndex: number): 
     ...item,
     exerciseId: item.nextExerciseId,
     domain: item.nextDomain || item.domain,
-    reason: item.reason + ' · следующий вариант',
+    reason: item.reason + ' (альтернативный вариант)',
     nextExerciseId: undefined,
     nextDomain: undefined,
     rerolled: true

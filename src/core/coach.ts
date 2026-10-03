@@ -7,11 +7,63 @@ import { buildCoachIntel } from './coach-intel';
 import { explainTodayPlan } from './today-plan';
 import type { ContinuitySnapshot } from './continuity';
 import type { TodayRitual } from './onboarding';
+import type { RetentionSnapshot } from './retention';
+
+export function getQuietCoachTip(params: {
+  continuity: ContinuitySnapshot;
+  retention: RetentionSnapshot;
+  programPhase?: string;
+  inFirstWeek?: boolean;
+  playedToday: boolean;
+}): string | null {
+  if (params.playedToday) return null;
+
+  const { continuity, retention, programPhase, inFirstWeek } = params;
+
+  if (inFirstWeek) {
+    if (continuity.streak.current <= 3) {
+      return 'Первые дни мы калибруем базовую сложность. Ошибаться — нормально.';
+    }
+    return null;
+  }
+
+  if (continuity.ritual.active) {
+    return 'Паузы защищают от переутомления. Накопленный опыт сохранён, сегодня просто спокойный вход.';
+  }
+
+  if (retention.gapDays >= 2 && retention.band !== 'critical') {
+    return 'Пропуски — часть длинной дистанции. Навёрстывать ничего не нужно, достаточно одной сессии в вашем темпе.';
+  }
+
+  if (programPhase === 'balance' && continuity.streak.current > 3) {
+    return 'В фазе баланса мы подтягиваем слабые зоны. Временное снижение точности здесь — сигнал полезной работы.';
+  }
+
+  if (programPhase === 'sustain') {
+    const fatigueScore = retention.signals.find(s => s.id === 'session_fatigue')?.score || 0;
+    if (fatigueScore >= 50) {
+      return 'В фазе поддержки можно позволить себе более лёгкий темп, если чувствуете усталость.';
+    }
+    return 'В фазе поддержки важно просто удерживать плато. Регулярность работает лучше марафонов.';
+  }
+
+  if (programPhase === 'focus' && continuity.streak.current >= 4) {
+    return 'Прицельная тренировка требует больше ресурса. Если фокус падает, лучше закончить сессию раньше.';
+  }
+
+  if (retention.band === 'stable' && continuity.streak.current >= 14 && continuity.streak.current % 5 === 0) {
+    return 'Длинная серия даёт запас прочности. Если сегодня нет ресурса на тренировку, один день отдыха её не сломает.';
+  }
+
+  return null;
+}
+
 
 export interface CoachSpark {
   title: string;
   body: string;
   tone: 'start' | 'habit' | 'focus' | 'recovery' | 'science' | 'time';
+  quietTip?: string | null;
 }
 
 function hourBucket(iso: string): 'morning' | 'afternoon' | 'evening' | 'night' {
@@ -132,7 +184,7 @@ export function getDailySpark(params: {
         weekRitualCopy: weekRitual?.copy || null,
         weekRitual: weekRitual || null
       });
-      return { title: exp.title, body: exp.body, tone: exp.tone };
+      return { title: exp.title, body: exp.body, tone: exp.tone, quietTip: exp.quietTip };
     } catch {
       /* fall through to legacy paths */
     }

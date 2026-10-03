@@ -50,6 +50,7 @@ export interface DomainTrajectory {
   samples: number;
   sessions: number;
   lastSessionAt: string | null;
+  avgSpeedMs: number | null;
 }
 
 export interface AbilityTrajectory {
@@ -179,6 +180,14 @@ function buildDomainTrajectory(
   const sessionCount = bySession.size;
   const last = sessionMeans.length > 0 ? sessionMeans[sessionMeans.length - 1].at : stored?.updatedAt || null;
 
+  let avgSpeedMs: number | null = null;
+  if (observations.length > 0) {
+    const validSpeed = observations.filter(o => o.avgRtMs > 0);
+    if (validSpeed.length > 0) {
+      avgSpeedMs = Math.round(validSpeed.reduce((s, o) => s + o.avgRtMs, 0) / validSpeed.length);
+    }
+  }
+
   return {
     domain,
     theta: mu,
@@ -188,7 +197,8 @@ function buildDomainTrajectory(
     trend: trendFromSlope(slope, sessionCount),
     samples: observations.length,
     sessions: sessionCount,
-    lastSessionAt: last
+    lastSessionAt: last,
+    avgSpeedMs
   };
 }
 

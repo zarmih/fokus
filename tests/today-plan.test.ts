@@ -356,7 +356,7 @@ describe('rerollTodayPlanSlot', () => {
     expect(applied).toBe(true);
     expect(newItems[0].exerciseId).toBe('a2');
     expect(newItems[0].rerolled).toBe(true);
-    expect(newItems[0].reason).toMatch(/следующий вариант/);
+    expect(newItems[0].reason).toMatch(/альтернатив/);
     expect(newItems[0].nextExerciseId).toBeUndefined();
     
     // second call
