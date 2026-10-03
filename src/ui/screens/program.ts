@@ -14,7 +14,8 @@ import { describeAdaptiveDepth } from '../../core/adaptive-depth';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan } from '../../core/today-plan';
 import { getTodayRitual } from '../../core/onboarding';
-import { describeProgramPhase } from '../../core/program-phases';
+import { describeProgramPhase, phaseForWeek } from '../../core/program-phases';
+import { getQuietCoachTip } from '../../core/coach';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -102,6 +103,15 @@ export function renderProgram(container: HTMLElement) {
       catalog: catalogHints
     });
     plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
+    const phaseId = phaseForWeek(getProgramPosition(snapshot, profile as any).weekIndex).id;
+    const quietTip = retSnap ? getQuietCoachTip({
+      continuity: snapshot,
+      retention: retSnap,
+      programPhase: phaseId,
+      inFirstWeek: weekRitual.inFirstWeek,
+      playedToday
+    }) : null;
+    
     planExplain = explainTodayPlan({
       calibrated: !!profile.calibrated,
       playedToday,
@@ -114,7 +124,8 @@ export function renderProgram(container: HTMLElement) {
       recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null,
       inFirstWeek: weekRitual.inFirstWeek,
       weekRitualCopy: weekRitual.copy || null,
-      weekRitual
+      weekRitual,
+      quietTip
     });
   } catch {
     planExplain = null;
@@ -162,7 +173,8 @@ export function renderProgram(container: HTMLElement) {
         recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null,
         inFirstWeek: weekRitual.inFirstWeek,
         weekRitualCopy: weekRitual.copy || null,
-        weekRitual
+        weekRitual,
+        quietTip: planExplain?.quietTip ?? null
       });
     } catch {
       /* keep prior planExplain */
@@ -282,6 +294,7 @@ export function renderProgram(container: HTMLElement) {
         <div class="workout-kicker">${planExplain?.title || contMsg.title}</div>
         <h3>Тренировка дня · ~${planDurationMins} мин</h3>
         <p class="muted coach-rationale" data-plan-source="${planExplain?.source || 'legacy'}">${coachMessage}</p>
+        ${planExplain?.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${planExplain.quietTip}</p>` : ''}
         ${coachWhy ? `<p class="ritual-why plan-why" style="margin-top:8px">${coachWhy}</p>` : ''}
         <button id="btn-program-start" class="btn-primary" type="button">${ctaLabelFromPlan(planExplain, programRetention?.softenCta ? 'Короткий блок' : 'Начать тренировку')}</button>
       </div>

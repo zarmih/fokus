@@ -15,7 +15,7 @@ import { getDailyQuests } from '../../core/quests';
 import { generateInsights } from '../../core/insights';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
-import { getDailySpark } from '../../core/coach';
+import { getDailySpark, getQuietCoachTip } from '../../core/coach';
 import { buildCoachIntel } from '../../core/coach-intel';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { domainLabel, leagueName } from '../../core/labels';
@@ -264,6 +264,14 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const phaseId = phaseForWeek(weekIndex).id;
   const fatigueOrChurn = snap.workload.fatigued.length > 0 || (retSnap && (retSnap.band === 'at_risk' || retSnap.band === 'critical')) || false;
 
+  const quietTip = retSnap ? getQuietCoachTip({
+    continuity: snap,
+    retention: retSnap,
+    programPhase: phaseId,
+    inFirstWeek: weekRitual.inFirstWeek,
+    playedToday
+  }) : null;
+
   const planExplain = retSnap
     ? explainTodayPlan({
         calibrated: !!profile.calibrated,
@@ -280,13 +288,14 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         weekRitual,
         programPhase: phaseId,
         fatigueOrChurn,
-        primaryGoal: profile.primaryGoal
+        primaryGoal: profile.primaryGoal,
+        quietTip
       })
     : null;
 
   // Shared story wins; fall back to legacy spark only if retention assess failed.
   const spark = planExplain
-    ? { title: planExplain.title, body: planExplain.body, tone: planExplain.tone }
+    ? { title: planExplain.title, body: planExplain.body, tone: planExplain.tone, quietTip: planExplain.quietTip }
     : getDailySpark({
         domains,
         skills,
@@ -432,6 +441,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <div class="workout-kicker">${spark.title}</div>
         <h3>Калибровка уровня</h3>
         <p class="workout-coach-insight">${spark.body}</p>
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>Пройти калибровку</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -450,6 +460,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
           Осталось ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">Вы уже начали эту тренировку сегодня. Продолжаем.</p>
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Оставшиеся упражнения" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>Продолжить тренировку</span>
@@ -465,6 +476,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <h3>План выполнен</h3>
         ${trendChipHtml}
         <p class="workout-coach-insight">${spark.body}</p>
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <button id="btn-start" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">Ещё одна сессия</button>
       </div>
     `;
@@ -492,6 +504,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
           ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>${ctaLabelFromPlan(planExplain, 'Мягкий старт')}</span>
@@ -515,7 +528,8 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         </p>
         ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 8px;">${spark.body}</p>
-        ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : '<div style="margin-bottom: 8px;"></div>'}
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
+        ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : (spark.quietTip ? '' : '<div style="margin-bottom: 8px;"></div>')}
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>${ctaLabelFromPlan(planExplain)}</span>

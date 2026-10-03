@@ -66,6 +66,8 @@ export interface TodayPlanExplanation {
   source: PlanExplainSource;
   /** Underlying Program←Retention view when available. */
   programRetention: ProgramRetentionView | null;
+  /** Coach quiet tip to render alongside the plan explanation. */
+  quietTip: string | null;
 }
 
 export interface ExplainTodayPlanInput {
@@ -87,6 +89,7 @@ export interface ExplainTodayPlanInput {
   programPhase?: string;
   fatigueOrChurn?: boolean;
   primaryGoal?: string;
+  quietTip?: string | null;
 }
 
 /**
@@ -156,7 +159,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: false,
       aria: 'Нужна калибровка перед персональным планом.',
       source: 'calibration',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -186,7 +190,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: false,
       aria: `План выполнен. ${body}`,
       source: 'done',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -210,7 +215,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: true,
       aria: `${title}. ${body}`,
       source: 'soft_return',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -237,7 +243,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: true,
       aria: programRetention.aria,
       source: 'retention',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -269,7 +276,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
         recoveryPath: soften,
         aria: `${title}. ${body}`,
         source: 'first_week',
-        programRetention
+        programRetention,
+        quietTip: input.quietTip ?? null
       };
     }
   }
@@ -290,7 +298,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: true,
       aria: recoveryHint,
       source: 'adaptive',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -310,7 +319,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       recoveryPath: !!focusDomain,
       aria: adaptiveWhy,
       source: 'adaptive',
-      programRetention
+      programRetention,
+      quietTip: input.quietTip ?? null
     };
   }
 
@@ -334,7 +344,8 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
     recoveryPath: !!focusDomain || retention.gapDays >= 2,
     aria: `${defaultBody} Ритм ${retention.rhythm} · ${bandLabel(retention.band)}.`,
     source: 'default',
-    programRetention
+    programRetention,
+    quietTip: input.quietTip ?? null
   };
 }
 
