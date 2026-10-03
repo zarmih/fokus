@@ -1,12 +1,11 @@
 import type { ExerciseManifest } from '../exercises/contract';
 import type { DomainIndex, SkillIndex, ExerciseState } from './types';
 import { weeklyFocusBias } from './transfer';
-import {
-  buildAdaptivePlan as engineBuildAdaptivePlan,
+import { buildAdaptivePlan as engineBuildAdaptivePlan,
   type AdaptivePlan,
   type AdaptivePlanParams
 } from './engine/bridge';
-import { phaseForWeek } from './program-phases';
+import { phaseForWeek, isPhaseMilestoneDay, milestoneExerciseId, milestoneReason, MILESTONE_EXERCISE_IDS } from './program-phases';
 
 export interface TrainingPlanItem {
   exerciseId: string;
@@ -239,7 +238,40 @@ export function buildTrainingPlan(params: {
   const selectedExerciseIds = new Set<string>();
   const selectedDomains = new Set<string>();
   
+  const pw = programWeek || 1;
+  const pd = programDay || 1;
+  let lockedMilestone: { id: string; domain: string; reason: string } | null = null;
+  
+  if (isPhaseMilestoneDay(pw, pd)) {
+    const desiredId = milestoneExerciseId(pw);
+    let lockedManifest = catalog.find(c => c.manifest.id === desiredId && !excludeIds.includes(desiredId))?.manifest;
+    if (!lockedManifest) {
+      const fallbackId = MILESTONE_EXERCISE_IDS.find(id => id !== desiredId);
+      if (fallbackId) {
+        lockedManifest = catalog.find(c => c.manifest.id === fallbackId && !excludeIds.includes(fallbackId))?.manifest;
+      }
+    }
+    if (lockedManifest) {
+      lockedMilestone = {
+        id: lockedManifest.id,
+        domain: lockedManifest.domain,
+        reason: milestoneReason(pw)
+      };
+      selectedExerciseIds.add(lockedManifest.id);
+      selectedDomains.add(lockedManifest.domain);
+    }
+  }
+  
   for (let blockIndex = 0; blockIndex < targetBlocks; blockIndex++) {
+    if (lockedMilestone && blockIndex === targetBlocks - 1) {
+      items.push({
+        exerciseId: lockedMilestone.id,
+        reason: lockedMilestone.reason,
+        domain: lockedMilestone.domain
+      });
+      break;
+    }
+
     const scoredCandidates = getScoredCandidates({ ...params, selectedExerciseIds, selectedDomains });
 
     let chosen = scoredCandidates[0];
@@ -263,6 +295,7 @@ export function buildTrainingPlan(params: {
 
   for (let i = 0; i < items.length; i++) {
     const currentItem = items[i];
+    if (lockedMilestone && currentItem.exerciseId === lockedMilestone.id) continue;
     const selectedExerciseIdsFixed = new Set<string>();
     const selectedDomainsFixed = new Set<string>();
     for (let j = 0; j < items.length; j++) {
@@ -456,6 +489,7 @@ export function fillRenderedSlotAlternatives<T extends {
   const maxDomainCount = Math.max(0, ...Object.values(domainCounts), 0);
   return items.map((item, i) => {
     if (item.rerolled || item.nextExerciseId) return item;
+    if (typeof (item as { reason?: string }).reason === 'string' && (item as { reason?: string }).reason!.startsWith('Веха фазы')) return item;
     const selectedExerciseIds = new Set<string>();
     const selectedDomains = new Set<string>();
     items.forEach((other, j) => {

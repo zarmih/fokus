@@ -134,3 +134,28 @@ export function describeProgramPhase(params: {
     aria: `Фаза ${phase.index} из 4, ${phase.title}. Цель: ${goalLine}. ${weekLabel}, сейчас неделя ${weekIndex}, день ${dayInWeek}.`
   };
 }
+
+export const MILESTONE_EXERCISE_IDS = ['tide-gate', 'anchor-pair'] as const;
+
+export function isPhaseMilestoneDay(weekIndex: number, dayInWeek: number): boolean {
+  if (dayInWeek !== 7 || weekIndex < 1) return false;
+  const phase = phaseForWeek(weekIndex);
+  if (phase.weekTo < 100) {
+    return weekIndex === phase.weekTo;
+  }
+  return weekIndex >= 8 && (weekIndex - 8) % 2 === 0;
+}
+
+export function milestoneExerciseId(weekIndex: number): 'tide-gate' | 'anchor-pair' {
+  const phase = phaseForWeek(weekIndex);
+  if (phase.id === 'orient' || phase.id === 'focus') return 'tide-gate';
+  if (phase.id === 'balance') return 'anchor-pair';
+  const sustainIndex = Math.max(0, Math.floor((weekIndex - 8) / 2));
+  return sustainIndex % 2 === 0 ? 'tide-gate' : 'anchor-pair';
+}
+
+export function milestoneReason(weekIndex: number): string {
+  const exId = milestoneExerciseId(weekIndex);
+  const name = exId === 'tide-gate' ? 'Прилив у ворот' : 'Якорная пара';
+  return `Веха фазы: ${name}`;
+}

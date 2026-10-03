@@ -2,7 +2,10 @@ import { describe, expect, test } from 'vitest';
 import {
   describeProgramPhase,
   phaseForWeek,
-  PROGRAM_PHASES
+  PROGRAM_PHASES,
+  isPhaseMilestoneDay,
+  milestoneExerciseId,
+  milestoneReason
 } from '../src/core/program-phases';
 
 describe('program-phases — 2–4 week goals', () => {
@@ -50,5 +53,38 @@ describe('program-phases — 2–4 week goals', () => {
   test('uncalibrated overrides goal toward calibration', () => {
     const v = describeProgramPhase({ weekIndex: 1, dayInWeek: 1, calibrated: false });
     expect(v.goalLine).toMatch(/калибровк/i);
+  });
+
+  test('milestone calendar and copy', () => {
+    // True: week 2 day 7, week 4 day 7, week 6 day 7
+    expect(isPhaseMilestoneDay(2, 7)).toBe(true);
+    expect(isPhaseMilestoneDay(4, 7)).toBe(true);
+    expect(isPhaseMilestoneDay(6, 7)).toBe(true);
+    
+    // False examples
+    expect(isPhaseMilestoneDay(2, 6)).toBe(false);
+    expect(isPhaseMilestoneDay(7, 7)).toBe(false);
+    expect(isPhaseMilestoneDay(9, 7)).toBe(false);
+
+    // Sustain loop: 8, 10, 12 etc day 7
+    expect(isPhaseMilestoneDay(8, 7)).toBe(true);
+    expect(isPhaseMilestoneDay(10, 7)).toBe(true);
+    expect(isPhaseMilestoneDay(12, 7)).toBe(true);
+
+    // Alternation
+    expect(milestoneExerciseId(2)).toBe('tide-gate');
+    expect(milestoneExerciseId(4)).toBe('anchor-pair');
+    expect(milestoneExerciseId(6)).toBe('tide-gate');
+    expect(milestoneExerciseId(8)).toBe('tide-gate');
+    expect(milestoneExerciseId(10)).toBe('anchor-pair');
+    expect(milestoneExerciseId(12)).toBe('tide-gate');
+
+    const copy = milestoneReason(2);
+    expect(copy).not.toMatch(/IQ|босс|wikium|прокачай/i);
+    expect(copy).toContain('Прилив у ворот');
+    expect(copy).toMatch(/^Веха фазы/);
+    
+    const copy2 = milestoneReason(4);
+    expect(copy2).toContain('Якорная пара');
   });
 });
