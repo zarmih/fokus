@@ -24,7 +24,7 @@ import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
-import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPlanCopy } from '../../core/today-plan';
+import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPlanCopy, applySlotSnooze } from '../../core/today-plan';
 import { softReturnInstallCopy } from '../../core/reminders';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
@@ -82,6 +82,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   let ritual: any = null;
   let errorState = false;
   let noPlanState = false;
+  let snoozeApplied = false;
   
   if (cachedState) {
     plan = cachedState.plan;
@@ -91,6 +92,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     ritual = cachedState.ritual;
     errorState = cachedState.errorState;
     noPlanState = cachedState.noPlanState;
+    snoozeApplied = cachedState.snoozeApplied || false;
   } else {
 
   try {
@@ -192,6 +194,20 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     errorState = true;
   }
 
+  try {
+    const snoozeRaw = localStorage.getItem('fokus-slot-snooze');
+    if (snoozeRaw) {
+      const snoozeData = JSON.parse(snoozeRaw);
+      if (snoozeData.date === todayStr && snoozeData.exerciseId) {
+        const res = applySlotSnooze(plan.items, snoozeData.exerciseId);
+        if (res.applied) {
+          plan.items = res.items;
+          snoozeApplied = true;
+        }
+      }
+    }
+  } catch (e) {}
+
   }
   const trendChipHtml = depth.chip
     ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
@@ -222,7 +238,10 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
       </div>
       <div style="display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
         <div style="font-size: 12px; opacity: 0.9; line-height: 1.4; font-weight: 500;">${item.reason}</div>
-        ${(item.nextExerciseId && !item.rerolled) ? `<button type="button" data-reroll-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">Другой вариант</button>` : ''}
+        <div style="display: flex; gap: 6px;">
+          ${(plan.items.length > 1 && item.exerciseId) ? `<button type="button" data-snooze-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">Не сегодня</button>` : ''}
+          ${(item.nextExerciseId && !item.rerolled) ? `<button type="button" data-reroll-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">Другой вариант</button>` : ''}
+        </div>
       </div>
     </div>`;
 
@@ -463,6 +482,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">Вы уже начали эту тренировку сегодня. Продолжаем.</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Оставшиеся упражнения" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>Продолжить тренировку</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
@@ -507,6 +527,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>${ctaLabelFromPlan(planExplain, 'Мягкий старт')}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -532,6 +553,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
         ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : (spark.quietTip ? '' : '<div style="margin-bottom: 8px;"></div>')}
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>${ctaLabelFromPlan(planExplain)}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -603,9 +625,25 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         const res = rerollTodayPlanSlot(plan.items, idx);
         if (res.applied) {
           plan.items = res.items;
-          renderToday(container, { plan, ritualDuration, recal, depth, ritual, errorState, noPlanState });
+          renderToday(container, { plan, ritualDuration, recal, depth, ritual, errorState, noPlanState, snoozeApplied });
         }
       });
+    });
+  });
+
+  content.querySelectorAll('[data-snooze-slot]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt((e.currentTarget as HTMLElement).dataset.snoozeSlot!, 10);
+      const item = plan.items[idx];
+      if (item && item.exerciseId) {
+        localStorage.setItem('fokus-slot-snooze', JSON.stringify({ date: todayStr, exerciseId: item.exerciseId }));
+        const res = applySlotSnooze(plan.items, item.exerciseId);
+        if (res.applied) {
+          plan.items = res.items;
+          renderToday(container, { plan, ritualDuration, recal, depth, ritual, errorState, noPlanState, snoozeApplied: true });
+        }
+      }
     });
   });
 
