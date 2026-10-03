@@ -5,7 +5,7 @@ import { loadExercise } from '../../exercises/load-exercise';
 import type { ExerciseModule } from '../../exercises/contract';
 import { scoreBlock } from '../../core/scoring';
 import { updateExerciseState, calculateNormalizedPerformance, updateDomainIndex, updateSkillIndex } from '../../core/adaptive';
-import { nextStreak } from '../../core/streak';
+import { nextStreak, resolveFokusTimeZone, calendarDayKey } from '../../core/streak';
 import { storage } from '../../core/storage';
 import {
   PROBE_BUDGET_SEC,
@@ -547,7 +547,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       domainValues
     };
     const prof = storage.getProfile();
-    if (prof.lastLifestyle && prof.lastLifestyle.date === new Date().toISOString().split('T')[0]) {
+    const tz = resolveFokusTimeZone().timeZone;
+    if (prof.lastLifestyle && calendarDayKey(prof.lastLifestyle.date, tz) === calendarDayKey(new Date(), tz)) {
       ds.lifestyle = { sleep: prof.lastLifestyle.sleep, stress: prof.lastLifestyle.stress };
     }
     storage.addDaySummary(ds);

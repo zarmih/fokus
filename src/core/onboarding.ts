@@ -7,6 +7,7 @@ import type {
 } from './types';
 import { PROBE_DOMAINS, precisionLabel } from './calibration';
 import { domainLabel } from './labels';
+import { calendarDayKey, resolveFokusTimeZone } from './streak';
 
 export const FIRST_WEEK_DAYS = 7;
 
@@ -169,7 +170,8 @@ export interface TodayRitual {
 }
 
 function playedDates(summaries: { date: string }[]): Set<string> {
-  return new Set(summaries.map((s) => dateOnly(s.date)));
+  const tz = resolveFokusTimeZone().timeZone;
+  return new Set(summaries.map((s) => calendarDayKey(s.date, tz)));
 }
 
 export function countMissedDays(

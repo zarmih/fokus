@@ -28,6 +28,7 @@ import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPla
 import { softReturnInstallCopy } from '../../core/reminders';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
+import { calendarDayKey } from '../../core/streak';
 
 export function renderToday(container: HTMLElement, cachedState?: any) {
   const content = renderShell(container, { active: 'today' });
@@ -69,7 +70,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const durationSec = ritualDurationSec(baseDuration, snap.ritual);
 
   const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
-  const unfinishedSession = lastSession && lastSession.startedAt.startsWith(todayStr) && lastSession.finishedAt === null ? lastSession : null;
+  const unfinishedSession = lastSession && lastSession.finishedAt === null && calendarDayKey(lastSession.startedAt, snap.timeZone) === todayStr ? lastSession : null;
   const effectiveDurationSec = unfinishedSession
     ? Math.max(60, (unfinishedSession.plannedDurationSec || durationSec) - (unfinishedSession.durationSec || 0))
     : durationSec;
