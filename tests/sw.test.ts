@@ -27,3 +27,10 @@ test('service worker notificationclick opens soft-return query', () => {
   expect(sw).toContain("?return=soft");
   expect(sw).toContain('notificationclick');
 });
+
+test('service worker regex syntax is valid', () => {
+  const sw = generateServiceWorker(['index.html'], 'syntax01');
+  expect(() => new Function(sw)).not.toThrow();
+  expect(sw).toContain('?return=soft');
+  expect(sw).toContain("replace(/\\/?$/, '/')");
+});
