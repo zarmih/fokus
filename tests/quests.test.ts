@@ -79,4 +79,17 @@ describe('selectQuestSet — plan / soft-return loops', () => {
       expect(q.description).not.toMatch(/wikium|прокачай мозг|не ломай серию/i);
     }
   });
+
+  test('gentleDay replaces only the hard slot and leaves three quests', () => {
+    const qs = selectQuestSet({
+      dateStr: '2026-10-01',
+      streakStatus: 'active',
+      gentleDay: true
+    });
+    expect(qs).toHaveLength(3);
+    expect(qs[2].id).toBe('rest_kept');
+    expect(qs[2].difficulty).toBe('easy');
+    expect(qs[0].id).not.toBe('rest_kept');
+    expect(qs[1].id).not.toBe('rest_kept');
+  });
 });

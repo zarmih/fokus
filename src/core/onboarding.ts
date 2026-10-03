@@ -364,3 +364,30 @@ export function describeFirstWeekContinuity(ritual: TodayRitual): FirstWeekConti
     label: d.label
   };
 }
+
+export function gentleDayIndex(plan: { days: { durationSec: number; intensity?: string }[] } | null | undefined): number | null {
+  if (!plan || !plan.days || plan.days.length === 0) return null;
+  
+  for (let i = 0; i < plan.days.length; i++) {
+    if (plan.days[i].intensity === 'gentle') {
+      return i + 1;
+    }
+  }
+
+  let minDuration = Infinity;
+  let minIdx = -1;
+  for (let i = 0; i < plan.days.length; i++) {
+    if (plan.days[i].durationSec < minDuration) {
+      minDuration = plan.days[i].durationSec;
+      minIdx = i;
+    }
+  }
+  
+  return minIdx + 1;
+}
+
+export function gentleDayNote(plan: { days: { durationSec: number; intensity?: string }[] } | null | undefined): string | null {
+  const idx = gentleDayIndex(plan);
+  if (idx === null) return null;
+  return `День ${idx} будет короче — это часть плана, ничего наверстывать не нужно.`;
+}
