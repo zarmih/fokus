@@ -24,7 +24,8 @@ export const ACHIEVEMENTS_DEF: Achievement[] = [
   { id: 'perfectionist', name: 'Перфекционист', description: '10 блоков без единой ошибки', icon: '✨' },
   { id: 'consistency_80', name: 'Стабильность', description: 'Поддержание 80% регулярности за 30 дней', icon: '📈' },
   { id: 'return_hero', name: 'Возвращение', description: 'Возобновление тренировок после паузы', icon: '🔄' },
-  { id: 'phoenix', name: 'Феникс', description: 'Возвращение к тренировкам после недели отдыха', icon: '🌅' }
+  { id: 'phoenix', name: 'Феникс', description: 'Возвращение к тренировкам после недели отдыха', icon: '🌅' },
+  { id: 'first_week_complete', name: 'Адаптация', description: 'Завершена первая неделя тренировок', icon: '🐣' }
 ];
 
 export interface AchievementState extends Achievement {
@@ -74,7 +75,7 @@ export function getAchievementsState(): AchievementState[] {
     'first_session': 1, 'streak_3': 3, 'streak_7': 7, 'streak_14': 14, 'streak_30': 30,
     'sniper': 1, 'night_owl': 1, 'early_bird': 1, 'veteran': 50, 'master': 500,
     'explorer': 10, 'balanced': 5, 'perfectionist': 10,
-    'consistency_80': 80, 'return_hero': 1, 'phoenix': 1
+    'consistency_80': 80, 'return_hero': 1, 'phoenix': 1, 'first_week_complete': 1
   };
 
   return ACHIEVEMENTS_DEF.map(def => {
@@ -102,6 +103,9 @@ export function getAchievementsState(): AchievementState[] {
         case 'consistency_80': progress = Math.min(consistency30, 80); break;
         case 'return_hero': progress = returnedStatus ? 1 : 0; break;
         case 'phoenix': progress = returnedFromLongPause ? 1 : 0; break;
+        case 'first_week_complete': 
+          progress = (profile.firstWeekPlan && Date.now() - Date.parse(profile.firstWeekPlan.startDate) >= 7 * 86400000) ? 1 : 0;
+          break;
       }
     }
 
@@ -178,6 +182,13 @@ export function checkAchievements(): string[] {
     if (ds.status === 'returned') unlock('return_hero');
     if (ds.status === 'returned' && ds.daysSinceLastPlay !== null && ds.daysSinceLastPlay >= 7) unlock('phoenix');
   });
+
+  if (profile.firstWeekPlan) {
+    const daysSinceStart = (Date.now() - Date.parse(profile.firstWeekPlan.startDate)) / 86400000;
+    if (daysSinceStart >= 7) {
+      unlock('first_week_complete');
+    }
+  }
 
   if (newly.length > 0) {
     storage.setProfile(profile);

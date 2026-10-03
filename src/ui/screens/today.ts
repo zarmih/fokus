@@ -341,7 +341,8 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const quests = getDailyQuests({
     focusDomains: plan.focusDomains,
     firstWeekFocus: weekRitual.ritualDay?.focusDomains?.[0] || null,
-    inFirstWeek: weekRitual.inFirstWeek
+    inFirstWeek: weekRitual.inFirstWeek,
+    firstWeekDay: weekRitual.day
   });
   const questsHtml = `
     <div class="surface quests-card">
