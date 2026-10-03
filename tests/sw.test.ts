@@ -31,6 +31,8 @@ test('service worker notificationclick opens soft-return query', () => {
 test('service worker regex syntax is valid', () => {
   const sw = generateServiceWorker(['index.html'], 'syntax01');
   expect(() => new Function(sw)).not.toThrow();
+  expect(sw).not.toContain('PRECACHE_URLS');
+  expect(sw).not.toContain('fokus-cache-v2');
   expect(sw).toContain('?return=soft');
   expect(sw).toContain("replace(/\\/?$/, '/')");
 });
