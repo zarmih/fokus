@@ -125,6 +125,9 @@ export interface RitualItem {
   difficulty: number;
   pSuccess: number;
   trace: string;
+  nextExerciseId?: string;
+  nextDomain?: string;
+  rerolled?: boolean;
 }
 
 export interface RitualPlan {

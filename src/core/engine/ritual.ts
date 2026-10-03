@@ -77,7 +77,64 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
     });
   });
 
+
+  // Compute nextExerciseId for each slot
+  const domainCounts: Record<string, number> = {};
+  for (const item of items) {
+    domainCounts[item.domain] = (domainCounts[item.domain] || 0) + 1;
+  }
+  const maxDomainCount = Math.max(0, ...Object.values(domainCounts));
+
+  for (let i = 0; i < items.length; i++) {
+    const currentItem = items[i];
+    const selIds = new Set<string>();
+    const selDomains: DomainId[] = [];
+    for (let j = 0; j < items.length; j++) {
+      if (j === i) continue;
+      selIds.add(items[j].exerciseId);
+      selDomains.push(items[j].domain);
+    }
+
+    const ranked = scoreCatalog({
+      ...params,
+      catalog,
+      rng,
+      wantedSlot: currentItem.slot,
+      selectedIds: selIds,
+      selectedDomains: selDomains,
+      goal,
+      phaseId
+    });
+
+    const live = ranked.filter((c) => c.score > -500).sort((a, b) => b.score - a.score);
+
+    let nextCandidate = null;
+    for (const c of live) {
+      if (selIds.has(c.exerciseId)) continue;
+      if (c.exerciseId === currentItem.exerciseId) continue;
+      
+      const tempCounts: Record<string, number> = {};
+      for (let j = 0; j < items.length; j++) {
+        if (j === i) tempCounts[c.domain] = (tempCounts[c.domain] || 0) + 1;
+        else {
+          const dom = items[j].domain;
+          tempCounts[dom] = (tempCounts[dom] || 0) + 1;
+        }
+      }
+      const tempMax = Math.max(0, ...Object.values(tempCounts));
+      if (tempMax <= maxDomainCount) {
+        nextCandidate = c;
+        break;
+      }
+    }
+    if (nextCandidate) {
+      items[i].nextExerciseId = nextCandidate.exerciseId;
+      items[i].nextDomain = nextCandidate.domain;
+    }
+  }
+
   return { focusDomains: focus, items, targetBlocks, mix };
+
 }
 
 function focusDomains(model: AbilityModel, goal: string): DomainId[] {
@@ -248,4 +305,107 @@ function pickWithExplore(ranked: ScoredCandidate[], rng: () => number): ScoredCa
     return live[1];
   }
   return live[0];
+}
+
+
+export function rerollRitualSlot(params: ComposeRitualParams, ritual: RitualPlan, slotIndex: number): { ritual: RitualPlan; applied: boolean } {
+  if (slotIndex < 0 || slotIndex >= ritual.items.length) return { ritual, applied: false };
+  const currentItem = ritual.items[slotIndex];
+  if (currentItem.rerolled) return { ritual, applied: false };
+
+  const domainCounts: Record<string, number> = {};
+  for (const item of ritual.items) {
+    domainCounts[item.domain] = (domainCounts[item.domain] || 0) + 1;
+  }
+  const maxDomainCount = Math.max(0, ...Object.values(domainCounts));
+
+  const selectedIds = new Set<string>();
+  const selectedDomains: DomainId[] = [];
+  for (let i = 0; i < ritual.items.length; i++) {
+    if (i === slotIndex) continue;
+    selectedIds.add(ritual.items[i].exerciseId);
+    selectedDomains.push(ritual.items[i].domain);
+  }
+
+  const rng = params.rng || Math.random;
+  const goal = params.primaryGoal || 'balance';
+  const exclude = new Set(params.excludeIds || []);
+  const catalog = params.catalog.filter((c) => !exclude.has(c.id));
+  const phaseId = params.programPhase ?? 'orient'; // phaseForWeek logic handles default better but we can just use params.programPhase
+
+  const ranked = scoreCatalog({
+    ...params,
+    catalog,
+    rng,
+    wantedSlot: currentItem.slot,
+    selectedIds,
+    selectedDomains,
+    goal,
+    phaseId: params.programPhase ?? 'orient'
+  });
+
+  const live = ranked.filter((c) => c.score > -500).sort((a, b) => b.score - a.score);
+
+  let nextCandidate = null;
+  let nextCandidateIndex = -1;
+  for (let i = 0; i < live.length; i++) {
+    const c = live[i];
+    if (c.exerciseId === currentItem.exerciseId) continue;
+    if (selectedIds.has(c.exerciseId)) continue;
+    
+    const tempCounts: Record<string, number> = {};
+    for (let j = 0; j < ritual.items.length; j++) {
+      if (j === slotIndex) tempCounts[c.domain] = (tempCounts[c.domain] || 0) + 1;
+      else {
+        const dom = ritual.items[j].domain;
+        tempCounts[dom] = (tempCounts[dom] || 0) + 1;
+      }
+    }
+    const tempMax = Math.max(0, ...Object.values(tempCounts));
+    if (tempMax <= maxDomainCount) {
+      nextCandidate = c;
+      nextCandidateIndex = i;
+      break;
+    }
+  }
+
+  if (!nextCandidate) return { ritual, applied: false };
+
+  let nextNextId: string | undefined;
+  let nextNextDomain: string | undefined;
+  for (let i = nextCandidateIndex + 1; i < live.length; i++) {
+    const c = live[i];
+    if (selectedIds.has(c.exerciseId)) continue;
+    const tempCounts: Record<string, number> = {};
+    for (let j = 0; j < ritual.items.length; j++) {
+      if (j === slotIndex) tempCounts[c.domain] = (tempCounts[c.domain] || 0) + 1;
+      else {
+        const dom = ritual.items[j].domain;
+        tempCounts[dom] = (tempCounts[dom] || 0) + 1;
+      }
+    }
+    const tempMax = Math.max(0, ...Object.values(tempCounts));
+    if (tempMax <= maxDomainCount) {
+      nextNextId = c.exerciseId;
+      nextNextDomain = c.domain;
+      break;
+    }
+  }
+
+  const newItems = [...ritual.items];
+  newItems[slotIndex] = {
+    ...currentItem,
+    exerciseId: nextCandidate.exerciseId,
+    domain: nextCandidate.domain,
+    slot: nextCandidate.slot,
+    reason: nextCandidate.reason,
+    difficulty: nextCandidate.difficulty,
+    pSuccess: nextCandidate.pSuccess,
+    trace: nextCandidate.trace,
+    nextExerciseId: nextNextId,
+    nextDomain: nextNextDomain,
+    rerolled: true
+  };
+
+  return { ritual: { ...ritual, items: newItems }, applied: true };
 }

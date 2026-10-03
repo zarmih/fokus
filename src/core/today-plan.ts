@@ -34,6 +34,9 @@ export interface TodayPlanItem {
   reason: string;
   domain?: string;
   slot?: string;
+  nextExerciseId?: string;
+  nextDomain?: string;
+  rerolled?: boolean;
 }
 
 export interface CatalogDomainHint {
@@ -587,4 +590,43 @@ export function emptyPlanCopy(kind: 'no_history' | 'no_plan' | 'offline' | 'sear
     cta: 'К плану дня',
     tone: 'start'
   };
+}
+
+export function rerollTodayPlanSlot(items: TodayPlanItem[], slotIndex: number): { items: TodayPlanItem[]; applied: boolean } {
+  if (slotIndex < 0 || slotIndex >= items.length) return { items, applied: false };
+  const item = items[slotIndex];
+  if (item.rerolled || !item.nextExerciseId) return { items, applied: false };
+
+  // Calculate pre-reroll domain max count
+  const domainCounts: Record<string, number> = {};
+  for (const it of items) {
+    if (it.domain) domainCounts[it.domain] = (domainCounts[it.domain] || 0) + 1;
+  }
+  const maxDomainCount = Math.max(0, ...Object.values(domainCounts));
+
+  // Check if swapping would raise max domain count
+  if (item.nextDomain) {
+    const tempCounts: Record<string, number> = {};
+    for (let i = 0; i < items.length; i++) {
+      if (i === slotIndex) tempCounts[item.nextDomain] = (tempCounts[item.nextDomain] || 0) + 1;
+      else if (items[i].domain) tempCounts[items[i].domain!] = (tempCounts[items[i].domain!] || 0) + 1;
+    }
+    const tempMax = Math.max(0, ...Object.values(tempCounts));
+    if (tempMax > maxDomainCount) {
+      return { items, applied: false }; // Refuses swap that raises max domain count
+    }
+  }
+
+  const newItems = [...items];
+  newItems[slotIndex] = {
+    ...item,
+    exerciseId: item.nextExerciseId,
+    domain: item.nextDomain || item.domain,
+    reason: item.reason + ' · следующий вариант',
+    nextExerciseId: undefined,
+    nextDomain: undefined,
+    rerolled: true
+  };
+
+  return { items: newItems, applied: true };
 }

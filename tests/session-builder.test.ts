@@ -71,3 +71,52 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
   
   expect(plan.items[0].reason).toMatch(/^Неделя \d+ · День \d+ · Отстающий навык$/);
 });
+
+import { rerollTrainingPlanSlot } from '../src/core/session-builder';
+
+test('rerollTrainingPlanSlot swaps one item, keeps others fixed, no second reroll', () => {
+  const catalog = [
+    { manifest: { id: 'a1', domain: 'A', skills: [] } },
+    { manifest: { id: 'a2', domain: 'A', skills: [] } },
+    { manifest: { id: 'b1', domain: 'B', skills: [] } }
+  ];
+  
+  const plan = buildTrainingPlan({
+    durationSec: 300,
+    catalog: catalog as any,
+    domains: [
+      { domain: 'A', value: 100, trend: 0, updatedAt: '' },
+      { domain: 'B', value: 200, trend: 0, updatedAt: '' }
+    ],
+    skills: [],
+    states: [],
+    primaryGoal: 'balance',
+    isSparse: true
+  });
+  
+  expect(plan.items.length).toBeGreaterThan(0);
+  const initialFirstId = plan.items[0].exerciseId;
+  const initialSecondId = plan.items[1]?.exerciseId;
+  
+  const { plan: rerolledPlan, applied } = rerollTrainingPlanSlot({
+    catalog: catalog as any,
+    domains: [],
+    skills: [],
+    states: []
+  }, plan, 0);
+  
+  expect(applied).toBe(true);
+  expect(rerolledPlan.items[0].exerciseId).not.toBe(initialFirstId);
+  expect(rerolledPlan.items[0].rerolled).toBe(true);
+  if (initialSecondId) {
+    expect(rerolledPlan.items[1].exerciseId).toBe(initialSecondId);
+  }
+  
+  const { applied: appliedAgain } = rerollTrainingPlanSlot({
+    catalog: catalog as any,
+    domains: [],
+    skills: [],
+    states: []
+  }, rerolledPlan, 0);
+  expect(appliedAgain).toBe(false);
+});
