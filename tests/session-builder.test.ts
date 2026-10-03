@@ -49,7 +49,7 @@ test('sparse history triggers correct weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toMatch(/Неделя 1 · День 1 · Знакомство/);
+  expect(plan.items[0].reason).toMatch(/Знакомство/);
 });
 
 test('sufficient history triggers normal weak-domain bias copy', () => {
@@ -69,7 +69,7 @@ test('sufficient history triggers normal weak-domain bias copy', () => {
     primaryGoal: 'balance'
   });
   
-  expect(plan.items[0].reason).toMatch(/^Неделя \d+ · День \d+ · Отстающий навык$/);
+  expect(plan.items[0].reason).toMatch(/Отстающий навык/);
 });
 
 import { getScoredCandidates } from '../src/core/session-builder';

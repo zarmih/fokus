@@ -87,4 +87,24 @@ describe('program-phases — 2–4 week goals', () => {
     const copy2 = milestoneReason(4);
     expect(copy2).toContain('Якорная пара');
   });
+
+  test('describeProgramPhase includes narrative and milestone previews', () => {
+    // Sparse/uncalibrated
+    const uncal = describeProgramPhase({ weekIndex: 1, dayInWeek: 1, calibrated: false });
+    expect(uncal.phaseNarrative).toMatch(/калибровка/i);
+    
+    // Focus phase narrative
+    const focus = describeProgramPhase({ weekIndex: 5, dayInWeek: 1, calibrated: true, primaryGoal: 'memory' });
+    expect(focus.phaseNarrative).toMatch(/Память/);
+
+    // Milestone previews
+    const noPreview = describeProgramPhase({ weekIndex: 1, dayInWeek: 4, calibrated: true }); // No milestone in week 1
+    expect(noPreview.milestonePreview).toBeNull();
+
+    const upcoming = describeProgramPhase({ weekIndex: 2, dayInWeek: 5, calibrated: true }); // Week 2 is orient milestone week
+    expect(upcoming.milestonePreview).toMatch(/Через 2 дня рубеж/);
+
+    const today = describeProgramPhase({ weekIndex: 2, dayInWeek: 7, calibrated: true });
+    expect(today.milestonePreview).toMatch(/Сегодня рубеж/);
+  });
 });
