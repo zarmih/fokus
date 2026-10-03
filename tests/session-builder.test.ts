@@ -184,6 +184,7 @@ test('milestone lock forces tide-gate onto the last slot solely on milestone day
   const lastMilestone = milestonePlan.items[milestonePlan.items.length - 1];
   expect(lastMilestone.exerciseId).toBe('tide-gate');
   expect(lastMilestone.reason).toMatch(/Веха фазы/);
+  expect(lastMilestone.nextExerciseId).toBeUndefined();
   
   const occurrences = milestonePlan.items.filter(i => i.exerciseId === 'tide-gate');
   expect(occurrences.length).toBe(1);

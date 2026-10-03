@@ -295,6 +295,7 @@ export function buildTrainingPlan(params: {
 
   for (let i = 0; i < items.length; i++) {
     const currentItem = items[i];
+    if (lockedMilestone && currentItem.exerciseId === lockedMilestone.id) continue;
     const selectedExerciseIdsFixed = new Set<string>();
     const selectedDomainsFixed = new Set<string>();
     for (let j = 0; j < items.length; j++) {
@@ -488,6 +489,7 @@ export function fillRenderedSlotAlternatives<T extends {
   const maxDomainCount = Math.max(0, ...Object.values(domainCounts), 0);
   return items.map((item, i) => {
     if (item.rerolled || item.nextExerciseId) return item;
+    if (typeof (item as { reason?: string }).reason === 'string' && (item as { reason?: string }).reason!.startsWith('Веха фазы')) return item;
     const selectedExerciseIds = new Set<string>();
     const selectedDomains = new Set<string>();
     items.forEach((other, j) => {

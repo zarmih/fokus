@@ -129,6 +129,7 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
 
   for (let i = 0; i < items.length; i++) {
     const currentItem = items[i];
+    if (lockedMilestone && currentItem.exerciseId === lockedMilestone.id) continue;
     const selIds = new Set<string>();
     const selDomains: DomainId[] = [];
     for (let j = 0; j < items.length; j++) {
