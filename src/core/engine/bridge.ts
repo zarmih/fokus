@@ -54,6 +54,8 @@ export interface AdaptivePlanParams {
   rng?: () => number;
   programWeek?: number;
   programDay?: number;
+  programPhase?: string;
+  fatigueOrChurn?: boolean;
   focusOfTheWeek?: string | null;
   isSparse?: boolean;
 }
@@ -95,6 +97,8 @@ export function buildAdaptivePlan(
       rng: params.rng,
       programWeek: params.programWeek,
       programDay: params.programDay,
+      programPhase: params.programPhase,
+      fatigueOrChurn: params.fatigueOrChurn,
       isSparse: params.isSparse
     });
 
