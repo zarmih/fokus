@@ -10,6 +10,7 @@ export interface DomainSlice {
 }
 
 export type FokusPhase = 'empty' | 'calibrating' | 'established';
+export type DomainBalance = 'balanced' | 'specialized' | 'asymmetric' | 'unknown';
 
 export interface FokusIndex {
   value: number;
@@ -23,9 +24,11 @@ export interface FokusIndex {
     percent: number;
   };
   phase: FokusPhase;
+  balance: DomainBalance;
   explain: {
     state: string;
     action: string;
+    balanceStr: string;
   };
 }
 
@@ -53,10 +56,11 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   if (coverage === 0) {
     return {
       value: 0, confidence: 0, coverage: 0, byDomain, trend: 0, depth,
-      phase: 'empty',
+      phase: 'empty', balance: 'unknown',
       explain: {
         state: 'Недостаточно данных',
-        action: 'Сбор статистики начнётся после первой сессии. Ваш Fokus Index формируется исключительно на основе реальных фактов: точности и времени реакций, а не абстрактных ожиданий.'
+        action: 'Сбор статистики начнётся после первой сессии. Ваш Fokus Index формируется исключительно на основе реальных фактов: точности и времени реакций, а не абстрактных ожиданий.',
+        balanceStr: ''
       }
     };
   }
@@ -71,6 +75,8 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   let phase: FokusPhase = 'empty';
   let stateStr = '';
   let actionStr = '';
+  let balance: DomainBalance = 'unknown';
+  let balanceStr = '';
 
   if (coverage < 3) {
     phase = 'calibrating';
@@ -80,12 +86,25 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
     phase = 'established';
     stateStr = `Уверенность ${confidence}%.`;
     actionStr = 'Индекс — честный снимок вашей формы на сегодня. Мы показываем только те тренды, которые подтверждены данными сессий.';
+    
+    const vals = ready.map(d => d.value);
+    const maxDiff = Math.max(...vals) - Math.min(...vals);
+    if (maxDiff <= 150) {
+      balance = 'balanced';
+      balanceStr = 'Сбалансированный профиль (развитие областей идёт гармонично).';
+    } else if (maxDiff > 350) {
+      balance = 'asymmetric';
+      balanceStr = 'Асимметричный профиль (присутствует выраженный фокус или дисбаланс, рекомендуется уделить внимание слабым зонам).';
+    } else {
+      balance = 'specialized';
+      balanceStr = 'Специализированный профиль (есть явные сильные стороны и зоны для подтягивания).';
+    }
   }
 
   return {
     value, confidence, coverage, byDomain, trend, depth,
-    phase,
-    explain: { state: stateStr, action: actionStr }
+    phase, balance,
+    explain: { state: stateStr, action: actionStr, balanceStr }
   };
 }
 

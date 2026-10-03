@@ -362,6 +362,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
                 </div>
                 <div class="wr-traj-state" style="font-weight: 600;">${trLabel}</div>
                 <div class="wr-traj-desc" style="color: var(--muted); font-size: 12px; margin-top: 4px;">${desc}</div>
+                ${t.avgSpeedMs ? `<div style="font-size: 11px; color: var(--text); opacity: 0.7; margin-top: 6px;">Скорость реакции: ~${t.avgSpeedMs} мс</div>` : ''}
               </div>
             `;
           }).join('')}
