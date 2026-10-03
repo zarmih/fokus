@@ -342,3 +342,37 @@ describe('ctaLabelFromPlan + emptyPlanCopy — thin UX voice', () => {
     expect(emptyPlanCopy('offline').tone).toBe('recovery');
   });
 });
+
+import { rerollTodayPlanSlot } from '../src/core/today-plan';
+
+describe('rerollTodayPlanSlot', () => {
+  test('swaps one item, marks rerolled, second call no-ops, respects domain max count', () => {
+    const items = [
+      { exerciseId: 'a1', reason: 'reason 1', domain: 'A', nextExerciseId: 'a2', nextDomain: 'A' },
+      { exerciseId: 'b1', reason: 'reason 2', domain: 'B' }
+    ];
+    
+    const { items: newItems, applied } = rerollTodayPlanSlot(items, 0);
+    expect(applied).toBe(true);
+    expect(newItems[0].exerciseId).toBe('a2');
+    expect(newItems[0].rerolled).toBe(true);
+    expect(newItems[0].reason).toMatch(/следующий вариант/);
+    expect(newItems[0].nextExerciseId).toBeUndefined();
+    
+    // second call
+    const res2 = rerollTodayPlanSlot(newItems, 0);
+    expect(res2.applied).toBe(false);
+  });
+
+  test('refuses a swap that would raise the max domain count', () => {
+    const items = [
+      { exerciseId: 'a1', reason: 'x', domain: 'A', nextExerciseId: 'b2', nextDomain: 'B' },
+      { exerciseId: 'b1', reason: 'y', domain: 'B' },
+      { exerciseId: 'c1', reason: 'z', domain: 'C' }
+    ];
+    // initial counts: A:1, B:1, C:1 -> max is 1.
+    // swapping slot 0 to B would make counts: B:2, C:1 -> max is 2. This raises max domain count, so it should refuse.
+    const { applied } = rerollTodayPlanSlot(items, 0);
+    expect(applied).toBe(false);
+  });
+});

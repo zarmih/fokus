@@ -24,6 +24,9 @@ export interface AdaptivePlanItem {
   difficulty?: number;
   pSuccess?: number;
   domain?: string;
+  nextExerciseId?: string;
+  nextDomain?: string;
+  rerolled?: boolean;
 }
 
 export interface AdaptivePlan {
@@ -123,7 +126,10 @@ export function buildAdaptivePlan(
         slot: it.slot,
         difficulty: it.difficulty,
         pSuccess: it.pSuccess,
-        domain: it.domain
+        domain: it.domain,
+        nextExerciseId: it.nextExerciseId,
+        nextDomain: it.nextDomain,
+        rerolled: it.rerolled
       })),
       recalibration,
       ritual

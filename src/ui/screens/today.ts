@@ -7,6 +7,7 @@ import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration, getProgramPosition } from '../../core/adaptive-plan';
 import { phaseForWeek } from '../../core/program-phases';
+import { fillRenderedSlotAlternatives } from '../../core/session-builder';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -28,7 +29,7 @@ import { softReturnInstallCopy } from '../../core/reminders';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 
-export function renderToday(container: HTMLElement) {
+export function renderToday(container: HTMLElement, cachedState?: any) {
   const content = renderShell(container, { active: 'today' });
   const profile = storage.getProfile();
   const lvl = getLevelProgress(profile.xp || 0);
@@ -73,6 +74,7 @@ export function renderToday(container: HTMLElement) {
     ? Math.max(60, (unfinishedSession.plannedDurationSec || durationSec) - (unfinishedSession.durationSec || 0))
     : durationSec;
 
+
   let plan: { items: any[]; focusDomains: string[] } = { items: [], focusDomains: [] };
   let ritualDuration = effectiveDurationSec;
   let recal: any = { probe: [] as any[], forced: false, summary: '' };
@@ -80,6 +82,16 @@ export function renderToday(container: HTMLElement) {
   let ritual: any = null;
   let errorState = false;
   let noPlanState = false;
+  
+  if (cachedState) {
+    plan = cachedState.plan;
+    ritualDuration = cachedState.ritualDuration;
+    recal = cachedState.recal;
+    depth = cachedState.depth;
+    ritual = cachedState.ritual;
+    errorState = cachedState.errorState;
+    noPlanState = cachedState.noPlanState;
+  } else {
 
   try {
     ritual = planWithRecovery({
@@ -150,7 +162,10 @@ export function renderToday(container: HTMLElement) {
       plan.items = depth.ritual.items.map((s: any) => ({
         exerciseId: s.exerciseId,
         reason: s.reasonLabel,
-        domain: s.domain
+        domain: s.domain,
+        nextExerciseId: s.nextExerciseId,
+        nextDomain: s.nextDomain,
+        rerolled: s.rerolled
       }));
       plan.focusDomains = depth.ritual.focusDomains;
     }
@@ -169,12 +184,15 @@ export function renderToday(container: HTMLElement) {
     
     if (plan.items.length === 0) {
       noPlanState = true;
+    } else {
+      plan.items = fillRenderedSlotAlternatives(plan.items, catalog);
     }
   } catch (err) {
     console.error('Plan generation error:', err);
     errorState = true;
   }
 
+  }
   const trendChipHtml = depth.chip
     ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
     : '';
@@ -202,8 +220,12 @@ export function renderToday(container: HTMLElement) {
         <span style="font-weight: 700; font-size: 14px; flex: 1;">${r?.name}</span>
         ${slot ? `<span class="slot-tag" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg-elev); padding: 4px 8px; border-radius: 8px; color: var(--muted); border: 1px solid var(--line);">${slot}</span>` : ''}
       </div>
-      <div style="font-size: 12px; opacity: 0.9; line-height: 1.4; font-weight: 500;">${item.reason}</div>
+      <div style="display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
+        <div style="font-size: 12px; opacity: 0.9; line-height: 1.4; font-weight: 500;">${item.reason}</div>
+        ${(item.nextExerciseId && !item.rerolled) ? `<button type="button" data-reroll-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">Другой вариант</button>` : ''}
+      </div>
     </div>`;
+
   }).join('');
 
   const hour = new Date().getHours();
@@ -557,7 +579,23 @@ export function renderToday(container: HTMLElement) {
 
 
 
+
+  content.querySelectorAll('[data-reroll-slot]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt((e.currentTarget as HTMLElement).dataset.rerollSlot!, 10);
+      import('../../core/today-plan').then(({ rerollTodayPlanSlot }) => {
+        const res = rerollTodayPlanSlot(plan.items, idx);
+        if (res.applied) {
+          plan.items = res.items;
+          renderToday(container, { plan, ritualDuration, recal, depth, ritual, errorState, noPlanState });
+        }
+      });
+    });
+  });
+
   content.querySelector('#btn-recal')?.addEventListener('click', () => {
+
     const items = (recal.probe.length ? recal.probe : [
       { exerciseId: 'odd-one' },
       { exerciseId: 'grid-memory' },
