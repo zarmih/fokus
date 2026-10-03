@@ -7,6 +7,7 @@ import { storage } from '../../core/storage';
 import { getExerciseIntelligence } from '../../core/selectors';
 import { domainLabel, DOMAIN_ORDER, skillLabel } from '../../core/labels';
 import { bindPressPhysics } from '../../core/motion';
+import { exerciseRecency } from '../../core/catalog-recency';
 
 export function renderTrainers(container: HTMLElement) {
   const content = renderShell(container, { active: 'trainers' });
@@ -37,9 +38,18 @@ export function renderTrainers(container: HTMLElement) {
   });
   const untriedCount = untriedExercises.length;
 
+  const nowMs = Date.now();
+  const quietExercises = catalog.filter(ex => {
+    const st = exStates.find(s => s.exerciseId === ex.manifest.id);
+    const recency = exerciseRecency(st?.lastPlayedAt, nowMs);
+    return recency === 'rested' || recency === 'quiet';
+  });
+  const quietCount = quietExercises.length;
+
   // Build filters explicitly reflecting counts
   function renderCard(ex: any) {
     const st = exStates.find(s => s.exerciseId === ex.manifest.id);
+    const recency = exerciseRecency(st?.lastPlayedAt, nowMs);
     const isUntried = !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
     const isDiscovery = isUntried && RECENT_ORIGINALS.includes(ex.manifest.id);
     const lvl = st ? st.level : 1;
@@ -97,7 +107,7 @@ export function renderTrainers(container: HTMLElement) {
     const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
 
     return `
-      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
+      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-recency="${recency}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
         <div class="trainer-header-row">
           <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
           <div class="trainer-icon-wrap">
@@ -109,6 +119,7 @@ export function renderTrainers(container: HTMLElement) {
           ${isDiscovery ? `<span style="background: var(--accent); color: var(--bg); font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">New</span>` : ''}
         </div>
         <div class="trainer-instruction">${ex.manifest.instruction}</div>
+        ${recency === 'quiet' ? `<div style="font-size: 11px; color: var(--muted); margin-top: 4px;" data-recency="quiet">Давно не открывали</div>` : ''}
         <div style="margin-bottom: 8px;">
           ${(ex.manifest.skills || []).slice(0, 2).map((s: string) => `<span style="display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; margin-right: 4px; margin-top: 6px;">${skillLabel(s)}</span>`).join('')}
         </div>
@@ -142,6 +153,10 @@ export function renderTrainers(container: HTMLElement) {
   
   filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">
     <span style="font-size:14px; margin-right:4px;">✨</span> Новое <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${untriedCount}</span>
+  </button>`;
+
+  filterHtml += `<button class="filter-chip" data-dom="quiet" type="button" aria-pressed="false">
+    Давно не открывали <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${quietCount}</span>
   </button>`;
 
   filterHtml += `<div style="width: 1px; height: 24px; background: var(--line); margin: 0 8px; align-self: center; opacity: 0.5;"></div>`;
@@ -234,6 +249,7 @@ export function renderTrainers(container: HTMLElement) {
     
     let allMatches = 0;
     let discoveryMatches = 0;
+    let quietMatches = 0;
     const domainMatches = new Map<string, number>();
 
     content.querySelectorAll('.domain-group').forEach(group => {
@@ -244,11 +260,14 @@ export function renderTrainers(container: HTMLElement) {
       group.querySelectorAll('.trainer-card').forEach(card => {
         const el = card as HTMLElement;
         const isDiscovery = el.dataset.discovery === 'true';
+        const recency = el.dataset.recency;
+        const isQuiet = recency === 'rested' || recency === 'quiet';
         const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
         
         if (matchesSearch) {
           allMatches++;
           if (isDiscovery) discoveryMatches++;
+          if (isQuiet) quietMatches++;
           groupMatchCount++;
         }
 
@@ -257,6 +276,8 @@ export function renderTrainers(container: HTMLElement) {
           matchesDom = true;
         } else if (activeDom === 'discovery') {
           matchesDom = isDiscovery;
+        } else if (activeDom === 'quiet') {
+          matchesDom = isQuiet;
         } else {
           matchesDom = activeDom === groupDom;
         }
@@ -279,6 +300,7 @@ export function renderTrainers(container: HTMLElement) {
       let matches = 0;
       if (dom === 'all') matches = allMatches;
       else if (dom === 'discovery') matches = discoveryMatches;
+      else if (dom === 'quiet') matches = quietMatches;
       else if (dom) matches = domainMatches.get(dom) || 0;
       
       const countSpan = c.querySelector('.chip-count');
