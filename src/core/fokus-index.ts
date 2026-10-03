@@ -134,3 +134,29 @@ export function indexDelta(current: number, previous: number | null, daysAgo: nu
   const sign = delta > 0 ? '+' : '';
   return { delta, label: `${sign}${delta} ${labelSuffix}` };
 }
+
+export function personalIndexBand(summaries: { date: string; fokusIndex?: number }[], todayIso: string): { min: number; max: number; days: number; line: string } | null {
+  const endD = new Date(todayIso.substring(0, 10) + 'T00:00:00Z');
+  const startD = new Date(endD);
+  startD.setDate(startD.getDate() - 6);
+  const startStr = startD.toISOString().substring(0, 10);
+  const endStr = endD.toISOString().substring(0, 10);
+
+  const valid = summaries.filter(s => {
+    const d = s.date.substring(0, 10);
+    return d >= startStr && d <= endStr && typeof s.fokusIndex === 'number' && isFinite(s.fokusIndex) && s.fokusIndex > 0;
+  });
+
+  if (valid.length < 3) return null;
+
+  const vals = valid.map(s => s.fokusIndex as number);
+  const min = Math.round(Math.min(...vals));
+  const max = Math.round(Math.max(...vals));
+
+  return {
+    min,
+    max,
+    days: valid.length,
+    line: `Ваш диапазон за 7 дней: ${min}–${max}. Это ваша полоса, не сравнение с другими.`
+  };
+}

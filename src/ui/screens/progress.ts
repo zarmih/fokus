@@ -7,7 +7,7 @@ import { storage } from '../../core/storage';
 import { renderShell } from '../shell';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { renderScatterPlot, renderRadarChart, renderIndexSparkline } from '../components/charts';
-import { computeFokusIndex } from '../../core/fokus-index';
+import { computeFokusIndex, personalIndexBand } from '../../core/fokus-index';
 import { domainLabel, skillLabel } from '../../core/labels';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
@@ -376,6 +376,10 @@ export function renderProgress(container: HTMLElement) {
     ? `<div class="fi-pb">${intel.personalBest.isLatest ? 'личный рекорд' : 'рекорд'} · ${intel.personalBest.value}</div>`
     : '';
 
+  const band = personalIndexBand(ds, new Date().toISOString());
+  const bandHtml = band ? `<div class="fi-personal-band" data-personal-band="1" style="font-size: 12px; color: var(--text); opacity: 0.9; margin-top: 8px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px;">${band.line}</div>` : '';
+
+
   const depthHtml = `
     <div class="fi-depth" style="margin-top: 16px; font-size: 13px; color: var(--text);">
       <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
@@ -409,6 +413,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-meta">${fi.coverage} из 5 областей · ${fi.explain.state}</div>
         ${fi.balance !== 'unknown' && fi.explain.balanceStr ? `<div class="fi-meta" style="margin-top: 4px; opacity: 0.8; font-size: 12px; max-width: 280px; margin-left: auto; margin-right: auto; line-height: 1.3;">${fi.explain.balanceStr}</div>` : ''}
         ${pbNote}
+        ${bandHtml}
         ${sparkHtml}
         ${depthHtml}
         <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">${fi.explain.action}</p>
@@ -423,6 +428,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value" style="font-size: 24px; color: var(--text); opacity: 0.8; margin: 8px 0;">Калибровка...</div>
         <div class="fi-meta" style="margin-bottom: 12px; color: var(--text); opacity: 0.9;">${fi.explain.state}<br>${fi.explain.action}</div>
+        ${bandHtml}
         ${depthHtml}
         <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">Пока данных мало для оценки. Индекс временно скрыт, так как мы не генерируем приблизительные баллы, а опираемся на ваши реальные метрики.</p>
         ${btnExplain}
@@ -435,6 +441,7 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-kicker">Fokus Index</div>
         <div class="fi-value" style="font-size: 24px; color: var(--muted); margin: 8px 0;">—</div>
         <div class="fi-meta" style="color: var(--muted);">${fi.explain.state}</div>
+        ${bandHtml}
         ${depthHtml}
         <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 16px; line-height: 1.3;">${fi.explain.action}</p>
         ${btnExplain}
