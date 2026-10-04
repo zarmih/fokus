@@ -76,7 +76,9 @@ export function generateCatalogArt(exerciseId: string, domain: string): string {
   // We need at least 3 distinct hue buckets. Sky is one.
   // We need ground, object, accent.
   const ink = "#1e293b";
-  const paper = "#f8fafc";
+  const objectFills = ["#fde047", "#fb7185", "#34d399", "#60a5fa", "#f97316", "#e879f9", "#2dd4bf", "#facc15", "#a3e635", "#38bdf8", "#fb923c", "#c084fc", "#f43f5e"];
+  let paper = objectFills[(skyIndex + 5) % objectFills.length];
+  if (paper.toLowerCase() === skyColor.toLowerCase()) paper = objectFills[(skyIndex + 6) % objectFills.length];
   
   // Use a different saturated color for accent that is not the sky
   const accents = ["#f43f5e", "#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#06b6d4"];
@@ -337,7 +339,7 @@ export function generateCatalogArt(exerciseId: string, domain: string): string {
   const innerSVG = template.render();
 
   return `
-    <svg data-scene="${template.name}" data-sky="${skyColor}" viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="pointer-events: none;">
+    <svg data-scene="${template.name}" data-sky="${skyColor}" viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="pointer-events: none; background: ${skyColor};">
       <rect x="0" y="0" width="100" height="100" fill="${skyColor}" />
       ${innerSVG}
     </svg>
