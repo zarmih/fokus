@@ -8,7 +8,7 @@ import { getExerciseIntelligence } from '../../core/selectors';
 import { domainLabel, DOMAIN_ORDER, skillLabel } from '../../core/labels';
 import { bindPressPhysics } from '../../core/motion';
 import { exerciseRecency } from '../../core/catalog-recency';
-
+import { generateCatalogArt } from '../catalog-art';
 export function renderTrainers(container: HTMLElement) {
   const content = renderShell(container, { active: 'trainers' });
   const exStates = storage.getExerciseStates();
@@ -106,27 +106,21 @@ export function renderTrainers(container: HTMLElement) {
     const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
     const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
 
+    const artHtml = generateCatalogArt(ex.manifest.id, ex.manifest.domain);
+
     return `
-      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-recency="${recency}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
-        <div class="trainer-header-row">
-          <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
-          <div class="trainer-icon-wrap">
-            <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="24" height="24" alt="" decoding="async" loading="lazy">
+      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-recency="${recency}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}">
+        <div class="trainer-art-region">
+          ${artHtml}
+          ${isDiscovery ? `<div class="trainer-new-badge">New</div>` : ''}
+        </div>
+        <div class="trainer-card-footer">
+          <div class="trainer-name">${ex.manifest.name}</div>
+          <div class="trainer-chip-row">
+            <span class="trainer-domain-chip">${domainLabel(ex.manifest.domain)}</span>
+            ${recency === 'quiet' ? `<span class="trainer-quiet-chip" data-recency="quiet">Давно не открывали</span>` : ''}
           </div>
         </div>
-        <div class="trainer-name" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-          ${ex.manifest.name}
-          ${isDiscovery ? `<span style="background: var(--accent); color: var(--bg); font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">New</span>` : ''}
-        </div>
-        <div class="trainer-instruction">${ex.manifest.instruction}</div>
-        ${recency === 'quiet' ? `<div style="font-size: 11px; color: var(--muted); margin-top: 4px;" data-recency="quiet">Давно не открывали</div>` : ''}
-        <div style="margin-bottom: 8px;">
-          ${(ex.manifest.skills || []).slice(0, 2).map((s: string) => `<span style="display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; margin-right: 4px; margin-top: 6px;">${skillLabel(s)}</span>`).join('')}
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; width: 100%;">
-          <div class="trainer-level">Ур. ${lvl}</div>
-        </div>
-        ${intelHtml}
       </button>
     `;
   }
