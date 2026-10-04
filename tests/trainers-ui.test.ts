@@ -126,12 +126,23 @@ test('renderTrainers renders cards with inline SVG and no external HTTP images',
   const groups = Array.from(container.querySelectorAll('.domain-group')) as HTMLElement[];
   for (const group of groups) {
     const groupCards = Array.from(group.querySelectorAll('.trainer-card')) as HTMLElement[];
-    for (let i = 0; i < groupCards.length - 1; i++) {
-      const svg1 = groupCards[i].querySelector('svg')?.outerHTML;
-      const svg2 = groupCards[i + 1].querySelector('svg')?.outerHTML;
-      expect(svg1).toBeDefined();
-      expect(svg2).toBeDefined();
-      expect(svg1).not.toEqual(svg2);
+    for (let i = 0; i < groupCards.length; i++) {
+      const svg = groupCards[i].querySelector('svg');
+      expect(svg).toBeDefined();
+      const sky = svg?.getAttribute('data-sky');
+      expect(sky).toBeTruthy();
+
+      const markup = svg!.outerHTML;
+      const colors = new Set<string>();
+      const hexMatches = markup.match(/#[0-9a-fA-F]{3,6}/g) || [];
+      hexMatches.forEach(c => colors.add(c.toLowerCase()));
+      expect(colors.size).toBeGreaterThanOrEqual(3);
+
+      if (i > 0) {
+        const prevSvg = groupCards[i - 1].querySelector('svg');
+        const prevSky = prevSvg?.getAttribute('data-sky');
+        expect(sky).not.toEqual(prevSky);
+      }
     }
   }
 });

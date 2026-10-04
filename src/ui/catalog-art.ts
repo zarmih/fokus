@@ -1,3 +1,5 @@
+import { catalog } from '../exercises/catalog';
+
 export function generateCatalogArt(exerciseId: string, domain: string): string {
   // deterministic PRNG based on hash
   let hash = 0;
@@ -16,10 +18,69 @@ export function generateCatalogArt(exerciseId: string, domain: string): string {
   const int = (min: number, max: number) => Math.floor(range(min, max));
   const choice = <T>(arr: T[]) => arr[int(0, arr.length)];
 
+  // 12+ saturated skies
+  const skies = [
+    "#0ea5e9", "#2563eb", "#4f46e5", "#7c3aed",
+    "#c026d3", "#db2777", "#e11d48", "#ea580c",
+    "#d97706", "#65a30d", "#16a34a", "#0d9488",
+    "#0891b2"
+  ];
+  
+  const templates = [
+    { name: 'lighthouse', render: renderLighthouse },
+    { name: 'orbit', render: renderOrbit },
+    { name: 'honeycomb', render: renderHoneycomb },
+    { name: 'vault', render: renderVault },
+    { name: 'comet', render: renderComet },
+    { name: 'metronome', render: renderMetronome },
+    { name: 'prism', render: renderPrism },
+    { name: 'balance-scale', render: renderBalanceScale },
+    { name: 'pyramid', render: renderPyramid },
+    { name: 'radar', render: renderRadar },
+    { name: 'path-of-stones', render: renderPathOfStones },
+    { name: 'paired-anchors', render: renderPairedAnchors },
+    { name: 'telescope', render: renderTelescope }
+  ];
+
+  const templateIndex = Math.abs(hash) % templates.length;
+  const template = templates[templateIndex];
+  
+  // Resolve collisions by checking catalog (as prompt implies we might need the catalog for this)
+  const domainExs = catalog.filter(e => e.manifest.domain === domain).sort((a, b) => a.manifest.name.localeCompare(b.manifest.name, 'ru'));
+  
+  let currentSkyIndex = -1;
+  let targetSkyIndex = 0;
+  
+  for (let i = 0; i < domainExs.length; i++) {
+    const id = domainExs[i].manifest.id;
+    let h = 0;
+    for (let c = 0; c < id.length; c++) h = Math.imul(31, h) + id.charCodeAt(c) | 0;
+    
+    const tIdx = Math.abs(h) % templates.length;
+    let sIdx = (Math.abs(h) + tIdx) % skies.length;
+    
+    if (i > 0 && sIdx === currentSkyIndex) {
+      sIdx = (sIdx + 1) % skies.length;
+    }
+    currentSkyIndex = sIdx;
+    
+    if (id === exerciseId) {
+      targetSkyIndex = sIdx;
+      break;
+    }
+  }
+
+  const skyIndex = targetSkyIndex;
+  const skyColor = skies[skyIndex];
+
+  // We need at least 3 distinct hue buckets. Sky is one.
+  // We need ground, object, accent.
   const ink = "#1e293b";
   const paper = "#f8fafc";
+  
+  // Use a different saturated color for accent that is not the sky
   const accents = ["#f43f5e", "#10b981", "#3b82f6", "#8b5cf6", "#f59e0b", "#06b6d4"];
-  const sceneAccent = choice(accents);
+  const sceneAccent = accents[(skyIndex + 3) % accents.length];
 
   function renderLighthouse() {
     const scale = range(0.8, 1.2).toFixed(3);
@@ -273,34 +334,11 @@ export function generateCatalogArt(exerciseId: string, domain: string): string {
     return ground + obj + accent;
   }
 
-  const templates = [
-    { name: 'lighthouse', render: renderLighthouse },
-    { name: 'orbit', render: renderOrbit },
-    { name: 'honeycomb', render: renderHoneycomb },
-    { name: 'vault', render: renderVault },
-    { name: 'comet', render: renderComet },
-    { name: 'metronome', render: renderMetronome },
-    { name: 'prism', render: renderPrism },
-    { name: 'balance-scale', render: renderBalanceScale },
-    { name: 'pyramid', render: renderPyramid },
-    { name: 'radar', render: renderRadar },
-    { name: 'path-of-stones', render: renderPathOfStones },
-    { name: 'paired-anchors', render: renderPairedAnchors },
-    { name: 'telescope', render: renderTelescope }
-  ];
-
-  const template = choice(templates);
   const innerSVG = template.render();
 
   return `
-    <svg data-scene="${template.name}" viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="color: var(--dom-${domain}); pointer-events: none;">
-      <defs>
-        <radialGradient id="wash-${exerciseId}" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="currentColor" stop-opacity="0.3" />
-          <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
-        </radialGradient>
-      </defs>
-      <rect x="0" y="0" width="100" height="100" fill="url(#wash-${exerciseId})" />
+    <svg data-scene="${template.name}" data-sky="${skyColor}" viewBox="0 0 100 100" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" aria-hidden="true" style="pointer-events: none;">
+      <rect x="0" y="0" width="100" height="100" fill="${skyColor}" />
       ${innerSVG}
     </svg>
   `.trim();
