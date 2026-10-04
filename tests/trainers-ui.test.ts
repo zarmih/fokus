@@ -99,6 +99,14 @@ test('renderTrainers renders cards with inline SVG and no external HTTP images',
     // Should not have any <image href="..."> inside SVG
     expect(svgMarkup).not.toContain('<image ');
 
+    // Should not have any bitmap/data URI
+    expect(svgMarkup).not.toContain('data:');
+
+    // Should have ground, object, and accent parts
+    expect(svgMarkup).toContain('data-part="ground"');
+    expect(svgMarkup).toContain('data-part="object"');
+    expect(svgMarkup).toContain('data-part="accent"');
+
     // Should show the exercise name
     const nameEl = card.querySelector('.trainer-name');
     expect(nameEl).toBeTruthy();
@@ -112,6 +120,30 @@ test('renderTrainers renders cards with inline SVG and no external HTTP images',
     const firstSvg = svgs[0];
     const differentSvg = svgs.find(s => s !== firstSvg);
     expect(differentSvg).toBeDefined();
+  }
+
+  // Check consecutive cards in each domain group
+  const groups = Array.from(container.querySelectorAll('.domain-group')) as HTMLElement[];
+  for (const group of groups) {
+    const groupCards = Array.from(group.querySelectorAll('.trainer-card')) as HTMLElement[];
+    for (let i = 0; i < groupCards.length; i++) {
+      const svg = groupCards[i].querySelector('svg');
+      expect(svg).toBeDefined();
+      const sky = svg?.getAttribute('data-sky');
+      expect(sky).toBeTruthy();
+
+      const markup = svg!.outerHTML;
+      const colors = new Set<string>();
+      const hexMatches = markup.match(/#[0-9a-fA-F]{3,6}/g) || [];
+      hexMatches.forEach(c => colors.add(c.toLowerCase()));
+      expect(colors.size).toBeGreaterThanOrEqual(3);
+
+      if (i > 0) {
+        const prevSvg = groupCards[i - 1].querySelector('svg');
+        const prevSky = prevSvg?.getAttribute('data-sky');
+        expect(sky).not.toEqual(prevSky);
+      }
+    }
   }
 });
 

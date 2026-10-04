@@ -111,7 +111,13 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
       } else if (status.state === 'syncing') {
         indicator.innerHTML = 'Синхронизация...';
       } else if (status.state === 'error') {
-        indicator.innerHTML = 'Ошибка';
+        // Not an error counter on main screens. Hide when nothing is queued.
+        if (status.pendingCount > 0) {
+          indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg> Сохранено локально';
+        } else {
+          indicator.className = 'sync-indicator';
+          indicator.innerHTML = '';
+        }
       } else if (status.state === 'online') {
         indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg> Синхронизировано';
         // fade out after 2 seconds
