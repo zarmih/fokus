@@ -99,6 +99,14 @@ test('renderTrainers renders cards with inline SVG and no external HTTP images',
     // Should not have any <image href="..."> inside SVG
     expect(svgMarkup).not.toContain('<image ');
 
+    // Should not have any bitmap/data URI
+    expect(svgMarkup).not.toContain('data:');
+
+    // Should have ground, object, and accent parts
+    expect(svgMarkup).toContain('data-part="ground"');
+    expect(svgMarkup).toContain('data-part="object"');
+    expect(svgMarkup).toContain('data-part="accent"');
+
     // Should show the exercise name
     const nameEl = card.querySelector('.trainer-name');
     expect(nameEl).toBeTruthy();
@@ -112,6 +120,19 @@ test('renderTrainers renders cards with inline SVG and no external HTTP images',
     const firstSvg = svgs[0];
     const differentSvg = svgs.find(s => s !== firstSvg);
     expect(differentSvg).toBeDefined();
+  }
+
+  // Check consecutive cards in each domain group
+  const groups = Array.from(container.querySelectorAll('.domain-group')) as HTMLElement[];
+  for (const group of groups) {
+    const groupCards = Array.from(group.querySelectorAll('.trainer-card')) as HTMLElement[];
+    for (let i = 0; i < groupCards.length - 1; i++) {
+      const svg1 = groupCards[i].querySelector('svg')?.outerHTML;
+      const svg2 = groupCards[i + 1].querySelector('svg')?.outerHTML;
+      expect(svg1).toBeDefined();
+      expect(svg2).toBeDefined();
+      expect(svg1).not.toEqual(svg2);
+    }
   }
 });
 
