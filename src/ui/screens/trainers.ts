@@ -8,7 +8,7 @@ import { getExerciseIntelligence } from '../../core/selectors';
 import { domainLabel, DOMAIN_ORDER, skillLabel } from '../../core/labels';
 import { bindPressPhysics } from '../../core/motion';
 import { exerciseRecency } from '../../core/catalog-recency';
-
+import { generateCatalogArt } from '../catalog-art';
 export function renderTrainers(container: HTMLElement) {
   const content = renderShell(container, { active: 'trainers' });
   const exStates = storage.getExerciseStates();
@@ -52,10 +52,8 @@ export function renderTrainers(container: HTMLElement) {
     const recency = exerciseRecency(st?.lastPlayedAt, nowMs);
     const isUntried = !st || (st.attempts === undefined ? !st.lastPlayedAt : st.attempts === 0);
     const isDiscovery = isUntried && RECENT_ORIGINALS.includes(ex.manifest.id);
-    const lvl = st ? st.level : 1;
     const intel = getExerciseIntelligence(ex.manifest.id);
     
-    let intelHtml = '';
     const stateLabels: Record<string, string> = {
       'CALIBRATING': 'Калибровка',
       'DEVELOPING': 'Освоение',
@@ -66,67 +64,25 @@ export function renderTrainers(container: HTMLElement) {
 
     const currentStateLabel = stateLabels[intel.state] || intel.state;
 
-    if (intel.state === 'CALIBRATING') {
-      intelHtml = `
-        <div style="margin-top: 12px;" aria-hidden="true">
-          <div style="font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Калибровка (${intel.attempts}/3)</div>
-          <div class="scale-track" style="height: 4px; opacity: 0.3; margin: 0;"><div class="scale-fill" style="width: 100%; background: var(--muted);"></div></div>
-          <div style="font-size: 11px; color: var(--muted); margin-top: 4px;">Сложность: ${intel.difficulty}</div>
-        </div>`;
-    } else {
-      const stateColor = intel.state === 'STABLE' ? 'var(--ok)' : intel.state === 'CHALLENGE' ? 'var(--accent)' : intel.state === 'PLATEAU' ? 'var(--danger)' : 'var(--text)';
-      let avgTrend = 0;
-      if (intel.skills.length > 0) {
-        avgTrend = intel.skills.reduce((sum, s) => sum + (s.trend || 0), 0) / intel.skills.length;
-      }
-      const trendStr = avgTrend > 0.05 ? '↑' : avgTrend < -0.05 ? '↓' : '→';
-      const trendColor = avgTrend > 0.05 ? 'var(--ok)' : avgTrend < -0.05 ? 'var(--danger)' : 'var(--muted)';
-
-      intelHtml = `
-        <div style="margin-top: 12px;" aria-hidden="true">
-          <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px;">
-            <div style="font-size: 11px; color: ${stateColor}; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
-              ${currentStateLabel}
-            </div>
-            <div style="font-size: 12px; font-weight: 700;">
-              ${intel.mastery}<span style="font-size: 10px; color: var(--muted); font-weight: 500;">/100</span>
-            </div>
-          </div>
-          <div class="scale-track" style="height: 4px; margin: 0 0 6px 0; background: rgba(255,255,255,0.05);">
-            <div class="scale-fill" style="width: ${intel.mastery}%; background: ${stateColor};"></div>
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--muted);">
-            <div>Сложность: <span style="color: var(--text);">${intel.difficulty}</span></div>
-            <div>Тренд: <span style="color: ${trendColor}; font-weight: 700;">${trendStr}</span></div>
-          </div>
-        </div>
-      `;
-    }
 
     const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
     const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
 
+    const artHtml = generateCatalogArt(ex.manifest.id, ex.manifest.domain);
+
     return `
-      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-recency="${recency}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}" style="position: relative;">
-        <div class="trainer-header-row">
-          <div class="trainer-domain">${domainLabel(ex.manifest.domain)}</div>
-          <div class="trainer-icon-wrap">
-            <img src="${import.meta.env.BASE_URL}art/icon-${ex.manifest.id}.svg" width="24" height="24" alt="" decoding="async" loading="lazy">
+      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-recency="${recency}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}">
+        <div class="trainer-art-region">
+          ${artHtml}
+          ${isDiscovery ? `<div class="trainer-new-badge">New</div>` : ''}
+        </div>
+        <div class="trainer-card-footer">
+          <div class="trainer-name">${ex.manifest.name}</div>
+          <div class="trainer-chip-row">
+            <span class="trainer-domain-chip">${domainLabel(ex.manifest.domain)}</span>
+            ${recency === 'quiet' ? `<span class="trainer-quiet-chip" data-recency="quiet">Давно не открывали</span>` : ''}
           </div>
         </div>
-        <div class="trainer-name" style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-          ${ex.manifest.name}
-          ${isDiscovery ? `<span style="background: var(--accent); color: var(--bg); font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;">New</span>` : ''}
-        </div>
-        <div class="trainer-instruction">${ex.manifest.instruction}</div>
-        ${recency === 'quiet' ? `<div style="font-size: 11px; color: var(--muted); margin-top: 4px;" data-recency="quiet">Давно не открывали</div>` : ''}
-        <div style="margin-bottom: 8px;">
-          ${(ex.manifest.skills || []).slice(0, 2).map((s: string) => `<span style="display: inline-block; background: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; font-size: 9px; text-transform: uppercase; margin-right: 4px; margin-top: 6px;">${skillLabel(s)}</span>`).join('')}
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto; width: 100%;">
-          <div class="trainer-level">Ур. ${lvl}</div>
-        </div>
-        ${intelHtml}
       </button>
     `;
   }

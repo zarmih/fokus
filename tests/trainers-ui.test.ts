@@ -77,3 +77,41 @@ test('renderTrainers filter click toggles domain groups and updates count', () =
     }
   });
 });
+
+test('renderTrainers renders cards with inline SVG and no external HTTP images', () => {
+  const container = document.createElement('div');
+  renderTrainers(container);
+
+  const cards = Array.from(container.querySelectorAll('.trainer-card')) as HTMLElement[];
+  expect(cards.length).toBeGreaterThan(0);
+
+  const svgs: string[] = [];
+
+  for (const card of cards) {
+    // Should have inline SVG instead of img icon
+    const svg = card.querySelector('svg');
+    expect(svg).toBeTruthy();
+    
+    const svgMarkup = svg!.outerHTML;
+    expect(svgMarkup).not.toContain('http://');
+    expect(svgMarkup).not.toContain('https://');
+    
+    // Should not have any <image href="..."> inside SVG
+    expect(svgMarkup).not.toContain('<image ');
+
+    // Should show the exercise name
+    const nameEl = card.querySelector('.trainer-name');
+    expect(nameEl).toBeTruthy();
+    expect(nameEl!.textContent?.trim().length).toBeGreaterThan(0);
+
+    svgs.push(svgMarkup);
+  }
+
+  // Two different exercise ids produce different SVG markup
+  if (svgs.length >= 2) {
+    const firstSvg = svgs[0];
+    const differentSvg = svgs.find(s => s !== firstSvg);
+    expect(differentSvg).toBeDefined();
+  }
+});
+
