@@ -18,14 +18,20 @@ export function generateCatalogArt(exerciseId: string, domain: string): string {
   const int = (min: number, max: number) => Math.floor(range(min, max));
   const choice = <T>(arr: T[]) => arr[int(0, arr.length)];
 
-  // 12+ saturated skies
-  const skies = [
-    "#0ea5e9", "#2563eb", "#4f46e5", "#7c3aed",
-    "#c026d3", "#db2777", "#e11d48", "#ea580c",
-    "#d97706", "#65a30d", "#16a34a", "#0d9488",
-    "#0891b2"
+  // «Тихий свет»: each skill gets its own sky family derived from --grad-<skill>
+  // (start, three steps towards end, end, and two deeper shades) so scenes stay varied
+  // while harmonising with the card's skill gradient.
+  const SKILL_SKIES: Record<string, string[]> = {
+    attention:   ["#FF7D6B", "#FF905F", "#FFA353", "#FFB547", "#D16658", "#D1943A"],
+    memory:      ["#9B7BFF", "#BA7BEB", "#D77BD7", "#F57BC4", "#7F65D1", "#C965A1"],
+    speed:       ["#2EC4B6", "#5CD095", "#88DB75", "#B5E655", "#26A195", "#94BD46"],
+    logic:       ["#4C7DFF", "#5196FF", "#57AFFF", "#5CC8FF", "#3E66D1", "#4BA4D1"],
+    flexibility: ["#7EE8C1", "#5ED7A9", "#3EC691", "#1FB57A", "#67BE9E", "#199464"],
+  };
+  const skies = SKILL_SKIES[domain] || [
+    ...SKILL_SKIES.attention.slice(0, 2), ...SKILL_SKIES.memory.slice(0, 2), ...SKILL_SKIES.logic.slice(0, 2)
   ];
-  
+
   const templates = [
     { name: 'lighthouse', render: renderLighthouse },
     { name: 'orbit', render: renderOrbit },
@@ -75,7 +81,7 @@ export function generateCatalogArt(exerciseId: string, domain: string): string {
 
   // We need at least 3 distinct hue buckets. Sky is one.
   // We need ground, object, accent.
-  const ink = "#1e293b";
+  const ink = "#1C1A2E"; // «Тихий свет» ink
   const objectFills = ["#fde047", "#fb7185", "#34d399", "#60a5fa", "#f97316", "#e879f9", "#2dd4bf", "#facc15", "#a3e635", "#38bdf8", "#fb923c", "#c084fc", "#f43f5e"];
   let paper = objectFills[(skyIndex + 5) % objectFills.length];
   if (paper.toLowerCase() === skyColor.toLowerCase()) paper = objectFills[(skyIndex + 6) % objectFills.length];

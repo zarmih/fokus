@@ -26,7 +26,7 @@ const globalLocalModule: ExerciseModule = {
           justify-content: center;
           height: 100%;
           gap: 2rem;
-          font-family: system-ui, sans-serif;
+          font-family: var(--font-sans);
         }
         .gl-prompt {
           font-size: 2rem;

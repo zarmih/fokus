@@ -39,6 +39,9 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
   `;
   container.appendChild(root);
 
+  // «Тихий свет» sky comes from the shared --stage-sky-* tokens (src/styles/tokens.css, .play-sky rule).
+  (root.querySelector('.play-sky') as HTMLElement).dataset.sky = 'quiet-light';
+
   const board = root.querySelector('.play-board') as HTMLElement;
   const hud = root.querySelector('.play-hud') as HTMLElement;
   const comboEl = root.querySelector('.play-combo') as HTMLElement;

@@ -1,0 +1,134 @@
+/*
+ * «Тихий свет» (Quiet Light) — design tokens, step 1.
+ * Imported before styles.css; styles.css repoints its legacy colour variables
+ * (--bg, --accent, --danger, --dom-* …) onto these.
+ * Palette only — font, radii and shadows are handled separately.
+ * Theme switching: src/ui/theme.ts sets [data-theme] on <html>;
+ * default (no attribute) = dark.
+ */
+
+/* ---------- Theme-independent tokens ---------- */
+:root {
+  /* Skill gradients (same in both themes) */
+  --grad-attention-start: #FF7D6B;   /* coral */
+  --grad-attention-end: #FFB547;     /* amber */
+  --grad-memory-start: #9B7BFF;      /* violet */
+  --grad-memory-end: #F57BC4;        /* pink */
+  --grad-speed-start: #2EC4B6;       /* teal */
+  --grad-speed-end: #B5E655;         /* lime */
+  --grad-logic-start: #4C7DFF;       /* blue */
+  --grad-logic-end: #5CC8FF;         /* sky */
+  --grad-flexibility-start: #7EE8C1; /* mint */
+  --grad-flexibility-end: #1FB57A;   /* emerald */
+
+  --grad-attention: linear-gradient(135deg, var(--grad-attention-start), var(--grad-attention-end));
+  --grad-memory: linear-gradient(135deg, var(--grad-memory-start), var(--grad-memory-end));
+  --grad-speed: linear-gradient(135deg, var(--grad-speed-start), var(--grad-speed-end));
+  --grad-logic: linear-gradient(135deg, var(--grad-logic-start), var(--grad-logic-end));
+  --grad-flexibility: linear-gradient(135deg, var(--grad-flexibility-start), var(--grad-flexibility-end));
+
+  /* Text/ink on top of any skill gradient (≥ 4.5:1 on every gradient stop) */
+  --ql-on-grad: #14132A;
+
+  /* Play stage: the sky is always dark, so the stage uses fixed light-on-dark colours in both themes */
+  --stage-ink: #0F1020;
+  --stage-ink-rgb: 15, 16, 32;
+  --stage-paper: #F7F5F0;
+  --stage-text: #F3F1FA;
+  --stage-muted: #B4B1C8;
+  --stage-accent: #FFC46B;
+
+  /* Quiet sky: deep blue-violet field behind every exercise (play arena + stage sky).
+     Composed in styles.css (.play-arena / .play-sky) as: glow, domain tint, fade. */
+  --stage-sky-base: #0F1020;
+  --stage-sky-indigo: #1A1640;
+  --stage-sky-violet: #2A1E5C;
+  --stage-sky-tint: rgba(80, 80, 150, 0.05);
+  --stage-sky-glow:
+    radial-gradient(1px 1px at 18% 22%, rgba(220, 216, 255, 0.22), transparent 70%),
+    radial-gradient(1px 1px at 72% 14%, rgba(220, 216, 255, 0.16), transparent 70%),
+    radial-gradient(1.2px 1.2px at 58% 38%, rgba(220, 216, 255, 0.12), transparent 70%),
+    radial-gradient(1px 1px at 34% 46%, rgba(220, 216, 255, 0.10), transparent 70%),
+    radial-gradient(90% 55% at 50% -8%, rgba(42, 30, 92, 0.75), transparent 70%),
+    radial-gradient(60% 45% at 12% 8%, rgba(26, 22, 64, 0.9), transparent 72%),
+    radial-gradient(55% 40% at 88% 12%, rgba(26, 22, 64, 0.8), transparent 72%);
+  --stage-sky-fade: linear-gradient(180deg, var(--stage-sky-indigo) 0%, #141330 38%, var(--stage-sky-base) 78%, var(--stage-sky-base) 100%);
+}
+
+/* ---------- Dark (default) ----------
+ * .play-arena / .play-stage re-use the dark palette in every theme (the sky is always dark). */
+:root, [data-theme="dark"], .play-arena, .play-stage {
+  --ql-bg: #0F1020;
+  --ql-bg-rgb: 15, 16, 32;
+  --ql-bg-deep: #0A0B17;
+  --ql-surface: #16172B;
+  --ql-elevated: #1A1B30;
+  --ql-elevated-2: #25263D;
+  --ql-surface-alpha: rgba(255, 255, 255, 0.045);
+  --ql-surface-alpha-2: rgba(255, 255, 255, 0.075);
+  --ql-line: rgba(226, 222, 255, 0.10);
+  --ql-text: #F3F1FA;
+  --ql-text-muted: #B4B1C8;
+  --ql-glass: rgba(15, 16, 32, 0.74);
+
+  --ql-accent: #FFC46B;         /* light amber — primary buttons */
+  --ql-accent-hover: #FFD592;
+  --ql-accent-deep: #E0A24A;
+  --ql-accent-rgb: 255, 196, 107;
+  --ql-accent-ink: #FFC46B;     /* accent used as text */
+  --ql-on-accent: #231705;      /* text on amber buttons (11.2:1) */
+  --ql-accent-2: #8FB4FF;
+  --ql-accent-2-rgb: 143, 180, 255;
+
+  --ql-danger: #F291AB;         /* muted pink */
+  --ql-danger-rgb: 242, 145, 171;
+  --ql-on-danger: #2A0E17;
+  --ql-ok: #5DD6A4;
+  --ql-ok-rgb: 93, 214, 164;
+  --ql-shadow-rgb: 0, 0, 0;
+
+  /* Domain solid colours (text-safe on bg) */
+  --ql-dom-attention: #FF7D6B;
+  --ql-dom-memory: #A889FF;
+  --ql-dom-speed: #3CCFBF;
+  --ql-dom-logic: #5B8CFF;
+  --ql-dom-flexibility: #5FE0B0;
+}
+
+/* ---------- Light: warm milk ---------- */
+[data-theme="light"] {
+  --ql-bg: #F7F5F0;
+  --ql-bg-rgb: 247, 245, 240;
+  --ql-bg-deep: #EFEBE3;
+  --ql-surface: #FBFAF7;
+  --ql-elevated: #FFFFFF;
+  --ql-elevated-2: #ECE7DC;
+  --ql-surface-alpha: rgba(255, 255, 255, 0.82);
+  --ql-surface-alpha-2: #ECE7DC;
+  --ql-line: rgba(40, 32, 20, 0.09);
+  --ql-text: #1C1A2E;
+  --ql-text-muted: #5B5770;
+  --ql-glass: rgba(251, 250, 247, 0.82);
+
+  --ql-accent: #F2AE45;
+  --ql-accent-hover: #F6C066;
+  --ql-accent-deep: #C98A2E;
+  --ql-accent-rgb: 242, 174, 69;
+  --ql-accent-ink: #93570A;     /* 5.3:1 on milk */
+  --ql-on-accent: #2A1A05;      /* 8.7:1 on amber */
+  --ql-accent-2: #2F5FD0;
+  --ql-accent-2-rgb: 47, 95, 208;
+
+  --ql-danger: #B83E63;
+  --ql-danger-rgb: 184, 62, 99;
+  --ql-on-danger: #FFFFFF;
+  --ql-ok: #1B7F58;
+  --ql-ok-rgb: 27, 127, 88;
+  --ql-shadow-rgb: 28, 26, 46;  /* ink-tinted shadows on milk */
+
+  --ql-dom-attention: #C2452E;
+  --ql-dom-memory: #7A4FD8;
+  --ql-dom-speed: #0C766C;
+  --ql-dom-logic: #2F5FD0;
+  --ql-dom-flexibility: #147F57;
+}

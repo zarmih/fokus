@@ -15,13 +15,18 @@ export async function shareSessionCard(params: {
     return;
   }
 
+  // «Тихий свет» dark palette (canvas cannot read CSS vars reliably; values mirror src/styles/tokens.css).
+  const QL = {
+    surface: '#1A1B30', bg: '#0F1020', accent: '#FFC46B', text: '#F3F1FA',
+    muted: '#B4B1C8', card: '#25263D', faint: '#8A87A0'
+  };
   const bg = ctx.createLinearGradient(0, 0, 1080, 1080);
-  bg.addColorStop(0, '#1e293b');
-  bg.addColorStop(1, '#0f172a');
+  bg.addColorStop(0, QL.surface);
+  bg.addColorStop(1, QL.bg);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, 1080, 1080);
 
-  ctx.fillStyle = '#f59e0b';
+  ctx.fillStyle = QL.accent;
   ctx.beginPath();
   ctx.arc(980, 100, 180, 0, Math.PI * 2);
   ctx.fill();
@@ -29,20 +34,20 @@ export async function shareSessionCard(params: {
   ctx.fill();
   ctx.globalAlpha = 1;
 
-  ctx.fillStyle = '#f8fafc';
-  ctx.font = '800 56px Inter, system-ui, sans-serif';
+  ctx.fillStyle = QL.text;
+  ctx.font = '800 56px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText('Fokus', 80, 140);
 
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '500 32px Inter, system-ui, sans-serif';
+  ctx.fillStyle = QL.muted;
+  ctx.font = '500 32px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText('Тренировка внимания и памяти', 80, 190);
 
-  ctx.fillStyle = '#f59e0b';
-  ctx.font = '800 180px Inter, system-ui, sans-serif';
+  ctx.fillStyle = QL.accent;
+  ctx.font = '800 180px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText(String(Math.round(score)), 80, 460);
 
-  ctx.fillStyle = '#94a3b8';
-  ctx.font = '600 36px Inter, system-ui, sans-serif';
+  ctx.fillStyle = QL.muted;
+  ctx.font = '600 36px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText('очков за сессию', 80, 520);
 
   const stats = [
@@ -52,19 +57,19 @@ export async function shareSessionCard(params: {
   ];
   stats.forEach((row, i) => {
     const x = 80 + i * 320;
-    ctx.fillStyle = '#334155';
+    ctx.fillStyle = QL.card;
     roundRect(ctx, x, 600, 280, 160, 28);
     ctx.fill();
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '600 24px Inter, system-ui, sans-serif';
+    ctx.fillStyle = QL.muted;
+    ctx.font = '600 24px "Manrope Variable", system-ui, sans-serif';
     ctx.fillText(row[0], x + 28, 660);
-    ctx.fillStyle = '#f8fafc';
-    ctx.font = '800 48px Inter, system-ui, sans-serif';
+    ctx.fillStyle = QL.text;
+    ctx.font = '800 48px "Manrope Variable", system-ui, sans-serif';
     ctx.fillText(row[1], x + 28, 730);
   });
 
-  ctx.fillStyle = '#64748b';
-  ctx.font = '500 28px Inter, system-ui, sans-serif';
+  ctx.fillStyle = QL.faint;
+  ctx.font = '500 28px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText(focus ? `Фокус: ${focus}` : 'Короткие тренировки каждый день', 80, 860);
   ctx.fillText('fokus', 80, 980);
 
