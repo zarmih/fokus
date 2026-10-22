@@ -791,17 +791,28 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   pointer-events: none;
   opacity: 0.7;
 }
-.play-orbs { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.play-orbs {
+  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  /* "Тихий свет": orb hue follows the skill domain (local, orb-only token; default = attention coral) */
+  --orb-rgb: 255 122 107;
+}
+.play-stage.dom-attention .play-orbs { --orb-rgb: 255 122 107; }   /* coral  #FF7A6B */
+.play-stage.dom-memory .play-orbs { --orb-rgb: 155 107 255; }      /* violet #9B6BFF */
+.play-stage.dom-speed .play-orbs { --orb-rgb: 46 196 182; }        /* teal   #2EC4B6 */
+.play-stage.dom-logic .play-orbs { --orb-rgb: 76 125 255; }        /* blue   #4C7DFF */
+.play-stage.dom-flexibility .play-orbs { --orb-rgb: 95 227 176; }  /* mint   #5FE3B0 */
 .play-orbs i {
   position: absolute;
   border-radius: 50%;
   filter: blur(24px);
   opacity: 0.45;
+  background: radial-gradient(circle at 50% 50%, rgb(var(--orb-rgb) / 0.95) 0%, rgb(var(--orb-rgb) / 0.55) 45%, rgb(var(--orb-rgb) / 0) 72%);
+  box-shadow: 0 0 48px 12px rgb(var(--orb-rgb) / 0.35);
   animation: orbFloat 9s ease-in-out infinite;
 }
-.play-orbs i:nth-child(1) { width: 160px; height: 160px; left: -40px; top: 20%; background: var(--accent); }
-.play-orbs i:nth-child(2) { width: 120px; height: 120px; right: -20px; top: 55%; background: var(--accent-2); animation-delay: -3s; }
-.play-orbs i:nth-child(3) { width: 90px; height: 90px; left: 40%; bottom: -20px; background: var(--dom-memory); animation-delay: -6s; }
+.play-orbs i:nth-child(1) { width: 160px; height: 160px; left: -40px; top: 20%; }
+.play-orbs i:nth-child(2) { width: 120px; height: 120px; right: -20px; top: 55%; animation-delay: -3s; }
+.play-orbs i:nth-child(3) { width: 90px; height: 90px; left: 40%; bottom: -20px; animation-delay: -6s; }
 .play-combo {
   position: absolute;
   top: 10px;
