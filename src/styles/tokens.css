@@ -37,11 +37,27 @@
   --stage-text: #F3F1FA;
   --stage-muted: #B4B1C8;
   --stage-accent: #FFC46B;
+
+  /* Quiet sky: deep blue-violet field behind every exercise (play arena + stage sky).
+     Composed in styles.css (.play-arena / .play-sky) as: glow, domain tint, fade. */
+  --stage-sky-base: #0F1020;
+  --stage-sky-indigo: #1A1640;
+  --stage-sky-violet: #2A1E5C;
+  --stage-sky-tint: rgba(80, 80, 150, 0.05);
+  --stage-sky-glow:
+    radial-gradient(1px 1px at 18% 22%, rgba(220, 216, 255, 0.22), transparent 70%),
+    radial-gradient(1px 1px at 72% 14%, rgba(220, 216, 255, 0.16), transparent 70%),
+    radial-gradient(1.2px 1.2px at 58% 38%, rgba(220, 216, 255, 0.12), transparent 70%),
+    radial-gradient(1px 1px at 34% 46%, rgba(220, 216, 255, 0.10), transparent 70%),
+    radial-gradient(90% 55% at 50% -8%, rgba(42, 30, 92, 0.75), transparent 70%),
+    radial-gradient(60% 45% at 12% 8%, rgba(26, 22, 64, 0.9), transparent 72%),
+    radial-gradient(55% 40% at 88% 12%, rgba(26, 22, 64, 0.8), transparent 72%);
+  --stage-sky-fade: linear-gradient(180deg, var(--stage-sky-indigo) 0%, #141330 38%, var(--stage-sky-base) 78%, var(--stage-sky-base) 100%);
 }
 
 /* ---------- Dark (default) ----------
- * .play-stage re-uses the dark palette in every theme (its sky is always dark). */
-:root, [data-theme="dark"], .play-stage {
+ * .play-arena / .play-stage re-use the dark palette in every theme (the sky is always dark). */
+:root, [data-theme="dark"], .play-arena, .play-stage {
   --ql-bg: #0F1020;
   --ql-bg-rgb: 15, 16, 32;
   --ql-bg-deep: #0A0B17;

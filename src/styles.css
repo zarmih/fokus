@@ -1,5 +1,5 @@
 /* Legacy semantic colour variables repointed onto «Тихий свет» tokens (src/styles/tokens.css). */
-:root, [data-theme="dark"], [data-theme="light"], .play-stage {
+:root, [data-theme="dark"], [data-theme="light"], .play-arena, .play-stage {
   --bg: var(--ql-bg);
   --bg-rgb: var(--ql-bg-rgb);
   --bg-elev: var(--ql-elevated);
@@ -40,7 +40,7 @@
   --theme-dom-memory: var(--ql-dom-memory);
 }
 
-:root, [data-theme="dark"], .play-stage {
+:root, [data-theme="dark"], .play-arena, .play-stage {
   color-scheme: dark;
   --shadow-sm: 0 1px 2px rgba(var(--shadow-rgb), 0.25);
   --shadow: 0 6px 0 rgba(var(--shadow-rgb), 0.15), 0 10px 20px rgba(var(--shadow-rgb), 0.25);
@@ -94,6 +94,11 @@
   box-sizing: border-box;
 }
 
+/* Form controls don't inherit the font by default (UA uses system font) — keep Manrope everywhere. */
+button, input, select, textarea, optgroup {
+  font-family: inherit;
+}
+
 html, body {
   overflow-x: hidden;
 }
@@ -128,9 +133,11 @@ body {
 #app::before {
   content: '';
   position: absolute;
-  inset: -20% -30% auto auto;
-  width: 280px; height: 280px;
-  background: radial-gradient(circle, var(--accent-glow), transparent 68%);
+  /* Same glow as before (280px, sticking 30% out to the right), but the box stops at the
+     right edge so #app never gets horizontal scrollable overflow; the gradient keeps its size/position. */
+  top: -20%; right: 0;
+  width: calc(280px - 30%); height: 280px;
+  background: radial-gradient(circle, var(--accent-glow), transparent 68%) left top / 280px 280px no-repeat;
   pointer-events: none;
   z-index: 0;
 }
@@ -144,6 +151,9 @@ body {
   z-index: 0;
 }
 #app > * { position: relative; z-index: 1; }
+/* `#app > *` makes the tab bar position:relative (in flow), so left/right:12px would only shift it
+   and push it 12px past the right edge. Inset it with margins instead. */
+#app > .tab-bar { left: 0; right: 0; margin-inline: 12px; }
 
 .shell-content {
   flex: 1;
@@ -159,6 +169,7 @@ body {
   position: absolute;
   top: -100px;
   left: 16px;
+  max-width: calc(100% - 32px);
   z-index: 9999;
   background: var(--accent);
   color: var(--btn-text);
@@ -359,7 +370,8 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   transition: color var(--motion-fast) var(--ease-standard), transform var(--motion-fast) var(--ease-press);
   font-size: 10px;
   font-weight: 600;
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   min-height: 48px;
   padding: 8px 0;
   background: none;
@@ -2067,13 +2079,40 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   animation: fxSparkle var(--motion-ritual) var(--ease-standard) both;
 }
 
+/* «Тихий свет»: every exercise sits on the same deep blue-violet sky in both themes.
+   Dark palette + light-on-dark text are re-pointed onto .play-arena in tokens.css / the header above. */
+.play-arena,
+.play-stage .play-sky[data-sky="quiet-light"] {
+  background-color: var(--stage-sky-base);
+  background-image:
+    var(--stage-sky-glow),
+    radial-gradient(80% 50% at 50% 110%, var(--stage-sky-tint), transparent 70%),
+    var(--stage-sky-fade);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  background-position: 0 0;
+}
+.play-arena:empty { background: none; }
+.play-stage .play-sky[data-sky="quiet-light"] {
+  animation: none;
+  opacity: 1;
+}
+.play-stage.dom-attention { --stage-sky-tint: rgba(70, 96, 170, 0.07); }
+.play-stage.dom-memory { --stage-sky-tint: rgba(110, 80, 170, 0.07); }
+.play-stage.dom-speed { --stage-sky-tint: rgba(150, 96, 120, 0.06); }
+.play-stage.dom-flexibility { --stage-sky-tint: rgba(60, 120, 150, 0.06); }
+.play-stage.dom-logic { --stage-sky-tint: rgba(140, 120, 90, 0.05); }
 .play-arena {
   position: relative;
   min-height: 440px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  border-radius: var(--radius);
+  border-radius: var(--radius-card);
+  color: var(--stage-text);
+  --text: var(--stage-text);
+  --muted: var(--stage-muted);
+  --accent-ink: var(--stage-accent);
 }
 .play-arena.fx-enter > .play-stage {
   animation: fxEnter var(--motion-base) var(--ease-out-soft) both;
