@@ -3,6 +3,20 @@ import { getBeaconRailParams } from './manifest';
 import { mountStage } from '../stage';
 import { BlockResult } from '../contract';
 
+const COLOR_NAMES_RU: Record<string, string> = {
+  red: 'красный', blue: 'синий', green: 'зелёный', yellow: 'жёлтый', purple: 'фиолетовый'
+};
+
+/** HUD «Цель: <цвет>» built from DOM nodes (no innerHTML), so it renders as a coloured label, not raw markup. */
+export function renderBeaconTarget(hud: HTMLElement, colorKey: string, cssColor: string | undefined): void {
+  hud.textContent = 'Цель: ';
+  const label = document.createElement('span');
+  label.className = 'br-target';
+  label.textContent = COLOR_NAMES_RU[colorKey] ?? colorKey;
+  if (cssColor) label.style.color = cssColor;
+  hud.appendChild(label);
+}
+
 export function renderBeaconRail(
   container: HTMLElement,
   level: number,
@@ -85,7 +99,7 @@ export function renderBeaconRail(
     red: '#ff4444', blue: '#33b5e5', green: '#00C851', yellow: '#ffbb33', purple: '#aa66cc'
   };
   
-  stage.setStatus(`Цель: <span style="color:${colorMap[targetColor]}">${targetColor.toUpperCase()}</span>`);
+  renderBeaconTarget(stage.hud, targetColor, colorMap[targetColor]);
 
   const spawn = () => {
     if (isTimeUp()) {

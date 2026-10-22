@@ -80,8 +80,7 @@ describe('quiet-light scenes: files', () => {
     expect(missing.length).toBeLessThanOrEqual(catalog.length);
   });
 
-  // Final integrator: switch to `it(` once all domain scenes have landed.
-  it.skip('every registered exercise has a scene', () => {
+  it('every registered exercise has a scene', () => {
     expect(missingSceneIds()).toEqual([]);
   });
 });

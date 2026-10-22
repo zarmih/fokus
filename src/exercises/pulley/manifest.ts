@@ -31,7 +31,8 @@ export const LEVELS = [
 ];
 
 export function getPulleyParams(level: number) {
-  const l = Math.min(20, Math.max(1, level));
+  // Session difficulty is fractional (e.g. 1.4); index LEVELS by an integer level.
+  const l = Math.min(LEVELS.length, Math.max(1, Math.floor(Number(level) || 1)));
   const data = LEVELS[l - 1];
   const deadlineMs = Math.max(15000, 35000 - (l - 1) * 800);
   return { doors: 4, pool: [...data.pool], need: [...data.need], deadlineMs, targetMs: deadlineMs * 0.7 };
