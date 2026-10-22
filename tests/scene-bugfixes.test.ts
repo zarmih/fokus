@@ -2,6 +2,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { getPulleyParams } from '../src/exercises/pulley/manifest';
 import { verbalFluencyDuration, renderVerbalFluency } from '../src/exercises/verbal-fluency/view';
 import { renderBeaconTarget } from '../src/exercises/beacon-rail/view';
+import { renderGoNoGo } from '../src/exercises/go-no-go/view';
+import { renderMentalRotation } from '../src/exercises/mental-rotation/view';
 
 describe('pulley: fractional session difficulty', () => {
   it('returns a defined pool/need for fractional and out-of-range levels', () => {
@@ -62,5 +64,40 @@ describe('beacon-rail: target label is rendered as text', () => {
     renderBeaconTarget(hud, '<img src=x onerror=alert(1)>', undefined);
     expect(hud.querySelector('img')).toBeNull();
     expect(hud.textContent).toContain('<img');
+  });
+});
+
+describe('level tables tolerate fractional session difficulty', () => {
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); document.body.innerHTML = ''; });
+
+  for (const [name, render] of [['go-no-go', renderGoNoGo], ['mental-rotation', renderMentalRotation]] as const) {
+    it(`${name} renders at level 1.4 and 7`, () => {
+      vi.useFakeTimers();
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+      for (const lvl of [1.4, 7]) {
+        const host = document.createElement('div');
+        document.body.appendChild(host);
+        let cleanup: unknown;
+        expect(() => { cleanup = (render as any)(host, lvl, () => {}, () => false); }).not.toThrow();
+        if (typeof cleanup === 'function') (cleanup as () => void)();
+      }
+    });
+  }
+});
+
+describe('spark-lane: lane flash after a miss or hit', () => {
+  afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); document.body.innerHTML = ''; });
+
+  it('does not read lanes[-1] when the 200 ms border flash ends', async () => {
+    vi.useFakeTimers();
+    const { default: sparkLane } = await import('../src/exercises/spark-lane');
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const end = sparkLane.render(host, 1, () => {}, () => false) as () => void;
+    // Several spark/miss cycles, each followed by the delayed border reset.
+    expect(() => vi.advanceTimersByTime(20000)).not.toThrow();
+    const lane = host.querySelector('.sl-lane') as HTMLElement;
+    expect(lane).toBeTruthy();
+    end();
   });
 });

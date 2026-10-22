@@ -8,7 +8,7 @@ export function renderGoNoGo(
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
-  const cfg = (level <= 3 && goNoGoManifest.levels) ? goNoGoManifest.levels[level as keyof typeof goNoGoManifest.levels] : { trials: 30, noGoRatio: 0.4 };
+  const cfg = goNoGoManifest.levels?.[Math.max(1, Math.floor(Number(level) || 1)) as keyof typeof goNoGoManifest.levels] ?? { trials: 30, noGoRatio: 0.4 }; // session difficulty is fractional
   const engine = new GoNoGoEngine(cfg.trials, cfg.noGoRatio);
   const stage = mountStage(container, 'attention');
   stage.setStatus('Зелёный — жми, красный — стой');

@@ -260,9 +260,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         playSessionCue('enter');
         const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
         let cleanupFn: any = null;
+        // Some exercises return their own finish() as the cleanup, and finish() calls
+        // onBlockEnd again: end each block exactly once to avoid infinite recursion.
+        let blockEnded = false;
 
         const onBlockEnd = (res: any) => {
-          if (cleanupFn) cleanupFn();
+          if (blockEnded) return;
+          blockEnded = true;
+          const fn = cleanupFn;
+          cleanupFn = null;
+          if (fn) fn();
           content.dataset.sessionPhase = 'feedback';
           const ok = res.accuracy >= 0.8;
           const stageEl = container.querySelector('.play-stage') as HTMLElement | null;
@@ -403,7 +410,13 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         };
 
         cleanupFn = exDispatch.render(playHost, state!.difficulty, onBlockEnd, isTimeUp);
-        currentCleanup = cleanupFn;
+        // External teardown (back, restart, session end) aborts the block without scoring it.
+        currentCleanup = () => {
+          blockEnded = true;
+          const fn = cleanupFn;
+          cleanupFn = null;
+          if (fn) fn();
+        };
       };
 
             currentCleanup = () => {
