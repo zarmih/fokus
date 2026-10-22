@@ -1,6 +1,8 @@
 import { storage } from './storage';
 import { vibrateForCue } from './haptics';
 import {
+  DEFAULT_ATTACK,
+  DEFAULT_LOWPASS,
   detectReducedMotion,
   masterGainValue,
   nextCombo,
@@ -23,7 +25,14 @@ export {
   detectReducedMotion,
   masterGainValue,
   readSoundPrefs,
-  scheduleCue
+  scheduleCue,
+  SCALE_NAME,
+  SCALE_ROOT_HZ,
+  SCALE_STEPS,
+  STREAK_PHRASE,
+  scaleFreq,
+  streakDegree,
+  streakFreq
 } from './soundscape';
 
 type OscLike = {
@@ -48,6 +57,13 @@ type GainLike = {
   connect(dest: unknown): void;
 };
 
+type FilterLike = {
+  type: BiquadFilterType;
+  frequency: { setValueAtTime(value: number, time: number): void };
+  Q: { setValueAtTime(value: number, time: number): void };
+  connect(dest: unknown): void;
+};
+
 export type AudioGraphContext = {
   currentTime: number;
   state: string;
@@ -55,6 +71,8 @@ export type AudioGraphContext = {
   resume(): Promise<void>;
   createOscillator(): OscLike;
   createGain(): GainLike;
+  /** Optional so minimal contexts (and test fakes) still render, unfiltered. */
+  createBiquadFilter?(): FilterLike;
 };
 
 let audioCtx: AudioGraphContext | null = null;
@@ -144,12 +162,35 @@ function renderScheduled(scheduled: ScheduledCue) {
   const live = { id: scheduled.id, gain: voiceGain };
   liveGains.push(live);
 
+  // Gentle lowpass per cue (one filter per distinct cutoff), then the voice bus.
+  const filters = new Map<number, unknown>();
+  const destFor = (cutoff: number): unknown => {
+    const hit = filters.get(cutoff);
+    if (hit) return hit;
+    let dest: unknown = voiceGain;
+    if (typeof ctx.createBiquadFilter === 'function') {
+      try {
+        const f = ctx.createBiquadFilter();
+        f.type = 'lowpass';
+        f.frequency.setValueAtTime(cutoff, t0);
+        f.Q.setValueAtTime(0.5, t0);
+        f.connect(voiceGain);
+        dest = f;
+      } catch {
+        dest = voiceGain;
+      }
+    }
+    filters.set(cutoff, dest);
+    return dest;
+  };
+
   let tail = 0;
   for (const p of scheduled.partials) {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     const start = t0 + (p.delay || 0);
     const dur = p.dur;
+    const attack = Math.min(Math.max(p.attack ?? DEFAULT_ATTACK, 0.002), dur * 0.5);
     tail = Math.max(tail, (p.delay || 0) + dur);
     osc.type = p.type || 'sine';
     osc.frequency.setValueAtTime(p.freq, start);
@@ -157,11 +198,12 @@ function renderScheduled(scheduled: ScheduledCue) {
       osc.frequency.exponentialRampToValueAtTime(Math.max(1, p.freqEnd), start + dur);
     }
     const g = Math.max(p.gain, 0.0001);
+    // Soft attack, then exponential decay to silence (mallet / glass envelope).
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(g, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(g, start + attack);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + dur);
     osc.connect(gain);
-    gain.connect(voiceGain);
+    gain.connect(destFor(p.lowpass ?? DEFAULT_LOWPASS));
     osc.start(start);
     osc.stop(start + dur + 0.02);
   }

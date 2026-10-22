@@ -11,6 +11,14 @@ import {
   rawPartials,
   readSoundPrefs,
   scheduleCue,
+  scaleFreq,
+  isTonicDegree,
+  streakDegree,
+  streakFreq,
+  SCALE_NAME,
+  SCALE_ROOT_HZ,
+  SCALE_STEPS,
+  STREAK_PHRASE,
   type CueId,
   type SoundPrefs
 } from '../src/core/soundscape';
@@ -104,11 +112,11 @@ describe('scheduleCue', () => {
     expect(s.haptic).toBeNull();
   });
 
-  test('hit pitch climbs with combo', () => {
+  test('hit pitch climbs with combo along the scale', () => {
     const low = scheduleCue('hit', audible, { combo: 1 });
     const high = scheduleCue('hit', audible, { combo: 10 });
-    expect(low.partials[0].freq).toBe(522);
-    expect(high.partials[0].freq).toBe(900);
+    expect(low.partials[0].freq).toBe(293.66);
+    expect(high.partials[0].freq).toBe(scaleFreq(8));
     expect(high.partials[0].freq).toBeGreaterThan(low.partials[0].freq);
   });
 
@@ -118,10 +126,13 @@ describe('scheduleCue', () => {
     expect(s.skipAudio).toBe(true);
   });
 
-  test('combo triad has four delayed notes', () => {
+  test('combo is a four-note tonic arpeggio of crystal voices', () => {
     const s = scheduleCue('combo', audible, { combo: 5 });
-    expect(s.partials).toHaveLength(4);
-    expect(s.partials.map((p) => p.delay)).toEqual([0, 0.04, 0.08, 0.12]);
+    const fundamentals = s.partials.filter((_, i) => i % 3 === 0);
+    expect(fundamentals).toHaveLength(4);
+    expect(fundamentals.map((p) => p.freq)).toEqual([scaleFreq(5), scaleFreq(7), scaleFreq(8), scaleFreq(10)]);
+    const delays = [...new Set(s.partials.map((p) => p.delay))];
+    expect(delays).toEqual([0.06, 0.13, 0.2, 0.27]);
   });
 
   test('reduce-motion skips combo flourish and collapses ritual/celebrate', () => {
@@ -190,5 +201,104 @@ describe('every cue schedules under default prefs', () => {
     expect(s.partials.length).toBeGreaterThan(0);
     expect(s.skipHaptic).toBe(false);
     expect(s.haptic).not.toBeNull();
+  });
+});
+
+describe('quiet light key and timbre', () => {
+  test('single key: D major pentatonic from D4', () => {
+    expect(SCALE_NAME).toBe('D major pentatonic');
+    expect(SCALE_ROOT_HZ).toBeCloseTo(293.66, 2);
+    expect([...SCALE_STEPS]).toEqual([0, 2, 4, 7, 9]);
+    expect([0, 1, 2, 3, 4, 5].map(scaleFreq)).toEqual([293.66, 329.63, 369.99, 440, 493.88, 587.33]);
+    expect(scaleFreq(-5)).toBeCloseTo(146.83, 1);
+    expect(scaleFreq(10)).toBeCloseTo(1174.66, 1);
+    expect(isTonicDegree(0)).toBe(true);
+    expect(isTonicDegree(5)).toBe(true);
+    expect(isTonicDegree(-5)).toBe(true);
+    expect(isTonicDegree(3)).toBe(false);
+  });
+
+  const inKey = (f: number) => {
+    const semis = 12 * Math.log2(f / SCALE_ROOT_HZ);
+    const pc = ((Math.round(semis) % 12) + 12) % 12;
+    return (SCALE_STEPS as readonly number[]).includes(pc);
+  };
+
+  test.each(CUE_IDS as unknown as CueId[])('%s: sine-only, soft attack, lowpassed, fundamentals in key', (id) => {
+    const parts = rawPartials(id, { combo: 5 });
+    for (const p of parts) {
+      expect(p.type).toBe('sine');
+      expect(p.attack).toBeGreaterThanOrEqual(0.005);
+      expect(p.attack).toBeLessThanOrEqual(0.01);
+      expect(p.lowpass).toBeGreaterThan(0);
+      expect(p.lowpass).toBeLessThanOrEqual(4000);
+      expect(p.gain).toBeLessThanOrEqual(0.06);
+      expect(p.dur).toBeGreaterThan(p.attack ?? 0);
+    }
+    // the loudest partial of each note is the in-key fundamental
+    const loud = parts.filter((p) => p.gain >= Math.max(...parts.map((q) => q.gain)) * 0.5);
+    for (const p of loud) expect(inKey(p.freq)).toBe(true);
+  });
+
+  test('overtones are quieter and decay faster than the fundamental', () => {
+    const [f, ...ov] = rawPartials('hit', { combo: 2 });
+    expect(ov.length).toBeGreaterThan(0);
+    for (const o of ov) {
+      expect(o.gain).toBeLessThan(f.gain);
+      expect(o.dur).toBeLessThan(f.dur);
+      expect(o.freq).toBeGreaterThan(f.freq);
+    }
+  });
+
+  test('miss is a soft low muted tone, not a buzz', () => {
+    const parts = rawPartials('miss');
+    expect(parts[0].freq).toBeLessThan(200);
+    expect(parts.every((p) => p.type === 'sine')).toBe(true);
+    expect(parts.every((p) => (p.lowpass ?? 0) <= 800)).toBe(true);
+    // gentle droop only (no wide sweep)
+    expect(parts[0].freqEnd! / parts[0].freq).toBeGreaterThan(0.9);
+  });
+});
+
+describe('streak melody', () => {
+  test('phrase walks the scale and resolves on the tonic at every milestone', () => {
+    expect(STREAK_PHRASE).toHaveLength(12);
+    for (const m of COMBO_MILESTONES) expect(isTonicDegree(streakDegree(m))).toBe(true);
+    for (let n = 1; n <= 12; n++) {
+      if (!comboAtMilestone(n) && n !== 1) expect(isTonicDegree(streakDegree(n))).toBe(false);
+    }
+    // each segment between milestones rises
+    const segments = [[1, 3], [4, 5], [6, 8], [9, 12]];
+    for (const [a, b] of segments) {
+      for (let n = a; n < b; n++) expect(streakFreq(n + 1)).toBeGreaterThan(streakFreq(n));
+    }
+  });
+
+  test('streak resets on miss to the phrase start', () => {
+    let combo = 0;
+    const notes: number[] = [];
+    for (const ok of [true, true, true, true, false, true]) {
+      combo = nextCombo(combo, ok);
+      if (ok) notes.push(streakFreq(combo));
+    }
+    expect(notes).toEqual([scaleFreq(0), scaleFreq(2), scaleFreq(5), scaleFreq(3), scaleFreq(0)]);
+  });
+
+  test('long streaks loop a four-note cadence ending on the tonic', () => {
+    expect([13, 14, 15, 16].map(streakDegree)).toEqual([7, 8, 9, 10]);
+    expect(streakDegree(16 + 4)).toBe(10);
+    expect(streakDegree(0)).toBe(0);
+    expect(streakDegree(NaN)).toBe(0);
+  });
+
+  test('hit at a milestone rings a little longer', () => {
+    const resolve = rawPartials('hit', { combo: 3 })[0];
+    const step = rawPartials('hit', { combo: 2 })[0];
+    expect(resolve.dur).toBeGreaterThan(step.dur);
+  });
+
+  test('reduced motion keeps attack/lowpass on shortened feedback', () => {
+    const hit = scheduleCue('hit', { ...audible, reducedMotion: true }, { combo: 3 });
+    expect(hit.partials.every((p) => p.attack !== undefined && p.lowpass !== undefined)).toBe(true);
   });
 });
