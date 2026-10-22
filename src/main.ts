@@ -1,3 +1,4 @@
+import './styles/tokens.css';
 import './styles.css';
 import { renderToday } from './ui/screens/today';
 import { storage } from './core/storage';
