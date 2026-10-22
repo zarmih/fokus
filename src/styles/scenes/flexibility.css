@@ -45,3 +45,1175 @@
  *   vowel-consonant
  *   vowel-count
  */
+
+/* ── alphanumeric-sort · «Ступени порядка» ── восходящие мятные ступени у основания, i — парящие плитки-знаки по возрастанию. */
+[data-scene="alphanumeric-sort"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="alphanumeric-sort"] .scene-layer::before {
+  content: ""; position: absolute; left: 4%; right: 4%; bottom: 0; height: 30%;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--scene-b) 26%, transparent), color-mix(in srgb, var(--scene-a) 6%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 100V86h14V74h14V62h14V50h14V38h14V26h14V14h16V100Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 100V86h14V74h14V62h14V50h14V38h14V26h14V14h16V100Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  opacity: 0.8;
+}
+[data-scene="alphanumeric-sort"] .scene-layer::after {
+  content: ""; position: absolute; left: 4%; right: 4%; bottom: 0; height: 30%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 86h14V74h14V62h14V50h14V38h14V26h14V14h16' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.35' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="alphanumeric-sort"] .scene-layer > i {
+  left: var(--x); bottom: var(--y); width: var(--s); height: var(--s); border-radius: 8px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 34%, transparent), color-mix(in srgb, var(--c) 8%, transparent));
+  border: 1px solid rgba(255, 255, 255, 0.14); --scene-dx: 0px; --scene-dy: -8px; animation: sceneDrift 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="alphanumeric-sort"] .scene-layer > i::before {
+  content: var(--t); position: absolute; inset: 0; display: grid; place-items: center;
+  font: 600 calc(var(--s) * 0.5) / 1 system-ui, sans-serif; color: rgba(255, 255, 255, 0.5);
+}
+[data-scene="alphanumeric-sort"] .scene-layer > i:nth-child(1) {
+  --x: 6%; --y: 36%; --s: 26px; --c: var(--scene-a); --t: "1"; --d: 0s;
+}
+[data-scene="alphanumeric-sort"] .scene-layer > i:nth-child(2) {
+  --x: 24%; --y: 46%; --s: 28px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --t: "2"; --d: -3s;
+}
+[data-scene="alphanumeric-sort"] .scene-layer > i:nth-child(3) {
+  --x: 62%; --y: 56%; --s: 30px; --c: var(--scene-a); --t: "A"; --d: -7s;
+}
+[data-scene="alphanumeric-sort"] .scene-layer > i:nth-child(4) {
+  --x: 80%; --y: 66%; --s: 32px; --c: var(--scene-b); --t: "B"; --d: -10s;
+}
+[data-scene="alphanumeric-sort"] .scene-layer > i:nth-child(5) {
+  --x: 88%; --y: 84%; --s: 24px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --t: "C"; --d: -13s;
+}
+
+/* ── axis-swap · «Перекрёсток осей» ── две светящиеся оси, повёрнутые друг к другу; i — метки-узлы на осях. */
+[data-scene="axis-swap"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="axis-swap"] .scene-layer::before {
+  content: ""; position: absolute; left: 50%; top: -10%; bottom: -10%; width: 2px; margin-left: -1px;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--scene-a) 55%, transparent) 20%, color-mix(in srgb, var(--scene-b) 40%, transparent) 80%, transparent);
+  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--scene-a) 30%, transparent); rotate: 18deg; --scene-breath-lo: 0.4; animation: sceneBreath 16s ease-in-out infinite;
+}
+[data-scene="axis-swap"] .scene-layer::after {
+  content: ""; position: absolute; top: 50%; left: -10%; right: -10%; height: 2px; margin-top: -1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--scene-b) 50%, transparent) 20%, color-mix(in srgb, var(--scene-a) 45%, transparent) 80%, transparent);
+  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--scene-b) 28%, transparent); rotate: 18deg; --scene-breath-lo: 0.4; animation: sceneBreath 16s ease-in-out infinite; animation-delay: -8s;
+}
+[data-scene="axis-swap"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: var(--s); margin: calc(var(--s) / -2);
+  rotate: 45deg; border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent); background: color-mix(in srgb, var(--c) 14%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 35%, transparent); --scene-breath-lo: 0.45; animation: sceneBreath 14s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="axis-swap"] .scene-layer > i:nth-child(1) {
+  --x: 8%; --y: 36%; --s: 12px; --c: var(--scene-b); --d: 0s;
+}
+[data-scene="axis-swap"] .scene-layer > i:nth-child(2) {
+  --x: 92%; --y: 64%; --s: 14px; --c: var(--scene-b); --d: -4s;
+}
+[data-scene="axis-swap"] .scene-layer > i:nth-child(3) {
+  --x: 34%; --y: 6%; --s: 12px; --c: var(--scene-a); --d: -7s;
+}
+[data-scene="axis-swap"] .scene-layer > i:nth-child(4) {
+  --x: 66%; --y: 94%; --s: 14px; --c: var(--scene-a); --d: -10s;
+}
+[data-scene="axis-swap"] .scene-layer > i:nth-child(5) {
+  --x: 50%; --y: 50%; --s: 8px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -2s;
+}
+
+/* ── az-shape-shift · «Метаморфоза формы» ── ряд фигур, перетекающих из круга в ромб; мягкое мятное облако. */
+[data-scene="az-shape-shift"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="az-shape-shift"] .scene-layer::before {
+  content: ""; position: absolute; left: -20%; bottom: -16%; width: 80%; height: 50%; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 24%, transparent), transparent); filter: blur(20px); --scene-dx: 12px; --scene-dy: -6px; animation: sceneDrift 36s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="az-shape-shift"] .scene-layer::after {
+  content: ""; position: absolute; left: 6%; right: 6%; top: 11%; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+}
+[data-scene="az-shape-shift"] .scene-layer > i {
+  left: var(--x); top: 11%; width: 30px; height: 30px; margin: -15px;
+  border-radius: var(--r); rotate: var(--rot); border: 1.5px solid color-mix(in srgb, var(--c) 75%, transparent);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.22), color-mix(in srgb, var(--c) 18%, transparent) 60%, transparent);
+  --scene-dx: 0px; --scene-dy: 6px; animation: sceneDrift 20s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="az-shape-shift"] .scene-layer > i:nth-child(1) {
+  --x: 12%; --r: 50%; --rot: 0deg; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="az-shape-shift"] .scene-layer > i:nth-child(2) {
+  --x: 31%; --r: 38%; --rot: 10deg; --c: var(--scene-a); --d: -2s;
+}
+[data-scene="az-shape-shift"] .scene-layer > i:nth-child(3) {
+  --x: 50%; --r: 24%; --rot: 22deg; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -4s;
+}
+[data-scene="az-shape-shift"] .scene-layer > i:nth-child(4) {
+  --x: 69%; --r: 12%; --rot: 34deg; --c: var(--scene-b); --d: -6s;
+}
+[data-scene="az-shape-shift"] .scene-layer > i:nth-child(5) {
+  --x: 88%; --r: 2px; --rot: 45deg; --c: var(--scene-b); --d: -8s;
+}
+
+/* ── category-sort · «Три корзины» ── три светящиеся чаши у основания и гальки, падающие в свою. */
+[data-scene="category-sort"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="category-sort"] .scene-layer::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 22%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M3 20q13 70 27 0M37 20q13 70 26 0M70 20q13 70 27 0' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.32' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="category-sort"] .scene-layer::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18%;
+  background:
+  radial-gradient(16% 70% at 16.5% 100%, color-mix(in srgb, var(--scene-a) 30%, transparent), transparent),
+  radial-gradient(16% 70% at 50% 100%, color-mix(in srgb, color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)) 26%, transparent), transparent),
+  radial-gradient(16% 70% at 83.5% 100%, color-mix(in srgb, var(--scene-b) 30%, transparent), transparent);
+}
+[data-scene="category-sort"] .scene-layer > i {
+  left: var(--x); bottom: var(--y); width: var(--s); height: var(--s); margin-left: calc(var(--s) / -2);
+  border-radius: var(--r, 50%); background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.4), color-mix(in srgb, var(--c) 70%, transparent) 45%, color-mix(in srgb, var(--c) 10%, transparent));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--c) 40%, transparent); --scene-dx: 0px; --scene-dy: 10px; animation: sceneDrift 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="category-sort"] .scene-layer > i::after {
+  content: ""; position: absolute; left: 50%; bottom: 100%; width: 1px; height: 40px;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--c) 40%, transparent), transparent);
+}
+[data-scene="category-sort"] .scene-layer > i:nth-child(1) {
+  --x: 16.5%; --y: 26%; --s: 14px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="category-sort"] .scene-layer > i:nth-child(2) {
+  --x: 50%; --y: 30%; --s: 12px; --r: 3px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -5s;
+}
+[data-scene="category-sort"] .scene-layer > i:nth-child(3) {
+  --x: 83.5%; --y: 27%; --s: 14px; --r: 30%; --c: var(--scene-b); --d: -9s;
+}
+[data-scene="category-sort"] .scene-layer > i:nth-child(4) {
+  --x: 22%; --y: 36%; --s: 8px; --c: var(--scene-a); --d: -12s;
+}
+[data-scene="category-sort"] .scene-layer > i:nth-child(5) {
+  --x: 78%; --y: 38%; --s: 9px; --r: 30%; --c: var(--scene-b); --d: -3s;
+}
+
+/* ── color-band · «Северное сияние» ── волнистые полосы-ленты сияния в верхней трети. */
+[data-scene="color-band"] .scene-layer {
+  --scene-opacity: 0.62;
+}
+[data-scene="color-band"] .scene-layer > i {
+  left: -15%; right: -15%; top: var(--y); height: var(--s);
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--c) 34%, transparent) 50%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 50Q12 10 25 50T50 50T75 50T100 50V100H0Z' fill='%23000'/%3E%3C/svg%3E") 0 0 / 50% 100% repeat-x; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 50Q12 10 25 50T50 50T75 50T100 50V100H0Z' fill='%23000'/%3E%3C/svg%3E") 0 0 / 50% 100% repeat-x;
+  filter: blur(1px); --scene-dx: 30px; --scene-dy: 4px; animation: sceneDrift 28s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="color-band"] .scene-layer > i:nth-child(1) {
+  --y: 4%; --s: 56px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="color-band"] .scene-layer > i:nth-child(2) {
+  --y: 10%; --s: 44px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s;
+}
+[data-scene="color-band"] .scene-layer > i:nth-child(3) {
+  --y: 17%; --s: 50px; --c: var(--scene-b); --d: -12s;
+}
+[data-scene="color-band"] .scene-layer > i:nth-child(4) {
+  --y: 24%; --s: 34px; --c: var(--scene-a); --d: -18s;
+}
+[data-scene="color-band"] .scene-layer > i:nth-child(5) {
+  --y: 86%; --s: 40px; --c: var(--scene-b); --d: -9s;
+}
+[data-scene="color-band"] .scene-layer::after {
+  content: ""; position: absolute; inset: 0 0 60% 0; background: linear-gradient(180deg, color-mix(in srgb, var(--scene-a) 10%, transparent), transparent);
+}
+
+/* ── color-shape-switch · «Две половины» ── светящийся шов посередине: слева круги, справа квадраты. */
+[data-scene="color-shape-switch"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="color-shape-switch"] .scene-layer::before {
+  content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 60px; margin-left: -30px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)) 18%, transparent), transparent);
+}
+[data-scene="color-shape-switch"] .scene-layer::after {
+  content: ""; position: absolute; left: 50%; top: 4%; bottom: 4%; width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.22) 30%, rgba(255, 255, 255, 0.22) 70%, transparent); --scene-breath-lo: 0.4; animation: sceneBreath 14s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="color-shape-switch"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: var(--s); margin: calc(var(--s) / -2);
+  border-radius: var(--r); border: 1.5px solid color-mix(in srgb, var(--c) 65%, transparent); background: color-mix(in srgb, var(--c) 12%, transparent); --scene-dx: 0px; --scene-dy: -8px; animation: sceneDrift 22s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="color-shape-switch"] .scene-layer > i:nth-child(1) {
+  --x: 10%; --y: 14%; --s: 34px; --r: 50%; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="color-shape-switch"] .scene-layer > i:nth-child(2) {
+  --x: 22%; --y: 88%; --s: 22px; --r: 50%; --c: var(--scene-a); --d: -6s;
+}
+[data-scene="color-shape-switch"] .scene-layer > i:nth-child(3) {
+  --x: 88%; --y: 12%; --s: 30px; --r: 6px; --c: var(--scene-b); --d: -3s;
+}
+[data-scene="color-shape-switch"] .scene-layer > i:nth-child(4) {
+  --x: 78%; --y: 86%; --s: 24px; --r: 5px; --c: var(--scene-b); --d: -9s;
+}
+[data-scene="color-shape-switch"] .scene-layer > i:nth-child(5) {
+  --x: 50%; --y: 6%; --s: 12px; --r: 50% 50% 3px 3px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -12s;
+}
+
+/* ── color-sort · «Пробирки оттенков» ── стеклянные колбы по краям, заполненные слоями мяты и изумруда. */
+[data-scene="color-sort"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="color-sort"] .scene-layer::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 12%; background: linear-gradient(0deg, color-mix(in srgb, var(--scene-b) 14%, transparent), transparent);
+}
+[data-scene="color-sort"] .scene-layer > i {
+  left: var(--x); bottom: 4%; width: 22px; height: var(--s); border-radius: 4px 4px 11px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.18); border-top-color: transparent;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--scene-b) 55%, transparent) 0 var(--f1), color-mix(in srgb, color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)) 45%, transparent) var(--f1) var(--f2), color-mix(in srgb, var(--scene-a) 40%, transparent) var(--f2) var(--f3), transparent var(--f3));
+  box-shadow: inset 3px 0 0 rgba(255, 255, 255, 0.08); --scene-breath-lo: 0.6; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="color-sort"] .scene-layer > i::before {
+  content: ""; position: absolute; left: -4px; right: -4px; top: -2px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.2);
+}
+[data-scene="color-sort"] .scene-layer > i:nth-child(1) {
+  --x: 5%; --s: 92px; --f1: 30%; --f2: 55%; --f3: 78%; --d: 0s;
+}
+[data-scene="color-sort"] .scene-layer > i:nth-child(2) {
+  --x: 15%; --s: 74px; --f1: 20%; --f2: 50%; --f3: 64%; --d: -4s;
+}
+[data-scene="color-sort"] .scene-layer > i:nth-child(3) {
+  --x: 76%; --s: 80px; --f1: 34%; --f2: 46%; --f3: 70%; --d: -8s;
+}
+[data-scene="color-sort"] .scene-layer > i:nth-child(4) {
+  --x: 86%; --s: 96px; --f1: 18%; --f2: 44%; --f3: 82%; --d: -11s;
+}
+[data-scene="color-sort"] .scene-layer > i:nth-child(5) {
+  --x: 66%; --s: 58px; --f1: 40%; --f2: 60%; --f3: 74%; --d: -6s;
+}
+
+/* ── context-switch · «Две комнаты» ── два полупрозрачных окна-контекста, попеременно проступающих. */
+[data-scene="context-switch"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="context-switch"] .scene-layer::before {
+  content: ""; position: absolute; left: 4%; top: 6%; width: 56%; height: 40%; border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--scene-a) 50%, transparent); background: linear-gradient(140deg, color-mix(in srgb, var(--scene-a) 20%, transparent), transparent 70%);
+  --scene-breath-lo: 0.2; animation: sceneBreath 18s ease-in-out infinite;
+}
+[data-scene="context-switch"] .scene-layer::after {
+  content: ""; position: absolute; right: 4%; bottom: 6%; width: 56%; height: 40%; border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--scene-b) 50%, transparent); background: linear-gradient(320deg, color-mix(in srgb, var(--scene-b) 22%, transparent), transparent 70%);
+  --scene-breath-lo: 0.2; animation: sceneBreath 18s ease-in-out infinite; animation-delay: -9s;
+}
+[data-scene="context-switch"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: 3px; border-radius: 2px; background: color-mix(in srgb, var(--c) 45%, transparent); --scene-dx: 6px; --scene-dy: 0px; animation: sceneDrift 24s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="context-switch"] .scene-layer > i:nth-child(1) {
+  --x: 9%; --y: 12%; --s: 60px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="context-switch"] .scene-layer > i:nth-child(2) {
+  --x: 9%; --y: 15%; --s: 36px; --c: var(--scene-a); --d: -3s;
+}
+[data-scene="context-switch"] .scene-layer > i:nth-child(3) {
+  --x: 70%; --y: 86%; --s: 64px; --c: var(--scene-b); --d: -7s;
+}
+[data-scene="context-switch"] .scene-layer > i:nth-child(4) {
+  --x: 76%; --y: 89%; --s: 40px; --c: var(--scene-b); --d: -10s;
+}
+[data-scene="context-switch"] .scene-layer > i:nth-child(5) {
+  --x: 47%; --y: 49%; --s: 22px; --c: rgba(255, 255, 255, 1); --d: -5s;
+}
+
+/* ── cue-bounce · «Траектория отскока» ── пунктирная дуга прыжков по низу, i — светящиеся мячики на дуге. */
+[data-scene="cue-bounce"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="cue-bounce"] .scene-layer::before {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 4%; height: 26%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 95Q12 0 25 95Q37 20 50 95Q62 40 75 95Q87 60 100 95' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.3' stroke-width='1.2' stroke-dasharray='2 5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="cue-bounce"] .scene-layer::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 4%; height: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--scene-b) 50%, transparent), transparent);
+}
+[data-scene="cue-bounce"] .scene-layer > i {
+  left: var(--x); bottom: var(--y); width: var(--s); height: var(--s); margin-left: calc(var(--s) / -2); border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.6), color-mix(in srgb, var(--c) 80%, transparent) 40%, color-mix(in srgb, var(--c) 20%, transparent));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--c) 45%, transparent); --scene-dx: 0px; --scene-dy: -10px; animation: sceneDrift 14s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="cue-bounce"] .scene-layer > i::after {
+  content: ""; position: absolute; left: 10%; right: 10%; top: calc(100% + 6px); height: 4px; border-radius: 50%; background: color-mix(in srgb, var(--c) 30%, transparent); filter: blur(2px);
+}
+[data-scene="cue-bounce"] .scene-layer > i:nth-child(1) {
+  --x: 12.5%; --y: 28%; --s: 18px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="cue-bounce"] .scene-layer > i:nth-child(2) {
+  --x: 37.5%; --y: 23%; --s: 14px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -3s;
+}
+[data-scene="cue-bounce"] .scene-layer > i:nth-child(3) {
+  --x: 62.5%; --y: 18%; --s: 12px; --c: var(--scene-b); --d: -6s;
+}
+[data-scene="cue-bounce"] .scene-layer > i:nth-child(4) {
+  --x: 87.5%; --y: 13%; --s: 10px; --c: var(--scene-b); --d: -9s;
+}
+[data-scene="cue-bounce"] .scene-layer > i:nth-child(5) {
+  --x: 2%; --y: 8%; --s: 6px; --c: var(--scene-a); --d: -12s;
+}
+
+/* ── direction-match · «Поле стрелок» ── редкое поле мятных шевронов по краям, указывающих в разные стороны. */
+[data-scene="direction-match"] .scene-layer {
+  --scene-opacity: 0.54;
+}
+[data-scene="direction-match"] .scene-layer::before {
+  content: ""; position: absolute; inset: 0; background: color-mix(in srgb, var(--scene-a) 40%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid slice'%3E%3Cpath d='M10 16l4 -4l4 4M80 10l4 4l-4 4M14 80l-4 4l4 4M88 86l4 -4l4 4M6 48l4 -4l4 4M92 40l-4 4l4 4' stroke='%23000' fill='none' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid slice'%3E%3Cpath d='M10 16l4 -4l4 4M80 10l4 4l-4 4M14 80l-4 4l4 4M88 86l4 -4l4 4M6 48l4 -4l4 4M92 40l-4 4l4 4' stroke='%23000' fill='none' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  --scene-breath-lo: 0.5; animation: sceneBreath 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="direction-match"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 26px; height: 26px; margin: -13px; rotate: var(--rot);
+  background: color-mix(in srgb, var(--c) 60%, transparent); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'%3E%3Cpath d='M4 18L12 8L20 18' stroke='%23000' fill='none' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'%3E%3Cpath d='M4 18L12 8L20 18' stroke='%23000' fill='none' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--c) 60%, transparent)); --scene-dx: 4px; --scene-dy: -4px; animation: sceneDrift 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="direction-match"] .scene-layer > i:nth-child(1) {
+  --x: 30%; --y: 8%; --rot: 0deg; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="direction-match"] .scene-layer > i:nth-child(2) {
+  --x: 70%; --y: 92%; --rot: 180deg; --c: var(--scene-b); --d: -4s;
+}
+[data-scene="direction-match"] .scene-layer > i:nth-child(3) {
+  --x: 94%; --y: 24%; --rot: 90deg; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s;
+}
+[data-scene="direction-match"] .scene-layer > i:nth-child(4) {
+  --x: 6%; --y: 70%; --rot: -90deg; --c: var(--scene-a); --d: -12s;
+}
+[data-scene="direction-match"] .scene-layer > i:nth-child(5) {
+  --x: 60%; --y: 5%; --rot: 45deg; --c: var(--scene-b); --d: -2s;
+}
+
+/* ── direction-switch · «Стрелочный перевод» ── рельсовый путь, расходящийся на две колеи; i — сигнальные огни. */
+[data-scene="direction-switch"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="direction-switch"] .scene-layer::before {
+  content: ""; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M50 104V70C50 55 20 50 14 -4M50 70C50 55 80 50 86 -4' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.12' stroke-width='9'/%3E%3Cpath d='M50 104V70C50 55 20 50 14 -4M50 70C50 55 80 50 86 -4' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.3' stroke-width='1' stroke-dasharray='1 7'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="direction-switch"] .scene-layer::after {
+  content: ""; position: absolute; left: 50%; top: 70%; width: 120px; height: 120px; margin: -60px;
+  border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 28%, transparent), transparent); --scene-breath-lo: 0.4; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="direction-switch"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 10px; height: 10px; margin: -5px; border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 90%, transparent); box-shadow: 0 0 14px 3px color-mix(in srgb, var(--c) 45%, transparent); --scene-breath-lo: 0.3; animation: sceneBreath 14s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="direction-switch"] .scene-layer > i:nth-child(1) {
+  --x: 17%; --y: 14%; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="direction-switch"] .scene-layer > i:nth-child(2) {
+  --x: 83%; --y: 14%; --c: var(--scene-b); --d: -7s;
+}
+[data-scene="direction-switch"] .scene-layer > i:nth-child(3) {
+  --x: 50%; --y: 90%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -3s;
+}
+[data-scene="direction-switch"] .scene-layer > i:nth-child(4) {
+  --x: 26%; --y: 40%; --c: var(--scene-a); --d: -10s;
+}
+[data-scene="direction-switch"] .scene-layer > i:nth-child(5) {
+  --x: 74%; --y: 40%; --c: var(--scene-b); --d: -5s;
+}
+
+/* ── dual-label · «Парные ярлыки» ── ярлыки на нитях: каждая пара — две бирки разного оттенка. */
+[data-scene="dual-label"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="dual-label"] .scene-layer::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 30%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-2 8Q50 22 102 8' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.28' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="dual-label"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 30px; height: 18px; border-radius: 4px 9px 9px 4px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 40%, transparent) 50%, color-mix(in srgb, var(--scene-b) 40%, transparent) 50%); border: 1px solid rgba(255, 255, 255, 0.16); rotate: var(--rot);
+  transform-origin: 0 50%; --scene-dx: 0px; --scene-dy: 4px; animation: sceneDrift 20s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="dual-label"] .scene-layer > i::before {
+  content: ""; position: absolute; right: 5px; top: 50%; width: 4px; height: 4px; margin-top: -2px; border-radius: 50%; background: rgba(255, 255, 255, 0.4);
+}
+[data-scene="dual-label"] .scene-layer > i::after {
+  content: ""; position: absolute; left: 4px; bottom: 100%; width: 1px; height: var(--h); background: rgba(255, 255, 255, 0.2);
+}
+[data-scene="dual-label"] .scene-layer > i:nth-child(1) {
+  --x: 8%; --y: 9%; --h: 12px; --rot: 8deg; --d: 0s;
+}
+[data-scene="dual-label"] .scene-layer > i:nth-child(2) {
+  --x: 27%; --y: 12%; --h: 16px; --rot: -6deg; --d: -4s;
+}
+[data-scene="dual-label"] .scene-layer > i:nth-child(3) {
+  --x: 48%; --y: 13%; --h: 18px; --rot: 4deg; --d: -8s;
+}
+[data-scene="dual-label"] .scene-layer > i:nth-child(4) {
+  --x: 68%; --y: 12%; --h: 16px; --rot: -10deg; --d: -11s;
+}
+[data-scene="dual-label"] .scene-layer > i:nth-child(5) {
+  --x: 86%; --y: 9%; --h: 12px; --rot: 6deg; --d: -2s;
+}
+
+/* ── even-odd · «Пары и одиночки» ── вертикальные столбики точек: парные — мятные, нечётные — изумрудные. */
+[data-scene="even-odd"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="even-odd"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 14px; height: calc(var(--n) * 20px); margin-left: -7px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--c) 85%, transparent) 0 4px, color-mix(in srgb, var(--c) 20%, transparent) 5px, transparent 7px) 0 0 / 14px 20px repeat-y;
+  --scene-breath-lo: 0.45; animation: sceneBreath 15s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="even-odd"] .scene-layer > i::after {
+  content: ""; position: absolute; left: -6px; right: -6px; top: -8px; bottom: -8px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+}
+[data-scene="even-odd"] .scene-layer > i:nth-child(1) {
+  --x: 7%; --y: 8%; --n: 2; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="even-odd"] .scene-layer > i:nth-child(2) {
+  --x: 16%; --y: 12%; --n: 3; --c: var(--scene-b); --d: -3s;
+}
+[data-scene="even-odd"] .scene-layer > i:nth-child(3) {
+  --x: 84%; --y: 8%; --n: 4; --c: var(--scene-a); --d: -6s;
+}
+[data-scene="even-odd"] .scene-layer > i:nth-child(4) {
+  --x: 93%; --y: 14%; --n: 1; --c: var(--scene-b); --d: -9s;
+}
+[data-scene="even-odd"] .scene-layer > i:nth-child(5) {
+  --x: 88%; --y: 78%; --n: 5; --c: var(--scene-b); --d: -12s;
+}
+[data-scene="even-odd"] .scene-layer::before {
+  content: ""; position: absolute; left: -10%; top: 60%; width: 60%; height: 50%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 16%, transparent), transparent); filter: blur(20px);
+}
+
+/* ── flip-agenda · «Перелистывание» ── стопка карточек-страниц в перспективе, листы приоткрыты. */
+[data-scene="flip-agenda"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="flip-agenda"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 54px; height: 70px; border-radius: 6px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--c) 26%, transparent), color-mix(in srgb, var(--c) 6%, transparent)); border: 1px solid rgba(255, 255, 255, 0.14);
+  transform-origin: 0 50%; rotate: y var(--ry); --scene-breath-lo: 0.5; animation: sceneBreath 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="flip-agenda"] .scene-layer > i::before {
+  content: ""; position: absolute; left: 8px; right: 10px; top: 12px; height: 2px; background: rgba(255, 255, 255, 0.25); box-shadow: 0 8px 0 rgba(255, 255, 255, 0.14), 0 16px 0 rgba(255, 255, 255, 0.14), 0 24px 0 rgba(255, 255, 255, 0.1);
+}
+[data-scene="flip-agenda"] .scene-layer > i:nth-child(1) {
+  --x: 6%; --y: 6%; --ry: 0deg; --c: var(--scene-b); --d: 0s;
+}
+[data-scene="flip-agenda"] .scene-layer > i:nth-child(2) {
+  --x: 7%; --y: 6%; --ry: 30deg; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -4s;
+}
+[data-scene="flip-agenda"] .scene-layer > i:nth-child(3) {
+  --x: 8%; --y: 6%; --ry: 58deg; --c: var(--scene-a); --d: -8s;
+}
+[data-scene="flip-agenda"] .scene-layer > i:nth-child(4) {
+  --x: 78%; --y: 84%; --ry: 20deg; --c: var(--scene-b); --d: -12s;
+}
+[data-scene="flip-agenda"] .scene-layer > i:nth-child(5) {
+  --x: 79%; --y: 84%; --ry: 52deg; --c: var(--scene-a); --d: -6s;
+}
+[data-scene="flip-agenda"] .scene-layer::after {
+  content: ""; position: absolute; right: -10%; top: -10%; width: 50%; height: 40%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 18%, transparent), transparent); filter: blur(22px);
+}
+
+/* ── frame-swap · «Рамки-матрёшки» ── вложенные рамки со смещением, как сменяющие друг друга окна. */
+[data-scene="frame-swap"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="frame-swap"] .scene-layer > i {
+  left: var(--x); top: var(--y); right: var(--x); bottom: var(--y); border-radius: var(--r);
+  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); translate: var(--tx) 0; --scene-breath-lo: 0.35; animation: sceneBreath 20s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="frame-swap"] .scene-layer > i:nth-child(1) {
+  --x: 3%; --y: 3%; --r: 28px; --tx: 0px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="frame-swap"] .scene-layer > i:nth-child(2) {
+  --x: 7%; --y: 6%; --r: 24px; --tx: 6px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -4s;
+}
+[data-scene="frame-swap"] .scene-layer > i:nth-child(3) {
+  --x: 11%; --y: 9%; --r: 20px; --tx: -6px; --c: var(--scene-b); --d: -8s;
+}
+[data-scene="frame-swap"] .scene-layer > i:nth-child(4) {
+  --x: 15%; --y: 12%; --r: 16px; --tx: 4px; --c: var(--scene-a); --d: -12s;
+}
+[data-scene="frame-swap"] .scene-layer > i:nth-child(5) {
+  --x: 19%; --y: 15%; --r: 12px; --tx: -4px; --c: var(--scene-b); --d: -16s;
+}
+[data-scene="frame-swap"] .scene-layer::before {
+  content: ""; position: absolute; left: 3%; top: 3%; width: 28%; height: 18%; border-radius: 28px 0 0 0; border-top: 2px solid color-mix(in srgb, var(--scene-a) 60%, transparent); border-left: 2px solid color-mix(in srgb, var(--scene-a) 60%, transparent);
+}
+[data-scene="frame-swap"] .scene-layer::after {
+  content: ""; position: absolute; right: 3%; bottom: 3%; width: 28%; height: 18%; border-radius: 0 0 28px 0; border-bottom: 2px solid color-mix(in srgb, var(--scene-b) 60%, transparent); border-right: 2px solid color-mix(in srgb, var(--scene-b) 60%, transparent);
+}
+
+/* ── helix-flip · «Двойная спираль» ── две переплетённые нити спирали вдоль правого края, i — светящиеся перекладины. */
+[data-scene="helix-flip"] .scene-layer {
+  --scene-opacity: 0.6;
+}
+[data-scene="helix-flip"] .scene-layer::before {
+  content: ""; position: absolute; right: 2%; top: 0; bottom: 0; width: 70px; background: color-mix(in srgb, var(--scene-a) 75%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M10 0Q90 25 10 50T10 100' stroke='%23000' fill='none' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 200px repeat-y; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M10 0Q90 25 10 50T10 100' stroke='%23000' fill='none' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 200px repeat-y;
+}
+[data-scene="helix-flip"] .scene-layer::after {
+  content: ""; position: absolute; right: 2%; top: 0; bottom: 0; width: 70px; background: color-mix(in srgb, var(--scene-b) 80%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M90 0Q10 25 90 50T90 100' stroke='%23000' fill='none' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 200px repeat-y; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M90 0Q10 25 90 50T90 100' stroke='%23000' fill='none' stroke-width='2.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 200px repeat-y;
+  --scene-breath-lo: 0.5; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="helix-flip"] .scene-layer > i {
+  right: calc(2% + 35px); top: var(--y); width: var(--s); height: 2px; margin-right: calc(var(--s) / -2);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 70%, transparent), rgba(255, 255, 255, 0.4), color-mix(in srgb, var(--scene-b) 70%, transparent)); --scene-breath-lo: 0.3; animation: sceneBreath 14s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="helix-flip"] .scene-layer > i::before {
+  content: ""; position: absolute; left: -3px; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--scene-a); box-shadow: 0 0 8px var(--scene-a);
+}
+[data-scene="helix-flip"] .scene-layer > i::after {
+  content: ""; position: absolute; right: -3px; top: -2px; width: 6px; height: 6px; border-radius: 50%; background: var(--scene-b); box-shadow: 0 0 8px var(--scene-b);
+}
+[data-scene="helix-flip"] .scene-layer > i:nth-child(1) {
+  --y: 12%; --s: 40px; --d: 0s;
+}
+[data-scene="helix-flip"] .scene-layer > i:nth-child(2) {
+  --y: 28%; --s: 20px; --d: -3s;
+}
+[data-scene="helix-flip"] .scene-layer > i:nth-child(3) {
+  --y: 46%; --s: 44px; --d: -6s;
+}
+[data-scene="helix-flip"] .scene-layer > i:nth-child(4) {
+  --y: 64%; --s: 18px; --d: -9s;
+}
+[data-scene="helix-flip"] .scene-layer > i:nth-child(5) {
+  --y: 82%; --s: 42px; --d: -12s;
+}
+
+/* ── hidden-rule · «Скрытый узор» ── точечная сетка, проступающая лишь в пятнах света, как неявное правило. */
+[data-scene="hidden-rule"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="hidden-rule"] .scene-layer::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0 1px, transparent 1.6px) 0 0 / 18px 18px;
+  -webkit-mask: radial-gradient(30% 24% at 18% 16%, #000, transparent), radial-gradient(28% 22% at 84% 82%, #000, transparent);
+  mask: radial-gradient(30% 24% at 18% 16%, #000, transparent), radial-gradient(28% 22% at 84% 82%, #000, transparent);
+}
+[data-scene="hidden-rule"] .scene-layer::after {
+  content: ""; position: absolute; left: -10%; top: -10%; width: 60%; height: 45%; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 22%, transparent), transparent); filter: blur(16px); --scene-dx: 20px; --scene-dy: 10px; animation: sceneDrift 40s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="hidden-rule"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: var(--s); margin: calc(var(--s) / -2); rotate: 45deg;
+  border: 1px dashed color-mix(in srgb, var(--c) 55%, transparent); border-radius: 4px; --scene-breath-lo: 0.2; animation: sceneBreath 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="hidden-rule"] .scene-layer > i:nth-child(1) {
+  --x: 18%; --y: 16%; --s: 30px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="hidden-rule"] .scene-layer > i:nth-child(2) {
+  --x: 84%; --y: 82%; --s: 34px; --c: var(--scene-b); --d: -9s;
+}
+[data-scene="hidden-rule"] .scene-layer > i:nth-child(3) {
+  --x: 10%; --y: 84%; --s: 14px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -4s;
+}
+[data-scene="hidden-rule"] .scene-layer > i:nth-child(4) {
+  --x: 90%; --y: 14%; --s: 16px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -13s;
+}
+[data-scene="hidden-rule"] .scene-layer > i:nth-child(5) {
+  --x: 50%; --y: 95%; --s: 10px; --c: var(--scene-a); --d: -7s;
+}
+
+/* ── lens-swap · «Сменные линзы» ── два пересекающихся стеклянных круга-линзы с бликами. */
+[data-scene="lens-swap"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="lens-swap"] .scene-layer::before {
+  content: ""; position: absolute; left: -14%; top: 4%; width: 62%; aspect-ratio: 1; border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--scene-a) 55%, transparent); background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.1), color-mix(in srgb, var(--scene-a) 12%, transparent) 50%, transparent 72%);
+  box-shadow: inset 0 0 30px color-mix(in srgb, var(--scene-a) 20%, transparent); --scene-dx: 8px; --scene-dy: 6px; animation: sceneDrift 30s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="lens-swap"] .scene-layer::after {
+  content: ""; position: absolute; right: -14%; bottom: 4%; width: 62%; aspect-ratio: 1; border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--scene-b) 55%, transparent); background: radial-gradient(circle at 65% 70%, rgba(255, 255, 255, 0.08), color-mix(in srgb, var(--scene-b) 14%, transparent) 50%, transparent 72%);
+  box-shadow: inset 0 0 30px color-mix(in srgb, var(--scene-b) 22%, transparent); --scene-dx: -8px; --scene-dy: -6px; animation: sceneDrift 30s ease-in-out infinite; animation-delay: var(--d, 0s); animation-delay: -15s;
+}
+[data-scene="lens-swap"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: calc(var(--s) * 0.4); border-radius: 50%;
+  background: rgba(255, 255, 255, 0.16); rotate: -30deg; filter: blur(2px); --scene-breath-lo: 0.4; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="lens-swap"] .scene-layer > i:nth-child(1) {
+  --x: 6%; --y: 12%; --s: 40px; --d: 0s;
+}
+[data-scene="lens-swap"] .scene-layer > i:nth-child(2) {
+  --x: 74%; --y: 74%; --s: 34px; --d: -8s;
+}
+[data-scene="lens-swap"] .scene-layer > i:nth-child(3) {
+  --x: 14%; --y: 20%; --s: 14px; --d: -4s;
+}
+[data-scene="lens-swap"] .scene-layer > i:nth-child(4) {
+  --x: 84%; --y: 82%; --s: 12px; --d: -12s;
+}
+[data-scene="lens-swap"] .scene-layer > i:nth-child(5) {
+  --x: 46%; --y: 48%; --s: 18px; --d: -6s;
+}
+
+/* ── letter-number-switch · «Буквы и цифры» ── диагональный свет делит поле: буквы в одном углу, цифры в другом. */
+[data-scene="letter-number-switch"] .scene-layer {
+  --scene-opacity: 0.54;
+}
+[data-scene="letter-number-switch"] .scene-layer::before {
+  content: ""; position: absolute; left: -20%; right: -20%; top: 50%; height: 80px; margin-top: -40px; rotate: -32deg;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)) 16%, transparent), transparent);
+}
+[data-scene="letter-number-switch"] .scene-layer::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(148deg, color-mix(in srgb, var(--scene-a) 12%, transparent), transparent 34%, transparent 66%, color-mix(in srgb, var(--scene-b) 14%, transparent));
+}
+[data-scene="letter-number-switch"] .scene-layer > i {
+  left: var(--x); top: var(--y); font: 600 var(--s) / 1 system-ui, sans-serif; color: color-mix(in srgb, var(--c) 55%, transparent);
+  text-shadow: 0 0 12px color-mix(in srgb, var(--c) 50%, transparent); --scene-dx: 0px; --scene-dy: -6px; animation: sceneDrift 22s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="letter-number-switch"] .scene-layer > i::before {
+  content: var(--t);
+}
+[data-scene="letter-number-switch"] .scene-layer > i:nth-child(1) {
+  --x: 6%; --y: 5%; --s: 28px; --t: "A"; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="letter-number-switch"] .scene-layer > i:nth-child(2) {
+  --x: 20%; --y: 11%; --s: 18px; --t: "Е"; --c: var(--scene-a); --d: -5s;
+}
+[data-scene="letter-number-switch"] .scene-layer > i:nth-child(3) {
+  --x: 5%; --y: 16%; --s: 16px; --t: "К"; --c: var(--scene-a); --d: -10s;
+}
+[data-scene="letter-number-switch"] .scene-layer > i:nth-child(4) {
+  --x: 86%; --y: 86%; --s: 28px; --t: "7"; --c: var(--scene-b); --d: -3s;
+}
+[data-scene="letter-number-switch"] .scene-layer > i:nth-child(5) {
+  --x: 74%; --y: 91%; --s: 18px; --t: "2"; --c: var(--scene-b); --d: -8s;
+}
+
+/* ── math-sign-switch · «Знаки-созвездия» ── медленно мерцающие знаки плюс, минус и умножение. */
+[data-scene="math-sign-switch"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="math-sign-switch"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: var(--s); margin: calc(var(--s) / -2); rotate: var(--rot);
+  --scene-breath-lo: 0.35; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="math-sign-switch"] .scene-layer > i::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 3px; margin-top: -1.5px; border-radius: 2px;
+  background: color-mix(in srgb, var(--c) 75%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 50%, transparent);
+}
+[data-scene="math-sign-switch"] .scene-layer > i::after {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; margin-left: -1.5px; border-radius: 2px;
+  background: color-mix(in srgb, var(--c) 75%, transparent); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 50%, transparent); display: var(--v, block);
+}
+[data-scene="math-sign-switch"] .scene-layer > i:nth-child(1) {
+  --x: 10%; --y: 10%; --s: 26px; --rot: 0deg; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="math-sign-switch"] .scene-layer > i:nth-child(2) {
+  --x: 88%; --y: 14%; --s: 22px; --rot: 0deg; --v: none; --c: var(--scene-b); --d: -4s;
+}
+[data-scene="math-sign-switch"] .scene-layer > i:nth-child(3) {
+  --x: 90%; --y: 84%; --s: 24px; --rot: 45deg; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s;
+}
+[data-scene="math-sign-switch"] .scene-layer > i:nth-child(4) {
+  --x: 12%; --y: 88%; --s: 20px; --rot: 0deg; --v: none; --c: var(--scene-a); --d: -12s;
+}
+[data-scene="math-sign-switch"] .scene-layer > i:nth-child(5) {
+  --x: 50%; --y: 5%; --s: 14px; --rot: 45deg; --c: var(--scene-b); --d: -6s;
+}
+[data-scene="math-sign-switch"] .scene-layer::after {
+  content: ""; position: absolute; inset: 30% -20%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 12%, transparent), transparent); filter: blur(24px);
+}
+
+/* ── math-switch · «Счёты» ── горизонтальные струны счётов с бусинами по нижнему краю. */
+[data-scene="math-switch"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="math-switch"] .scene-layer::before {
+  content: ""; position: absolute; left: 4%; right: 4%; bottom: 4%; height: 22%;
+  background: linear-gradient(0deg, transparent 0 calc(25% - 1px), rgba(255, 255, 255, 0.22) calc(25% - 1px) 25%, transparent 25%) 0 0 / 100% 33.33%;
+  border-left: 2px solid rgba(255, 255, 255, 0.16); border-right: 2px solid rgba(255, 255, 255, 0.16);
+}
+[data-scene="math-switch"] .scene-layer > i {
+  left: var(--x); bottom: calc(4% + var(--row) * 7.33% + 1.8%); height: 12px; width: calc(var(--n) * 16px); margin-bottom: -6px;
+  background: radial-gradient(ellipse 7px 6px, color-mix(in srgb, var(--c) 85%, transparent) 0 60%, color-mix(in srgb, var(--c) 25%, transparent) 80%, transparent) 0 0 / 16px 12px repeat-x;
+  --scene-dx: 14px; --scene-dy: 0px; animation: sceneDrift 22s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="math-switch"] .scene-layer > i:nth-child(1) {
+  --x: 8%; --row: 0; --n: 3; --c: var(--scene-b); --d: 0s;
+}
+[data-scene="math-switch"] .scene-layer > i:nth-child(2) {
+  --x: 60%; --row: 0; --n: 2; --c: var(--scene-b); --d: -6s;
+}
+[data-scene="math-switch"] .scene-layer > i:nth-child(3) {
+  --x: 14%; --row: 1; --n: 4; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -3s;
+}
+[data-scene="math-switch"] .scene-layer > i:nth-child(4) {
+  --x: 70%; --row: 2; --n: 3; --c: var(--scene-a); --d: -9s;
+}
+[data-scene="math-switch"] .scene-layer > i:nth-child(5) {
+  --x: 22%; --row: 2; --n: 1; --c: var(--scene-a); --d: -12s;
+}
+
+/* ── mirror-pick · «Зеркальная гладь» ── вертикальная ось зеркала и симметричные пары фигур. */
+[data-scene="mirror-pick"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="mirror-pick"] .scene-layer::before {
+  content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; margin-left: -1px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.3) 20%, rgba(255, 255, 255, 0.3) 80%, transparent); box-shadow: 0 0 24px 6px color-mix(in srgb, var(--scene-a) 18%, transparent);
+}
+[data-scene="mirror-pick"] .scene-layer::after {
+  content: ""; position: absolute; left: 46%; right: 46%; top: 0; bottom: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+}
+[data-scene="mirror-pick"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: var(--s); margin: calc(var(--s) / -2);
+  background: color-mix(in srgb, var(--c) 50%, transparent); scale: var(--fx) 1;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'%3E%3Cpath d='M2 22L12 2L22 12L16 22Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'%3E%3Cpath d='M2 22L12 2L22 12L16 22Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat; --scene-breath-lo: 0.45; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="mirror-pick"] .scene-layer > i:nth-child(1) {
+  --x: 22%; --y: 12%; --s: 30px; --fx: 1; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="mirror-pick"] .scene-layer > i:nth-child(2) {
+  --x: 78%; --y: 12%; --s: 30px; --fx: -1; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="mirror-pick"] .scene-layer > i:nth-child(3) {
+  --x: 12%; --y: 86%; --s: 22px; --fx: 1; --c: var(--scene-b); --d: -8s;
+}
+[data-scene="mirror-pick"] .scene-layer > i:nth-child(4) {
+  --x: 88%; --y: 86%; --s: 22px; --fx: -1; --c: var(--scene-b); --d: -8s;
+}
+[data-scene="mirror-pick"] .scene-layer > i:nth-child(5) {
+  --x: 50%; --y: 50%; --s: 10px; --fx: 1; --c: rgba(255, 255, 255, 1); --d: -4s;
+}
+
+/* ── motif-flip · «Перевёрнутый орнамент» ── полоса орнамента сверху и её отражение снизу. */
+[data-scene="motif-flip"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="motif-flip"] .scene-layer::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 3%; height: 26px; background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 55%, transparent), color-mix(in srgb, var(--scene-b) 55%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24' preserveAspectRatio='none'%3E%3Cpath d='M0 20L10 4L20 20M5 20L10 12L15 20' stroke='%23000' fill='none' stroke-width='1.6'/%3E%3C/svg%3E") 0 0 / 26px 26px repeat-x; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24' preserveAspectRatio='none'%3E%3Cpath d='M0 20L10 4L20 20M5 20L10 12L15 20' stroke='%23000' fill='none' stroke-width='1.6'/%3E%3C/svg%3E") 0 0 / 26px 26px repeat-x;
+}
+[data-scene="motif-flip"] .scene-layer::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 3%; height: 26px; scale: 1 -1; background: linear-gradient(90deg, color-mix(in srgb, var(--scene-b) 55%, transparent), color-mix(in srgb, var(--scene-a) 55%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24' preserveAspectRatio='none'%3E%3Cpath d='M0 20L10 4L20 20M5 20L10 12L15 20' stroke='%23000' fill='none' stroke-width='1.6'/%3E%3C/svg%3E") 13px 0 / 26px 26px repeat-x; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 24' preserveAspectRatio='none'%3E%3Cpath d='M0 20L10 4L20 20M5 20L10 12L15 20' stroke='%23000' fill='none' stroke-width='1.6'/%3E%3C/svg%3E") 13px 0 / 26px 26px repeat-x;
+}
+[data-scene="motif-flip"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 18px; height: 18px; margin: -9px; rotate: 45deg; border: 1px solid color-mix(in srgb, var(--c) 55%, transparent); --scene-breath-lo: 0.3; animation: sceneBreath 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="motif-flip"] .scene-layer > i::after {
+  content: ""; position: absolute; inset: 4px; background: color-mix(in srgb, var(--c) 40%, transparent);
+}
+[data-scene="motif-flip"] .scene-layer > i:nth-child(1) {
+  --x: 8%; --y: 13%; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="motif-flip"] .scene-layer > i:nth-child(2) {
+  --x: 92%; --y: 13%; --c: var(--scene-b); --d: -6s;
+}
+[data-scene="motif-flip"] .scene-layer > i:nth-child(3) {
+  --x: 8%; --y: 87%; --c: var(--scene-b); --d: -3s;
+}
+[data-scene="motif-flip"] .scene-layer > i:nth-child(4) {
+  --x: 92%; --y: 87%; --c: var(--scene-a); --d: -9s;
+}
+[data-scene="motif-flip"] .scene-layer > i:nth-child(5) {
+  --x: 50%; --y: 13%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -12s;
+}
+
+/* ── parity-magnitude · «Весы» ── коромысло весов у основания: две чаши и опора. */
+[data-scene="parity-magnitude"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="parity-magnitude"] .scene-layer::before {
+  content: ""; position: absolute; left: 50%; bottom: 0; width: 70%; height: 30%; translate: -50% 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M50 100V18M8 26L92 10M42 100H58M8 26L2 60M8 26L14 60M92 10L86 44M92 10L98 44' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.3' stroke-width='1.2'/%3E%3Cpath d='M0 60Q8 72 16 60M84 44Q92 56 100 44' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.45' stroke-width='1.5'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="parity-magnitude"] .scene-layer::after {
+  content: ""; position: absolute; left: 50%; bottom: 24%; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4); box-shadow: 0 0 16px color-mix(in srgb, var(--scene-a) 60%, transparent);
+}
+[data-scene="parity-magnitude"] .scene-layer > i {
+  left: var(--x); bottom: var(--y); width: var(--s); height: var(--s); margin-left: calc(var(--s) / -2); border-radius: var(--r, 50%);
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.4), color-mix(in srgb, var(--c) 70%, transparent) 50%, color-mix(in srgb, var(--c) 15%, transparent)); --scene-breath-lo: 0.5; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="parity-magnitude"] .scene-layer > i:nth-child(1) {
+  --x: 18.5%; --y: 11%; --s: 18px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="parity-magnitude"] .scene-layer > i:nth-child(2) {
+  --x: 22.5%; --y: 11%; --s: 12px; --c: var(--scene-a); --d: -4s;
+}
+[data-scene="parity-magnitude"] .scene-layer > i:nth-child(3) {
+  --x: 80%; --y: 15%; --s: 14px; --r: 3px; --c: var(--scene-b); --d: -8s;
+}
+[data-scene="parity-magnitude"] .scene-layer > i:nth-child(4) {
+  --x: 12%; --y: 80%; --s: 30px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -12s;
+}
+[data-scene="parity-magnitude"] .scene-layer > i:nth-child(5) {
+  --x: 88%; --y: 70%; --s: 22px; --r: 4px; --c: var(--scene-b); --d: -6s;
+}
+
+/* ── prism-flip · «Призма» ── стеклянная призма в углу: луч входит и раскладывается на мятные лучи. */
+[data-scene="prism-flip"] .scene-layer {
+  --scene-opacity: 0.6;
+}
+[data-scene="prism-flip"] .scene-layer::before {
+  content: ""; position: absolute; right: 6%; top: 6%; width: 90px; height: 80px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.16), color-mix(in srgb, var(--scene-a) 16%, transparent));
+  clip-path: polygon(50% 0, 100% 100%, 0 100%); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--scene-a) 40%, transparent));
+}
+[data-scene="prism-flip"] .scene-layer::after {
+  content: ""; position: absolute; right: 6%; top: 6%; width: 90px; height: 80px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M50 0L100 100H0Z' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.45' stroke-width='1.2'/%3E%3C/svg%3E") 0 0 / 100% 100%;
+}
+[data-scene="prism-flip"] .scene-layer > i {
+  right: calc(6% + 60px); top: calc(6% + 48px); width: var(--s); height: 2px; transform-origin: 100% 50%; rotate: var(--rot);
+  background: linear-gradient(270deg, color-mix(in srgb, var(--c) 70%, transparent), transparent); --scene-breath-lo: 0.4; animation: sceneBreath 15s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="prism-flip"] .scene-layer > i:nth-child(1) {
+  --s: 34vw; --rot: -14deg; --c: rgba(255, 255, 255, 1); --d: 0s;
+}
+[data-scene="prism-flip"] .scene-layer > i:nth-child(2) {
+  --s: 60vw; --rot: 156deg; right: calc(6% + 20px); --c: var(--scene-a); --d: -3s;
+}
+[data-scene="prism-flip"] .scene-layer > i:nth-child(3) {
+  --s: 60vw; --rot: 166deg; right: calc(6% + 20px); --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s;
+}
+[data-scene="prism-flip"] .scene-layer > i:nth-child(4) {
+  --s: 60vw; --rot: 176deg; right: calc(6% + 20px); --c: var(--scene-b); --d: -9s;
+}
+[data-scene="prism-flip"] .scene-layer > i:nth-child(5) {
+  --s: 40vw; --rot: 146deg; right: calc(6% + 20px); --c: var(--scene-a); --d: -12s;
+}
+
+/* ── rubric-flip · «Рубрики» ── разлинованный лист с цветными шапками колонок по верху. */
+[data-scene="rubric-flip"] .scene-layer {
+  --scene-opacity: 0.54;
+}
+[data-scene="rubric-flip"] .scene-layer::before {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0 calc(33.33% - 0.5px), rgba(255, 255, 255, 0.1) calc(33.33% - 0.5px) 33.33%, transparent 33.33%) 0 0 / 100% 100%,
+  linear-gradient(90deg, transparent 0 calc(66.66% - 0.5px), rgba(255, 255, 255, 0.1) calc(66.66% - 0.5px) 66.66%, transparent 66.66%) 0 0 / 100% 100%;
+  -webkit-mask: linear-gradient(180deg, #000, transparent 40%, transparent 70%, #000); mask: linear-gradient(180deg, #000, transparent 40%, transparent 70%, #000);
+}
+[data-scene="rubric-flip"] .scene-layer::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 14px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 50%, transparent) 0 33%, transparent 33% 33.66%, color-mix(in srgb, color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)) 50%, transparent) 33.66% 66.33%, transparent 66.33% 67%, color-mix(in srgb, var(--scene-b) 50%, transparent) 67%);
+}
+[data-scene="rubric-flip"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 16px; height: 16px; margin: -8px; background: color-mix(in srgb, var(--c) 65%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'%3E%3Cpath d='M3 12L9 18L21 5' stroke='%23000' fill='none' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' preserveAspectRatio='none'%3E%3Cpath d='M3 12L9 18L21 5' stroke='%23000' fill='none' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 100% 100% no-repeat; --scene-breath-lo: 0.4; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="rubric-flip"] .scene-layer > i:nth-child(1) {
+  --x: 16.6%; --y: 7%; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="rubric-flip"] .scene-layer > i:nth-child(2) {
+  --x: 50%; --y: 7%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -5s;
+}
+[data-scene="rubric-flip"] .scene-layer > i:nth-child(3) {
+  --x: 83.3%; --y: 7%; --c: var(--scene-b); --d: -10s;
+}
+[data-scene="rubric-flip"] .scene-layer > i:nth-child(4) {
+  --x: 16.6%; --y: 92%; --c: var(--scene-a); --d: -3s;
+}
+[data-scene="rubric-flip"] .scene-layer > i:nth-child(5) {
+  --x: 83.3%; --y: 92%; --c: var(--scene-b); --d: -8s;
+}
+
+/* ── rule-pivot · «Точка поворота» ── веер лучей из шарнира в нижнем углу, i — стрелки-стрелки компаса на разных углах. */
+[data-scene="rule-pivot"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="rule-pivot"] .scene-layer::before {
+  content: ""; position: absolute; left: -40%; bottom: -40%; width: 120%; aspect-ratio: 1; border-radius: 50%;
+  background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--scene-a) 18%, transparent) 0 2deg, transparent 2deg 14deg);
+  -webkit-mask: radial-gradient(closest-side, transparent 30%, #000 50%, transparent 100%); mask: radial-gradient(closest-side, transparent 30%, #000 50%, transparent 100%);
+}
+[data-scene="rule-pivot"] .scene-layer::after {
+  content: ""; position: absolute; left: 20%; bottom: 20%; width: 16px; height: 16px; margin: -8px; border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--scene-b) 70%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--scene-b) 50%, transparent);
+}
+[data-scene="rule-pivot"] .scene-layer > i {
+  left: 20%; bottom: 20%; width: var(--s); height: 2px; transform-origin: 0 50%; rotate: var(--rot);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, transparent), transparent); --scene-breath-lo: 0.25; animation: sceneBreath 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="rule-pivot"] .scene-layer > i:nth-child(1) {
+  --s: 40%; --rot: -10deg; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="rule-pivot"] .scene-layer > i:nth-child(2) {
+  --s: 46%; --rot: -30deg; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -3.6s;
+}
+[data-scene="rule-pivot"] .scene-layer > i:nth-child(3) {
+  --s: 50%; --rot: -50deg; --c: var(--scene-b); --d: -7.2s;
+}
+[data-scene="rule-pivot"] .scene-layer > i:nth-child(4) {
+  --s: 46%; --rot: -70deg; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -10.8s;
+}
+[data-scene="rule-pivot"] .scene-layer > i:nth-child(5) {
+  --s: 40%; --rot: -88deg; --c: var(--scene-a); --d: -14.4s;
+}
+
+/* ── set-shift · «Сдвиг множеств» ── концентрические кольца двух множеств со смещёнными центрами. */
+[data-scene="set-shift"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="set-shift"] .scene-layer::before {
+  content: ""; position: absolute; left: -30%; top: -20%; width: 90%; aspect-ratio: 1; border-radius: 50%;
+  background: repeating-radial-gradient(circle, transparent 0 22px, color-mix(in srgb, var(--scene-a) 30%, transparent) 23px 24px, transparent 25px 34px);
+  -webkit-mask: radial-gradient(closest-side, #000 40%, transparent); mask: radial-gradient(closest-side, #000 40%, transparent); --scene-dx: 10px; --scene-dy: 8px; animation: sceneDrift 34s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="set-shift"] .scene-layer::after {
+  content: ""; position: absolute; right: -30%; bottom: -20%; width: 90%; aspect-ratio: 1; border-radius: 50%;
+  background: repeating-radial-gradient(circle, transparent 0 18px, color-mix(in srgb, var(--scene-b) 34%, transparent) 19px 20px, transparent 21px 30px);
+  -webkit-mask: radial-gradient(closest-side, #000 40%, transparent); mask: radial-gradient(closest-side, #000 40%, transparent); --scene-dx: -10px; --scene-dy: -8px; animation: sceneDrift 34s ease-in-out infinite; animation-delay: var(--d, 0s); animation-delay: -17s;
+}
+[data-scene="set-shift"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 8px; height: 8px; margin: -4px; border-radius: 50%; background: color-mix(in srgb, var(--c) 90%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 60%, transparent); --scene-breath-lo: 0.35; animation: sceneBreath 14s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="set-shift"] .scene-layer > i:nth-child(1) {
+  --x: 15%; --y: 12%; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="set-shift"] .scene-layer > i:nth-child(2) {
+  --x: 24%; --y: 22%; --c: var(--scene-a); --d: -4s;
+}
+[data-scene="set-shift"] .scene-layer > i:nth-child(3) {
+  --x: 85%; --y: 88%; --c: var(--scene-b); --d: -8s;
+}
+[data-scene="set-shift"] .scene-layer > i:nth-child(4) {
+  --x: 76%; --y: 78%; --c: var(--scene-b); --d: -12s;
+}
+[data-scene="set-shift"] .scene-layer > i:nth-child(5) {
+  --x: 50%; --y: 50%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s;
+}
+
+/* ── sign-flip · «Подброшенные монеты» ── монеты в разных фазах переворота: от круга до ребра. */
+[data-scene="sign-flip"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="sign-flip"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 34px; height: 34px; margin: -17px; border-radius: 50%; scale: var(--k) 1;
+  background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.3), color-mix(in srgb, var(--c) 55%, transparent) 45%, color-mix(in srgb, var(--c) 20%, transparent) 70%);
+  border: 1.5px solid color-mix(in srgb, var(--c) 70%, transparent); --scene-dx: 0px; --scene-dy: -10px; animation: sceneDrift 20s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="sign-flip"] .scene-layer > i::before {
+  content: var(--t); position: absolute; inset: 0; display: grid; place-items: center; font: 700 16px / 1 system-ui, sans-serif; color: rgba(255, 255, 255, 0.55);
+}
+[data-scene="sign-flip"] .scene-layer > i:nth-child(1) {
+  --x: 10%; --y: 10%; --k: 1; --t: "+"; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="sign-flip"] .scene-layer > i:nth-child(2) {
+  --x: 24%; --y: 6%; --k: 0.6; --t: "+"; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -3s;
+}
+[data-scene="sign-flip"] .scene-layer > i:nth-child(3) {
+  --x: 38%; --y: 9%; --k: 0.15; --t: ""; --c: var(--scene-b); --d: -6s;
+}
+[data-scene="sign-flip"] .scene-layer > i:nth-child(4) {
+  --x: 88%; --y: 88%; --k: 1; --t: "−"; --c: var(--scene-b); --d: -9s;
+}
+[data-scene="sign-flip"] .scene-layer > i:nth-child(5) {
+  --x: 74%; --y: 92%; --k: 0.55; --t: "−"; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -12s;
+}
+[data-scene="sign-flip"] .scene-layer::before {
+  content: ""; position: absolute; inset: -10% 40% 60% -20%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 18%, transparent), transparent); filter: blur(20px);
+}
+
+/* ── stroop · «Тихие капли» ── только мягкие бесцветные капли по углам — центр чист для цветных слов. */
+[data-scene="stroop"] .scene-layer {
+  --scene-opacity: 0.5;
+}
+[data-scene="stroop"] .scene-layer::before {
+  content: ""; position: absolute; left: -12%; top: -10%; width: 46%; height: 30%; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.07), transparent); filter: blur(10px); --scene-dx: 8px; --scene-dy: 6px; animation: sceneDrift 40s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="stroop"] .scene-layer::after {
+  content: ""; position: absolute; right: -12%; bottom: -10%; width: 46%; height: 30%; border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)) 14%, transparent), transparent); filter: blur(12px); --scene-dx: -8px; --scene-dy: -6px; animation: sceneDrift 40s ease-in-out infinite; animation-delay: var(--d, 0s); animation-delay: -20s;
+}
+[data-scene="stroop"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: calc(var(--s) * 1.25); margin: calc(var(--s) / -2);
+  border-radius: 50% 50% 50% 50% / 62% 62% 40% 40%; rotate: 180deg;
+  background: radial-gradient(circle at 50% 65%, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.03) 70%); border: 1px solid rgba(255, 255, 255, 0.08); --scene-breath-lo: 0.5; animation: sceneBreath 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="stroop"] .scene-layer > i:nth-child(1) {
+  --x: 8%; --y: 7%; --s: 18px; --d: 0s;
+}
+[data-scene="stroop"] .scene-layer > i:nth-child(2) {
+  --x: 18%; --y: 4%; --s: 10px; --d: -5s;
+}
+[data-scene="stroop"] .scene-layer > i:nth-child(3) {
+  --x: 92%; --y: 93%; --s: 18px; --d: -10s;
+}
+[data-scene="stroop"] .scene-layer > i:nth-child(4) {
+  --x: 82%; --y: 96%; --s: 10px; --d: -14s;
+}
+[data-scene="stroop"] .scene-layer > i:nth-child(5) {
+  --x: 94%; --y: 6%; --s: 8px; --d: -7s;
+}
+
+/* ── switch-rule · «Тумблеры» ── капсулы-переключатели в разных положениях вдоль краёв. */
+[data-scene="switch-rule"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="switch-rule"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: 44px; height: 22px; border-radius: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.16); background: color-mix(in srgb, var(--c) var(--on)%, transparent); --scene-breath-lo: 0.5; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="switch-rule"] .scene-layer > i::before {
+  content: ""; position: absolute; top: 3px; left: var(--k); width: 14px; height: 14px; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55); box-shadow: 0 0 10px color-mix(in srgb, var(--c) 70%, transparent);
+}
+[data-scene="switch-rule"] .scene-layer > i:nth-child(1) {
+  --x: 6%; --y: 7%; --k: 3px; --on: 10%; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="switch-rule"] .scene-layer > i:nth-child(2) {
+  --x: 6%; --y: 13%; --k: 25px; --on: 40%; --c: var(--scene-b); --d: -4s;
+}
+[data-scene="switch-rule"] .scene-layer > i:nth-child(3) {
+  --x: 84%; --y: 88%; --k: 25px; --on: 40%; --c: var(--scene-a); --d: -8s;
+}
+[data-scene="switch-rule"] .scene-layer > i:nth-child(4) {
+  --x: 84%; --y: 82%; --k: 3px; --on: 10%; --c: var(--scene-b); --d: -12s;
+}
+[data-scene="switch-rule"] .scene-layer > i:nth-child(5) {
+  --x: 84%; --y: 7%; --k: 25px; --on: 34%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s;
+}
+[data-scene="switch-rule"] .scene-layer::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: radial-gradient(60% 60% at 50% 100%, color-mix(in srgb, var(--scene-b) 16%, transparent), transparent);
+}
+
+/* ── token-warp · «Искривление» ── перспективная воронка-сетка, жетоны затягивает по спирали. */
+[data-scene="token-warp"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="token-warp"] .scene-layer::before {
+  content: ""; position: absolute; left: 50%; top: 50%; width: 160%; aspect-ratio: 1; translate: -50% -50%; border-radius: 50%;
+  background: repeating-radial-gradient(ellipse 100% 60% at 50% 50%, transparent 0 calc(4% - 1px), color-mix(in srgb, var(--scene-a) 22%, transparent) calc(4% - 1px) 4%);
+  -webkit-mask: radial-gradient(closest-side, transparent 18%, #000 30%, transparent 70%); mask: radial-gradient(closest-side, transparent 18%, #000 30%, transparent 70%);
+}
+[data-scene="token-warp"] .scene-layer::after {
+  content: ""; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M50 50C60 42 70 52 62 64C50 80 22 66 22 44C22 18 60 6 82 22C100 36 100 70 80 90' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.2' stroke-width='1' stroke-dasharray='3 4'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="token-warp"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: var(--s); margin: calc(var(--s) / -2); border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--c) 70%, transparent); background: radial-gradient(circle, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%);
+  --scene-dx: -6px; --scene-dy: -6px; animation: sceneDrift 24s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="token-warp"] .scene-layer > i:nth-child(1) {
+  --x: 80%; --y: 90%; --s: 26px; --c: var(--scene-b); --d: 0s;
+}
+[data-scene="token-warp"] .scene-layer > i:nth-child(2) {
+  --x: 86%; --y: 26%; --s: 20px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -5s;
+}
+[data-scene="token-warp"] .scene-layer > i:nth-child(3) {
+  --x: 22%; --y: 44%; --s: 16px; --c: var(--scene-a); --d: -10s;
+}
+[data-scene="token-warp"] .scene-layer > i:nth-child(4) {
+  --x: 40%; --y: 74%; --s: 12px; --c: var(--scene-a); --d: -15s;
+}
+[data-scene="token-warp"] .scene-layer > i:nth-child(5) {
+  --x: 60%; --y: 60%; --s: 8px; --c: rgba(255, 255, 255, 1); --d: -20s;
+}
+
+/* ── verbal-fluency · «Мятные ленты речи» ── струящиеся мятные ленты и облачка-реплики. */
+[data-scene="verbal-fluency"] .scene-layer {
+  --scene-opacity: 0.6;
+}
+[data-scene="verbal-fluency"] .scene-layer::before {
+  content: ""; position: absolute; left: -10%; right: -10%; bottom: 6%; height: 30%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 50%, transparent), color-mix(in srgb, var(--scene-b) 50%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M0 60C25 20 45 90 70 50S100 30 120 40V52C100 42 90 64 70 62S25 34 0 72Z' fill='%23000'/%3E%3Cpath d='M0 30C30 0 50 60 80 20S110 10 120 14V20C110 16 100 34 80 28S30 12 0 38Z' fill='%23000' fill-opacity='0.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M0 60C25 20 45 90 70 50S100 30 120 40V52C100 42 90 64 70 62S25 34 0 72Z' fill='%23000'/%3E%3Cpath d='M0 30C30 0 50 60 80 20S110 10 120 14V20C110 16 100 34 80 28S30 12 0 38Z' fill='%23000' fill-opacity='0.6'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  --scene-dx: 18px; --scene-dy: -4px; animation: sceneDrift 30s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="verbal-fluency"] .scene-layer::after {
+  content: ""; position: absolute; left: -10%; right: -10%; top: 4%; height: 16%; background: color-mix(in srgb, var(--scene-a) 36%, transparent);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M0 50C30 10 60 90 90 40S120 50 120 50V58C110 58 110 50 90 50S30 22 0 60Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 100' preserveAspectRatio='none'%3E%3Cpath d='M0 50C30 10 60 90 90 40S120 50 120 50V58C110 58 110 50 90 50S30 22 0 60Z' fill='%23000'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  --scene-dx: -16px; --scene-dy: 4px; animation: sceneDrift 34s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="verbal-fluency"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: var(--s); height: calc(var(--s) * 0.66); border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); --scene-breath-lo: 0.35; animation: sceneBreath 16s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="verbal-fluency"] .scene-layer > i::after {
+  content: ""; position: absolute; left: 18%; bottom: -5px; width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid color-mix(in srgb, var(--c) 50%, transparent);
+}
+[data-scene="verbal-fluency"] .scene-layer > i:nth-child(1) {
+  --x: 6%; --y: 24%; --s: 40px; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="verbal-fluency"] .scene-layer > i:nth-child(2) {
+  --x: 78%; --y: 22%; --s: 48px; --c: var(--scene-b); --d: -5s;
+}
+[data-scene="verbal-fluency"] .scene-layer > i:nth-child(3) {
+  --x: 66%; --y: 30%; --s: 22px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -10s;
+}
+[data-scene="verbal-fluency"] .scene-layer > i:nth-child(4) {
+  --x: 20%; --y: 30%; --s: 18px; --c: var(--scene-b); --d: -14s;
+}
+[data-scene="verbal-fluency"] .scene-layer > i:nth-child(5) {
+  --x: 88%; --y: 50%; --s: 16px; --c: var(--scene-a); --d: -7s;
+}
+
+/* ── vowel-consonant · «Плетение» ── переплетение двух нитей: основа мятная, уток изумрудный — по краям поля. */
+[data-scene="vowel-consonant"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="vowel-consonant"] .scene-layer::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 18%;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 34%, transparent) 0 6px, transparent 6px 18px), repeating-linear-gradient(0deg, color-mix(in srgb, var(--scene-b) 30%, transparent) 0 6px, transparent 6px 18px);
+  -webkit-mask: linear-gradient(180deg, #000, transparent); mask: linear-gradient(180deg, #000, transparent);
+}
+[data-scene="vowel-consonant"] .scene-layer::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18%;
+  background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--scene-b) 34%, transparent) 0 6px, transparent 6px 18px), repeating-linear-gradient(0deg, color-mix(in srgb, var(--scene-a) 30%, transparent) 0 6px, transparent 6px 18px);
+  -webkit-mask: linear-gradient(0deg, #000, transparent); mask: linear-gradient(0deg, #000, transparent);
+}
+[data-scene="vowel-consonant"] .scene-layer > i {
+  left: var(--x); top: 0; bottom: 0; width: 2px; background: linear-gradient(180deg, color-mix(in srgb, var(--c) 60%, transparent), transparent 22%, transparent 78%, color-mix(in srgb, var(--c) 60%, transparent)); --scene-breath-lo: 0.4; animation: sceneBreath 18s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="vowel-consonant"] .scene-layer > i::before {
+  content: ""; position: absolute; left: -6px; top: var(--y); width: 14px; height: 14px; border-radius: 50%; background: color-mix(in srgb, var(--c) 40%, transparent); border: 1px solid rgba(255, 255, 255, 0.2);
+}
+[data-scene="vowel-consonant"] .scene-layer > i:nth-child(1) {
+  --x: 8%; --y: 10%; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="vowel-consonant"] .scene-layer > i:nth-child(2) {
+  --x: 30%; --y: 86%; --c: var(--scene-b); --d: -4s;
+}
+[data-scene="vowel-consonant"] .scene-layer > i:nth-child(3) {
+  --x: 52%; --y: 6%; --c: var(--scene-a); --d: -8s;
+}
+[data-scene="vowel-consonant"] .scene-layer > i:nth-child(4) {
+  --x: 74%; --y: 90%; --c: var(--scene-b); --d: -12s;
+}
+[data-scene="vowel-consonant"] .scene-layer > i:nth-child(5) {
+  --x: 94%; --y: 12%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -16s;
+}
+
+/* ── vowel-count · «Бусы-счётчик» ── провисшие нити с бусинами-группами, как подсчёт гласных. */
+[data-scene="vowel-count"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="vowel-count"] .scene-layer::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 0; height: 26%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-2 10Q25 60 52 14M48 14Q75 60 102 8' fill='none' vector-effect='non-scaling-stroke' stroke='%23fff' stroke-opacity='0.24' stroke-width='1'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="vowel-count"] .scene-layer::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: radial-gradient(50% 60% at 50% 100%, color-mix(in srgb, var(--scene-a) 14%, transparent), transparent);
+}
+[data-scene="vowel-count"] .scene-layer > i {
+  left: var(--x); top: var(--y); width: calc(var(--n) * 13px); height: 12px; margin-left: calc(var(--n) * -6.5px); rotate: var(--rot);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0 1.5px, color-mix(in srgb, var(--c) 80%, transparent) 2px 5px, transparent 5.5px) 0 0 / 13px 12px repeat-x;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--c) 50%, transparent)); --scene-dx: 0px; --scene-dy: 4px; animation: sceneDrift 22s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+[data-scene="vowel-count"] .scene-layer > i:nth-child(1) {
+  --x: 13%; --y: 13%; --n: 2; --rot: 30deg; --c: var(--scene-a); --d: 0s;
+}
+[data-scene="vowel-count"] .scene-layer > i:nth-child(2) {
+  --x: 26%; --y: 18.5%; --n: 3; --rot: 0deg; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -4s;
+}
+[data-scene="vowel-count"] .scene-layer > i:nth-child(3) {
+  --x: 40%; --y: 13%; --n: 1; --rot: -30deg; --c: var(--scene-b); --d: -8s;
+}
+[data-scene="vowel-count"] .scene-layer > i:nth-child(4) {
+  --x: 66%; --y: 16.5%; --n: 4; --rot: 8deg; --c: var(--scene-a); --d: -12s;
+}
+[data-scene="vowel-count"] .scene-layer > i:nth-child(5) {
+  --x: 86%; --y: 12%; --n: 2; --rot: -34deg; --c: var(--scene-b); --d: -6s;
+}
