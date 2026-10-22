@@ -1,0 +1,100 @@
+/*
+ * «Тихий свет» (Quiet Light) — design tokens, step 1.
+ * Imported before styles.css; styles.css repoints its legacy colour variables
+ * (--bg, --accent, --danger, --dom-* …) onto these.
+ * Palette only — font, radii and shadows are handled separately.
+ * Theme switching: src/ui/theme.ts sets [data-theme] on <html>;
+ * default (no attribute) = dark.
+ */
+
+/* ---------- Theme-independent tokens ---------- */
+:root {
+  /* Skill gradients (same in both themes) */
+  --grad-attention-start: #FF7D6B;   /* coral */
+  --grad-attention-end: #FFB547;     /* amber */
+  --grad-memory-start: #9B7BFF;      /* violet */
+  --grad-memory-end: #F57BC4;        /* pink */
+  --grad-speed-start: #2EC4B6;       /* teal */
+  --grad-speed-end: #B5E655;         /* lime */
+  --grad-logic-start: #4C7DFF;       /* blue */
+  --grad-logic-end: #5CC8FF;         /* sky */
+  --grad-flexibility-start: #7EE8C1; /* mint */
+  --grad-flexibility-end: #1FB57A;   /* emerald */
+
+  --grad-attention: linear-gradient(135deg, var(--grad-attention-start), var(--grad-attention-end));
+  --grad-memory: linear-gradient(135deg, var(--grad-memory-start), var(--grad-memory-end));
+  --grad-speed: linear-gradient(135deg, var(--grad-speed-start), var(--grad-speed-end));
+  --grad-logic: linear-gradient(135deg, var(--grad-logic-start), var(--grad-logic-end));
+  --grad-flexibility: linear-gradient(135deg, var(--grad-flexibility-start), var(--grad-flexibility-end));
+}
+
+/* ---------- Dark (default) ---------- */
+:root, [data-theme="dark"] {
+  --ql-bg: #0F1020;
+  --ql-bg-rgb: 15, 16, 32;
+  --ql-bg-deep: #0A0B17;
+  --ql-surface: #16172B;
+  --ql-elevated: #1A1B30;
+  --ql-elevated-2: #25263D;
+  --ql-surface-alpha: rgba(255, 255, 255, 0.045);
+  --ql-surface-alpha-2: rgba(255, 255, 255, 0.075);
+  --ql-line: rgba(226, 222, 255, 0.10);
+  --ql-text: #F3F1FA;
+  --ql-text-muted: #B4B1C8;
+  --ql-glass: rgba(15, 16, 32, 0.74);
+
+  --ql-accent: #FFC46B;         /* light amber — primary buttons */
+  --ql-accent-hover: #FFD592;
+  --ql-accent-deep: #E0A24A;
+  --ql-accent-rgb: 255, 196, 107;
+  --ql-accent-ink: #FFC46B;     /* accent used as text */
+  --ql-on-accent: #231705;      /* text on amber buttons (11.2:1) */
+  --ql-accent-2: #8FB4FF;
+  --ql-accent-2-rgb: 143, 180, 255;
+
+  --ql-danger: #F291AB;         /* muted pink */
+  --ql-on-danger: #2A0E17;
+  --ql-ok: #5DD6A4;
+
+  /* Domain solid colours (text-safe on bg) */
+  --ql-dom-attention: #FF7D6B;
+  --ql-dom-memory: #A889FF;
+  --ql-dom-speed: #3CCFBF;
+  --ql-dom-logic: #5B8CFF;
+  --ql-dom-flexibility: #5FE0B0;
+}
+
+/* ---------- Light: warm milk ---------- */
+[data-theme="light"] {
+  --ql-bg: #F7F5F0;
+  --ql-bg-rgb: 247, 245, 240;
+  --ql-bg-deep: #EFEBE3;
+  --ql-surface: #FBFAF7;
+  --ql-elevated: #FFFFFF;
+  --ql-elevated-2: #ECE7DC;
+  --ql-surface-alpha: rgba(255, 255, 255, 0.82);
+  --ql-surface-alpha-2: #ECE7DC;
+  --ql-line: rgba(40, 32, 20, 0.09);
+  --ql-text: #1C1A2E;
+  --ql-text-muted: #5B5770;
+  --ql-glass: rgba(251, 250, 247, 0.82);
+
+  --ql-accent: #F2AE45;
+  --ql-accent-hover: #F6C066;
+  --ql-accent-deep: #C98A2E;
+  --ql-accent-rgb: 242, 174, 69;
+  --ql-accent-ink: #93570A;     /* 5.3:1 on milk */
+  --ql-on-accent: #2A1A05;      /* 8.7:1 on amber */
+  --ql-accent-2: #2F5FD0;
+  --ql-accent-2-rgb: 47, 95, 208;
+
+  --ql-danger: #B83E63;
+  --ql-on-danger: #FFFFFF;
+  --ql-ok: #1B7F58;
+
+  --ql-dom-attention: #C2452E;
+  --ql-dom-memory: #7A4FD8;
+  --ql-dom-speed: #0C766C;
+  --ql-dom-logic: #2F5FD0;
+  --ql-dom-flexibility: #147F57;
+}
