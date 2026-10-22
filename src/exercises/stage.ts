@@ -23,6 +23,64 @@ function cuePrefs() {
   }
 }
 
+/**
+ * «Тихий свет» sky: deep blue-violet, calm and static.
+ * Applied inline on `.play-sky` so it overrides the stylesheet starfield
+ * without touching palette tokens or styles.css.
+ */
+export const QUIET_SKY = {
+  base: '#0F1020',
+  indigo: '#1A1640',
+  violet: '#2A1E5C'
+} as const;
+
+/** Very faint per-domain tint (hard-coded, independent of --dom-* tokens). */
+const QUIET_SKY_TINT: Record<string, string> = {
+  attention: 'rgba(70, 96, 170, 0.07)',
+  memory: 'rgba(110, 80, 170, 0.07)',
+  speed: 'rgba(150, 96, 120, 0.06)',
+  flexibility: 'rgba(60, 120, 150, 0.06)',
+  logic: 'rgba(140, 120, 90, 0.05)'
+};
+
+export function quietSkyBackground(domain = 'attention'): string {
+  const tint = QUIET_SKY_TINT[domain] ?? 'rgba(80, 80, 150, 0.05)';
+  return [
+    // faint static stars (calm, sub-pixel soft — no pixel look)
+    'radial-gradient(1px 1px at 18% 22%, rgba(220, 216, 255, 0.22), transparent 70%)',
+    'radial-gradient(1px 1px at 72% 14%, rgba(220, 216, 255, 0.16), transparent 70%)',
+    'radial-gradient(1.2px 1.2px at 58% 38%, rgba(220, 216, 255, 0.12), transparent 70%)',
+    'radial-gradient(1px 1px at 34% 46%, rgba(220, 216, 255, 0.10), transparent 70%)',
+    // violet glow near the top
+    `radial-gradient(90% 55% at 50% -8%, ${hexA(QUIET_SKY.violet, 0.75)}, transparent 70%)`,
+    // indigo side glows
+    `radial-gradient(60% 45% at 12% 8%, ${hexA(QUIET_SKY.indigo, 0.9)}, transparent 72%)`,
+    `radial-gradient(55% 40% at 88% 12%, ${hexA(QUIET_SKY.indigo, 0.8)}, transparent 72%)`,
+    // optional very faint domain tint, low in the sky
+    `radial-gradient(80% 50% at 50% 110%, ${tint}, transparent 70%)`,
+    // vertical fade: indigo top -> base bottom
+    `linear-gradient(180deg, ${QUIET_SKY.indigo} 0%, #141330 38%, ${QUIET_SKY.base} 78%, ${QUIET_SKY.base} 100%)`
+  ].join(', ');
+}
+
+function hexA(hex: string, a: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${a})`;
+}
+
+function applyQuietSky(sky: HTMLElement, domain: string): void {
+  const st = sky.style;
+  st.backgroundColor = QUIET_SKY.base;
+  st.backgroundImage = quietSkyBackground(domain);
+  st.backgroundSize = '100% 100%';
+  st.backgroundRepeat = 'no-repeat';
+  st.backgroundPosition = '0 0';
+  // static sky: the legacy drifting starfield would shift the gradient layers
+  st.animation = 'none';
+  st.opacity = '1';
+  sky.dataset.sky = 'quiet-light';
+}
+
 export function mountStage(container: HTMLElement, domain = 'attention'): PlayStage {
   container.innerHTML = '';
   const root = document.createElement('div');
@@ -38,6 +96,8 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
     <canvas class="play-fx"></canvas>
   `;
   container.appendChild(root);
+
+  applyQuietSky(root.querySelector('.play-sky') as HTMLElement, domain);
 
   const board = root.querySelector('.play-board') as HTMLElement;
   const hud = root.querySelector('.play-hud') as HTMLElement;
