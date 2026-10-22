@@ -30,19 +30,19 @@ export async function shareSessionCard(params: {
   ctx.globalAlpha = 1;
 
   ctx.fillStyle = '#f8fafc';
-  ctx.font = '800 56px Inter, system-ui, sans-serif';
+  ctx.font = '800 56px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText('Fokus', 80, 140);
 
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '500 32px Inter, system-ui, sans-serif';
+  ctx.font = '500 32px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText('Тренировка внимания и памяти', 80, 190);
 
   ctx.fillStyle = '#f59e0b';
-  ctx.font = '800 180px Inter, system-ui, sans-serif';
+  ctx.font = '800 180px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText(String(Math.round(score)), 80, 460);
 
   ctx.fillStyle = '#94a3b8';
-  ctx.font = '600 36px Inter, system-ui, sans-serif';
+  ctx.font = '600 36px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText('очков за сессию', 80, 520);
 
   const stats = [
@@ -56,15 +56,15 @@ export async function shareSessionCard(params: {
     roundRect(ctx, x, 600, 280, 160, 28);
     ctx.fill();
     ctx.fillStyle = '#94a3b8';
-    ctx.font = '600 24px Inter, system-ui, sans-serif';
+    ctx.font = '600 24px "Manrope Variable", system-ui, sans-serif';
     ctx.fillText(row[0], x + 28, 660);
     ctx.fillStyle = '#f8fafc';
-    ctx.font = '800 48px Inter, system-ui, sans-serif';
+    ctx.font = '800 48px "Manrope Variable", system-ui, sans-serif';
     ctx.fillText(row[1], x + 28, 730);
   });
 
   ctx.fillStyle = '#64748b';
-  ctx.font = '500 28px Inter, system-ui, sans-serif';
+  ctx.font = '500 28px "Manrope Variable", system-ui, sans-serif';
   ctx.fillText(focus ? `Фокус: ${focus}` : 'Короткие тренировки каждый день', 80, 860);
   ctx.fillText('fokus', 80, 980);
 

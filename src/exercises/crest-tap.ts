@@ -29,7 +29,7 @@ const crestTapModule: ExerciseModule = {
           gap: 40px;
           background: #0f172a;
           color: white;
-          font-family: sans-serif;
+          font-family: var(--font-sans);
         }
         .ct-wave-container {
           width: 200px;

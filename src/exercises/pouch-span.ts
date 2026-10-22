@@ -28,7 +28,7 @@ const pouchSpanModule: ExerciseModule = {
           gap: 30px;
           background: #1e1b4b;
           color: white;
-          font-family: sans-serif;
+          font-family: var(--font-sans);
         }
         .ps-target-area {
           height: 80px;
