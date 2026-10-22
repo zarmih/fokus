@@ -2,13 +2,20 @@ import { VerbalFluencyEngine } from './engine';
 import { verbalFluencyManifest } from './manifest';
 import { mountStage } from '../stage';
 
+/** Session difficulty is fractional (e.g. 1.4): map it to an integer level, fall back to 30 s. */
+export function verbalFluencyDuration(level: number): number {
+  const levels = verbalFluencyManifest.levels as Record<number, { duration: number }> | undefined;
+  const l = Math.max(1, Math.floor(Number(level) || 1));
+  return levels?.[l]?.duration ?? 30;
+}
+
 export function renderVerbalFluency(
   container: HTMLElement,
   level: number,
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
-  const duration = (level <= 3 && verbalFluencyManifest.levels) ? verbalFluencyManifest.levels[level as keyof typeof verbalFluencyManifest.levels].duration : 30;
+  const duration = verbalFluencyDuration(level);
   const engine = new VerbalFluencyEngine(duration);
   const stage = mountStage(container, 'flexibility');
   const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -41,8 +48,15 @@ export function renderVerbalFluency(
   const wordCountEl = stage.board.querySelector('#word-count') as HTMLElement;
   const latestWordEl = stage.board.querySelector('#latest-word') as HTMLElement;
 
+  // Finish exactly once: the timer and the mic button can both end the block,
+  // and onBlockEnd re-enters our cleanup, so guard against repeated/recursive calls.
+  let finished = false;
+  let interval = 0;
   const finishBlock = () => {
-    recognition.stop();
+    if (finished) return;
+    finished = true;
+    clearInterval(interval);
+    if (isListening) { isListening = false; try { recognition.stop(); } catch { /* already stopped */ } }
     stage.cleanup();
     onBlockEnd({
       accuracy: Math.min(1, wordCount / 10),
@@ -58,7 +72,6 @@ export function renderVerbalFluency(
       btnMic.classList.add('live');
       stage.setStatus('Слушаю…');
     } else {
-      isListening = false;
       finishBlock();
     }
   });
@@ -78,10 +91,10 @@ export function renderVerbalFluency(
     }
   };
 
-  const interval = window.setInterval(() => { if (isTimeUp()) finishBlock(); }, 1000);
+  interval = window.setInterval(() => { if (isTimeUp()) finishBlock(); }, 1000);
   return () => {
     clearInterval(interval);
-    if (isListening) recognition.stop();
+    if (isListening) { isListening = false; try { recognition.stop(); } catch { /* already stopped */ } }
     stage.cleanup();
   };
 }

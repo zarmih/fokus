@@ -1,0 +1,1147 @@
+/*
+ * «Тихий свет» — сцены домена speed (Скорость). Мотивы: капли в потоке, струи.
+ * Градиент навыка: var(--grad-speed-start) → var(--grad-speed-end)
+ * (в слое уже доступны как var(--scene-a) / var(--scene-b)).
+ *
+ * Правила: только чистый CSS, каждый селектор начинается с
+ *   [data-scene="<id>"] .scene-layer
+ * Слоты: .scene-layer::before/::after + 5 × <i> (и их ::before/::after).
+ * Анимация — только очень медленный дрейф (≥ 12s); reduced-motion гасится в base.css.
+ *
+ * Упражнения (21):
+ *   arcade-shooter
+ *   ay-color-pulse
+ *   ay-number-grid
+ *   catch-the-color
+ *   color-burst
+ *   cut-bar
+ *   letter-case-match
+ *   math-sprint
+ *   max-number
+ *   meteorites
+ *   number-sort
+ *   pulse-gap
+ *   rapid-sorting
+ *   reaction-strike
+ *   rhythm-tap
+ *   same-different
+ *   slip-mark
+ *   spatial-speed
+ *   swings
+ *   vowel-consonant-count
+ *   word-length-sort
+ */
+
+/* ── arcade-shooter · «Звёздный коридор» ─────────────────────────────────────
+   Игра рисует canvas: сцена тише (0.48) и держится краёв, центр свободен.
+   ::before — линии скорости, сходящиеся к горизонту (inline SVG),
+   ::after  — мягкое сияние стартовой площадки внизу,
+   i × 5    — далёкие звёзды по бокам, i::before — короткий трассер. */
+[data-scene="arcade-shooter"] .scene-layer {
+  --scene-opacity: 0.48;
+}
+[data-scene="arcade-shooter"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg stroke='white' stroke-opacity='0.12' stroke-width='1' vector-effect='non-scaling-stroke' fill='none'%3E%3Cline x1='50' y1='8' x2='0' y2='100' vector-effect='non-scaling-stroke'/%3E%3Cline x1='50' y1='8' x2='14' y2='100' vector-effect='non-scaling-stroke'/%3E%3Cline x1='50' y1='8' x2='86' y2='100' vector-effect='non-scaling-stroke'/%3E%3Cline x1='50' y1='8' x2='100' y2='100' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, transparent 10%, #000 70%);
+  mask-image: linear-gradient(180deg, transparent 10%, #000 70%);
+}
+[data-scene="arcade-shooter"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 5%; right: 5%; bottom: -14%;
+  height: 30%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side,
+    color-mix(in srgb, var(--scene-a) 26%, transparent),
+    color-mix(in srgb, var(--scene-b) 8%, transparent) 60%,
+    transparent);
+  filter: blur(20px);
+  --scene-breath-lo: 0.6;
+  animation: sceneBreath 18s ease-in-out infinite;
+}
+[data-scene="arcade-shooter"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 14%, color-mix(in srgb, var(--c) 55%, transparent) 30%, transparent 70%);
+  --scene-dx: 0px; --scene-dy: 10px;
+  animation: sceneDrift 22s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="arcade-shooter"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: 60%;
+  width: 1px; height: 340%;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--c) 45%, transparent), transparent);
+}
+[data-scene="arcade-shooter"] .scene-layer > i:nth-child(1) { --x: 6%;  --y: 22%; --s: 12px; --c: var(--scene-a); --d: 0s; }
+[data-scene="arcade-shooter"] .scene-layer > i:nth-child(2) { --x: 14%; --y: 58%; --s: 8px;  --c: var(--scene-b); --d: -6s; }
+[data-scene="arcade-shooter"] .scene-layer > i:nth-child(3) { --x: 88%; --y: 16%; --s: 10px; --c: var(--scene-b); --d: -11s; }
+[data-scene="arcade-shooter"] .scene-layer > i:nth-child(4) { --x: 92%; --y: 48%; --s: 14px; --c: var(--scene-a); --d: -3s; }
+[data-scene="arcade-shooter"] .scene-layer > i:nth-child(5) { --x: 80%; --y: 74%; --s: 8px;  --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -15s; }
+
+/* ── ay-color-pulse · «Цветной пульс» ────────────────────────────────────────
+   ::before — концентрические волны пульса из центра,
+   ::after  — тёплое ядро пульса,
+   i × 5    — цветные капли-вспышки на орбите, дышат вразнобой. */
+[data-scene="ay-color-pulse"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="ay-color-pulse"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: repeating-radial-gradient(circle at 50% 50%,
+    transparent 0 26px,
+    color-mix(in srgb, var(--scene-a) 14%, transparent) 27px 28px,
+    transparent 29px 52px);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, #000 10%, transparent 55%);
+  mask-image: radial-gradient(circle at 50% 50%, #000 10%, transparent 55%);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 14s ease-in-out infinite;
+}
+[data-scene="ay-color-pulse"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 30%; right: 30%; top: 38%;
+  height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 22%, transparent), transparent);
+  filter: blur(18px);
+}
+[data-scene="ay-color-pulse"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.4), color-mix(in srgb, var(--c) 60%, transparent) 40%, transparent 72%);
+  box-shadow: 0 0 18px 2px color-mix(in srgb, var(--c) 30%, transparent);
+  --scene-breath-lo: 0.3;
+  animation: sceneBreath 13s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="ay-color-pulse"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--c) 30%, transparent);
+}
+[data-scene="ay-color-pulse"] .scene-layer > i:nth-child(1) { --x: 14%; --y: 16%; --s: 30px; --c: var(--scene-a); --d: 0s; }
+[data-scene="ay-color-pulse"] .scene-layer > i:nth-child(2) { --x: 84%; --y: 20%; --s: 22px; --c: var(--scene-b); --d: -3s; }
+[data-scene="ay-color-pulse"] .scene-layer > i:nth-child(3) { --x: 90%; --y: 70%; --s: 34px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s; }
+[data-scene="ay-color-pulse"] .scene-layer > i:nth-child(4) { --x: 12%; --y: 80%; --s: 26px; --c: var(--scene-b); --d: -9s; }
+[data-scene="ay-color-pulse"] .scene-layer > i:nth-child(5) { --x: 50%; --y: 92%; --s: 18px; --c: var(--scene-a); --d: -11s; }
+
+/* ── ay-number-grid · «Сетка огней» ──────────────────────────────────────────
+   ::before — тонкая стеклянная сетка ячеек,
+   ::after  — диагональный проблеск по сетке,
+   i × 5    — зажжённые ячейки, i::after — слабый отблеск соседней. */
+[data-scene="ay-number-grid"] .scene-layer {
+  --scene-opacity: 0.55;
+}
+[data-scene="ay-number-grid"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(255, 255, 255, 0.06) 47px 48px),
+    repeating-linear-gradient(0deg, transparent 0 47px, rgba(255, 255, 255, 0.06) 47px 48px);
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 30%, transparent 85%);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, #000 30%, transparent 85%);
+}
+[data-scene="ay-number-grid"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background: linear-gradient(120deg, transparent 40%, color-mix(in srgb, var(--scene-b) 10%, transparent) 50%, transparent 60%);
+  --scene-dx: 30px; --scene-dy: 20px;
+  animation: sceneDrift 30s ease-in-out infinite;
+}
+[data-scene="ay-number-grid"] .scene-layer > i {
+  left: calc(var(--x) * 48px + 1px);
+  top: calc(var(--y) * 48px + 1px);
+  width: 46px;
+  height: 46px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 24%, transparent), color-mix(in srgb, var(--c) 6%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent), 0 0 20px color-mix(in srgb, var(--c) 18%, transparent);
+  --scene-breath-lo: 0.35;
+  animation: sceneBreath 15s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="ay-number-grid"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: 48px; top: 48px;
+  width: 46px; height: 46px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--c) 7%, transparent);
+}
+[data-scene="ay-number-grid"] .scene-layer > i:nth-child(1) { --x: 0; --y: 1;  --c: var(--scene-a); --d: 0s; }
+[data-scene="ay-number-grid"] .scene-layer > i:nth-child(2) { --x: 6; --y: 2;  --c: var(--scene-b); --d: -4s; }
+[data-scene="ay-number-grid"] .scene-layer > i:nth-child(3) { --x: 2; --y: 6;  --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -7s; }
+[data-scene="ay-number-grid"] .scene-layer > i:nth-child(4) { --x: 5; --y: 9;  --c: var(--scene-a); --d: -10s; }
+[data-scene="ay-number-grid"] .scene-layer > i:nth-child(5) { --x: 1; --y: 10; --c: var(--scene-b); --d: -13s; }
+
+/* ── catch-the-color · «Капли в потоке» ──────────────────────────────────────
+   ::before — диагональная световая струя (волна из inline SVG, залита градиентом навыка),
+   ::after  — блик на поверхности потока,
+   i × 5    — капли-слезинки, медленно сносимые течением. */
+[data-scene="catch-the-color"] .scene-layer {
+  --scene-opacity: 0.6;
+}
+[data-scene="catch-the-color"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--scene-a) 20%, transparent), color-mix(in srgb, var(--scene-b) 14%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-5,18 C25,30 35,45 55,58 S85,80 105,92 L105,100 C80,92 60,80 45,68 S20,40 -5,30 Z' fill='black'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-5,18 C25,30 35,45 55,58 S85,80 105,92 L105,100 C80,92 60,80 45,68 S20,40 -5,30 Z' fill='black'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  filter: blur(3px);
+}
+[data-scene="catch-the-color"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-5,23 C25,35 35,50 55,62 S85,84 105,95' fill='none' stroke='white' stroke-opacity='0.18' stroke-width='1' stroke-dasharray='6 10' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  --scene-dx: 8px; --scene-dy: 6px;
+  animation: sceneDrift 20s ease-in-out infinite;
+}
+[data-scene="catch-the-color"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: calc(var(--s) * 1.3);
+  border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%;
+  border-top-left-radius: 0;
+  transform: rotate(-30deg);
+  background:
+    radial-gradient(40% 30% at 38% 40%, rgba(255, 255, 255, 0.5), transparent 70%),
+    radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--c) 70%, transparent), color-mix(in srgb, var(--c) 20%, transparent) 75%);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--c) 35%, transparent);
+  --scene-dx: 14px; --scene-dy: 10px;
+  animation: sceneDrift 17s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="catch-the-color"] .scene-layer > i:nth-child(1) { --x: 8%;  --y: 20%; --s: 16px; --c: var(--scene-a); --d: 0s; }
+[data-scene="catch-the-color"] .scene-layer > i:nth-child(2) { --x: 28%; --y: 34%; --s: 11px; --c: var(--scene-b); --d: -4s; }
+[data-scene="catch-the-color"] .scene-layer > i:nth-child(3) { --x: 50%; --y: 52%; --s: 18px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s; }
+[data-scene="catch-the-color"] .scene-layer > i:nth-child(4) { --x: 70%; --y: 68%; --s: 12px; --c: var(--scene-a); --d: -11s; }
+[data-scene="catch-the-color"] .scene-layer > i:nth-child(5) { --x: 88%; --y: 84%; --s: 15px; --c: var(--scene-b); --d: -14s; }
+
+/* ── color-burst · «Салют красок» ────────────────────────────────────────────
+   ::before — лучи взрыва (repeating-conic-gradient, гаснут к краям),
+   ::after  — мягкое ядро вспышки сверху,
+   i × 5    — искры-ромбы, i::before — их короткий хвост. */
+[data-scene="color-burst"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="color-burst"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  background: repeating-conic-gradient(from 0deg at 50% 38%,
+    color-mix(in srgb, var(--scene-a) 16%, transparent) 0deg 2deg,
+    transparent 2deg 15deg);
+  -webkit-mask-image: radial-gradient(circle at 50% 38%, transparent 6%, #000 14%, transparent 42%);
+  mask-image: radial-gradient(circle at 50% 38%, transparent 6%, #000 14%, transparent 42%);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 16s ease-in-out infinite;
+}
+[data-scene="color-burst"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 35%; right: 35%; top: 22%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 30%, transparent), transparent);
+  filter: blur(14px);
+}
+[data-scene="color-burst"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  transform: rotate(45deg);
+  border-radius: 2px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.45), color-mix(in srgb, var(--c) 70%, transparent));
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 40%, transparent);
+  --scene-breath-lo: 0.35;
+  animation: sceneBreath 12s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="color-burst"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  right: 100%; bottom: 100%;
+  width: calc(var(--s) * 3); height: 1px;
+  transform-origin: right;
+  transform: rotate(45deg);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c) 45%, transparent));
+}
+[data-scene="color-burst"] .scene-layer > i:nth-child(1) { --x: 10%; --y: 14%; --s: 9px;  --c: var(--scene-a); --d: 0s; }
+[data-scene="color-burst"] .scene-layer > i:nth-child(2) { --x: 86%; --y: 12%; --s: 12px; --c: var(--scene-b); --d: -3s; }
+[data-scene="color-burst"] .scene-layer > i:nth-child(3) { --x: 92%; --y: 56%; --s: 8px;  --c: var(--scene-a); --d: -6s; }
+[data-scene="color-burst"] .scene-layer > i:nth-child(4) { --x: 6%;  --y: 62%; --s: 11px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s; }
+[data-scene="color-burst"] .scene-layer > i:nth-child(5) { --x: 70%; --y: 88%; --s: 10px; --c: var(--scene-b); --d: -10s; }
+
+/* ── cut-bar · «Срез света» ──────────────────────────────────────────────────
+   ::before — вертикальная линия-лезвие с бликом,
+   ::after  — тонкие направляющие-деления,
+   i × 5    — горизонтальные световые полосы, i::after — отсечённый кусок с зазором. */
+[data-scene="cut-bar"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="cut-bar"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 62%; top: 4%; bottom: 4%;
+  width: 2px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.22) 30%, color-mix(in srgb, var(--scene-b) 40%, transparent) 60%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--scene-b) 30%, transparent);
+  --scene-dx: 10px; --scene-dy: 0px;
+  animation: sceneDrift 24s ease-in-out infinite;
+}
+[data-scene="cut-bar"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 39px, rgba(255, 255, 255, 0.04) 39px 40px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 30%, #000 70%, transparent);
+}
+[data-scene="cut-bar"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 10%, transparent), color-mix(in srgb, var(--c) 55%, transparent));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 25%, transparent);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 18s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="cut-bar"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 8px); top: 0;
+  width: 22%; height: 100%;
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--c) 30%, transparent);
+  transform: rotate(4deg);
+}
+[data-scene="cut-bar"] .scene-layer > i:nth-child(1) { --x: 4%;  --y: 12%; --s: 52%; --c: var(--scene-a); --d: 0s; }
+[data-scene="cut-bar"] .scene-layer > i:nth-child(2) { --x: 10%; --y: 26%; --s: 44%; --c: var(--scene-b); --d: -4s; }
+[data-scene="cut-bar"] .scene-layer > i:nth-child(3) { --x: -4%; --y: 72%; --s: 60%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s; }
+[data-scene="cut-bar"] .scene-layer > i:nth-child(4) { --x: 16%; --y: 84%; --s: 38%; --c: var(--scene-a); --d: -12s; }
+[data-scene="cut-bar"] .scene-layer > i:nth-child(5) { --x: 6%;  --y: 94%; --s: 50%; --c: var(--scene-b); --d: -15s; }
+
+/* ── letter-case-match · «Большая и малая» ───────────────────────────────────
+   ::before — призрачные «Aa» (inline SVG, белый с низкой альфой),
+   ::after  — мягкий световой мост между парами,
+   i × 5    — пары огней: большой (i) и его малый двойник (i::after). */
+[data-scene="letter-case-match"] .scene-layer {
+  --scene-opacity: 0.55;
+}
+[data-scene="letter-case-match"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext x='4' y='34' font-family='Georgia,serif' font-size='30' fill='white' fill-opacity='0.06'%3EA%3C/text%3E%3Ctext x='26' y='34' font-family='Georgia,serif' font-size='16' fill='white' fill-opacity='0.06'%3Ea%3C/text%3E%3Ctext x='66' y='96' font-family='Georgia,serif' font-size='26' fill='white' fill-opacity='0.05'%3EB%3C/text%3E%3Ctext x='86' y='96' font-family='Georgia,serif' font-size='14' fill='white' fill-opacity='0.05'%3Eb%3C/text%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="letter-case-match"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: -10%; right: -10%; top: 46%;
+  height: 10%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 14%, transparent), transparent);
+  filter: blur(14px);
+  --scene-breath-lo: 0.4;
+  animation: sceneBreath 20s ease-in-out infinite;
+}
+[data-scene="letter-case-match"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 30%;
+  background: radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.35), color-mix(in srgb, var(--c) 50%, transparent) 45%, transparent 75%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent);
+  --scene-dx: 0px; --scene-dy: -8px;
+  animation: sceneDrift 19s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="letter-case-match"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 6px); bottom: 0;
+  width: 46%; height: 46%;
+  border-radius: 30%;
+  background: color-mix(in srgb, var(--c) 40%, transparent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 30%, transparent);
+}
+[data-scene="letter-case-match"] .scene-layer > i:nth-child(1) { --x: 70%; --y: 10%; --s: 30px; --c: var(--scene-a); --d: 0s; }
+[data-scene="letter-case-match"] .scene-layer > i:nth-child(2) { --x: 8%;  --y: 50%; --s: 22px; --c: var(--scene-b); --d: -5s; }
+[data-scene="letter-case-match"] .scene-layer > i:nth-child(3) { --x: 78%; --y: 56%; --s: 26px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -9s; }
+[data-scene="letter-case-match"] .scene-layer > i:nth-child(4) { --x: 14%; --y: 80%; --s: 34px; --c: var(--scene-a); --d: -12s; }
+[data-scene="letter-case-match"] .scene-layer > i:nth-child(5) { --x: 44%; --y: 4%;  --s: 18px; --c: var(--scene-b); --d: -15s; }
+
+/* ── math-sprint · «Беговые дорожки» ─────────────────────────────────────────
+   ::before — дорожки стадиона в перспективе (inline SVG),
+   ::after  — финишная полоса-свечение у горизонта,
+   i × 5    — знаки «+» с хвостом скорости (i::before/::after — штрихи креста). */
+[data-scene="math-sprint"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="math-sprint"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(0deg, color-mix(in srgb, var(--scene-a) 26%, transparent), color-mix(in srgb, var(--scene-b) 10%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='1.2' vector-effect='non-scaling-stroke'%3E%3Cpath d='M44,55 L-10,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M47,55 L20,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M50,55 L50,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M53,55 L80,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M56,55 L110,100' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-width='1.2' vector-effect='non-scaling-stroke'%3E%3Cpath d='M44,55 L-10,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M47,55 L20,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M50,55 L50,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M53,55 L80,100' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M56,55 L110,100' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="math-sprint"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 15%; right: 15%; top: 50%;
+  height: 10%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 26%, transparent), transparent);
+  filter: blur(12px);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 15s ease-in-out infinite;
+}
+[data-scene="math-sprint"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  --scene-dx: 12px; --scene-dy: 0px;
+  animation: sceneDrift 16s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="math-sprint"] .scene-layer > i::before,
+[data-scene="math-sprint"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 100%; height: 2px;
+  margin: -1px 0 0 -50%;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--c) 60%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c) 40%, transparent);
+}
+[data-scene="math-sprint"] .scene-layer > i::after {
+  transform: rotate(90deg);
+}
+[data-scene="math-sprint"] .scene-layer > i:nth-child(1) { --x: 8%;  --y: 12%; --s: 16px; --c: var(--scene-a); --d: 0s; }
+[data-scene="math-sprint"] .scene-layer > i:nth-child(2) { --x: 82%; --y: 8%;  --s: 12px; --c: var(--scene-b); --d: -4s; }
+[data-scene="math-sprint"] .scene-layer > i:nth-child(3) { --x: 90%; --y: 36%; --s: 18px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -7s; }
+[data-scene="math-sprint"] .scene-layer > i:nth-child(4) { --x: 6%;  --y: 40%; --s: 10px; --c: var(--scene-b); --d: -10s; }
+[data-scene="math-sprint"] .scene-layer > i:nth-child(5) { --x: 46%; --y: 22%; --s: 12px; --c: var(--scene-a); --d: -13s; }
+
+/* ── max-number · «Ступени вершины» ──────────────────────────────────────────
+   ::before — линия горизонта с отражением,
+   ::after  — сияние над самой высокой колонной,
+   i × 5    — световые колонны растущей высоты, i::before — яркая вершина. */
+[data-scene="max-number"] .scene-layer {
+  --scene-opacity: 0.55;
+}
+[data-scene="max-number"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 6%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  box-shadow: 0 6px 24px 4px color-mix(in srgb, var(--scene-a) 12%, transparent);
+}
+[data-scene="max-number"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  right: 2%; bottom: 36%;
+  width: 34%; height: 24%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 28%, transparent), transparent);
+  filter: blur(16px);
+  --scene-breath-lo: 0.45;
+  animation: sceneBreath 14s ease-in-out infinite;
+}
+[data-scene="max-number"] .scene-layer > i {
+  left: var(--x);
+  bottom: 6%;
+  width: 9%;
+  height: var(--s);
+  border-radius: 8px 8px 0 0;
+  background: linear-gradient(0deg, transparent, color-mix(in srgb, var(--c) 22%, transparent) 50%, color-mix(in srgb, var(--c) 36%, transparent));
+  --scene-breath-lo: 0.6;
+  animation: sceneBreath 17s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="max-number"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  left: 10%; right: 10%; top: -3px;
+  height: 3px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--c) 70%, white 20%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 50%, transparent);
+}
+[data-scene="max-number"] .scene-layer > i:nth-child(1) { --x: 8%;  --s: 10%; --c: var(--scene-a); --d: 0s; }
+[data-scene="max-number"] .scene-layer > i:nth-child(2) { --x: 26%; --s: 16%; --c: color-mix(in srgb, var(--scene-a) 75%, var(--scene-b)); --d: -3s; }
+[data-scene="max-number"] .scene-layer > i:nth-child(3) { --x: 44%; --s: 22%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s; }
+[data-scene="max-number"] .scene-layer > i:nth-child(4) { --x: 62%; --s: 30%; --c: color-mix(in srgb, var(--scene-a) 25%, var(--scene-b)); --d: -9s; }
+[data-scene="max-number"] .scene-layer > i:nth-child(5) { --x: 80%; --s: 42%; --c: var(--scene-b); --d: -12s; }
+
+/* ── meteorites · «Хвосты комет» ─────────────────────────────────────────────
+   Игра рисует canvas: сцена тише (0.46), кометы у краёв и не пересекают центр.
+   ::before — тонкая звёздная пыль,
+   ::after  — далёкое свечение атмосферы снизу,
+   i × 5    — кометы: яркая голова + длинный хвост (i::before). */
+[data-scene="meteorites"] .scene-layer {
+  --scene-opacity: 0.46;
+}
+[data-scene="meteorites"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(1px 1px at 12% 30%, rgba(255, 255, 255, 0.35), transparent),
+    radial-gradient(1px 1px at 78% 22%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 64% 68%, rgba(255, 255, 255, 0.25), transparent),
+    radial-gradient(1px 1px at 26% 84%, rgba(255, 255, 255, 0.3), transparent),
+    radial-gradient(1px 1px at 92% 90%, rgba(255, 255, 255, 0.25), transparent);
+  --scene-breath-lo: 0.4;
+  animation: sceneBreath 22s ease-in-out infinite;
+}
+[data-scene="meteorites"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: -20%; right: -20%; bottom: -20%;
+  height: 34%;
+  border-radius: 50% 50% 0 0;
+  background: radial-gradient(ellipse at 50% 100%, color-mix(in srgb, var(--scene-a) 22%, transparent), transparent 70%);
+  filter: blur(10px);
+}
+[data-scene="meteorites"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 18%, color-mix(in srgb, var(--c) 70%, transparent) 40%, transparent 72%);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--c) 40%, transparent);
+  --scene-dx: -10px; --scene-dy: 7px;
+  animation: sceneDrift 21s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="meteorites"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: calc(var(--s) * 9); height: calc(var(--s) * 0.5);
+  margin-top: calc(var(--s) * -0.25);
+  border-radius: 0 50% 50% 0;
+  transform-origin: 0 50%;
+  transform: rotate(-35deg);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, transparent), transparent);
+}
+[data-scene="meteorites"] .scene-layer > i:nth-child(1) { --x: 4%;  --y: 30%; --s: 10px; --c: var(--scene-a); --d: 0s; }
+[data-scene="meteorites"] .scene-layer > i:nth-child(2) { --x: 66%; --y: 12%; --s: 8px;  --c: var(--scene-b); --d: -5s; }
+[data-scene="meteorites"] .scene-layer > i:nth-child(3) { --x: 82%; --y: 44%; --s: 7px;  --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -9s; }
+[data-scene="meteorites"] .scene-layer > i:nth-child(4) { --x: 6%;  --y: 78%; --s: 9px;  --c: var(--scene-b); --d: -13s; }
+[data-scene="meteorites"] .scene-layer > i:nth-child(5) { --x: 72%; --y: 90%; --s: 6px;  --c: var(--scene-a); --d: -17s; }
+
+/* ── number-sort · «Ряд по росту» ────────────────────────────────────────────
+   ::before — пунктирная ось-стрелка (inline SVG),
+   ::after  — мягкое свечение вдоль оси,
+   i × 5    — сферы, растущие слева направо, i::after — их засечка на оси. */
+[data-scene="number-sort"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="number-sort"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 4%; right: 4%; bottom: 10%;
+  height: 12px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 12' preserveAspectRatio='none'%3E%3Cline x1='0' y1='6' x2='97' y2='6' stroke='white' stroke-opacity='0.18' stroke-dasharray='2 3' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M94,2 L100,6 L94,10' fill='none' stroke='white' stroke-opacity='0.24' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="number-sort"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 4%;
+  height: 16%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 10%, transparent), color-mix(in srgb, var(--scene-b) 16%, transparent));
+  -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, #000, transparent);
+  mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, #000, transparent);
+  filter: blur(8px);
+}
+[data-scene="number-sort"] .scene-layer > i {
+  left: var(--x);
+  bottom: calc(10% + 14px);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.4), color-mix(in srgb, var(--c) 55%, transparent) 45%, color-mix(in srgb, var(--c) 10%, transparent) 75%);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--c) 28%, transparent);
+  --scene-dx: 0px; --scene-dy: -6px;
+  animation: sceneDrift 18s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="number-sort"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: calc(100% + 6px);
+  width: 1px; height: 8px;
+  background: color-mix(in srgb, var(--c) 50%, transparent);
+}
+[data-scene="number-sort"] .scene-layer > i:nth-child(1) { --x: 8%;  --s: 12px; --c: var(--scene-a); --d: 0s; }
+[data-scene="number-sort"] .scene-layer > i:nth-child(2) { --x: 24%; --s: 18px; --c: color-mix(in srgb, var(--scene-a) 75%, var(--scene-b)); --d: -3s; }
+[data-scene="number-sort"] .scene-layer > i:nth-child(3) { --x: 42%; --s: 24px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s; }
+[data-scene="number-sort"] .scene-layer > i:nth-child(4) { --x: 61%; --s: 32px; --c: color-mix(in srgb, var(--scene-a) 25%, var(--scene-b)); --d: -9s; }
+[data-scene="number-sort"] .scene-layer > i:nth-child(5) { --x: 80%; --s: 42px; --c: var(--scene-b); --d: -12s; }
+
+/* ── pulse-gap · «Пауза между ударами» ───────────────────────────────────────
+   ::before — линия пульса внизу арены с разрывом-паузой (inline SVG, залита градиентом),
+   ::after  — свечение в месте паузы,
+   i × 5    — удары: светящиеся точки на пиках, i::before — вертикальный след. */
+[data-scene="pulse-gap"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="pulse-gap"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 74%;
+  height: 16%;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 50%, transparent), color-mix(in srgb, var(--scene-b) 50%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3Cpath d='M0,24 L10,24 L13,8 L16,34 L19,24 L36,24 L39,8 L42,34 L45,24 L52,24 M66,24 L72,24 L75,8 L78,34 L81,24 L100,24' fill='none' stroke='black' stroke-width='1.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 40' preserveAspectRatio='none'%3E%3Cpath d='M0,24 L10,24 L13,8 L16,34 L19,24 L36,24 L39,8 L42,34 L45,24 L52,24 M66,24 L72,24 L75,8 L78,34 L81,24 L100,24' fill='none' stroke='black' stroke-width='1.4' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="pulse-gap"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 50%; top: 74%;
+  width: 18%; height: 16%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 22%, transparent), transparent);
+  filter: blur(10px);
+  --scene-breath-lo: 0.3;
+  animation: sceneBreath 12s ease-in-out infinite;
+}
+[data-scene="pulse-gap"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 15%, color-mix(in srgb, var(--c) 60%, transparent) 35%, transparent 70%);
+  --scene-breath-lo: 0.3;
+  animation: sceneBreath 12s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="pulse-gap"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 100%;
+  width: 1px; height: calc(var(--s) * 4);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--c) 35%, transparent), transparent);
+}
+[data-scene="pulse-gap"] .scene-layer > i:nth-child(1) { --x: 13%; --y: 77%; --s: 14px; --c: var(--scene-a); --d: 0s; }
+[data-scene="pulse-gap"] .scene-layer > i:nth-child(2) { --x: 39%; --y: 77%; --s: 14px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -2.4s; }
+[data-scene="pulse-gap"] .scene-layer > i:nth-child(3) { --x: 75%; --y: 77%; --s: 14px; --c: var(--scene-b); --d: -4.8s; }
+[data-scene="pulse-gap"] .scene-layer > i:nth-child(4) { --x: 8%; --y: 14%; --s: 20px; --c: var(--scene-a); --d: -7s; }
+[data-scene="pulse-gap"] .scene-layer > i:nth-child(5) { --x: 92%; --y: 34%; --s: 16px; --c: var(--scene-b); --d: -9.6s; }
+
+/* ── rapid-sorting · «Развилка струй» ────────────────────────────────────────
+   ::before — поток, расходящийся на две струи (inline SVG, градиент навыка),
+   ::after  — пена в точке развилки,
+   i × 5    — капли, уходящие в левую (a) и правую (b) струю. */
+[data-scene="rapid-sorting"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="rapid-sorting"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--scene-a) 30%, transparent), color-mix(in srgb, var(--scene-a) 20%, var(--scene-b) 20%) 50%, color-mix(in srgb, var(--scene-b) 30%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-linecap='round'%3E%3Cpath d='M50,-5 L50,30 C50,50 20,60 5,105' stroke-width='3'/%3E%3Cpath d='M50,30 C50,50 80,60 95,105' stroke-width='3'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='black' stroke-linecap='round'%3E%3Cpath d='M50,-5 L50,30 C50,50 20,60 5,105' stroke-width='3'/%3E%3Cpath d='M50,30 C50,50 80,60 95,105' stroke-width='3'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  filter: blur(4px);
+}
+[data-scene="rapid-sorting"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 40%; top: 24%;
+  width: 20%; height: 14%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.12), color-mix(in srgb, var(--scene-a) 14%, transparent) 50%, transparent);
+  filter: blur(8px);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 16s ease-in-out infinite;
+}
+[data-scene="rapid-sorting"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: calc(var(--s) * 1.35);
+  border-radius: 50% 50% 50% 50% / 38% 38% 62% 62%;
+  background:
+    radial-gradient(35% 25% at 40% 55%, rgba(255, 255, 255, 0.45), transparent 70%),
+    radial-gradient(circle at 50% 62%, color-mix(in srgb, var(--c) 70%, transparent), color-mix(in srgb, var(--c) 18%, transparent) 78%);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--c) 32%, transparent);
+  --scene-dx: 0px; --scene-dy: 14px;
+  animation: sceneDrift 15s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="rapid-sorting"] .scene-layer > i:nth-child(1) { --x: 48%; --y: 8%;  --s: 14px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: 0s; }
+[data-scene="rapid-sorting"] .scene-layer > i:nth-child(2) { --x: 26%; --y: 58%; --s: 13px; --c: var(--scene-a); --d: -3s; }
+[data-scene="rapid-sorting"] .scene-layer > i:nth-child(3) { --x: 10%; --y: 84%; --s: 16px; --c: var(--scene-a); --d: -7s; }
+[data-scene="rapid-sorting"] .scene-layer > i:nth-child(4) { --x: 70%; --y: 58%; --s: 13px; --c: var(--scene-b); --d: -5s; }
+[data-scene="rapid-sorting"] .scene-layer > i:nth-child(5) { --x: 86%; --y: 84%; --s: 16px; --c: var(--scene-b); --d: -10s; }
+
+/* ── reaction-strike · «Разряд» ──────────────────────────────────────────────
+   ::before — тонкий зигзаг молнии в углу (inline SVG),
+   ::after  — вспышка-кольцо в точке удара,
+   i × 5    — искры-звёздочки (i::before/::after — скрещённые лучи). */
+[data-scene="reaction-strike"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="reaction-strike"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  right: 4%; top: 0;
+  width: 34%; height: 46%;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--scene-b) 60%, transparent), color-mix(in srgb, var(--scene-a) 30%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 100' preserveAspectRatio='none'%3E%3Cpath d='M28,0 L14,38 L26,40 L8,100' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 100' preserveAspectRatio='none'%3E%3Cpath d='M28,0 L14,38 L26,40 L8,100' fill='none' stroke='black' stroke-width='1.4' stroke-linejoin='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  --scene-breath-lo: 0.4;
+  animation: sceneBreath 13s ease-in-out infinite;
+}
+[data-scene="reaction-strike"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  right: 4%; top: 38%;
+  width: 26%; aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 26%, transparent), transparent 60%, color-mix(in srgb, var(--scene-a) 14%, transparent) 66%, transparent 72%);
+  filter: blur(2px);
+}
+[data-scene="reaction-strike"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 14%, color-mix(in srgb, var(--c) 50%, transparent) 30%, transparent 60%);
+  --scene-breath-lo: 0.3;
+  animation: sceneBreath 12s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="reaction-strike"] .scene-layer > i::before,
+[data-scene="reaction-strike"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: -40%; right: -40%; top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c) 60%, transparent), transparent);
+  transform: rotate(45deg);
+}
+[data-scene="reaction-strike"] .scene-layer > i::after {
+  transform: rotate(-45deg);
+}
+[data-scene="reaction-strike"] .scene-layer > i:nth-child(1) { --x: 8%;  --y: 14%; --s: 18px; --c: var(--scene-a); --d: 0s; }
+[data-scene="reaction-strike"] .scene-layer > i:nth-child(2) { --x: 30%; --y: 6%;  --s: 12px; --c: var(--scene-b); --d: -3s; }
+[data-scene="reaction-strike"] .scene-layer > i:nth-child(3) { --x: 70%; --y: 62%; --s: 16px; --c: var(--scene-b); --d: -5s; }
+[data-scene="reaction-strike"] .scene-layer > i:nth-child(4) { --x: 10%; --y: 76%; --s: 22px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s; }
+[data-scene="reaction-strike"] .scene-layer > i:nth-child(5) { --x: 54%; --y: 90%; --s: 14px; --c: var(--scene-a); --d: -10s; }
+
+/* ── rhythm-tap · «Ритмические круги» ────────────────────────────────────────
+   ::before — горизонтальная нотная линейка из пяти волосяных линий,
+   ::after  — свечение «метронома» внизу,
+   i × 5    — круги от касаний: внешнее кольцо + внутреннее (i::before) + точка (i::after),
+             дышат по очереди как такт. */
+[data-scene="rhythm-tap"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="rhythm-tap"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 6%;
+  height: 48px;
+  background: repeating-linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0 1px, transparent 1px 12px);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 20%, #000 80%, transparent);
+}
+[data-scene="rhythm-tap"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 20%; right: 20%; bottom: -8%;
+  height: 22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-a) 22%, transparent), transparent);
+  filter: blur(16px);
+}
+[data-scene="rhythm-tap"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--c) 28%, transparent);
+  --scene-breath-lo: 0.25;
+  animation: sceneBreath 12s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="rhythm-tap"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  inset: 22%;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--c) 45%, transparent);
+}
+[data-scene="rhythm-tap"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  inset: 44%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--c) 75%, white 10%);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--c) 50%, transparent);
+}
+[data-scene="rhythm-tap"] .scene-layer > i:nth-child(1) { --x: 14%; --y: 26%; --s: 70px;  --c: var(--scene-a); --d: 0s; }
+[data-scene="rhythm-tap"] .scene-layer > i:nth-child(2) { --x: 86%; --y: 18%; --s: 54px;  --c: color-mix(in srgb, var(--scene-a) 60%, var(--scene-b)); --d: -2.4s; }
+[data-scene="rhythm-tap"] .scene-layer > i:nth-child(3) { --x: 90%; --y: 60%; --s: 86px;  --c: var(--scene-b); --d: -4.8s; }
+[data-scene="rhythm-tap"] .scene-layer > i:nth-child(4) { --x: 10%; --y: 70%; --s: 60px;  --c: color-mix(in srgb, var(--scene-a) 40%, var(--scene-b)); --d: -7.2s; }
+[data-scene="rhythm-tap"] .scene-layer > i:nth-child(5) { --x: 50%; --y: 92%; --s: 100px; --c: var(--scene-a); --d: -9.6s; }
+
+/* ── same-different · «Двойники» ─────────────────────────────────────────────
+   ::before — левая половина в тоне a, ::after — правая в тоне b, тонкий шов посередине,
+   i × 5    — фигуры и их зеркальные двойники (i::after); у одной пары двойник иной формы. */
+[data-scene="same-different"] .scene-layer {
+  --scene-opacity: 0.55;
+}
+[data-scene="same-different"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 50%;
+  background: radial-gradient(ellipse 90% 60% at 30% 50%, color-mix(in srgb, var(--scene-a) 12%, transparent), transparent 70%);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+}
+[data-scene="same-different"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  right: 0; top: 0; bottom: 0;
+  width: 50%;
+  background: radial-gradient(ellipse 90% 60% at 70% 50%, color-mix(in srgb, var(--scene-b) 12%, transparent), transparent 70%);
+  --scene-breath-lo: 0.6;
+  animation: sceneBreath 20s ease-in-out infinite;
+}
+[data-scene="same-different"] .scene-layer > i {
+  left: var(--x);
+  right: var(--x);
+  top: var(--y);
+  height: var(--s);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 16s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="same-different"] .scene-layer > i::before,
+[data-scene="same-different"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: var(--s); height: var(--s);
+  box-sizing: border-box;
+}
+[data-scene="same-different"] .scene-layer > i::before {
+  left: 0;
+  border-radius: var(--r, 50%);
+  border: 1px solid color-mix(in srgb, var(--scene-a) 45%, transparent);
+  background: color-mix(in srgb, var(--scene-a) 14%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--scene-a) 20%, transparent);
+}
+[data-scene="same-different"] .scene-layer > i::after {
+  right: 0;
+  border-radius: var(--r2, var(--r, 50%));
+  border: 1px solid color-mix(in srgb, var(--scene-b) 45%, transparent);
+  background: color-mix(in srgb, var(--scene-b) 14%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--scene-b) 20%, transparent);
+}
+[data-scene="same-different"] .scene-layer > i:nth-child(1) { --x: 8%;  --y: 8%;  --s: 26px; --r: 50%; --d: 0s; }
+[data-scene="same-different"] .scene-layer > i:nth-child(2) { --x: 4%;  --y: 30%; --s: 20px; --r: 4px; --d: -4s; }
+[data-scene="same-different"] .scene-layer > i:nth-child(3) { --x: 12%; --y: 56%; --s: 30px; --r: 50%; --r2: 6px; --d: -8s; }
+[data-scene="same-different"] .scene-layer > i:nth-child(4) { --x: 5%;  --y: 78%; --s: 22px; --r: 30%; --d: -11s; }
+[data-scene="same-different"] .scene-layer > i:nth-child(5) { --x: 22%; --y: 91%; --s: 14px; --r: 50%; --d: -14s; }
+
+/* ── slip-mark · «След скольжения» ───────────────────────────────────────────
+   ::before — плавная дуга-скольжение (inline SVG, градиент навыка),
+   ::after  — вторая, бледная параллельная колея,
+   i × 5    — метки-засечки вдоль дуги, i::after — смазанный отпечаток. */
+[data-scene="slip-mark"] .scene-layer {
+  --scene-opacity: 0.56;
+}
+[data-scene="slip-mark"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, color-mix(in srgb, var(--scene-a) 55%, transparent), color-mix(in srgb, var(--scene-b) 45%, transparent));
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-5,8 C40,10 20,40 50,50 S70,90 105,94' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-5,8 C40,10 20,40 50,50 S70,90 105,94' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  filter: blur(1px);
+}
+[data-scene="slip-mark"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M-5,13 C36,15 16,44 46,54 S66,94 105,99' fill='none' stroke='white' stroke-opacity='0.1' stroke-width='6' stroke-linecap='round' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  --scene-dx: 6px; --scene-dy: 4px;
+  animation: sceneDrift 26s ease-in-out infinite;
+}
+[data-scene="slip-mark"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  transform: rotate(var(--r));
+  background: color-mix(in srgb, var(--c) 70%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c) 45%, transparent);
+  --scene-breath-lo: 0.35;
+  animation: sceneBreath 14s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="slip-mark"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  right: 100%; top: 0;
+  width: 26px; height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c) 30%, transparent));
+}
+[data-scene="slip-mark"] .scene-layer > i:nth-child(1) { --x: 18%; --y: 9%;  --r: 4deg;   --c: var(--scene-a); --d: 0s; }
+[data-scene="slip-mark"] .scene-layer > i:nth-child(2) { --x: 30%; --y: 28%; --r: 70deg;  --c: color-mix(in srgb, var(--scene-a) 70%, var(--scene-b)); --d: -3s; }
+[data-scene="slip-mark"] .scene-layer > i:nth-child(3) { --x: 48%; --y: 49%; --r: 20deg;  --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s; }
+[data-scene="slip-mark"] .scene-layer > i:nth-child(4) { --x: 62%; --y: 74%; --r: 60deg;  --c: color-mix(in srgb, var(--scene-a) 30%, var(--scene-b)); --d: -9s; }
+[data-scene="slip-mark"] .scene-layer > i:nth-child(5) { --x: 84%; --y: 92%; --r: 6deg;   --c: var(--scene-b); --d: -12s; }
+
+/* ── spatial-speed · «Туннель» ───────────────────────────────────────────────
+   ::before — вложенные рамки туннеля в перспективе (inline SVG),
+   ::after  — свет в глубине туннеля,
+   i × 5    — огни на рёбрах туннеля, i::before — короткий штрих скорости к центру. */
+[data-scene="spatial-speed"] .scene-layer {
+  --scene-opacity: 0.55;
+}
+[data-scene="spatial-speed"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='white' vector-effect='non-scaling-stroke'%3E%3Crect x='4' y='4' width='92' height='92' stroke-opacity='0.08' vector-effect='non-scaling-stroke'/%3E%3Crect x='18' y='18' width='64' height='64' stroke-opacity='0.07' vector-effect='non-scaling-stroke'/%3E%3Crect x='30' y='30' width='40' height='40' stroke-opacity='0.06' vector-effect='non-scaling-stroke'/%3E%3Crect x='40' y='40' width='20' height='20' stroke-opacity='0.05' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M4,4 L40,40 M96,4 L60,40 M4,96 L40,60 M96,96 L60,60' stroke-opacity='0.07' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="spatial-speed"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 36%; right: 36%; top: 40%; bottom: 40%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 24%, transparent), color-mix(in srgb, var(--scene-a) 8%, transparent) 60%, transparent);
+  filter: blur(14px);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 18s ease-in-out infinite;
+}
+[data-scene="spatial-speed"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff 0 14%, color-mix(in srgb, var(--c) 60%, transparent) 32%, transparent 68%);
+  --scene-dx: var(--dx); --scene-dy: var(--dy);
+  animation: sceneDrift 20s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="spatial-speed"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  left: 50%; top: 50%;
+  width: calc(var(--s) * 2.6); height: 1px;
+  transform-origin: 0 50%;
+  transform: rotate(var(--r));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 50%, transparent), transparent);
+}
+[data-scene="spatial-speed"] .scene-layer > i:nth-child(1) { --x: 11%; --y: 11%; --s: 16px; --r: 45deg;  --dx: 6px;  --dy: 6px;  --c: var(--scene-a); --d: 0s; }
+[data-scene="spatial-speed"] .scene-layer > i:nth-child(2) { --x: 89%; --y: 11%; --s: 14px; --r: 135deg; --dx: -6px; --dy: 6px;  --c: var(--scene-b); --d: -4s; }
+[data-scene="spatial-speed"] .scene-layer > i:nth-child(3) { --x: 89%; --y: 89%; --s: 18px; --r: 225deg; --dx: -6px; --dy: -6px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s; }
+[data-scene="spatial-speed"] .scene-layer > i:nth-child(4) { --x: 11%; --y: 89%; --s: 14px; --r: 315deg; --dx: 6px;  --dy: -6px; --c: var(--scene-a); --d: -12s; }
+[data-scene="spatial-speed"] .scene-layer > i:nth-child(5) { --x: 24%; --y: 24%; --s: 10px; --r: 45deg;  --dx: 4px;  --dy: 4px;  --c: var(--scene-b); --d: -16s; }
+
+/* ── swings · «Маятники» ─────────────────────────────────────────────────────
+   ::before — дуги размаха (inline SVG, пунктир),
+   ::after  — перекладина подвеса с бликом,
+   i × 5    — маятники: нить (i::before) и светящийся груз (i::after), разный угол наклона. */
+[data-scene="swings"] .scene-layer {
+  --scene-opacity: 0.58;
+}
+[data-scene="swings"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 46%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 50' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='white' stroke-opacity='0.12' stroke-dasharray='2 4' vector-effect='non-scaling-stroke'%3E%3Cpath d='M2,24 A22,22 0 0 0 30,24' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M36,40 A30,30 0 0 0 64,40' vector-effect='non-scaling-stroke'/%3E%3Cpath d='M70,28 A24,24 0 0 0 98,28' vector-effect='non-scaling-stroke'/%3E%3C/g%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="swings"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 4%; right: 4%; top: 2%;
+  height: 2px;
+  border-radius: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), color-mix(in srgb, var(--scene-b) 30%, transparent), transparent);
+}
+[data-scene="swings"] .scene-layer > i {
+  left: var(--x);
+  top: 2%;
+  width: 2px;
+  height: var(--s);
+  transform-origin: 50% 0;
+  transform: rotate(var(--r));
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 14s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="swings"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 1px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), color-mix(in srgb, var(--c) 40%, transparent));
+}
+[data-scene="swings"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: -10px; bottom: -10px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 32%, rgba(255, 255, 255, 0.45), color-mix(in srgb, var(--c) 70%, transparent) 45%, color-mix(in srgb, var(--c) 15%, transparent) 75%);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--c) 40%, transparent);
+}
+[data-scene="swings"] .scene-layer > i:nth-child(1) { --x: 16%; --s: 18%; --r: 22deg;  --c: var(--scene-a); --d: 0s; }
+[data-scene="swings"] .scene-layer > i:nth-child(2) { --x: 30%; --s: 12%; --r: -14deg; --c: color-mix(in srgb, var(--scene-a) 70%, var(--scene-b)); --d: -3s; }
+[data-scene="swings"] .scene-layer > i:nth-child(3) { --x: 50%; --s: 28%; --r: 18deg;  --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s; }
+[data-scene="swings"] .scene-layer > i:nth-child(4) { --x: 70%; --s: 14%; --r: -26deg; --c: color-mix(in srgb, var(--scene-a) 30%, var(--scene-b)); --d: -9s; }
+[data-scene="swings"] .scene-layer > i:nth-child(5) { --x: 86%; --s: 22%; --r: -10deg; --c: var(--scene-b); --d: -12s; }
+
+/* ── vowel-consonant-count · «Счёты» ─────────────────────────────────────────
+   ::before — струны счётов (повторяющиеся волосяные линии),
+   ::after  — рамка счётов слева и справа,
+   i × 5    — ряды бусин: i, i::before, i::after — три бусины; гласные (a) и согласные (b). */
+[data-scene="vowel-consonant-count"] .scene-layer {
+  --scene-opacity: 0.55;
+}
+[data-scene="vowel-consonant-count"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 3%; right: 3%; top: 8%; bottom: 8%;
+  background: repeating-linear-gradient(180deg, transparent 0 calc(20% - 1px), rgba(255, 255, 255, 0.08) calc(20% - 1px) 20%);
+  background-position: 0 10%;
+  -webkit-mask-image: linear-gradient(90deg, #000, rgba(0, 0, 0, 0.3) 35%, rgba(0, 0, 0, 0.3) 65%, #000);
+  mask-image: linear-gradient(90deg, #000, rgba(0, 0, 0, 0.3) 35%, rgba(0, 0, 0, 0.3) 65%, #000);
+}
+[data-scene="vowel-consonant-count"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 3%; right: 3%; top: 6%; bottom: 6%;
+  border-left: 2px solid color-mix(in srgb, var(--scene-a) 25%, transparent);
+  border-right: 2px solid color-mix(in srgb, var(--scene-b) 25%, transparent);
+  border-radius: 6px;
+}
+[data-scene="vowel-consonant-count"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: 16px;
+  height: 11px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 30%, rgba(255, 255, 255, 0.4), color-mix(in srgb, var(--c) 65%, transparent) 50%, color-mix(in srgb, var(--c) 25%, transparent));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--c) 30%, transparent);
+  --scene-dx: var(--dx, 8px); --scene-dy: 0px;
+  animation: sceneDrift 18s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="vowel-consonant-count"] .scene-layer > i::before,
+[data-scene="vowel-consonant-count"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: inherit;
+  box-shadow: inherit;
+}
+[data-scene="vowel-consonant-count"] .scene-layer > i::before { left: calc(100% + 2px); }
+[data-scene="vowel-consonant-count"] .scene-layer > i::after  { left: calc(200% + 4px); opacity: var(--third, 1); }
+[data-scene="vowel-consonant-count"] .scene-layer > i:nth-child(1) { --x: 6%;  --y: 18%; --c: var(--scene-a); --d: 0s; }
+[data-scene="vowel-consonant-count"] .scene-layer > i:nth-child(2) { --x: 76%; --y: 34%; --c: var(--scene-b); --dx: -8px; --d: -4s; }
+[data-scene="vowel-consonant-count"] .scene-layer > i:nth-child(3) { --x: 6%;  --y: 50%; --c: var(--scene-a); --third: 0; --d: -7s; }
+[data-scene="vowel-consonant-count"] .scene-layer > i:nth-child(4) { --x: 76%; --y: 66%; --c: var(--scene-b); --dx: -8px; --d: -10s; }
+[data-scene="vowel-consonant-count"] .scene-layer > i:nth-child(5) { --x: 6%;  --y: 82%; --c: var(--scene-a); --third: 0.3; --d: -13s; }
+
+/* ── word-length-sort · «Полосы длины» ───────────────────────────────────────
+   ::before — вертикальная линия выравнивания слева,
+   ::after  — мягкий отблеск у правого края самой длинной полосы,
+   i × 5    — капсулы-слова от короткой к длинной, i::before — «буквенные» деления. */
+[data-scene="word-length-sort"] .scene-layer {
+  --scene-opacity: 0.55;
+}
+[data-scene="word-length-sort"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: 6%; top: 58%; bottom: 4%;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+}
+[data-scene="word-length-sort"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 50%; bottom: 0;
+  width: 46%; height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--scene-b) 20%, transparent), transparent);
+  filter: blur(14px);
+  --scene-breath-lo: 0.5;
+  animation: sceneBreath 16s ease-in-out infinite;
+}
+[data-scene="word-length-sort"] .scene-layer > i {
+  left: calc(6% + 6px);
+  top: var(--y);
+  width: var(--s);
+  height: 10px;
+  border-radius: 5px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--c) 45%, transparent), color-mix(in srgb, var(--c) 18%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 30%, transparent);
+  --scene-dx: 8px; --scene-dy: 0px;
+  animation: sceneDrift 20s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="word-length-sort"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  inset: 3px 6px;
+  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 4px, transparent 4px 9px);
+  border-radius: 2px;
+}
+[data-scene="word-length-sort"] .scene-layer > i:nth-child(1) { --y: 62%; --s: 14%; --c: var(--scene-a); --d: 0s; }
+[data-scene="word-length-sort"] .scene-layer > i:nth-child(2) { --y: 70%; --s: 26%; --c: color-mix(in srgb, var(--scene-a) 75%, var(--scene-b)); --d: -3s; }
+[data-scene="word-length-sort"] .scene-layer > i:nth-child(3) { --y: 78%; --s: 40%; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -6s; }
+[data-scene="word-length-sort"] .scene-layer > i:nth-child(4) { --y: 86%; --s: 56%; --c: color-mix(in srgb, var(--scene-a) 25%, var(--scene-b)); --d: -9s; }
+[data-scene="word-length-sort"] .scene-layer > i:nth-child(5) { --y: 94%; --s: 74%; --c: var(--scene-b); --d: -12s; }

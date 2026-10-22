@@ -1,6 +1,7 @@
 import './fonts.css';
 import './styles/tokens.css';
 import './styles.css';
+import './styles/scenes/index.css';
 import { renderToday } from './ui/screens/today';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';

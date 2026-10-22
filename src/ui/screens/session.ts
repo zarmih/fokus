@@ -26,6 +26,7 @@ import type { SessionItem } from '../../core/types';
 import { announce, bindDialog, setScreenTitle, focusMain, prefersReducedMotion } from '../a11y';
 import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
+import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
@@ -232,6 +233,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       
       const container = document.getElementById('game-container');
       if (!container) return;
+      // «Тихий свет»: per-exercise scene (data-scene + .scene-layer); the module renders into the host.
+      const playHost = mountScene(container, item.exerciseId, getManifest(item.exerciseId)?.domain);
       content.dataset.sessionPhase = 'countdown';
       container.setAttribute('aria-busy', 'true');
 
@@ -257,9 +260,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         playSessionCue('enter');
         const isTimeUp = () => blockTimeLeft <= 0 || timeLeft <= 0;
         let cleanupFn: any = null;
+        // Some exercises return their own finish() as the cleanup, and finish() calls
+        // onBlockEnd again: end each block exactly once to avoid infinite recursion.
+        let blockEnded = false;
 
         const onBlockEnd = (res: any) => {
-          if (cleanupFn) cleanupFn();
+          if (blockEnded) return;
+          blockEnded = true;
+          const fn = cleanupFn;
+          cleanupFn = null;
+          if (fn) fn();
           content.dataset.sessionPhase = 'feedback';
           const ok = res.accuracy >= 0.8;
           const stageEl = container.querySelector('.play-stage') as HTMLElement | null;
@@ -399,8 +409,14 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           renderCurrent();
         };
 
-        cleanupFn = exDispatch.render(container, state!.difficulty, onBlockEnd, isTimeUp);
-        currentCleanup = cleanupFn;
+        cleanupFn = exDispatch.render(playHost, state!.difficulty, onBlockEnd, isTimeUp);
+        // External teardown (back, restart, session end) aborts the block without scoring it.
+        currentCleanup = () => {
+          blockEnded = true;
+          const fn = cleanupFn;
+          cleanupFn = null;
+          if (fn) fn();
+        };
       };
 
             currentCleanup = () => {

@@ -1,0 +1,95 @@
+/*
+ * «Тихий свет» — общий каркас сцен упражнений (не редактировать в доменных PR).
+ *
+ * Разметка (вставляется общим кодом, см. src/ui/scene.ts и src/exercises/stage.ts):
+ *   #game-container.play-arena[data-scene="<id>"][data-scene-domain="<domain>"]
+ *     > .scene-layer (aria-hidden) > i × 5
+ *     > .play-host               ← сюда рендерится упражнение
+ *   .play-stage.dom-<domain>[data-scene="<id>"][data-scene-domain="<domain>"]
+ *     > .play-sky > .play-orbs > .scene-layer > .play-hud/.play-board…
+ *
+ * Слои: небо (фон арены / .play-sky) < .scene-layer < игровое поле.
+ */
+
+.scene-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+  contain: layout paint;
+  /* Сцена всегда приглушена: стимулы должны оставаться контрастными. */
+  opacity: var(--scene-opacity, 0.6);
+  /* Цвета сцены по умолчанию: градиент навыка (переопределяются ниже по домену). */
+  --scene-a: var(--grad-attention-start);
+  --scene-b: var(--grad-attention-end);
+}
+.scene-layer > i {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+.scene-layer::before,
+.scene-layer::after,
+.scene-layer > i::before,
+.scene-layer > i::after {
+  pointer-events: none;
+}
+
+/* Домены → градиент навыка (домен берётся из манифеста упражнения, а не из класса stage). */
+[data-scene-domain="attention"] > .scene-layer,
+.play-stage.dom-attention:not([data-scene-domain]) > .scene-layer { --scene-a: var(--grad-attention-start); --scene-b: var(--grad-attention-end); }
+[data-scene-domain="memory"] > .scene-layer,
+.play-stage.dom-memory:not([data-scene-domain]) > .scene-layer { --scene-a: var(--grad-memory-start); --scene-b: var(--grad-memory-end); }
+[data-scene-domain="speed"] > .scene-layer,
+.play-stage.dom-speed:not([data-scene-domain]) > .scene-layer { --scene-a: var(--grad-speed-start); --scene-b: var(--grad-speed-end); }
+[data-scene-domain="logic"] > .scene-layer,
+.play-stage.dom-logic:not([data-scene-domain]) > .scene-layer { --scene-a: var(--grad-logic-start); --scene-b: var(--grad-logic-end); }
+[data-scene-domain="flexibility"] > .scene-layer,
+.play-stage.dom-flexibility:not([data-scene-domain]) > .scene-layer { --scene-a: var(--grad-flexibility-start); --scene-b: var(--grad-flexibility-end); }
+
+/* Упражнение рисуется поверх сцены и занимает всю арену, как раньше. */
+.play-arena > .play-host {
+  position: relative;
+  z-index: 1;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: inherit;
+}
+.play-arena.fx-enter > .play-host > .play-stage {
+  animation: fxEnter var(--motion-base) var(--ease-out-soft) both;
+}
+
+/* Внутри .play-stage: над небом и шарами (auto), под .play-fx (2) и полем (5). */
+.play-stage > .scene-layer { z-index: 1; }
+/* У stage-упражнений своя сцена внутри stage — слой арены не нужен. */
+.play-arena:has(> .play-host > .play-stage) > .scene-layer { display: none; }
+
+/* Общие медленные анимации, которыми могут пользоваться доменные сцены. */
+@keyframes sceneDrift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(var(--scene-dx, 6px), var(--scene-dy, -8px), 0); }
+}
+@keyframes sceneBreath {
+  0%, 100% { opacity: var(--scene-breath-lo, 0.55); }
+  50% { opacity: var(--scene-breath-hi, 1); }
+}
+
+/* Reduced motion: сцены полностью статичны. */
+@media (prefers-reduced-motion: reduce) {
+  .scene-layer, .scene-layer::before, .scene-layer::after,
+  .scene-layer *, .scene-layer *::before, .scene-layer *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+:root.reduce-motion .scene-layer, :root.reduce-motion .scene-layer::before, :root.reduce-motion .scene-layer::after,
+:root.reduce-motion .scene-layer *, :root.reduce-motion .scene-layer *::before, :root.reduce-motion .scene-layer *::after,
+html[data-motion="reduce"] .scene-layer, html[data-motion="reduce"] .scene-layer::before, html[data-motion="reduce"] .scene-layer::after,
+html[data-motion="reduce"] .scene-layer *, html[data-motion="reduce"] .scene-layer *::before, html[data-motion="reduce"] .scene-layer *::after {
+  animation: none !important;
+  transition: none !important;
+}

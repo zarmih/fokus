@@ -16,7 +16,7 @@ export function renderMentalRotation(
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
-  const cfg = (level <= 3 && mentalRotationManifest.levels) ? mentalRotationManifest.levels[level as keyof typeof mentalRotationManifest.levels] : { trials: 20, maxAngle: 270 };
+  const cfg = mentalRotationManifest.levels?.[Math.max(1, Math.floor(Number(level) || 1)) as keyof typeof mentalRotationManifest.levels] ?? { trials: 20, maxAngle: 270 }; // session difficulty is fractional
   const engine = new MentalRotationEngine(cfg.trials, cfg.maxAngle);
   const stage = mountStage(container, 'flexibility');
   stage.setStatus('Это та же фигура?');

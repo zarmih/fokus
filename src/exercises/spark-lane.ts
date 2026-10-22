@@ -116,8 +116,10 @@ const sparkLaneModule: ExerciseModule = {
         if (activeLane !== -1) {
           // Missed
           sparkEl.style.opacity = '0';
-          lanes[activeLane].style.borderColor = 'var(--danger)';
-          setTimeout(() => { if(!isGameOver) lanes[activeLane].style.borderColor = 'var(--line)'; }, 200);
+          // Capture the lane: activeLane is reset to -1 before the 200 ms flash ends.
+          const missedLane = lanes[activeLane];
+          missedLane.style.borderColor = 'var(--danger)';
+          setTimeout(() => { if(!isGameOver) missedLane.style.borderColor = 'var(--line)'; }, 200);
           rounds++;
           activeLane = -1;
           scheduleNext();
@@ -136,8 +138,9 @@ const sparkLaneModule: ExerciseModule = {
         clearTimeout(sparkTimeout);
         const sparkEl = lanes[activeLane].querySelector('.sl-spark') as HTMLElement;
         sparkEl.style.opacity = '0';
-        lanes[activeLane].style.borderColor = 'var(--ok)';
-        setTimeout(() => { if(!isGameOver) lanes[activeLane].style.borderColor = 'var(--line)'; }, 200);
+        const hitLane = lanes[activeLane];
+        hitLane.style.borderColor = 'var(--ok)';
+        setTimeout(() => { if(!isGameOver) hitLane.style.borderColor = 'var(--line)'; }, 200);
         activeLane = -1;
         scheduleNext();
       } else {
