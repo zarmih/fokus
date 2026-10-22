@@ -785,21 +785,25 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 }
 .play-orbs {
   position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-  /* "Тихий свет": orb hue follows the skill domain (local, orb-only token; default = attention coral) */
-  --orb-rgb: 255 122 107;
+  /* "Тихий свет": orb hue follows the skill domain via the shared palette tokens
+     (src/styles/tokens.css --grad-*-start), so stage, orbs and UI use one set of skill colours. */
+  --orb-color: var(--grad-attention-start);
 }
-.play-stage.dom-attention .play-orbs { --orb-rgb: 255 122 107; }   /* coral  #FF7A6B */
-.play-stage.dom-memory .play-orbs { --orb-rgb: 155 107 255; }      /* violet #9B6BFF */
-.play-stage.dom-speed .play-orbs { --orb-rgb: 46 196 182; }        /* teal   #2EC4B6 */
-.play-stage.dom-logic .play-orbs { --orb-rgb: 76 125 255; }        /* blue   #4C7DFF */
-.play-stage.dom-flexibility .play-orbs { --orb-rgb: 95 227 176; }  /* mint   #5FE3B0 */
+.play-stage.dom-attention .play-orbs { --orb-color: var(--grad-attention-start); }
+.play-stage.dom-memory .play-orbs { --orb-color: var(--grad-memory-start); }
+.play-stage.dom-speed .play-orbs { --orb-color: var(--grad-speed-start); }
+.play-stage.dom-logic .play-orbs { --orb-color: var(--grad-logic-start); }
+.play-stage.dom-flexibility .play-orbs { --orb-color: var(--grad-flexibility-start); }
 .play-orbs i {
   position: absolute;
   border-radius: 50%;
   filter: blur(24px);
   opacity: 0.45;
-  background: radial-gradient(circle at 50% 50%, rgb(var(--orb-rgb) / 0.95) 0%, rgb(var(--orb-rgb) / 0.55) 45%, rgb(var(--orb-rgb) / 0) 72%);
-  box-shadow: 0 0 48px 12px rgb(var(--orb-rgb) / 0.35);
+  background: radial-gradient(circle at 50% 50%,
+    color-mix(in srgb, var(--orb-color) 95%, transparent) 0%,
+    color-mix(in srgb, var(--orb-color) 55%, transparent) 45%,
+    transparent 72%);
+  box-shadow: 0 0 48px 12px color-mix(in srgb, var(--orb-color) 35%, transparent);
   animation: orbFloat 9s ease-in-out infinite;
 }
 .play-orbs i:nth-child(1) { width: 160px; height: 160px; left: -40px; top: 20%; }
