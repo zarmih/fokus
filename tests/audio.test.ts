@@ -54,6 +54,36 @@ function fakeCtx() {
   return ctx;
 }
 
+function filteredCtx() {
+  const base = fakeCtx();
+  const filters: { type: string; cutoff: number }[] = [];
+  const gainRamps: number[][] = [];
+  const ctx = {
+    ...base,
+    filters,
+    gainRamps,
+    createGain() {
+      const ramps: number[] = [];
+      gainRamps.push(ramps);
+      const g = param(1);
+      return {
+        gain: { ...g, exponentialRampToValueAtTime(v: number, t: number) { ramps.push(t); g.value = v; } },
+        connect() {}
+      };
+    },
+    createBiquadFilter() {
+      const f = {
+        type: 'allpass' as BiquadFilterType,
+        frequency: { setValueAtTime(v: number) { filters.push({ type: f.type, cutoff: v }); } },
+        Q: { setValueAtTime() {} },
+        connect() {}
+      };
+      return f;
+    }
+  };
+  return ctx;
+}
+
 beforeEach(() => {
   storage.reset();
   __resetAudioForTests();
@@ -146,4 +176,21 @@ test('playCombo below 3 does not schedule', () => {
   expect(ctx.oscStarts.length).toBe(0);
   playCombo(3);
   expect(ctx.oscStarts.length).toBeGreaterThan(0);
+});
+
+test('renders through a gentle lowpass with a soft attack when filters exist', () => {
+  const p = storage.getProfile();
+  p.soundOn = true;
+  p.soundVolume = 1;
+  storage.setProfile(p);
+  const ctx = filteredCtx();
+  __setAudioContextForTests(ctx as unknown as AudioGraphContext);
+  const scheduled = playCue('hit', { combo: 2 });
+  expect(ctx.oscStarts.length).toBe(scheduled.partials.length);
+  expect(ctx.filters).toHaveLength(1);
+  expect(ctx.filters[0]).toEqual({ type: 'lowpass', cutoff: 2800 });
+  // first ramp of each partial envelope = attack peak at ~6 ms
+  const envelopes = ctx.gainRamps.filter((r) => r.length === 2);
+  expect(envelopes.length).toBe(scheduled.partials.length);
+  for (const [peak] of envelopes) expect(peak).toBeCloseTo(0.006, 5);
 });

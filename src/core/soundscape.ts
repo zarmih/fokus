@@ -15,10 +15,17 @@ export type CueVoice = 'ui' | 'trial' | 'phrase';
 export interface CuePartial {
   freq: number;
   freqEnd?: number;
+  /** Always 'sine' for the warm timbres; kept open for compatibility. */
   type: OscillatorType;
+  /** Total length of the exponential decay, seconds (attack included). */
   dur: number;
+  /** Peak gain (before the master bus). */
   gain: number;
   delay: number;
+  /** Soft attack, seconds (default {@link DEFAULT_ATTACK}). */
+  attack?: number;
+  /** Gentle lowpass cutoff in Hz for the cue (default {@link DEFAULT_LOWPASS}). */
+  lowpass?: number;
 }
 
 export interface CueDef {
@@ -145,62 +152,206 @@ export function comboAtMilestone(combo: number): boolean {
   return (COMBO_MILESTONES as readonly number[]).includes(combo);
 }
 
-function clampCombo(combo: number | undefined): number {
-  const n = typeof combo === 'number' && Number.isFinite(combo) ? combo : 1;
-  return Math.max(1, Math.min(Math.floor(n), 10));
+/* ------------------------------------------------------------------ */
+/* «Тихий свет»: one key, soft additive timbres                          */
+/* ------------------------------------------------------------------ */
+
+/** Every pitched cue lives in this single key. */
+export const SCALE_NAME = 'D major pentatonic';
+/** D4 (A4 = 440 Hz equal temperament). Degree 0 of the scale. */
+export const SCALE_ROOT_HZ = 293.6648;
+/** Semitone offsets of D E F# A B within one octave. */
+export const SCALE_STEPS = [0, 2, 4, 7, 9] as const;
+export const DEFAULT_ATTACK = 0.008;
+export const DEFAULT_LOWPASS = 3200;
+
+/**
+ * Frequency of a scale degree. Degree 0 = D4, 5 = D5, 10 = D6;
+ * negative degrees go below the root (-5 = D3).
+ */
+export function scaleFreq(degree: number): number {
+  const d = Math.round(degree);
+  const len = SCALE_STEPS.length;
+  const octave = Math.floor(d / len);
+  const step = SCALE_STEPS[((d % len) + len) % len];
+  const semis = octave * 12 + step;
+  return Math.round(SCALE_ROOT_HZ * Math.pow(2, semis / 12) * 100) / 100;
+}
+
+export function isTonicDegree(degree: number): boolean {
+  const len = SCALE_STEPS.length;
+  return ((Math.round(degree) % len) + len) % len === 0;
+}
+
+/**
+ * Streak phrase: scale degree of the hit note for combo 1..12.
+ * Walks up and lands on the tonic exactly at COMBO_MILESTONES (3, 5, 8, 12):
+ * D4 F#4 D5 · A4 D5 · E5 F#5 D6 · F#5 A5 B5 D6.
+ */
+export const STREAK_PHRASE = [0, 2, 5, 3, 5, 6, 7, 10, 7, 8, 9, 10] as const;
+/** After combo 12 the last four-note cadence loops (tonic every 4th hit). */
+const STREAK_LOOP = STREAK_PHRASE.slice(-4);
+
+/** Scale degree for the n-th consecutive hit (combo resets to 0 on miss). */
+export function streakDegree(combo?: number): number {
+  const n = typeof combo === 'number' && Number.isFinite(combo) ? Math.floor(combo) : 1;
+  if (n <= 1) return STREAK_PHRASE[0];
+  if (n <= STREAK_PHRASE.length) return STREAK_PHRASE[n - 1];
+  return STREAK_LOOP[(n - STREAK_PHRASE.length - 1) % STREAK_LOOP.length];
+}
+
+export function streakFreq(combo?: number): number {
+  return scaleFreq(streakDegree(combo));
+}
+
+interface Overtone {
+  ratio: number;
+  /** Relative to the fundamental gain. */
+  level: number;
+  /** Relative to the fundamental decay. */
+  decay: number;
+}
+
+/** Marimba-ish: sine body + the bar's tuned 4th/10th overtones, short-lived. */
+const MARIMBA: Overtone[] = [
+  { ratio: 1, level: 1, decay: 1 },
+  { ratio: 4, level: 0.16, decay: 0.28 },
+  { ratio: 9.85, level: 0.04, decay: 0.12 }
+];
+
+/** Crystal / glass: quiet inharmonic partials that shimmer and fade first. */
+const CRYSTAL: Overtone[] = [
+  { ratio: 1, level: 1, decay: 1 },
+  { ratio: 2.76, level: 0.18, decay: 0.45 },
+  { ratio: 5.4, level: 0.06, decay: 0.22 }
+];
+
+/** Muted low tone: fundamental + a soft octave, heavily filtered. */
+const MUTED: Overtone[] = [
+  { ratio: 1, level: 1, decay: 1 },
+  { ratio: 2, level: 0.3, decay: 0.5 }
+];
+
+interface NoteSpec {
+  freq: number;
+  gain: number;
+  dur: number;
+  delay: number;
+  attack?: number;
+  lowpass?: number;
+  freqEndRatio?: number;
+}
+
+function voice(recipe: Overtone[], n: NoteSpec): CuePartial[] {
+  const attack = n.attack ?? DEFAULT_ATTACK;
+  const lowpass = n.lowpass ?? DEFAULT_LOWPASS;
+  return recipe.map((o) => {
+    const p: CuePartial = {
+      freq: Math.round(n.freq * o.ratio * 100) / 100,
+      type: 'sine',
+      dur: Math.max(attack + 0.02, Math.round(n.dur * o.decay * 1000) / 1000),
+      gain: Math.round(n.gain * o.level * 10000) / 10000,
+      delay: n.delay,
+      attack,
+      lowpass
+    };
+    if (n.freqEndRatio) p.freqEnd = Math.round(p.freq * n.freqEndRatio * 100) / 100;
+    return p;
+  });
 }
 
 function hitPartials(combo?: number): CuePartial[] {
-  const n = clampCombo(combo);
-  const freq = 480 + n * 42;
-  return [
-    { freq, freqEnd: freq * 1.55, type: 'triangle', dur: 0.09, gain: 0.07, delay: 0 },
-    { freq: freq * 2, type: 'sine', dur: 0.05, gain: 0.025, delay: 0.02 },
-    { freq: freq * 3, type: 'sine', dur: 0.03, gain: 0.015, delay: 0.03 }
-  ];
+  const degree = streakDegree(combo);
+  const resolve = isTonicDegree(degree) && comboAtMilestone(Math.floor(combo ?? 1));
+  return voice(MARIMBA, {
+    freq: scaleFreq(degree),
+    gain: 0.06,
+    dur: resolve ? 0.6 : 0.42,
+    delay: 0,
+    attack: 0.006,
+    lowpass: 2800
+  });
 }
 
 function comboPartials(combo?: number): CuePartial[] {
   const n = typeof combo === 'number' && Number.isFinite(combo) ? combo : 3;
   if (n < 3) return [];
-  const root = 392 * (1 + Math.min(n - 3, 5) * 0.04);
-  return [0, 4, 7, 12].map((semi, i) => ({
-    freq: root * Math.pow(2, semi / 12),
-    type: 'sine' as OscillatorType,
-    dur: 0.14,
-    gain: 0.055,
-    delay: i * 0.04
-  }));
+  // Tonic arpeggio D5–F#5–A5–D6 under/around the resolving hit; a touch brighter as the streak grows.
+  const base = 5;
+  const degrees = [base, base + 2, base + 3, base + 5];
+  const lift = Math.min(n - 3, 5) * 0.003;
+  return degrees.flatMap((deg, i) =>
+    voice(CRYSTAL, {
+      freq: scaleFreq(deg),
+      gain: 0.026 + lift,
+      dur: 0.5 + i * 0.08,
+      delay: 0.06 + i * 0.07,
+      lowpass: 3600
+    })
+  );
 }
 
 function ritualPartials(): CuePartial[] {
-  return [
-    { freq: 392, type: 'sine', dur: 0.12, gain: 0.05, delay: 0 },
-    { freq: 523.25, type: 'sine', dur: 0.14, gain: 0.05, delay: 0.09 },
-    { freq: 784, type: 'triangle', dur: 0.18, gain: 0.04, delay: 0.18 }
-  ];
+  // D5 → F#5 → A5, rising crystal.
+  return [5, 7, 8].flatMap((deg, i) =>
+    voice(CRYSTAL, {
+      freq: scaleFreq(deg),
+      gain: 0.034,
+      dur: 0.45 + i * 0.1,
+      delay: i * 0.11,
+      attack: 0.01,
+      lowpass: 3400
+    })
+  );
 }
 
 function celebratePartials(): CuePartial[] {
-  return [
-    { freq: 523.25, type: 'sine', dur: 0.16, gain: 0.05, delay: 0 },
-    { freq: 659.25, type: 'sine', dur: 0.16, gain: 0.05, delay: 0.08 },
-    { freq: 783.99, type: 'sine', dur: 0.2, gain: 0.055, delay: 0.16 },
-    { freq: 1046.5, type: 'triangle', dur: 0.22, gain: 0.035, delay: 0.24 }
-  ];
+  // D5 F#5 A5 D6, last note rings longest.
+  return [5, 7, 8, 10].flatMap((deg, i) =>
+    voice(CRYSTAL, {
+      freq: scaleFreq(deg),
+      gain: i === 3 ? 0.032 : 0.036,
+      dur: i === 3 ? 1.1 : 0.55,
+      delay: i * 0.1,
+      attack: 0.01,
+      lowpass: 3600
+    })
+  );
+}
+
+function tapPartials(): CuePartial[] {
+  // Tiny wooden tick on A5.
+  return voice(MARIMBA, {
+    freq: scaleFreq(8),
+    gain: 0.028,
+    dur: 0.07,
+    delay: 0,
+    attack: 0.005,
+    lowpass: 2600
+  }).slice(0, 2);
+}
+
+function missPartials(): CuePartial[] {
+  // Soft low muted D3 with a barely-there droop — no buzz.
+  return voice(MUTED, {
+    freq: scaleFreq(-5),
+    gain: 0.05,
+    dur: 0.26,
+    delay: 0,
+    attack: 0.01,
+    lowpass: 650,
+    freqEndRatio: 0.97
+  });
 }
 
 export function rawPartials(id: CueId, ctx: CueContext = {}): CuePartial[] {
   switch (id) {
     case 'tap':
-      return [{ freq: 620, type: 'triangle', dur: 0.045, gain: 0.05, delay: 0 }];
+      return tapPartials();
     case 'hit':
       return hitPartials(ctx.combo);
     case 'miss':
-      return [
-        { freq: 240, freqEnd: 90, type: 'triangle', dur: 0.16, gain: 0.045, delay: 0 },
-        { freq: 240 * 1.5, freqEnd: 90 * 1.5, type: 'sine', dur: 0.16, gain: 0.03, delay: 0 }
-      ];
+      return missPartials();
     case 'combo':
       return comboPartials(ctx.combo);
     case 'ritual':
@@ -220,15 +371,19 @@ function applyReducedMotion(id: CueId, kind: CueKind, partials: CuePartial[]): C
       type: 'sine',
       dur: Math.min(first.dur, 0.08),
       gain: first.gain * 0.55,
-      delay: 0
+      delay: 0,
+      attack: first.attack,
+      lowpass: first.lowpass
     }];
   }
   return partials.map((p) => ({
     freq: p.freq,
-    type: p.type === 'square' ? 'sine' : p.type,
+    type: p.type === 'square' || p.type === 'sawtooth' ? 'sine' : p.type,
     dur: Math.min(p.dur, 0.08),
     gain: p.gain * 0.7,
-    delay: p.delay
+    delay: p.delay,
+    attack: p.attack,
+    lowpass: p.lowpass
   }));
 }
 
