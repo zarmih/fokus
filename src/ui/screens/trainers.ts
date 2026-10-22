@@ -145,13 +145,14 @@ export function renderTrainers(container: HTMLElement) {
     const desc = DOMAIN_DESCRIPTIONS[dom] || '';
 
     allCardsHtml += `
-      <div class="domain-group" data-group="${dom}" style="margin-bottom: 40px;">
+      <div class="domain-group dom-${dom}" data-group="${dom}" style="margin-bottom: 40px;">
         <div style="margin-bottom: 20px; padding-left: 4px;">
           <h3 style="font-size: 22px; font-weight: 700; margin: 0 0 4px 0; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; color: var(--text);">
             <span style="font-size: 24px;">${icon}</span> ${domainLabel(dom)}
             <span class="domain-visible-count" style="font-size: 13px; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--line); padding: 2px 10px; border-radius: 12px; margin-left: 4px;">${exercises.length}</span>
           </h3>
           ${desc ? `<p style="font-size: 14px; color: var(--muted); margin: 0; padding-left: 36px; line-height: 1.4;">${desc}</p>` : ''}
+          <span class="domain-group-bar" aria-hidden="true"></span>
         </div>
         <div class="trainers-grid">
           ${gridHtml}

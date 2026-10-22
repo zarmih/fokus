@@ -27,14 +27,14 @@ const crestTapModule: ExerciseModule = {
           justify-content: center;
           height: 100%;
           gap: 40px;
-          background: #0f172a;
-          color: white;
+          background: var(--stage-ink, #0F1020);
+          color: var(--stage-text, #F3F1FA);
           font-family: sans-serif;
         }
         .ct-wave-container {
           width: 200px;
           height: 200px;
-          border: 2px dashed #475569;
+          border: 2px dashed color-mix(in srgb, var(--stage-muted, #B4B1C8) 45%, transparent);
           border-radius: 50%;
           display: flex;
           align-items: center;
@@ -42,7 +42,7 @@ const crestTapModule: ExerciseModule = {
           position: relative;
         }
         .ct-wave {
-          background: #38bdf8;
+          background: var(--grad-logic-end, #5CC8FF);
           border-radius: 50%;
           width: 0px;
           height: 0px;
@@ -54,8 +54,8 @@ const crestTapModule: ExerciseModule = {
           font-weight: bold;
           border: none;
           border-radius: 8px;
-          background: #10b981;
-          color: white;
+          background: var(--ok, #5DD6A4);
+          color: var(--stage-ink, #0F1020);
           cursor: pointer;
           transition: transform 0.1s;
         }
@@ -157,7 +157,7 @@ const crestTapModule: ExerciseModule = {
       if (isTimeout) {
         errors++;
         rts.push(1500);
-        showFeedback('ПРОПУСК', '#ef4444');
+        showFeedback('ПРОПУСК', 'var(--danger)');
       } else {
         // Peak is exactly at progress = 0.5
         const distance = Math.abs(0.5 - progress);
@@ -168,15 +168,15 @@ const crestTapModule: ExerciseModule = {
         if (distance <= tolerance) {
           correct++;
           rts.push(elapsed);
-          showFeedback('ОТЛИЧНО!', '#10b981');
+          showFeedback('ОТЛИЧНО!', 'var(--ok)');
         } else if (progress < 0.5) {
           errors++;
           rts.push(elapsed);
-          showFeedback('РАНО', '#eab308');
+          showFeedback('РАНО', 'var(--stage-accent)');
         } else {
           errors++;
           rts.push(elapsed);
-          showFeedback('ПОЗДНО', '#f97316');
+          showFeedback('ПОЗДНО', 'var(--grad-attention-start)');
         }
       }
 

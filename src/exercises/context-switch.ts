@@ -30,12 +30,12 @@ const contextSwitchModule: ExerciseModule = {
           transition: background-color 0.2s, color 0.2s;
         }
         .cs-arena.light {
-          background-color: #f1f5f9;
-          color: #0f172a;
+          background-color: var(--stage-paper, #F7F5F0);
+          color: var(--stage-ink, #0F1020);
         }
         .cs-arena.dark {
-          background-color: #0f172a;
-          color: #f8fafc;
+          background-color: var(--stage-ink, #0F1020);
+          color: var(--stage-text, #F3F1FA);
         }
         .cs-target {
           font-size: 100px;
@@ -156,11 +156,11 @@ const contextSwitchModule: ExerciseModule = {
 
       if (isCorrect) {
         correct++;
-        if (choseLeft) btnLeft.style.borderColor = '#10b981';
-        else btnRight.style.borderColor = '#10b981';
+        if (choseLeft) btnLeft.style.borderColor = 'var(--ok)';
+        else btnRight.style.borderColor = 'var(--ok)';
       } else {
-        if (choseLeft) btnLeft.style.borderColor = '#ef4444';
-        else btnRight.style.borderColor = '#ef4444';
+        if (choseLeft) btnLeft.style.borderColor = 'var(--danger)';
+        else btnRight.style.borderColor = 'var(--danger)';
       }
 
       setTimeout(startRound, 400);

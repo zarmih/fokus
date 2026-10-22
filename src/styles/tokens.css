@@ -26,10 +26,22 @@
   --grad-speed: linear-gradient(135deg, var(--grad-speed-start), var(--grad-speed-end));
   --grad-logic: linear-gradient(135deg, var(--grad-logic-start), var(--grad-logic-end));
   --grad-flexibility: linear-gradient(135deg, var(--grad-flexibility-start), var(--grad-flexibility-end));
+
+  /* Text/ink on top of any skill gradient (≥ 4.5:1 on every gradient stop) */
+  --ql-on-grad: #14132A;
+
+  /* Play stage: the sky is always dark, so the stage uses fixed light-on-dark colours in both themes */
+  --stage-ink: #0F1020;
+  --stage-ink-rgb: 15, 16, 32;
+  --stage-paper: #F7F5F0;
+  --stage-text: #F3F1FA;
+  --stage-muted: #B4B1C8;
+  --stage-accent: #FFC46B;
 }
 
-/* ---------- Dark (default) ---------- */
-:root, [data-theme="dark"] {
+/* ---------- Dark (default) ----------
+ * .play-stage re-uses the dark palette in every theme (its sky is always dark). */
+:root, [data-theme="dark"], .play-stage {
   --ql-bg: #0F1020;
   --ql-bg-rgb: 15, 16, 32;
   --ql-bg-deep: #0A0B17;
@@ -53,8 +65,11 @@
   --ql-accent-2-rgb: 143, 180, 255;
 
   --ql-danger: #F291AB;         /* muted pink */
+  --ql-danger-rgb: 242, 145, 171;
   --ql-on-danger: #2A0E17;
   --ql-ok: #5DD6A4;
+  --ql-ok-rgb: 93, 214, 164;
+  --ql-shadow-rgb: 0, 0, 0;
 
   /* Domain solid colours (text-safe on bg) */
   --ql-dom-attention: #FF7D6B;
@@ -89,8 +104,11 @@
   --ql-accent-2-rgb: 47, 95, 208;
 
   --ql-danger: #B83E63;
+  --ql-danger-rgb: 184, 62, 99;
   --ql-on-danger: #FFFFFF;
   --ql-ok: #1B7F58;
+  --ql-ok-rgb: 27, 127, 88;
+  --ql-shadow-rgb: 28, 26, 46;  /* ink-tinted shadows on milk */
 
   --ql-dom-attention: #C2452E;
   --ql-dom-memory: #7A4FD8;

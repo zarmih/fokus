@@ -227,11 +227,15 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
     : 'Сбалансированная тренировка';
 
+  // Skill whose gradient tints the workout card (first focus domain, else first exercise's domain).
+  const focusSkill = plan.focusDomains[0] || (plan.items[0] ? getManifest(plan.items[0].exerciseId)?.domain : undefined);
+  const skillClass = focusSkill ? `dom-${focusSkill}` : '';
+
   const compositionHtml = plan.items.map((item, index) => {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
     const slot = item.slot ? SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL] : '';
-    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" style="display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px; gap: 6px; height: auto; border-radius: 12px; width: 100%; box-sizing: border-box; background: var(--surface-2); border: 1px solid var(--line);">
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" style="display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px 12px 18px; gap: 6px; height: auto; border-radius: 12px; width: 100%; box-sizing: border-box;">
       <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
         <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="20" height="20" alt="" decoding="async" style="border-radius: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
         <span style="font-weight: 700; font-size: 14px; flex: 1;">${r?.name}</span>
@@ -462,7 +466,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <div class="workout-kicker">${spark.title}</div>
         <h3>Калибровка уровня</h3>
         <p class="workout-coach-insight">${spark.body}</p>
-        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
           <span>Пройти калибровку</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
@@ -471,17 +475,17 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     `;
   } else if (unfinishedSession) {
     actionHtml = `
-      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-labelledby="cta-resume-title">
+      <div class="workout-card fx-enter coach-${spark.tone} ${skillClass}" role="region" aria-labelledby="cta-resume-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           Возвращение к сессии
         </div>
         <h3 id="cta-resume-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Продолжить с того места</h3>
-        <p style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">
+        <p style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
           Осталось ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">Вы уже начали эту тренировку сегодня. Продолжаем.</p>
-        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Оставшиеся упражнения" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
@@ -498,7 +502,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <h3>План выполнен</h3>
         ${trendChipHtml}
         <p class="workout-coach-insight">${spark.body}</p>
-        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <button id="btn-start" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">Ещё одна сессия</button>
       </div>
     `;
@@ -516,7 +520,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
       ? plan.focusDomains.map(d => domainLabel(d)).join(', ')
       : 'знакомые области';
     actionHtml = `
-      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-labelledby="cta-return-title">
+      <div class="workout-card fx-enter coach-${spark.tone} ${skillClass}" role="region" aria-labelledby="cta-return-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           ${spark.title}
@@ -526,7 +530,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
           ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
         </p>
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
-        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
@@ -540,18 +544,18 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     const rest = ritual?.snapshot?.gate?.active;
     const finalKicker = rest ? 'Сегодня легче' : spark.title;
     actionHtml = `
-      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone}" role="region" aria-labelledby="cta-today-title">
+      <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone} ${skillClass}" role="region" aria-labelledby="cta-today-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${finalKicker}
         </div>
         <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'first_week' ? planExplain.title : 'Тренировка дня'}</h3>
-        <p style="font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 12px;">
+        <p style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
           ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
         ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 8px;">${spark.body}</p>
-        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${spark.quietTip}</p>` : ''}
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : (spark.quietTip ? '' : '<div style="margin-bottom: 8px;"></div>')}
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
