@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect width="64" height="64" fill="#0f172a" rx="16"/>
+  <rect width="64" height="64" fill="#0F1020" rx="16"/>
   
   <!-- Ship -->
   <path d="M32 16 L44 48 L32 40 L20 48 Z" fill="#10b981"/>
