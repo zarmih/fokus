@@ -1,0 +1,129 @@
+/*
+ * «Тихий свет» — сцены домена memory (Память). Мотивы: светящиеся камни на воде, отражения.
+ * Градиент навыка: var(--grad-memory-start) → var(--grad-memory-end)
+ * (в слое уже доступны как var(--scene-a) / var(--scene-b)).
+ *
+ * Правила: только чистый CSS, каждый селектор начинается с
+ *   [data-scene="<id>"] .scene-layer
+ * Слоты: .scene-layer::before/::after + 5 × <i> (и их ::before/::after).
+ * Анимация — только очень медленный дрейф (≥ 12s); reduced-motion гасится в base.css.
+ *
+ * Упражнения (44):
+ *   anchor-pair
+ *   avatar-names
+ *   az-color-match
+ *   cache-span
+ *   color-sequence
+ *   corsi
+ *   direction-memory
+ *   dot-span
+ *   ember-lane
+ *   flash-cards
+ *   glyph-stash
+ *   grid-memory
+ *   grid-stash
+ *   halo-trace
+ *   lag-echo
+ *   location-recall
+ *   mask-span
+ *   memory-honeycomb
+ *   n-back
+ *   nest-span
+ *   number-code
+ *   number-memory
+ *   order-recall
+ *   pair-bind
+ *   pairs
+ *   path-finder
+ *   path-recall
+ *   pouch-span
+ *   running-sum
+ *   season-match
+ *   sequence
+ *   sequence-reverse
+ *   shape-name
+ *   shape-position
+ *   shard-hold
+ *   slot-span
+ *   spatial-match
+ *   stack-span
+ *   tally-update
+ *   tray-span
+ *   vault-span
+ *   word-cascade
+ *   word-color-link
+ *   word-pairs
+ */
+
+/* ── grid-memory · «Светящиеся камни на воде» (эталонная сцена) ──────────────
+   ::before — гладь воды в нижней трети (стеклянные блики-рябь),
+   ::after  — мягкое сияние над водой,
+   i × 5    — светящиеся камни-гальки, i::after — их отражение в воде. */
+[data-scene="grid-memory"] .scene-layer {
+  --scene-opacity: 0.62;
+}
+[data-scene="grid-memory"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  left: -10%; right: -10%; bottom: 0;
+  height: 42%;
+  background:
+    repeating-radial-gradient(ellipse 120% 26% at 50% 0%,
+      transparent 0 14px,
+      color-mix(in srgb, var(--scene-b) 10%, transparent) 15px 16px,
+      transparent 17px 30px),
+    linear-gradient(180deg,
+      color-mix(in srgb, var(--scene-a) 16%, transparent) 0%,
+      color-mix(in srgb, var(--scene-a) 6%, transparent) 45%,
+      transparent 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+[data-scene="grid-memory"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  left: 10%; right: 10%; bottom: 30%;
+  height: 34%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side,
+    color-mix(in srgb, var(--scene-b) 18%, transparent),
+    transparent 75%);
+  filter: blur(18px);
+}
+[data-scene="grid-memory"] .scene-layer > i {
+  bottom: var(--y);
+  left: var(--x);
+  width: var(--s);
+  height: calc(var(--s) * 0.62);
+  border-radius: 50% 50% 46% 46% / 62% 62% 38% 38%;
+  background:
+    radial-gradient(60% 50% at 35% 28%, rgba(255, 255, 255, 0.55), transparent 70%),
+    radial-gradient(circle at 50% 60%,
+      color-mix(in srgb, var(--c) 85%, white 0%) 0%,
+      color-mix(in srgb, var(--c) 45%, transparent) 60%,
+      transparent 100%);
+  box-shadow:
+    0 0 22px 4px color-mix(in srgb, var(--c) 40%, transparent),
+    inset 0 -3px 6px rgba(15, 16, 32, 0.35);
+  --scene-breath-lo: 0.6;
+  animation: sceneBreath 16s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="grid-memory"] .scene-layer > i::after {
+  content: "";
+  position: absolute;
+  left: 8%; right: 8%; top: 108%;
+  height: 120%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--c) 30%, transparent), transparent);
+  filter: blur(6px);
+  opacity: 0.7;
+  transform: scaleY(0.5);
+  transform-origin: top;
+}
+[data-scene="grid-memory"] .scene-layer > i:nth-child(1) { --x: 8%;  --y: 24%; --s: 54px; --c: var(--scene-a); --d: 0s; }
+[data-scene="grid-memory"] .scene-layer > i:nth-child(2) { --x: 30%; --y: 14%; --s: 34px; --c: var(--scene-b); --d: -4s; }
+[data-scene="grid-memory"] .scene-layer > i:nth-child(3) { --x: 52%; --y: 27%; --s: 44px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -8s; }
+[data-scene="grid-memory"] .scene-layer > i:nth-child(4) { --x: 72%; --y: 12%; --s: 28px; --c: var(--scene-a); --d: -11s; }
+[data-scene="grid-memory"] .scene-layer > i:nth-child(5) { --x: 84%; --y: 22%; --s: 40px; --c: var(--scene-b); --d: -6s; }

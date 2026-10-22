@@ -1,0 +1,7 @@
+/* «Тихий свет» — сцены упражнений. base.css — общий каркас; по одному файлу на домен. */
+@import './base.css';
+@import './attention.css';
+@import './memory.css';
+@import './speed.css';
+@import './logic.css';
+@import './flexibility.css';

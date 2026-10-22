@@ -32,11 +32,16 @@ export function mountStage(container: HTMLElement, domain = 'attention'): PlaySt
     <div class="play-orbs" aria-hidden="true">
       <i></i><i></i><i></i>
     </div>
+    <div class="scene-layer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
     <div class="play-hud"></div>
     <div class="play-combo" aria-live="polite"></div>
     <div class="play-board"></div>
     <canvas class="play-fx"></canvas>
   `;
+  // «Тихий свет»: inherit the exercise scene id from the session arena (see src/ui/scene.ts).
+  const sceneHost = container.closest('[data-scene]') as HTMLElement | null;
+  if (sceneHost?.dataset.scene) root.dataset.scene = sceneHost.dataset.scene;
+  if (sceneHost?.dataset.sceneDomain) root.dataset.sceneDomain = sceneHost.dataset.sceneDomain;
   container.appendChild(root);
 
   // «Тихий свет» sky comes from the shared --stage-sky-* tokens (src/styles/tokens.css, .play-sky rule).

@@ -1,0 +1,33 @@
+/*
+ * «Тихий свет» — сцены домена speed (Скорость). Мотивы: капли в потоке, струи.
+ * Градиент навыка: var(--grad-speed-start) → var(--grad-speed-end)
+ * (в слое уже доступны как var(--scene-a) / var(--scene-b)).
+ *
+ * Правила: только чистый CSS, каждый селектор начинается с
+ *   [data-scene="<id>"] .scene-layer
+ * Слоты: .scene-layer::before/::after + 5 × <i> (и их ::before/::after).
+ * Анимация — только очень медленный дрейф (≥ 12s); reduced-motion гасится в base.css.
+ *
+ * Упражнения (21):
+ *   arcade-shooter
+ *   ay-color-pulse
+ *   ay-number-grid
+ *   catch-the-color
+ *   color-burst
+ *   cut-bar
+ *   letter-case-match
+ *   math-sprint
+ *   max-number
+ *   meteorites
+ *   number-sort
+ *   pulse-gap
+ *   rapid-sorting
+ *   reaction-strike
+ *   rhythm-tap
+ *   same-different
+ *   slip-mark
+ *   spatial-speed
+ *   swings
+ *   vowel-consonant-count
+ *   word-length-sort
+ */

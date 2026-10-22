@@ -1,0 +1,45 @@
+/*
+ * «Тихий свет» — сцены домена logic (Логика). Мотивы: парящие призмы, грани.
+ * Градиент навыка: var(--grad-logic-start) → var(--grad-logic-end)
+ * (в слое уже доступны как var(--scene-a) / var(--scene-b)).
+ *
+ * Правила: только чистый CSS, каждый селектор начинается с
+ *   [data-scene="<id>"] .scene-layer
+ * Слоты: .scene-layer::before/::after + 5 × <i> (и их ::before/::after).
+ * Анимация — только очень медленный дрейф (≥ 12s); reduced-motion гасится в base.css.
+ *
+ * Упражнения (33):
+ *   angle-match
+ *   area-compare
+ *   arrow-path
+ *   balance-scales
+ *   change-maker
+ *   clock-reading
+ *   color-cipher
+ *   equation-balance
+ *   even-odd-math
+ *   expression-compare
+ *   fraction-compare
+ *   letter-shift
+ *   math-chains
+ *   matrix-complete
+ *   mental-rotation
+ *   mirror-match
+ *   missing-operator
+ *   number-pyramid
+ *   number-series
+ *   pattern-next
+ *   pulley
+ *   relation-chain
+ *   rule-induce
+ *   shape-equation
+ *   shape-sides-match
+ *   size-compare
+ *   symbol-math
+ *   symmetry-grid
+ *   target-sum
+ *   time-math
+ *   triple-match
+ *   weight-analysis
+ *   word-unscramble
+ */

@@ -1,0 +1,116 @@
+/*
+ * «Тихий свет» — сцены домена attention (Внимание). Мотивы: созвездия, лучи, фокус-точки.
+ * Градиент навыка: var(--grad-attention-start) → var(--grad-attention-end)
+ * (в слое уже доступны как var(--scene-a) / var(--scene-b)).
+ *
+ * Правила: только чистый CSS, каждый селектор начинается с
+ *   [data-scene="<id>"] .scene-layer
+ * Слоты: .scene-layer::before/::after + 5 × <i> (и их ::before/::after).
+ * Анимация — только очень медленный дрейф (≥ 12s); reduced-motion гасится в base.css.
+ *
+ * Упражнения (48):
+ *   anchor-drift
+ *   arrow-swipe
+ *   ay-shape-shift
+ *   az-number-grid
+ *   beacon-rail
+ *   beacon-snap
+ *   change-spot
+ *   color-count
+ *   color-frequency
+ *   color-sync
+ *   crest-tap
+ *   crowd-probe
+ *   digit-filter
+ *   dominant-color
+ *   dot-ratio
+ *   emotion-match
+ *   find-pair
+ *   flanker-task
+ *   flare-pick
+ *   focus-circle
+ *   gate-tap
+ *   global-local
+ *   go-no-go
+ *   imposter-search
+ *   moving-targets
+ *   odd-one
+ *   orbit-tap
+ *   posner
+ *   pulse-rail
+ *   rail-chase
+ *   schulte
+ *   shape-color-target
+ *   shape-count
+ *   shell-game
+ *   simon-task
+ *   spark-lane
+ *   split-attention
+ *   symbol-match
+ *   target-shade
+ *   tide-gate
+ *   time-estimation
+ *   trail-make
+ *   unique-color
+ *   unique-feature
+ *   vigil-probe
+ *   visual-search
+ *   wave-lock
+ *   zone-guard
+ */
+
+/* ── schulte · «Созвездие» (эталонная сцена) ─────────────────────────────────
+   ::before — тонкие линии созвездия (inline SVG, координаты в % = позиции звёзд),
+   ::after  — мягкая туманность в цвете навыка,
+   i × 5    — звёзды: ядро + стеклянный ореол, i::before — едва заметный луч. */
+[data-scene="schulte"] .scene-layer {
+  --scene-opacity: 0.6;
+}
+[data-scene="schulte"] .scene-layer::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpolyline points='12,18 34,10 58,22 80,12' fill='none' stroke='%23FFD9C2' stroke-opacity='0.28' stroke-width='1' vector-effect='non-scaling-stroke'/%3E%3Cline x1='58' y1='22' x2='88' y2='86' stroke='%23FFD9C2' stroke-opacity='0.14' stroke-width='1' stroke-dasharray='3 5' vector-effect='non-scaling-stroke'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+}
+[data-scene="schulte"] .scene-layer::after {
+  content: "";
+  position: absolute;
+  width: 70%; height: 40%;
+  right: -15%; top: -6%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side,
+    color-mix(in srgb, var(--scene-a) 22%, transparent),
+    color-mix(in srgb, var(--scene-b) 8%, transparent) 60%,
+    transparent);
+  filter: blur(24px);
+  --scene-dx: -10px; --scene-dy: 6px;
+  animation: sceneDrift 40s ease-in-out infinite;
+}
+[data-scene="schulte"] .scene-layer > i {
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  margin: calc(var(--s) / -2) 0 0 calc(var(--s) / -2);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    #fff 0 12%,
+    color-mix(in srgb, var(--c) 70%, transparent) 22%,
+    color-mix(in srgb, var(--c) 18%, transparent) 50%,
+    transparent 72%);
+  --scene-breath-lo: 0.45;
+  animation: sceneBreath 14s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+[data-scene="schulte"] .scene-layer > i::before {
+  content: "";
+  position: absolute;
+  left: -60%; right: -60%; top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c) 45%, transparent), transparent);
+}
+[data-scene="schulte"] .scene-layer > i:nth-child(1) { --x: 12%; --y: 18%; --s: 18px; --c: var(--scene-a); --d: 0s; }
+[data-scene="schulte"] .scene-layer > i:nth-child(2) { --x: 34%; --y: 10%; --s: 12px; --c: var(--scene-b); --d: -5s; }
+[data-scene="schulte"] .scene-layer > i:nth-child(3) { --x: 58%; --y: 22%; --s: 22px; --c: var(--scene-a); --d: -9s; }
+[data-scene="schulte"] .scene-layer > i:nth-child(4) { --x: 80%; --y: 12%; --s: 14px; --c: var(--scene-b); --d: -3s; }
+[data-scene="schulte"] .scene-layer > i:nth-child(5) { --x: 88%; --y: 86%; --s: 16px; --c: color-mix(in srgb, var(--scene-a) 50%, var(--scene-b)); --d: -11s; }

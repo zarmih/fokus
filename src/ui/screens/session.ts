@@ -26,6 +26,7 @@ import type { SessionItem } from '../../core/types';
 import { announce, bindDialog, setScreenTitle, focusMain, prefersReducedMotion } from '../a11y';
 import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
+import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
@@ -232,6 +233,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       
       const container = document.getElementById('game-container');
       if (!container) return;
+      // «Тихий свет»: per-exercise scene (data-scene + .scene-layer); the module renders into the host.
+      const playHost = mountScene(container, item.exerciseId, getManifest(item.exerciseId)?.domain);
       content.dataset.sessionPhase = 'countdown';
       container.setAttribute('aria-busy', 'true');
 
@@ -399,7 +402,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           renderCurrent();
         };
 
-        cleanupFn = exDispatch.render(container, state!.difficulty, onBlockEnd, isTimeUp);
+        cleanupFn = exDispatch.render(playHost, state!.difficulty, onBlockEnd, isTimeUp);
         currentCleanup = cleanupFn;
       };
 

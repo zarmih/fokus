@@ -1,0 +1,47 @@
+/*
+ * «Тихий свет» — сцены домена flexibility (Гибкость). Мотивы: мятные ленты, изгибы.
+ * Градиент навыка: var(--grad-flexibility-start) → var(--grad-flexibility-end)
+ * (в слое уже доступны как var(--scene-a) / var(--scene-b)).
+ *
+ * Правила: только чистый CSS, каждый селектор начинается с
+ *   [data-scene="<id>"] .scene-layer
+ * Слоты: .scene-layer::before/::after + 5 × <i> (и их ::before/::after).
+ * Анимация — только очень медленный дрейф (≥ 12s); reduced-motion гасится в base.css.
+ *
+ * Упражнения (35):
+ *   alphanumeric-sort
+ *   axis-swap
+ *   az-shape-shift
+ *   category-sort
+ *   color-band
+ *   color-shape-switch
+ *   color-sort
+ *   context-switch
+ *   cue-bounce
+ *   direction-match
+ *   direction-switch
+ *   dual-label
+ *   even-odd
+ *   flip-agenda
+ *   frame-swap
+ *   helix-flip
+ *   hidden-rule
+ *   lens-swap
+ *   letter-number-switch
+ *   math-sign-switch
+ *   math-switch
+ *   mirror-pick
+ *   motif-flip
+ *   parity-magnitude
+ *   prism-flip
+ *   rubric-flip
+ *   rule-pivot
+ *   set-shift
+ *   sign-flip
+ *   stroop
+ *   switch-rule
+ *   token-warp
+ *   verbal-fluency
+ *   vowel-consonant
+ *   vowel-count
+ */
