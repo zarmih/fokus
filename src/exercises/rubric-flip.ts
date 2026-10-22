@@ -27,7 +27,7 @@ const rubricFlipModule: ExerciseModule = {
           gap: 40px;
           background: #fafaf9;
           color: #1c1917;
-          font-family: sans-serif;
+          font-family: var(--font-sans);
         }
         .rf-rule {
           font-size: 28px;

@@ -26,7 +26,7 @@ const colorCipherModule: ExerciseModule = {
           height: 100%;
           gap: 2rem;
           color: #e2e8f0;
-          font-family: system-ui, sans-serif;
+          font-family: var(--font-sans);
         }
         .cc-legend {
           display: flex;
