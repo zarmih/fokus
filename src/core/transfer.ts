@@ -1,4 +1,5 @@
 import type { DomainIndex } from './types';
+import { mondayOfMoscowWeek } from './quests';
 
 /**
  * Honest domain → everyday-skill map.
@@ -159,12 +160,17 @@ export function getTransferEntry(domain: string): TransferEntry | null {
   return TRANSFER_MAP[domain];
 }
 
+/**
+ * Monday (YYYY-MM-DD) of the Fokus product week — Europe/Moscow, Monday-start.
+ * Delegates to quests' mondayOfMoscowWeek so transfer tip salt / weekly focus
+ * rotation share the same calendar as weekly goals.
+ *
+ * History: previously used UTC getUTC* week math. Keys are computed as salts
+ * (situation pick, rotatingTipDomain) and are not persisted as storage keys,
+ * so no dual-read migration is needed; new calculations use Moscow going forward.
+ */
 export function startOfWeekKey(now: Date): string {
-  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
-  const day = d.getUTCDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + diff);
-  return d.toISOString().slice(0, 10);
+  return mondayOfMoscowWeek(now);
 }
 
 export function hashString(value: string): number {
