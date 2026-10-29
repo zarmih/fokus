@@ -21,9 +21,7 @@ import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continu
 import { sessionCheckIn } from '../../core/coach';
 import {
   collectAttemptSamples,
-  latestPercentileLineRu,
-  normsForDomain,
-  normsFromSessionValues
+  resultLocalNormsLineRu
 } from '../../core/local-norms';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
@@ -344,25 +342,11 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   }
   let sessionNormLine = '';
   if (!isCalibration && !isRecalibration && !noData) {
-    const domainLines: string[] = [];
-    for (const d of domainsTouched) {
-      const nr = normsForDomain(attemptSamples, d);
-      if (nr.status === 'ok') {
-        domainLines.push(`${domainLabel(d)}: лучше ${nr.latestPercentile}% своих`);
-      }
-    }
-    if (domainLines.length > 0) {
-      sessionNormLine = domainLines[0];
-      if (domainLines.length > 1) {
-        sessionNormLine = domainLines.slice(0, 2).join(' · ');
-      }
-    } else {
-      const sessionAccs = sessionsForNorms
-        .filter((s) => s.items.length > 0)
-        .sort((a, b) => String(a.startedAt).localeCompare(String(b.startedAt)))
-        .map((s) => s.items.reduce((sum, it) => sum + it.accuracy, 0) / s.items.length);
-      sessionNormLine = latestPercentileLineRu(normsFromSessionValues(sessionAccs));
-    }
+    const sessionAccs = sessionsForNorms
+      .filter((s) => s.items.length > 0)
+      .sort((a, b) => String(a.startedAt).localeCompare(String(b.startedAt)))
+      .map((s) => s.items.reduce((sum, it) => sum + it.accuracy, 0) / s.items.length);
+    sessionNormLine = resultLocalNormsLineRu(domainsTouched, attemptSamples, sessionAccs);
   }
   const localNormsLineHtml = sessionNormLine
     ? `<div class="result-local-norms" data-local-norms="1" style="margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.4;">${sessionNormLine}</div>`
