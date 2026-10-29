@@ -72,9 +72,9 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
   const tab = (id: typeof params.active, label: string, path: string) => {
     const active = params.active === id;
     return `
-      <button type="button" class="tab-item ${active ? 'active' : ''}" id="tab-${id}" ${active ? 'aria-current="page"' : ''}>
+      <button type="button" class="tab-item ${active ? 'active' : ''}" id="tab-${id}" aria-label="${label}" ${active ? 'aria-current="page"' : ''}>
         <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="${path}"/></svg>
-        <span>${label}</span>
+        <span aria-hidden="true">${label}</span>
       </button>
     `;
   };
@@ -112,12 +112,30 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
   `;
 
   if (!params.hideNav) {
-    container.querySelector('#tab-today')?.addEventListener('click', () => navigateTo('today'));
-    container.querySelector('#tab-program')?.addEventListener('click', () => navigateTo('program'));
-    container.querySelector('#tab-trainers')?.addEventListener('click', () => navigateTo('trainers'));
-    container.querySelector('#tab-progress')?.addEventListener('click', () => navigateTo('progress'));
-    container.querySelector('#tab-duel')?.addEventListener('click', () => navigateTo('duel'));
-    container.querySelector('#tab-settings')?.addEventListener('click', () => navigateTo('settings'));
+    const tabOrder = ['today', 'program', 'trainers', 'progress', 'duel', 'settings'] as const;
+    const tabEl = (id: (typeof tabOrder)[number]) =>
+      container.querySelector(`#tab-${id}`) as HTMLButtonElement | null;
+
+    for (const id of tabOrder) {
+      tabEl(id)?.addEventListener('click', () => navigateTo(id));
+    }
+
+    const nav = container.querySelector('nav.tab-bar') as HTMLElement | null;
+    nav?.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+      const buttons = tabOrder.map((id) => tabEl(id)).filter(Boolean) as HTMLButtonElement[];
+      if (buttons.length === 0) return;
+      const current = document.activeElement as HTMLElement | null;
+      const idx = buttons.findIndex((b) => b === current || b.contains(current));
+      if (idx < 0 && e.key !== 'Home' && e.key !== 'End') return;
+      e.preventDefault();
+      let next = idx;
+      if (e.key === 'ArrowRight') next = (idx + 1) % buttons.length;
+      else if (e.key === 'ArrowLeft') next = (idx - 1 + buttons.length) % buttons.length;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = buttons.length - 1;
+      buttons[next]?.focus();
+    });
   }
 
   const indicator = container.querySelector('#top-sync-indicator') as HTMLElement;
