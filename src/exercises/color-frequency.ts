@@ -1,4 +1,5 @@
 import { ExerciseModule, BlockResult } from './contract';
+import { reducedMotionCss } from './reduced-motion-css';
 import { mountStage } from './stage';
 
 export class ColorFrequencyEngine {
@@ -70,6 +71,7 @@ const colorFrequencyModule: ExerciseModule = {
         .cf-dots { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; max-width: 320px; }
         .cf-dot { width: 24px; height: 24px; border-radius: 50%; opacity: 0; transform: scale(0); animation: cf-pop 0.3s forwards; }
         @keyframes cf-pop { to { opacity: 1; transform: scale(1); } }
+        ${reducedMotionCss('.cf-dot', 'opacity: 1; transform: scale(1);')}
         .cf-controls { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
         .cf-btn { width: 56px; height: 56px; border-radius: 16px; border: 3px solid var(--line); cursor: pointer; transition: transform 0.1s; }
         .cf-btn:active { transform: scale(0.9); }

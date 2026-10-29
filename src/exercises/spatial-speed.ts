@@ -1,4 +1,5 @@
 import { ExerciseModule, BlockResult } from './contract';
+import { reducedMotionCss } from './reduced-motion-css';
 
 const spatialSpeedModule: ExerciseModule = {
   manifest: {
@@ -44,6 +45,7 @@ const spatialSpeedModule: ExerciseModule = {
         @keyframes ss-pop {
           to { transform: translate(-50%, -50%) scale(1); }
         }
+        ${reducedMotionCss('.ss-target', 'transform: translate(-50%, -50%) scale(1);')}
         .ss-target:active { transform: translate(-50%, -50%) scale(0.8) !important; }
       </style>
       <div class="ss-arena" id="ss-arena"></div>
