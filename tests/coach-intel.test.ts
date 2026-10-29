@@ -40,7 +40,7 @@ function indexDay(date: string, extra: Partial<IndexDay> = {}): IndexDay {
   };
 }
 
-test('enumerateDays is UTC-stable and inclusive of asOf', () => {
+test('enumerateDays is civil-day stable and inclusive of asOf', () => {
   const days = enumerateDays('2026-09-11', 14);
   expect(days).toHaveLength(14);
   expect(days[0]).toBe('2026-08-29');
@@ -51,7 +51,12 @@ test('enumerateDays is UTC-stable and inclusive of asOf', () => {
 
 test('addDays does not slip on month boundaries', () => {
   expect(addDays('2026-03-01', -1)).toBe('2026-02-28');
-  expect(toDateKey('2026-09-11T23:40:00.000Z')).toBe('2026-09-11');
+  // 23:40Z = 02:40 next calendar day in Europe/Moscow
+  expect(toDateKey('2026-09-11T23:40:00.000Z')).toBe('2026-09-12');
+  // Midday UTC stays on the same Moscow civil day
+  expect(toDateKey('2026-09-11T12:00:00.000Z')).toBe('2026-09-11');
+  // Date-only civil keys stay as stored
+  expect(toDateKey('2026-09-11')).toBe('2026-09-11');
 });
 
 test('empty history is honest: no fake index, supportive tip', () => {
