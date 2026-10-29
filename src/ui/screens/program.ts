@@ -333,7 +333,7 @@ export function renderProgram(container: HTMLElement) {
           <h3 style="margin-bottom:8px;">${phaseView.phase.title}</h3>
           <p style="margin:0 0 8px 0; font-weight:600;">Цель: ${phaseView.goalLine}</p>
           <p class="muted" style="font-size:13px; margin:0 0 12px 0;">${phaseView.phaseNarrative}</p>
-          <div class="scale-track phase-progress" role="progressbar" aria-valuenow="${Math.round(phaseView.progressInPhase * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="Прогресс фазы" style="height:6px;border-radius:3px;background:rgba(255,255,255,0.08);overflow:hidden;margin-bottom:12px;">
+          <div class="scale-track phase-progress" role="progressbar" aria-valuenow="${Math.round(phaseView.progressInPhase * 100)}" aria-valuemin="0" aria-valuemax="100" aria-label="Прогресс фазы" style="height:6px;border-radius:3px;background: var(--track);overflow:hidden;margin-bottom:12px;">
             <div class="scale-fill" style="height:100%;width:${Math.round(phaseView.progressInPhase * 100)}%;background:var(--accent);"></div>
           </div>
           <p class="muted" style="font-size:12px; margin:0 0 12px 0;">${phaseView.weekDayLine}</p>
@@ -343,13 +343,13 @@ export function renderProgram(container: HTMLElement) {
               const completedBeforeZeroIndexed = playedToday ? dayInWeek : (dayInWeek - 1);
               const isCompleted = i < completedBeforeZeroIndexed;
               const isCurrent = i === activeDayZeroIndexed;
-              const bg = isCompleted ? 'var(--ok)' : isCurrent ? 'var(--primary)' : 'rgba(255,255,255,0.05)';
-              const color = isCompleted || isCurrent ? '#fff' : 'var(--muted)';
+              const bg = isCompleted ? 'var(--ok)' : isCurrent ? 'var(--accent)' : 'var(--fill-muted)';
+              const color = isCompleted ? 'var(--on-ok)' : isCurrent ? 'var(--btn-text)' : 'var(--muted)';
               const ariaLabel = isCompleted ? `День ${i + 1} завершён` : isCurrent ? `День ${i + 1} сегодня` : `День ${i + 1}`;
               return `<div aria-label="${ariaLabel}" style="flex: 1; height: 32px; border-radius: 4px; background: ${bg}; color: ${color}; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600;">${isCompleted ? '✓' : i + 1}</div>`;
             }).join('')}
           </div>
-          ${phaseView.milestonePreview ? `<div class="milestone-preview" style="background: rgba(255, 255, 255, 0.05); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent);">✦</span> ${phaseView.milestonePreview}</div>` : ''}
+          ${phaseView.milestonePreview ? `<div class="milestone-preview" style="background: var(--fill-muted); padding: 8px 12px; border-radius: 6px; margin-bottom: 12px; font-size: 13px; font-weight: 500; display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent);">✦</span> ${phaseView.milestonePreview}</div>` : ''}
           ${phaseView.carryLine ? `<p data-phase-carry="1" style="font-size: 13px; font-weight: 500; margin: 0 0 12px 0;">${phaseView.carryLine}</p>` : ''}
           <p class="muted" style="font-size:13px; margin:0;">${phaseView.phase.nextHint}</p>
         </div>
@@ -358,18 +358,18 @@ export function renderProgram(container: HTMLElement) {
           ${programRetention ? `<p class="rhythm-line band-${programRetention.band}" data-rhythm="${programRetention.rhythm}" style="margin:0 0 8px 0; font-weight:600;">${programRetention.rhythmLine}</p>
           <p class="muted" style="margin-bottom:12px">${programRetention.body}</p>` : `<p class="muted" style="margin-bottom:12px">${contMsg.body}</p>`}
           <div style="display:flex; gap:16px;">
-            <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
-              <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${snapshot.streak.current}</div>
+            <div style="flex:1; padding:12px; background:var(--fill-subtle); border-radius:8px; text-align:center;">
+              <div style="font-size:24px; font-weight:600; color:var(--text);">${snapshot.streak.current}</div>
               <div style="font-size:13px; color:var(--muted); margin-top:4px;">Серия (дней)</div>
             </div>
             ${snapshot.weekly.sufficient ? `
-            <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
-              <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${Math.round(snapshot.weekly.score * 100)}%</div>
+            <div style="flex:1; padding:12px; background:var(--fill-subtle); border-radius:8px; text-align:center;">
+              <div style="font-size:24px; font-weight:600; color:var(--text);">${Math.round(snapshot.weekly.score * 100)}%</div>
               <div style="font-size:13px; color:var(--muted); margin-top:4px;">Регулярность</div>
             </div>
             ` : programRetention ? `
-            <div style="flex:1; padding:12px; background:rgba(255,255,255,0.02); border-radius:8px; text-align:center;">
-              <div style="font-size:24px; font-weight:600; color:var(--text-primary, #fff);">${programRetention.rhythm}</div>
+            <div style="flex:1; padding:12px; background:var(--fill-subtle); border-radius:8px; text-align:center;">
+              <div style="font-size:24px; font-weight:600; color:var(--text);">${programRetention.rhythm}</div>
               <div style="font-size:13px; color:var(--muted); margin-top:4px;">Ритм</div>
             </div>
             ` : ''}

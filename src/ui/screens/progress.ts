@@ -76,7 +76,7 @@ export function renderProgress(container: HTMLElement) {
       </div>
   `;
   if (activeDays === 0) {
-    chartHtml += `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">График активности пока пуст.<br>После первой тренировки здесь появится честная картина регулярности, отражающая вашу реальную вовлечённость.</p></div></div>`;
+    chartHtml += `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: var(--fill-subtle);"><p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">График активности пока пуст.<br>После первой тренировки здесь появится честная картина регулярности, отражающая вашу реальную вовлечённость.</p></div></div>`;
   } else {
     chartHtml += `
       <p style="margin-bottom: 0;">Сумма: ${weeklyScore} очков</p>
@@ -97,7 +97,7 @@ export function renderProgress(container: HTMLElement) {
   let historyHtml = '';
   if (history.length === 0) {
     const histEmpty = emptyPlanCopy('no_history');
-    historyHtml = `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02); margin: 16px 0;" role="status"><p style="color: var(--muted); margin: 0 0 12px; font-size: 13px; line-height: 1.5;"><strong style="display:block;color:var(--text);margin-bottom:6px;">${histEmpty.title}</strong>${histEmpty.body}</p><button type="button" class="btn-secondary empty-cta-today" style="width:100%;" data-nav="today">${histEmpty.cta}</button></div>`;
+    historyHtml = `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: var(--fill-subtle); margin: 16px 0;" role="status"><p style="color: var(--muted); margin: 0 0 12px; font-size: 13px; line-height: 1.5;"><strong style="display:block;color:var(--text);margin-bottom:6px;">${histEmpty.title}</strong>${histEmpty.body}</p><button type="button" class="btn-secondary empty-cta-today" style="width:100%;" data-nav="today">${histEmpty.cta}</button></div>`;
   } else {
     const historyTz = snap.timeZone || resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
     historyHtml = history.map(h => {
@@ -148,7 +148,7 @@ export function renderProgress(container: HTMLElement) {
 
   let profileHtml = '';
   if (!hasProfileData) {
-    profileHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);"><p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Профиль навыков пока пуст.<br>Он появится после первых тренировок и покажет вашу точность и скорость в конкретных упражнениях.</p></div>';
+    profileHtml = '<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: var(--fill-subtle);"><p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Профиль навыков пока пуст.<br>Он появится после первых тренировок и покажет вашу точность и скорость в конкретных упражнениях.</p></div>';
   } else {
     profileHtml = allDomains.map(d => {
       const dVal = domains.find(x => x.domain === d.id);
@@ -170,7 +170,7 @@ export function renderProgress(container: HTMLElement) {
       const valueText = isReliable ? `<span style="color: ${trendColor}; opacity: 0.6; font-size: 11px; margin-right: 4px;">${trendStr}</span><span style="font-weight: 600;">${displayVal}</span>` : `<span style="color: var(--muted); font-size: 11px;">калибровка...</span>`;
       
       return `
-        <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid ${isReliable ? 'var(--line)' : 'rgba(255,255,255,0.05)'};">
+        <div style="margin-top: 12px; padding-left: 12px; border-left: 2px solid ${isReliable ? 'var(--line)' : 'var(--fill-muted)'};">
           <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px;">
             <span style="text-transform: capitalize; color: var(--text); opacity: ${isReliable ? '0.9' : '0.6'};">${skillName}</span>
             <span>${valueText}</span>
@@ -185,7 +185,7 @@ export function renderProgress(container: HTMLElement) {
     }).join('');
 
     const emptyStateHtml = dSkills.length === 0 ? `
-      <div style="padding: 16px 12px; text-align: center; color: var(--muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 8px; margin-top: 12px;">
+      <div style="padding: 16px 12px; text-align: center; color: var(--muted); font-size: 12px; background: var(--fill-subtle); border-radius: 8px; margin-top: 12px;">
         Пока нет данных. Тренируйте «${domainLabel(d.id).toLowerCase()}», чтобы открыть честную аналитику по навыкам.
       </div>
     ` : '';
@@ -224,7 +224,7 @@ export function renderProgress(container: HTMLElement) {
         <h3 style="margin-bottom: 16px;">Инсайты</h3>
         <div style="display: flex; flex-direction: column; gap: 12px;">
           ${insights.slice(0, 2).map(ins => `
-            <div style="padding: 16px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px;">
+            <div style="padding: 16px; background: var(--fill-subtle); border: 1px solid var(--fill-muted); border-radius: 12px;">
               <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--accent); margin-bottom: 4px;">${ins.title}</div>
               <div style="font-size: 13px; color: var(--text); line-height: 1.5;">${ins.description}</div>
             </div>
@@ -393,7 +393,7 @@ export function renderProgress(container: HTMLElement) {
     : '';
 
   const band = personalIndexBand(ds, new Date().toISOString());
-  const bandHtml = band ? `<div class="fi-personal-band" data-personal-band="1" style="font-size: 12px; color: var(--text); opacity: 0.9; margin-top: 8px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px;">${band.line}</div>` : '';
+  const bandHtml = band ? `<div class="fi-personal-band" data-personal-band="1" style="font-size: 12px; color: var(--text); opacity: 0.9; margin-top: 8px; background: var(--fill-muted); padding: 8px; border-radius: 6px;">${band.line}</div>` : '';
 
 
   const depthHtml = `
@@ -402,7 +402,7 @@ export function renderProgress(container: HTMLElement) {
         <span style="opacity: 0.8;">Глубина профиля</span>
         <strong>${fi.depth.explored} из ${fi.depth.total}</strong>
       </div>
-      <div class="scale-track" style="height: 4px; background: rgba(255,255,255,0.1); margin-bottom: 6px;">
+      <div class="scale-track" style="height: 4px; background: var(--track); margin-bottom: 6px;">
         <div class="scale-fill" style="width: ${fi.depth.percent}%; background: var(--text); opacity: 0.8;"></div>
       </div>
       <div style="font-size: 11px; color: var(--muted);">Освоено ${fi.depth.percent}% каталога (≥3 сессий)</div>
@@ -410,7 +410,7 @@ export function renderProgress(container: HTMLElement) {
   `;
 
   const fiExplainHtml = `
-    <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
+    <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: var(--fill-muted); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
       <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
       <p style="margin: 0 0 8px 0; color: var(--muted);">Это прозрачный индикатор вашей текущей тренировочной формы. Он опирается на фактические результаты, а не на выдуманные цифры, и отражает реальную скорость и точность в упражнениях.</p>
       <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> показывает полноту собранных данных: показатель растёт по мере охвата разных областей (${fi.coverage} из 5) и освоения каталога (${fi.depth.explored}).</p>
@@ -494,7 +494,7 @@ export function renderProgress(container: HTMLElement) {
         <span>Прогресс</span>
         <span>${goal.progress} / ${goal.target}</span>
       </div>
-      <div class="scale-track" style="height: 6px; background: rgba(255,255,255,0.05);"><div class="scale-fill" style="width: ${goalProgressPct}%; background: var(--dom-${goal.domain});"></div></div>
+      <div class="scale-track" style="height: 6px; background: var(--track);"><div class="scale-fill" style="width: ${goalProgressPct}%; background: var(--dom-${goal.domain});"></div></div>
     </div>
   `;
 
@@ -512,7 +512,7 @@ export function renderProgress(container: HTMLElement) {
     </div>` : `
     <div class="surface" style="margin-bottom: 24px;">
       <h3 style="margin-bottom: 16px;">Влияние сна на результаты</h3>
-      <div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
+      <div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: var(--fill-subtle);">
         <p style="color: var(--muted); font-size: 13px; margin: 0; line-height: 1.5;">Отмечайте качество сна после сессий, чтобы увидеть, как он влияет на вашу форму.<br>(Собрано ${sleepData.length} из 5 необходимых записей для графика)</p>
       </div>
     </div>`;
@@ -527,7 +527,7 @@ export function renderProgress(container: HTMLElement) {
       <h3 style="margin-bottom: 8px;">Личные нормы</h3>
       <p style="font-size: 12px; color: var(--muted); margin: 0 0 12px; line-height: 1.4;">${normsDisclaimerRu()}</p>
       ${!anyNormAttempts ? `
-        <div class="empty-state" style="padding: 20px 16px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
+        <div class="empty-state" style="padding: 20px 16px; text-align: center; border-radius: 12px; background: var(--fill-subtle);">
           <p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">Пока нет своих попыток.<br>После нескольких тренировок здесь появятся перцентили только по вашей истории.</p>
         </div>
       ` : `
@@ -536,7 +536,7 @@ export function renderProgress(container: HTMLElement) {
             const res = row.result;
             if (res.status === 'ok') {
               return `
-              <div class="local-norm-row" data-domain="${row.domain}" data-status="ok" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);">
+              <div class="local-norm-row" data-domain="${row.domain}" data-status="ok" style="padding: 12px; border-radius: 10px; background: var(--fill-subtle); border: 1px solid var(--line);">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
                   <span style="font-weight: 700; color: var(--dom-${row.domain});">${domainLabel(row.domain)}</span>
                   <span style="font-size: 13px; font-weight: 600; color: var(--accent);">лучше ${res.latestPercentile}%</span>
@@ -548,7 +548,7 @@ export function renderProgress(container: HTMLElement) {
             `;
             }
             return `
-              <div class="local-norm-row" data-domain="${row.domain}" data-status="insufficient" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);">
+              <div class="local-norm-row" data-domain="${row.domain}" data-status="insufficient" style="padding: 12px; border-radius: 10px; background: var(--fill-subtle); border: 1px solid var(--line);">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
                   <span style="font-weight: 700; color: var(--muted);">${domainLabel(row.domain)}</span>
                   <span style="font-size: 12px; color: var(--muted);">мало данных (${res.n} из 5)</span>

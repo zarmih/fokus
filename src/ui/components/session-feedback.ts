@@ -105,7 +105,7 @@ export function mountSessionFeedback(
 export function renderSessionFeelAggregateHtml(days = 7): string {
   const agg = aggregateSessionFeel(loadSessionFeedback(), days);
   const body = agg.empty
-    ? `<div class="empty-state" style="padding: 20px 16px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
+    ? `<div class="empty-state" style="padding: 20px 16px; text-align: center; border-radius: 12px; background: var(--fill-subtle);">
          <p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">
            Пока нет отметок за ${days} дней.<br>
            После сессии можно нажать 👍 / 😐 / 👎 — здесь появится, что чаще ощущалось сложно или легко.
