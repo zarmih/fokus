@@ -1,4 +1,6 @@
 import { expect, test, beforeEach, vi } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 import { renderToday } from '../src/ui/screens/today';
 import { renderTrainers } from '../src/ui/screens/trainers';
 import { storage } from '../src/core/storage';
@@ -108,4 +110,15 @@ test('bindDialog traps focus and handles Escape', () => {
 
   unbind();
   overlay.remove();
+});
+
+test('styles.css has a single skip-link rule stacked above banners (z-index 9999)', () => {
+  const css = fs.readFileSync(path.join(process.cwd(), 'src/styles.css'), 'utf8');
+  const blocks = [...css.matchAll(/\.skip-link\s*\{[^}]+\}/g)].map((m) => m[0]);
+  expect(blocks.length).toBe(1);
+  expect(blocks[0]).toMatch(/z-index:\s*9999/);
+  expect(blocks[0]).not.toMatch(/z-index:\s*200/);
+  // No stale override that wins in the cascade
+  expect(css).not.toMatch(/\.skip-link\s*\{[^}]*z-index:\s*200/);
+  expect(css).not.toMatch(/\.skip-link\s*\{[^}]*transform:\s*translateY\(-120%\)/);
 });
