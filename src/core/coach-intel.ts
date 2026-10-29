@@ -1,6 +1,7 @@
 import type { DaySummary, DomainIndex } from './types';
 import { computeFokusIndex } from './fokus-index';
 import { DOMAIN_ORDER, domainLabel } from './labels';
+import { addCalendarDays, calendarDayKey, resolveFokusTimeZone, PREFERRED_TIME_ZONE } from './streak';
 
 export const HISTORY_WINDOWS = [14, 30] as const;
 export type HistoryWindow = (typeof HISTORY_WINDOWS)[number];
@@ -105,14 +106,24 @@ interface DayBucket {
   played: boolean;
 }
 
-export function toDateKey(iso: string): string {
-  return iso.slice(0, 10);
+/**
+ * Civil YYYY-MM-DD for coach-intel day bucketing in Fokus TZ (Europe/Moscow).
+ * Plain YYYY-MM-DD / date-only civil keys stay as stored (day summaries);
+ * Date and full ISO timestamps use calendarDayKey so near-midnight UTC
+ * does not drift from the product day.
+ */
+export function toDateKey(iso: string | Date): string {
+  if (typeof iso === 'string') {
+    const trimmed = iso.trim();
+    // Plain YYYY-MM-DD (summary.date civil keys) — keep as stored product day.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  }
+  const zone = resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  return calendarDayKey(iso, zone);
 }
 
 export function addDays(dateKey: string, days: number): string {
-  const d = new Date(`${dateKey.slice(0, 10)}T12:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
+  return addCalendarDays(toDateKey(dateKey), days);
 }
 
 export function enumerateDays(endKey: string, window: number): string[] {
