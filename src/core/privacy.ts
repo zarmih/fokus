@@ -1,4 +1,5 @@
 import type { AppState, DaySummary, Profile } from './types';
+import { calendarDayKey, resolveFokusTimeZone } from './streak';
 
 export const FOKUS_KEY_PREFIX = 'fokus.';
 export const APP_STATE_KEY = 'fokus.v1';
@@ -233,8 +234,14 @@ export function redactExportJson(raw: string): string {
   }
 }
 
-export function buildExportFile(rawJson: string, redacted: boolean, now = new Date()): ExportFile {
-  const date = now.toISOString().slice(0, 10);
+export function buildExportFile(
+  rawJson: string,
+  redacted: boolean,
+  now = new Date(),
+  timeZone?: string
+): ExportFile {
+  // Europe/Moscow calendar day (not UTC toISOString slice) — see resolveFokusTimeZone.
+  const date = calendarDayKey(now, resolveFokusTimeZone(timeZone).timeZone);
   return {
     redacted,
     body: redacted ? redactExportJson(rawJson) : rawJson,
