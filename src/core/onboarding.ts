@@ -7,7 +7,12 @@ import type {
 } from './types';
 import { PROBE_DOMAINS, precisionLabel } from './calibration';
 import { domainLabel } from './labels';
-import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
+import {
+  addCalendarDays,
+  calendarDayKey,
+  daysBetween as civilDaysBetween,
+  resolveFokusTimeZone
+} from './streak';
 
 export const FIRST_WEEK_DAYS = 7;
 
@@ -77,14 +82,18 @@ export const TRANSFER_TIPS: TransferTip[] = [
   }
 ];
 
-export function dateOnly(iso: string): string {
-  return iso.slice(0, 10);
+/**
+ * Civil YYYY-MM-DD in the Fokus zone (Europe/Moscow) for an ISO instant.
+ * Plain date-only keys pass through unchanged. Avoids the UTC
+ * `iso.slice(0, 10)` drift between 00:00 and 03:00 Moscow time.
+ */
+export function dateOnly(iso: string, timeZone?: string): string {
+  const zone = timeZone || resolveFokusTimeZone().timeZone;
+  return calendarDayKey(iso, zone);
 }
 
 export function daysBetween(fromDate: string, toDate: string): number {
-  const a = Date.parse(`${dateOnly(fromDate)}T00:00:00Z`);
-  const b = Date.parse(`${dateOnly(toDate)}T00:00:00Z`);
-  return Math.round((b - a) / 86400000);
+  return civilDaysBetween(dateOnly(fromDate), dateOnly(toDate));
 }
 
 function asDomain(raw?: string): CognitiveDomain | null {
