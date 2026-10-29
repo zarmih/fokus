@@ -18,12 +18,24 @@ import { getTodayRitual } from '../../core/onboarding';
 import { buildCoachIntel } from '../../core/coach-intel';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
-import { calendarDayKey, addCalendarDays } from '../../core/streak';
+import { calendarDayKey, addCalendarDays, resolveFokusTimeZone, PREFERRED_TIME_ZONE } from '../../core/streak';
 import {
   collectAttemptSamples,
   normsByDomain,
   normsDisclaimerRu
 } from '../../core/local-norms';
+
+/** Format a Progress history row timestamp in the Fokus product TZ (Europe/Moscow). */
+export function formatProgressHistoryWhen(iso: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone
+  }).format(new Date(iso));
+}
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -87,9 +99,9 @@ export function renderProgress(container: HTMLElement) {
     const histEmpty = emptyPlanCopy('no_history');
     historyHtml = `<div class="empty-state" style="padding: 32px 24px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02); margin: 16px 0;" role="status"><p style="color: var(--muted); margin: 0 0 12px; font-size: 13px; line-height: 1.5;"><strong style="display:block;color:var(--text);margin-bottom:6px;">${histEmpty.title}</strong>${histEmpty.body}</p><button type="button" class="btn-secondary empty-cta-today" style="width:100%;" data-nav="today">${histEmpty.cta}</button></div>`;
   } else {
+    const historyTz = snap.timeZone || resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
     historyHtml = history.map(h => {
-      const d = new Date(h.date);
-      const dateStr = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'});
+      const dateStr = formatProgressHistoryWhen(h.date, historyTz);
       const acc = Math.round(h.accuracy * 100);
       const displayScore = Math.round(h.score);
       return `
