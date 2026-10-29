@@ -78,6 +78,32 @@ test('week key and rotating tip are deterministic', () => {
   expect(rotatingTipDomain(monday)).toBe(rotatingTipDomain(tuesday));
 });
 
+test('startOfWeekKey uses Moscow Monday-start, not UTC (Sunday/Monday boundary)', () => {
+  // 2026-10-04 is Sunday. Late UTC Sunday is already Monday in Moscow (UTC+3).
+  // 2026-10-04T22:30:00.000Z = 2026-10-05 01:30 MSK (Monday) → week starts 2026-10-05
+  expect(startOfWeekKey(new Date('2026-10-04T22:30:00.000Z'))).toBe('2026-10-05');
+
+  // Earlier same UTC Sunday: 2026-10-04T19:00:00.000Z = 2026-10-04 22:00 MSK (Sunday)
+  // → still previous week starting 2026-09-28
+  expect(startOfWeekKey(new Date('2026-10-04T19:00:00.000Z'))).toBe('2026-09-28');
+
+  // Late Moscow Sunday that is still Sunday UTC: Monday morning UTC that is
+  // still Sunday evening Moscow — 2026-10-05T20:00:00.000Z = 2026-10-05 23:00 MSK (Monday)
+  expect(startOfWeekKey(new Date('2026-10-05T20:00:00.000Z'))).toBe('2026-10-05');
+
+  // Vice versa edge: early Monday UTC that is still Sunday in a negative offset
+  // is not our product TZ; for Moscow, early Monday UTC is already Monday MSK.
+  // End of Moscow Sunday week: 2026-10-04T20:59:59.000Z = 2026-10-04 23:59:59 MSK
+  expect(startOfWeekKey(new Date('2026-10-04T20:59:59.000Z'))).toBe('2026-09-28');
+  // First second of Moscow Monday: 2026-10-04T21:00:00.000Z = 2026-10-05 00:00 MSK
+  expect(startOfWeekKey(new Date('2026-10-04T21:00:00.000Z'))).toBe('2026-10-05');
+
+  // Matches quests mondayOfMoscowWeek for the same instants
+  expect(startOfWeekKey(new Date('2026-10-04T22:30:00.000Z'))).toBe(
+    startOfWeekKey(new Date('2026-10-05T12:00:00.000Z'))
+  );
+});
+
 test('russian plurals', () => {
   expect(ruPlural(1, 'день', 'дня', 'дней')).toBe('1 день');
   expect(ruPlural(2, 'день', 'дня', 'дней')).toBe('2 дня');
