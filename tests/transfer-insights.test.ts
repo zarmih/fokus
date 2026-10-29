@@ -3,8 +3,10 @@ import { buildTrainingPlan } from '../src/core/session-builder';
 import {
   buildTransferSurface,
   collectGeneratedCopy,
+  daysAgoKey,
   generateSessionInsight,
   generateWeekInsight,
+  inLastDays,
   suggestFocusOfTheWeek
 } from '../src/core/transfer-insights';
 import type { DaySummary, DomainIndex, Session, SessionItem } from '../src/core/types';
@@ -320,4 +322,25 @@ test('warm-up insight triggers when accuracy improves significantly in the secon
   const insight = generateSessionInsight(s);
   expect(insight.kind).toBe('session_warmup');
   expect(insight.body).toMatch(/время/i);
+});
+
+
+test('daysAgoKey / inLastDays use Moscow civil day, not UTC near midnight', () => {
+  // 2026-10-28 21:30 UTC = 2026-10-29 00:30 Europe/Moscow
+  const now = new Date('2026-10-28T21:30:00.000Z');
+
+  expect(daysAgoKey(now, 0)).toBe('2026-10-29');
+  expect(daysAgoKey(now, 1)).toBe('2026-10-28');
+  expect(daysAgoKey(now, 7)).toBe('2026-10-22');
+
+  // UTC-based math would treat "today" as 2026-10-28 and exclude Moscow today
+  expect(inLastDays('2026-10-29', now, 7)).toBe(true);
+  expect(inLastDays('2026-10-22', now, 7)).toBe(true);
+  expect(inLastDays('2026-10-21', now, 7)).toBe(false);
+
+  // Still Sunday evening UTC before Moscow midnight: remains 2026-10-28 MSK
+  const beforeMidnight = new Date('2026-10-28T20:30:00.000Z');
+  expect(daysAgoKey(beforeMidnight, 0)).toBe('2026-10-28');
+  expect(inLastDays('2026-10-29', beforeMidnight, 7)).toBe(false);
+  expect(inLastDays('2026-10-28', beforeMidnight, 7)).toBe(true);
 });
