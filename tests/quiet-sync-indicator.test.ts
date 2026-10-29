@@ -1,6 +1,7 @@
-import { describe, expect, test } from 'vitest';
-import { syncIndicatorView } from '../src/ui/shell';
-import type { SyncStatus } from '../src/core/offline-sync';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
+import { renderShell, syncIndicatorView } from '../src/ui/shell';
+import { syncQueue, type SyncStatus } from '../src/core/offline-sync';
+import { storage } from '../src/core/storage';
 
 function status(partial: Partial<SyncStatus> & Pick<SyncStatus, 'state'>): SyncStatus {
   return {
@@ -8,6 +9,13 @@ function status(partial: Partial<SyncStatus> & Pick<SyncStatus, 'state'>): SyncS
     lastAttempt: null,
     ...partial
   };
+}
+
+class MockStorage {
+  data: Record<string, string> = {};
+  getItem(k: string) { return this.data[k] || null; }
+  setItem(k: string, v: string) { this.data[k] = v; }
+  removeItem(k: string) { delete this.data[k]; }
 }
 
 describe('syncIndicatorView (quiet local-save header)', () => {
@@ -64,5 +72,55 @@ describe('syncIndicatorView (quiet local-save header)', () => {
     const view = syncIndicatorView(status({ state: 'unknown', pendingCount: 0 }));
     expect(view.visible).toBe(false);
     expect(view.html).toBe('');
+  });
+});
+
+describe('#top-sync-indicator a11y (status live region)', () => {
+  beforeEach(() => {
+    (storage as any).backend = new MockStorage();
+    storage.reset();
+    document.body.innerHTML = '';
+    vi.spyOn(syncQueue, 'getStatus').mockReturnValue(status({ state: 'online', pendingCount: 0 }));
+  });
+
+  test('renderShell exposes role=status, polite live, atomic', () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+    renderShell(root, { active: 'today' });
+
+    const indicator = root.querySelector('#top-sync-indicator') as HTMLElement;
+    expect(indicator).toBeTruthy();
+    expect(indicator.getAttribute('role')).toBe('status');
+    expect(indicator.getAttribute('aria-live')).toBe('polite');
+    expect(indicator.getAttribute('aria-atomic')).toBe('true');
+  });
+
+  test('hidden after update sets aria-hidden=true; offline clears it and shows Офлайн', () => {
+    const root = document.createElement('div');
+    document.body.appendChild(root);
+    renderShell(root, { active: 'today' });
+
+    const indicator = root.querySelector('#top-sync-indicator') as HTMLElement;
+
+    // Initial getStatus is online → quiet hidden
+    expect(indicator.getAttribute('aria-hidden')).toBe('true');
+    expect(indicator.innerHTML).toBe('');
+    expect(indicator.className).toBe('sync-indicator');
+
+    syncQueue.dispatchEvent(
+      new CustomEvent<SyncStatus>('change', { detail: status({ state: 'offline', pendingCount: 0 }) })
+    );
+    expect(indicator.hasAttribute('aria-hidden')).toBe(false);
+    expect(indicator.textContent).toContain('Офлайн');
+    expect(indicator.className).toContain('offline');
+    expect(indicator.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(indicator.querySelector('svg')?.getAttribute('focusable')).toBe('false');
+
+    syncQueue.dispatchEvent(
+      new CustomEvent<SyncStatus>('change', { detail: status({ state: 'queued', pendingCount: 0 }) })
+    );
+    expect(indicator.getAttribute('aria-hidden')).toBe('true');
+    expect(indicator.innerHTML).toBe('');
+    expect(indicator.className).toBe('sync-indicator');
   });
 });

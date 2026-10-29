@@ -7,8 +7,8 @@ import { streakAriaLabel } from './components/habit-continuity';
 import { syncQueue, type SyncStatus } from '../core/offline-sync';
 import { listenForPwaUpdate } from './components/pwa-update-banner';
 
-const OFFLINE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7L12 21.5 23.64 7zM12 4.5c4.7 0 8.35 2.22 9.53 3.03L12 19 2.47 7.53C3.65 6.72 7.3 4.5 12 4.5z"/></svg>';
-const LOCAL_SAVE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>';
+const OFFLINE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7L12 21.5 23.64 7zM12 4.5c4.7 0 8.35 2.22 9.53 3.03L12 19 2.47 7.53C3.65 6.72 7.3 4.5 12 4.5z"/></svg>';
+const LOCAL_SAVE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>';
 
 export interface SyncIndicatorView {
   visible: boolean;
@@ -96,7 +96,7 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
         <img src="${import.meta.env.BASE_URL}art/logo-fokus.svg" width="24" height="24" alt="">
         Fokus
       </h1>
-      <div id="top-sync-indicator" class="sync-indicator" aria-live="polite"></div>
+      <div id="top-sync-indicator" class="sync-indicator" role="status" aria-live="polite" aria-atomic="true"></div>
       <div class="streak-badge habit-chip${streak > 0 ? ' has-streak' : ''}" data-status="${snap.streak.status}" role="img" aria-label="${streakLabel}" title="${streakLabel}">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
         <span class="streak-badge-num" aria-hidden="true">${streak}</span>
@@ -126,6 +126,11 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
       const view = syncIndicatorView(status);
       indicator.className = view.className;
       indicator.innerHTML = view.html;
+      if (view.visible) {
+        indicator.removeAttribute('aria-hidden');
+      } else {
+        indicator.setAttribute('aria-hidden', 'true');
+      }
     };
 
     updateIndicator(syncQueue.getStatus());
