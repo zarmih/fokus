@@ -23,6 +23,7 @@ import { renderRadarChart } from '../components/charts';
 import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
+import { bindLifestyleField, lifestyleCheckinHtml } from '../components/lifestyle-checkin';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPlanCopy, applySlotSnooze } from '../../core/today-plan';
 import { softReturnInstallCopy } from '../../core/reminders';
@@ -747,30 +748,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     if (!playedToday && profile.calibrated && !profile.skipLifestylePrompt && !unfinishedSession) {
       const modal = document.createElement('div');
       modal.className = 'modal-root';
-      modal.innerHTML = `
-        <div class="surface modal-card">
-          <h3 id="ls-title">Как вы сегодня?</h3>
-          <p class="modal-lead">Необязательно. Помогает увидеть связь сна и результата.</p>
-          <div class="modal-field">
-            <div class="modal-label">Сон</div>
-            <div class="seg-row">
-              <button class="btn-ls-sleep btn-secondary" data-val="low" type="button">&lt; 6 ч</button>
-              <button class="btn-ls-sleep btn-secondary" data-val="normal" type="button">6–8 ч</button>
-              <button class="btn-ls-sleep btn-secondary" data-val="high" type="button">&gt; 8 ч</button>
-            </div>
-          </div>
-          <div class="modal-field">
-            <div class="modal-label">Стресс</div>
-            <div class="seg-row">
-              <button class="btn-ls-stress btn-secondary" data-val="low" type="button">Низкий</button>
-              <button class="btn-ls-stress btn-secondary" data-val="normal" type="button">Средний</button>
-              <button class="btn-ls-stress btn-secondary" data-val="high" type="button">Высокий</button>
-            </div>
-          </div>
-          <button id="btn-ls-done" class="btn-primary" type="button">Начать тренировку</button>
-          <button id="btn-ls-skip" class="btn-secondary" type="button">Пропустить</button>
-        </div>
-      `;
+      modal.innerHTML = lifestyleCheckinHtml();
       document.body.appendChild(modal);
       const unbindDialog = bindDialog(modal, {
         labelledBy: 'ls-title',
@@ -784,31 +762,8 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
       let sleepVal: string | null = null;
       let stressVal: string | null = null;
 
-      modal.querySelectorAll('.btn-ls-sleep').forEach(b => {
-        b.addEventListener('click', (e) => {
-          modal.querySelectorAll('.btn-ls-sleep').forEach(x => {
-            x.classList.remove('btn-primary');
-            x.classList.add('btn-secondary');
-          });
-          const el = e.currentTarget as HTMLElement;
-          el.classList.remove('btn-secondary');
-          el.classList.add('btn-primary');
-          sleepVal = el.dataset.val || null;
-        });
-      });
-
-      modal.querySelectorAll('.btn-ls-stress').forEach(b => {
-        b.addEventListener('click', (e) => {
-          modal.querySelectorAll('.btn-ls-stress').forEach(x => {
-            x.classList.remove('btn-primary');
-            x.classList.add('btn-secondary');
-          });
-          const el = e.currentTarget as HTMLElement;
-          el.classList.remove('btn-secondary');
-          el.classList.add('btn-primary');
-          stressVal = el.dataset.val || null;
-        });
-      });
+      bindLifestyleField(modal, 'sleep', (v) => { sleepVal = v; });
+      bindLifestyleField(modal, 'stress', (v) => { stressVal = v; });
 
       const closeAndStart = () => {
         if (sleepVal || stressVal) {
