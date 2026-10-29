@@ -317,9 +317,34 @@ export function renderSettings(container: HTMLElement) {
 
   const markRadio = (group: NodeListOf<Element>, active: Element) => {
     group.forEach(b => {
-      b.classList.toggle('active', b === active);
-      b.setAttribute('aria-checked', b === active ? 'true' : 'false');
+      const on = b === active;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-checked', on ? 'true' : 'false');
+      (b as HTMLElement).tabIndex = on ? 0 : -1;
     });
+  };
+
+  /** Arrow/Home/End move focus and activate within a segmented radiogroup. */
+  const bindRadiogroupKeys = (group: NodeListOf<Element>) => {
+    const buttons = [...group] as HTMLButtonElement[];
+    if (buttons.length === 0) return;
+    const checked = buttons.find((b) => b.getAttribute('aria-checked') === 'true') || buttons[0];
+    markRadio(group, checked);
+    for (const btn of buttons) {
+      btn.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+        e.preventDefault();
+        const idx = buttons.indexOf(btn);
+        let next = idx;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % buttons.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + buttons.length) % buttons.length;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = buttons.length - 1;
+        const target = buttons[next];
+        target?.focus();
+        target?.click();
+      });
+    }
   };
 
   const btns = content.querySelectorAll('#duration-segmented button');
@@ -332,6 +357,7 @@ export function renderSettings(container: HTMLElement) {
       storage.setProfile(p);
     });
   });
+  bindRadiogroupKeys(btns);
 
   const tbtns = content.querySelectorAll('#theme-segmented button');
   tbtns.forEach(btn => {
@@ -344,6 +370,7 @@ export function renderSettings(container: HTMLElement) {
       applyTheme(val);
     });
   });
+  bindRadiogroupKeys(tbtns);
 
   const gbtns = content.querySelectorAll('#goal-segmented button');
   gbtns.forEach(btn => {
@@ -355,6 +382,7 @@ export function renderSettings(container: HTMLElement) {
       storage.setProfile(p);
     });
   });
+  bindRadiogroupKeys(gbtns);
 
   const volumeInput = document.getElementById('sound-volume') as HTMLInputElement | null;
   const volumeValue = document.getElementById('sound-volume-value');
@@ -398,6 +426,7 @@ export function renderSettings(container: HTMLElement) {
       });
     });
   });
+  bindRadiogroupKeys(lbtns);
 
   document.getElementById('reduced-motion-toggle')?.addEventListener('change', (e) => {
     const p = storage.getProfile();
@@ -463,12 +492,12 @@ export function renderSettings(container: HTMLElement) {
       import('../../core/reminders').then(m => m.scheduleLocalReminder());
     });
   });
+  bindRadiogroupKeys(rbtns);
 
   const sgbtns = content.querySelectorAll('#series-goal-segmented button');
   sgbtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      sgbtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      markRadio(sgbtns, btn);
       const val = parseInt((btn as HTMLElement).dataset.val || '0', 10);
       const p = storage.getProfile();
       if (val === 0) {
@@ -481,6 +510,7 @@ export function renderSettings(container: HTMLElement) {
       storage.setProfile(p);
     });
   });
+  bindRadiogroupKeys(sgbtns);
 
   const btnNotif = document.getElementById('btn-notifications');
   if (btnNotif) {
