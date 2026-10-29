@@ -24,6 +24,7 @@ import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
 import { getTodayRitual } from '../../core/onboarding';
 import { bindLifestyleField, lifestyleCheckinHtml } from '../components/lifestyle-checkin';
+import { questProgressBarHtml } from '../components/accessible-markup';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPlanCopy, applySlotSnooze } from '../../core/today-plan';
 import { softReturnInstallCopy } from '../../core/reminders';
@@ -405,7 +406,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
                 `}
               </div>
             </div>
-            ${!q.completed ? `<div class="scale-track quest-track" style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden;" role="progressbar" aria-valuenow="${q.progress}" aria-valuemax="${q.target}" aria-valuemin="0"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; height: 100%; width: ${pct}%; background: ${q.completed ? 'var(--ok)' : 'var(--accent)'}; transition: width 0.3s ease;"></div></div>` : ''}
+            ${!q.completed ? questProgressBarHtml(q, pct) : ''}
           </div>
         `;
       }).join('')}

@@ -29,7 +29,7 @@ import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../co
 import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
 
-export const COUNTDOWN_START_ANNOUNCEMENT = 'Старт через 3 секунды';
+export const COUNTDOWN_START_ANNOUNCEMENT = 'Сейчас начнём';
 export const COUNTDOWN_GO_ANNOUNCEMENT = 'Начали';
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {

@@ -11,6 +11,7 @@ import type { DomainId } from '../../core/engine/types';
 import { loadContinuitySnapshot, getContinuityMessage, applyGentleReturnBias, ritualDurationSec } from '../../core/continuity';
 import { planWithRecovery } from '../../core/recovery';
 import { describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { programTrendChipHtml } from '../components/accessible-markup';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan } from '../../core/today-plan';
 import { getTodayRitual } from '../../core/onboarding';
@@ -323,7 +324,7 @@ export function renderProgram(container: HTMLElement) {
           <h2 style="margin: 0;">${programTitle}</h2>
           <p class="today-date" style="margin: 4px 0 0 0;">${subtitle}</p>
         </div>
-        ${chip ? `<div class="trend-chip" aria-label="${chip.aria}" style="background: rgba(255,255,255,0.1); border-radius: 12px; padding: 4px 10px; font-size: 12px; font-weight: 500; color: #fff;">${chip.label}</div>` : ''}
+        ${chip ? programTrendChipHtml(chip) : ''}
       </div>
       ${hero}
       ${profile.calibrated ? `
