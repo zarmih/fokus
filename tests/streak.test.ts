@@ -41,6 +41,30 @@ test('streak: skip > 1 day', () => {
   expect(skipped).toBe(false);
 });
 
+test('streak: Moscow midnight boundary is consecutive', () => {
+  if (!timeZoneSupported('Europe/Moscow')) return;
+  // 20:30Z = 23:30 MSK 28th; 21:30Z = 00:30 MSK 29th → next civil day.
+  const {streak, skipped} = nextStreak(
+    '2026-10-28T20:30:00.000Z',
+    5,
+    '2026-10-28T21:30:00.000Z'
+  );
+  expect(streak).toBe(6);
+  expect(skipped).toBe(false);
+});
+
+test('streak: same Moscow civil day across UTC midnight', () => {
+  if (!timeZoneSupported('Europe/Moscow')) return;
+  // Both still 28 Oct MSK (19:00Z = 22:00 MSK, 20:30Z = 23:30 MSK).
+  const {streak, skipped} = nextStreak(
+    '2026-10-28T19:00:00.000Z',
+    5,
+    '2026-10-28T20:30:00.000Z'
+  );
+  expect(streak).toBe(5);
+  expect(skipped).toBe(false);
+});
+
 test('calendar day: Europe/Moscow crosses UTC midnight', () => {
   if (!timeZoneSupported('Europe/Moscow')) return;
   const tz = 'Europe/Moscow';
