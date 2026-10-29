@@ -223,7 +223,7 @@ test('renderResult - V6 Next Action - No Data', () => {
   expect(html).not.toContain('Как прошла тренировка?'); // No feedback on empty session
 });
 
-test('renderResult - V6 Feedback Loop interactions', () => {
+test('renderResult - V6 Feedback Loop interactions', async () => {
   const container = document.getElementById('app')!;
   const session: Session = {
     id: 'test-session-feedback',
@@ -236,25 +236,24 @@ test('renderResult - V6 Feedback Loop interactions', () => {
   };
 
   renderResult(container, { session });
-  
-  const buttons = container.querySelectorAll('.btn-feedback');
-  expect(buttons.length).toBe(3);
-  
-  const easyBtn = Array.from(buttons).find(b => (b as HTMLElement).dataset.val === 'easy') as HTMLButtonElement;
-  expect(easyBtn).toBeDefined();
-  
-  easyBtn.click();
-  
-  const p = storage.getProfile();
-  expect((p as any).lastFeedback.val).toBe('easy');
-  expect((p as any).lastFeedback.date).toBeDefined();
-  
-  const thanks = container.querySelector('#feedback-thanks') as HTMLElement;
-  expect(thanks.style.display).toBe('block');
-  
-  buttons.forEach(b => {
-    expect((b as HTMLElement).style.display).toBe('none');
+  expect(container.querySelector('#session-feedback-slot')).toBeTruthy();
+
+  await vi.waitFor(() => {
+    expect(container.querySelectorAll('.btn-session-feel').length).toBe(3);
   });
+
+  const upBtn = container.querySelector('[data-feel="up"]') as HTMLButtonElement;
+  expect(upBtn).toBeTruthy();
+  upBtn.click();
+  (container.querySelector('#sf-save') as HTMLButtonElement).click();
+
+  await vi.waitFor(() => {
+    const p = storage.getProfile();
+    expect((p as any).lastFeedback.val).toBe('easy');
+    expect((p as any).lastFeedback.date).toBeDefined();
+  });
+
+  expect(container.textContent).toMatch(/Сохранено/i);
 });
 
 test('renderResult - First week continuity message', () => {

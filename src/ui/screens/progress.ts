@@ -561,6 +561,7 @@ export function renderProgress(container: HTMLElement) {
     ${habitHtml}
     ${fiHtml}
     ${localNormsHtml}
+    <div id="session-feel-agg-slot"></div>
     ${renderQualityCard(ritual.snapshot, { detailed: true })}
     ${rhythmHtml}
     ${milestonesHtml}
@@ -600,6 +601,14 @@ export function renderProgress(container: HTMLElement) {
   content.querySelectorAll('.empty-cta-today').forEach((btn) => {
     btn.addEventListener('click', () => navigateTo('today'));
   });
+
+  const aggSlot = content.querySelector('#session-feel-agg-slot') as HTMLElement | null;
+  if (aggSlot) {
+    import('../components/session-feedback').then(({ renderSessionFeelAggregateHtml }) => {
+      if (!aggSlot.isConnected) return;
+      aggSlot.outerHTML = renderSessionFeelAggregateHtml(7);
+    }).catch(() => {});
+  }
 
   import('../components/feedback-panel').then(({ mountFeedbackButton }) => {
     if (typeof document === 'undefined' || !content.isConnected) return;

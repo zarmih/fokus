@@ -293,17 +293,9 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     }
   }
 
-  const feedbackHtml = (!isCalibration && !isRecalibration && !noData && !isOffline) ? `
-    <div class="surface feedback-loop-card" aria-label="Обратная связь">
-      <h3>Как прошла тренировка?</h3>
-      <p class="muted">Поможет точнее подбирать сложность (необязательно).</p>
-      <div class="feedback-options" style="display:flex; gap:8px; margin-top:12px; flex-wrap: wrap;" role="group" aria-label="Оценка сложности">
-        <button class="btn-secondary btn-feedback" data-val="easy">Слишком легко</button>
-        <button class="btn-secondary btn-feedback" data-val="good">В самый раз</button>
-        <button class="btn-secondary btn-feedback" data-val="hard">Слишком сложно</button>
-      </div>
-      <div id="feedback-thanks" style="display:none; color: var(--ok); margin-top:12px; font-weight: 500;" role="status">Спасибо! Учтём в следующем плане.</div>
-    </div>
+  // Slot for session-feel component (👍/😐/👎); mounted below — keeps norms HTML untouched.
+  const feedbackHtml = (!isCalibration && !isRecalibration && !noData && !isOffline && session.id) ? `
+    <div id="session-feedback-slot" class="feedback-loop-card" data-session-feedback-slot="1"></div>
   ` : '';
 
   const surface = buildTransferSurface({
@@ -446,19 +438,21 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     handleAction((e.currentTarget as HTMLElement).dataset.action || 'done');
   });
 
-  const feedbackButtons = content.querySelectorAll('.btn-feedback');
-  feedbackButtons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const val = (e.currentTarget as HTMLElement).dataset.val;
-      const p = storage.getProfile();
-      (p as any).lastFeedback = { val, date: new Date().toISOString() };
-      storage.setProfile(p);
-
-      feedbackButtons.forEach(b => (b as HTMLElement).style.display = 'none');
-      const thanks = content.querySelector('#feedback-thanks') as HTMLElement | null;
-      if (thanks) thanks.style.display = 'block';
-    });
-  });
+  const sfSlot = content.querySelector('#session-feedback-slot') as HTMLElement | null;
+  if (sfSlot && session.id) {
+    import('../components/session-feedback').then(({ mountSessionFeedback }) => {
+      if (!sfSlot.isConnected) return;
+      mountSessionFeedback(sfSlot, {
+        sessionId: session.id,
+        onSaved: (feel) => {
+          const map: Record<string, string> = { up: 'easy', neutral: 'good', down: 'hard' };
+          const p = storage.getProfile();
+          (p as any).lastFeedback = { val: map[feel] || feel, date: new Date().toISOString() };
+          storage.setProfile(p);
+        }
+      });
+    }).catch(() => {});
+  }
 
   const checkinButtons = content.querySelectorAll('.btn-checkin');
   checkinButtons.forEach(btn => {
