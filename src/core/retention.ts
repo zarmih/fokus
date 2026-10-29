@@ -1,6 +1,6 @@
 import type { DaySummary, DomainIndex, Session, SessionItem } from './types';
 import { DOMAIN_ORDER, domainLabel } from './labels';
-import { extractPlayedDays, computeDayStreak, calendarDayKey, addCalendarDays, resolveFokusTimeZone, PREFERRED_TIME_ZONE, DayStreakStatus } from './streak';
+import { extractPlayedDays, computeDayStreak, calendarDayKey, addCalendarDays, resolveFokusTimeZone, PREFERRED_TIME_ZONE, DayStreakStatus, fokusWallHour } from './streak';
 
 // Wave AD3: Retention, honest streak, and quiet reminders logic
 
@@ -149,7 +149,7 @@ export function assessRetention(input: RetentionInput): RetentionSnapshot {
     streak: input.streak,
     playedToday: input.playedToday,
     skippedYesterday: !!input.skippedYesterday,
-    hour: now.getHours(),
+    hour: fokusWallHour(now),
     shieldCharges: input.shieldCharges,
     gapDays
   });

@@ -84,6 +84,19 @@ export function calendarDayKey(instant: Date | string, timeZone: string): string
   return `${year}-${month}-${day}`;
 }
 
+/** Wall-clock hour 0–23 in Fokus TZ (default Europe/Moscow). Prefer over Date#getHours. */
+export function fokusWallHour(instant: Date | string = new Date(), timeZone?: string): number {
+  const tz = timeZone ?? resolveFokusTimeZone().timeZone;
+  const d = typeof instant === 'string' ? new Date(instant) : instant;
+  if (Number.isNaN(d.getTime())) return 0;
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    hour: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(d);
+  return Number(parts.find((p) => p.type === 'hour')?.value || '0');
+}
+
 function utcNoonMs(day: string): number {
   const m = day.match(CIVIL_DAY);
   if (!m) return 0;

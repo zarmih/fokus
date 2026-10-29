@@ -1,6 +1,6 @@
 import { REMINDER_LAST_KEY } from './privacy';
 import { storage } from './storage';
-import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey, addCalendarDays, type PlayedDaySignals } from './streak';
+import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey, addCalendarDays, fokusWallHour, type PlayedDaySignals } from './streak';
 import { getWeeklyDomainTips } from './coach-intel';
 
 export { REMINDER_LAST_KEY };
@@ -216,8 +216,7 @@ export function nextReminderFireAt(now: Date, hour: number, timeZone?: string): 
 
 /** Wall-clock hour (0–23) in Fokus TZ — for maybeNotify gate instead of Date#getHours. */
 export function moscowWallHour(now: Date = new Date(), timeZone?: string): number {
-  const tz = timeZone ?? resolveFokusTimeZone().timeZone;
-  return wallParts(now, tz).hour;
+  return fokusWallHour(now, timeZone);
 }
 
 export function preferredReminderHour(): number {
