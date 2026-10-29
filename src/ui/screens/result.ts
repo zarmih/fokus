@@ -19,6 +19,12 @@ import { buildTransferSurface } from '../../core/transfer-insights';
 import { getTodayRitual } from '../../core/onboarding';
 import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
 import { sessionCheckIn } from '../../core/coach';
+import {
+  collectAttemptSamples,
+  latestPercentileLineRu,
+  normsForDomain,
+  normsFromSessionValues
+} from '../../core/local-norms';
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'program', hideNav: true });
@@ -332,6 +338,44 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     </div>
   ` : '';
 
+  const catalogRefsNorms = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const allSessions = storage.getSessions();
+  // Include the just-finished session if storage has not persisted it yet.
+  const sessionsForNorms = allSessions.some((s) => s.id === session.id)
+    ? allSessions
+    : [...allSessions, session];
+  const attemptSamples = collectAttemptSamples(sessionsForNorms, catalogRefsNorms, 'accuracy');
+  const domainsTouched = new Set<string>();
+  for (const item of session.items) {
+    const m = getManifest(item.exerciseId);
+    if (m?.domain) domainsTouched.add(m.domain);
+  }
+  let sessionNormLine = '';
+  if (!isCalibration && !isRecalibration && !noData) {
+    const domainLines: string[] = [];
+    for (const d of domainsTouched) {
+      const nr = normsForDomain(attemptSamples, d);
+      if (nr.status === 'ok') {
+        domainLines.push(`${domainLabel(d)}: лучше ${nr.latestPercentile}% своих`);
+      }
+    }
+    if (domainLines.length > 0) {
+      sessionNormLine = domainLines[0];
+      if (domainLines.length > 1) {
+        sessionNormLine = domainLines.slice(0, 2).join(' · ');
+      }
+    } else {
+      const sessionAccs = sessionsForNorms
+        .filter((s) => s.items.length > 0)
+        .sort((a, b) => String(a.startedAt).localeCompare(String(b.startedAt)))
+        .map((s) => s.items.reduce((sum, it) => sum + it.accuracy, 0) / s.items.length);
+      sessionNormLine = latestPercentileLineRu(normsFromSessionValues(sessionAccs));
+    }
+  }
+  const localNormsLineHtml = sessionNormLine
+    ? `<div class="result-local-norms" data-local-norms="1" style="margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.4;">${sessionNormLine}</div>`
+    : '';
+
   const compareHtml = prevSession
     ? `<div class="result-compare">${scoreDelta >= 0 ? '+' : ''}${Math.round(scoreDelta)} к прошлой сессии</div>`
     : '';
@@ -343,6 +387,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       <div class="muted">${isCalibration ? 'стартовая оценка · не IQ' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
       <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
       ${compareHtml}
+      ${localNormsLineHtml}
     </div>
 
     ${leveledUp ? `<div class="level-up fx-celebrate">Новый уровень ${lvl.currentLevel}</div>` : ''}
