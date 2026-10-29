@@ -71,6 +71,14 @@ export const KNOWN_STORES: KnownStoreSpec[] = [
     description: 'Заметки обратной связи и опциональные счётчики ритуалов. Только на устройстве, без отправки.',
     mayContainPii: false,
     category: 'preference'
+  },
+  {
+    id: 'session-feedback',
+    key: 'fokus.session-feedback.v1',
+    title: 'Ощущения после сессии',
+    description: 'Локальные отметки 👍/😐/👎 и короткие заметки после тренировок. Только на устройстве.',
+    mayContainPii: false,
+    category: 'preference'
   }
 ];
 
