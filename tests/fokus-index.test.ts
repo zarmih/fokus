@@ -48,3 +48,21 @@ test('previousFokusIndex skips today and empty values', () => {
   ];
   expect(previousFokusIndex(summaries, '2026-09-08T12:00:00Z')).toBe(410);
 });
+
+test('previousFokusIndex: Moscow today for instant after Moscow midnight', () => {
+  const s = [
+    { date: '2026-10-03', fokusIndex: 100 },
+    { date: '2026-10-04', fokusIndex: 200 }
+  ] as unknown as DaySummary[];
+  // 21:30Z on 10-03 is 10-04 00:30 MSK → 10-04 is today, excluded
+  expect(previousFokusIndex(s, '2026-10-03T21:30:00Z')).toBe(100);
+});
+
+test('previousFokusIndex: daysAgo=7 window uses civil days', () => {
+  const s = [
+    { date: '2026-10-24', fokusIndex: 90 },
+    { date: '2026-10-25', fokusIndex: 100 },
+    { date: '2026-10-30', fokusIndex: 200 }
+  ] as unknown as DaySummary[];
+  expect(previousFokusIndex(s, '2026-10-31', 7)).toBe(90);
+});

@@ -1,6 +1,12 @@
 import type { DomainIndex, DaySummary, ExerciseState } from './types';
 import { DOMAIN_ORDER } from './labels';
 import { catalog } from '../exercises/catalog';
+import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
+
+/** Civil YYYY-MM-DD in the Fokus product zone (Europe/Moscow, UTC fallback). */
+function fokusDayKey(instant: Date | string): string {
+  return calendarDayKey(instant, resolveFokusTimeZone().timeZone);
+}
 
 export interface DomainSlice {
   id: string;
@@ -109,12 +115,10 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
 }
 
 export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: string, daysAgo: number = 1): number | null {
-  const today = excludeTodayIso?.slice(0, 10);
+  const today = excludeTodayIso ? fokusDayKey(excludeTodayIso) : undefined;
   let targetDate = today;
   if (today && daysAgo > 1) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - daysAgo + 1);
-    targetDate = d.toISOString().slice(0, 10);
+    targetDate = addCalendarDays(today, -daysAgo + 1);
   }
 
   const withIndex = summaries
@@ -136,14 +140,11 @@ export function indexDelta(current: number, previous: number | null, daysAgo: nu
 }
 
 export function personalIndexBand(summaries: { date: string; fokusIndex?: number }[], todayIso: string): { min: number; max: number; days: number; line: string } | null {
-  const endD = new Date(todayIso.substring(0, 10) + 'T00:00:00Z');
-  const startD = new Date(endD);
-  startD.setDate(startD.getDate() - 6);
-  const startStr = startD.toISOString().substring(0, 10);
-  const endStr = endD.toISOString().substring(0, 10);
+  const endStr = fokusDayKey(todayIso);
+  const startStr = addCalendarDays(endStr, -6);
 
   const valid = summaries.filter(s => {
-    const d = s.date.substring(0, 10);
+    const d = fokusDayKey(s.date);
     return d >= startStr && d <= endStr && typeof s.fokusIndex === 'number' && isFinite(s.fokusIndex) && s.fokusIndex > 0;
   });
 

@@ -39,3 +39,30 @@ describe('personalIndexBand', () => {
     expect(result!.line).toContain('51');
   });
 });
+
+describe('personalIndexBand — Europe/Moscow day windows', () => {
+  it('uses the Moscow civil day for an instant just after Moscow midnight', () => {
+    // 2026-10-03T21:30Z = 2026-10-04 00:30 MSK → window 09-28..10-04
+    const summaries = [
+      { date: '2026-10-04', fokusIndex: 140 },
+      { date: '2026-09-28', fokusIndex: 100 },
+      { date: '2026-09-27', fokusIndex: 999 },
+      { date: '2026-10-01', fokusIndex: 120 }
+    ];
+    const band = personalIndexBand(summaries, '2026-10-03T21:30:00Z');
+    expect(band).not.toBeNull();
+    expect(band!.min).toBe(100);
+    expect(band!.max).toBe(140);
+    expect(band!.days).toBe(3);
+  });
+
+  it('crosses month boundaries without UTC drift', () => {
+    const summaries = [
+      { date: '2026-10-25', fokusIndex: 100 },
+      { date: '2026-10-27', fokusIndex: 110 },
+      { date: '2026-10-31', fokusIndex: 120 },
+      { date: '2026-10-24', fokusIndex: 999 }
+    ];
+    expect(personalIndexBand(summaries, '2026-10-31')!.days).toBe(3);
+  });
+});
