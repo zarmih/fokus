@@ -139,7 +139,7 @@ describe('assessRetention — adherence', () => {
 
 describe('assessRetention — streak fragility', () => {
   test('long unplayed streak in the evening is fragile', () => {
-    const evening = new Date(2026, 8, 11, 21, 0, 0);
+    const evening = new Date('2026-09-11T18:00:00.000Z'); // 21:00 Europe/Moscow
     const snap = assessRetention(base({
       now: evening,
       daySummaries: [day('2026-09-10T10:00:00Z', 110, { streak: 12 })],
@@ -168,7 +168,7 @@ describe('assessRetention — streak fragility', () => {
   });
 
   test('optional shieldCharges lowers fragility after a forgiven skip', () => {
-    const evening = new Date(2026, 8, 11, 21, 0, 0);
+    const evening = new Date('2026-09-11T18:00:00.000Z'); // 21:00 Europe/Moscow
     const input = {
       now: evening,
       daySummaries: [day('2026-09-10T10:00:00Z', 100, { streak: 9, skipped: true })],

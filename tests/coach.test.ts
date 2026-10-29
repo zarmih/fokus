@@ -49,7 +49,9 @@ test('missed day with remaining streak is recovery, not reset panic', () => {
 });
 
 test('evening fragility surfaces a soft streak nudge, not FOMO copy', () => {
-  const evening = new Date(2026, 8, 11, 21, 0, 0);
+  // 21:00 Europe/Moscow on 2026-09-11 (UTC-stable). Local Date(y,m,d,21) on
+  // UTC CI runners is already 2026-09-12 Moscow, which flips gapDays and nudge.
+  const evening = new Date('2026-09-11T18:00:00.000Z');
   const spark = getDailySpark({
     domains: [
       { domain: 'attention', value: 700, trend: 0, updatedAt: '2026-09-10T10:00:00Z' },
