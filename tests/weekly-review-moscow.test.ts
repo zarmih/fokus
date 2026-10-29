@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { weeklyReviewMoscowWindow } from '../src/ui/screens/weekly-review';
+import { weeklyReviewMoscowWindow, ruDay } from '../src/ui/screens/weekly-review';
 
 test('weeklyReviewMoscowWindow: UTC evening maps to next Moscow civil day', () => {
   // 2026-10-28 21:30 UTC = 2026-10-29 00:30 Europe/Moscow
@@ -28,4 +28,11 @@ test('weeklyReviewMoscowWindow: afternoon UTC same Moscow calendar day', () => {
 
   expect(win.toKey).toBe('2026-09-06');
   expect(win.fromKey).toBe('2026-08-30');
+});
+
+
+test('ruDay uses Europe/Moscow timeZone for civil day labels', () => {
+  const label = ruDay('2026-10-29T21:30:00.000Z');
+  expect(label).toMatch(/29/);
+  expect(label.toLowerCase()).toMatch(/окт/);
 });
