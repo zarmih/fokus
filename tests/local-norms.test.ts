@@ -11,7 +11,8 @@ import {
   normsForExercise,
   normsFromSessionValues,
   percentileRank,
-  quantile
+  quantile,
+  resultLocalNormsLineRu
 } from '../src/core/local-norms';
 import type { Session } from '../src/core/types';
 
@@ -186,8 +187,17 @@ describe('session aggregates + Russian copy', () => {
   });
 
   test('copy never invents world norms and stays Russian', () => {
+    const empty = latestPercentileLineRu({ status: 'insufficient', n: 0 });
+    expect(empty).toBe(
+      'Личные нормы появятся после нескольких своих попыток — без сравнения с другими.'
+    );
+    expect(empty.toLowerCase()).not.toMatch(/wikium|населен|мир|schulte|stroop/);
+
     const insuf = latestPercentileLineRu({ status: 'insufficient', n: 2 });
-    expect(insuf).toMatch(/Мало данных|Личных норм/);
+    expect(insuf).toBe(
+      `Пока мало своих попыток (2 из ${MIN_NORM_SAMPLES}) — это не плохой результат, просто рано для перцентиля.`
+    );
+    expect(insuf).toMatch(/не плохой результат/);
     expect(insuf.toLowerCase()).not.toMatch(/wikium|населен|мир|schulte|stroop/);
 
     const ok = latestPercentileLineRu({
@@ -214,5 +224,46 @@ describe('session aggregates + Russian copy', () => {
     expect(row).toMatch(/^Внимание:/);
     expect(row).toMatch(/лучше 40%/);
     expect(row).toMatch(/медиана 70%/);
+  });
+
+  test('resultLocalNormsLineRu prefers domain insufficient over misleading session ok', () => {
+    // Many mixed sessions → session aggregate would be ok, but attention is thin.
+    const sessions = [
+      session('s1', '2026-10-01T00:00:00Z', [{ exerciseId: 'ex-mem', accuracy: 0.5 }]),
+      session('s2', '2026-10-02T00:00:00Z', [{ exerciseId: 'ex-mem', accuracy: 0.55 }]),
+      session('s3', '2026-10-03T00:00:00Z', [{ exerciseId: 'ex-mem', accuracy: 0.6 }]),
+      session('s4', '2026-10-04T00:00:00Z', [{ exerciseId: 'ex-mem', accuracy: 0.65 }]),
+      session('s5', '2026-10-05T00:00:00Z', [{ exerciseId: 'ex-mem', accuracy: 0.7 }]),
+      session('s6', '2026-10-06T00:00:00Z', [{ exerciseId: 'ex-att', accuracy: 0.8 }]),
+      session('s7', '2026-10-07T00:00:00Z', [{ exerciseId: 'ex-att', accuracy: 0.85 }])
+    ];
+    const samples = collectAttemptSamples(sessions, catalog);
+    const sessionAccs = sessions.map(
+      (s) => s.items.reduce((sum, it) => sum + it.accuracy, 0) / s.items.length
+    );
+    expect(normsFromSessionValues(sessionAccs).status).toBe('ok');
+    expect(normsForDomain(samples, 'attention').status).toBe('insufficient');
+
+    const line = resultLocalNormsLineRu(['attention'], samples, sessionAccs);
+    expect(line).toBe(domainNormsSummaryRu('attention', normsForDomain(samples, 'attention')));
+    expect(line).toMatch(/мало данных/);
+    expect(line).not.toMatch(/Лучше \d+%/);
+  });
+
+  test('resultLocalNormsLineRu shows ok domain line when ready', () => {
+    const sessions = Array.from({ length: 6 }, (_, i) =>
+      session(`s${i}`, `2026-10-0${i + 1}T00:00:00Z`, [
+        { exerciseId: 'ex-att', accuracy: 0.5 + i * 0.05 }
+      ])
+    );
+    const samples = collectAttemptSamples(sessions, catalog);
+    const sessionAccs = sessions.map((s) => s.items[0].accuracy);
+    const line = resultLocalNormsLineRu(['attention'], samples, sessionAccs);
+    expect(line).toMatch(/^Внимание: лучше \d+% своих$/);
+  });
+
+  test('resultLocalNormsLineRu falls back to session copy when no domain samples', () => {
+    const line = resultLocalNormsLineRu(['attention'], [], [0.7]);
+    expect(line).toBe(latestPercentileLineRu({ status: 'insufficient', n: 0 }));
   });
 });

@@ -185,15 +185,48 @@ export function formatAccuracyPct(value: number): string {
   return `${Math.round(clamp01(value) * 100)}%`;
 }
 
-/** Short Russian line for Result screen. */
+/** Short Russian line for Result screen (insufficient tone matches settingsNormsHelpRu). */
 export function latestPercentileLineRu(result: LocalNormsResult): string {
   if (result.status === 'insufficient') {
     if (result.n <= 0) {
-      return 'Личных норм пока нет — нужно несколько своих попыток.';
+      return 'Личные нормы появятся после нескольких своих попыток — без сравнения с другими.';
     }
-    return `Мало данных для личных норм (${result.n} из ${MIN_NORM_SAMPLES}). Без сравнения с другими.`;
+    return `Пока мало своих попыток (${result.n} из ${MIN_NORM_SAMPLES}) — это не плохой результат, просто рано для перцентиля.`;
   }
   return `Лучше ${result.latestPercentile}% своих прошлых попыток`;
+}
+
+/**
+ * Quiet Result-hero norms line: prefer ok domain ranks (at most two),
+ * else a domain-aware insufficient summary for the first touched domain
+ * that has samples, else session-level latestPercentileLineRu.
+ * Never invents percentiles.
+ */
+export function resultLocalNormsLineRu(
+  touchedDomains: Iterable<string>,
+  samples: AttemptSample[],
+  sessionValues: number[]
+): string {
+  const touched = [...touchedDomains];
+  const okLines: string[] = [];
+  for (const d of touched) {
+    const nr = normsForDomain(samples, d);
+    if (nr.status === 'ok') {
+      okLines.push(`${domainLabel(d)}: лучше ${nr.latestPercentile}% своих`);
+    }
+  }
+  if (okLines.length > 0) {
+    return okLines.slice(0, 2).join(' · ');
+  }
+  for (const d of touched) {
+    const hasSamples = samples.some((s) => s.domain === d);
+    if (!hasSamples) continue;
+    const nr = normsForDomain(samples, d);
+    if (nr.status === 'insufficient') {
+      return domainNormsSummaryRu(d, nr);
+    }
+  }
+  return latestPercentileLineRu(normsFromSessionValues(sessionValues));
 }
 
 /** One-line summary for a domain row on Progress. */

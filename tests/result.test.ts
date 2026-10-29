@@ -289,3 +289,57 @@ test('renderResult - First week continuity message', () => {
   expect(html).toMatch(/Акцент дня|Лёгкий старт|короче обычного/i);
 });
 
+test('renderResult - quiet insufficient personal-norms line under hero', () => {
+  const container = document.getElementById('app')!;
+  // One prior + current attempt in memory → domain insufficient (n=1 past).
+  storage.addSession({
+    id: 'prior-mem',
+    startedAt: '2026-10-20T10:00:00.000Z',
+    finishedAt: '2026-10-20T10:05:00.000Z',
+    durationSec: 300,
+    items: [
+      { exerciseId: 'grid-memory', level: 2, accuracy: 0.7, avgRtMs: 1000, score: 28 } as SessionItem
+    ]
+  });
+  const session: Session = {
+    id: 'current-mem',
+    startedAt: '2026-10-29T10:00:00.000Z',
+    finishedAt: '2026-10-29T10:05:00.000Z',
+    durationSec: 300,
+    items: [
+      { exerciseId: 'grid-memory', level: 2, accuracy: 0.8, avgRtMs: 900, score: 32 } as SessionItem
+    ]
+  };
+
+  renderResult(container, { session });
+
+  const normsEl = container.querySelector('[data-local-norms="1"]');
+  expect(normsEl).toBeTruthy();
+  expect(normsEl?.classList.contains('result-local-norms')).toBe(true);
+  const text = normsEl?.textContent || '';
+  expect(text).toMatch(/Память|мало данных/);
+  expect(text).not.toMatch(/Лучше \d+%/);
+  expect(text.toLowerCase()).not.toMatch(/населен|мир|wikium/);
+});
+
+test('renderResult - empty history still shows quiet norms hint', () => {
+  const container = document.getElementById('app')!;
+  const session: Session = {
+    id: 'first-ever',
+    startedAt: '2026-10-29T12:00:00.000Z',
+    finishedAt: '2026-10-29T12:05:00.000Z',
+    durationSec: 300,
+    items: [
+      { exerciseId: 'grid-memory', level: 1, accuracy: 0.75, avgRtMs: 1100, score: 25 } as SessionItem
+    ]
+  };
+
+  renderResult(container, { session });
+
+  const normsEl = container.querySelector('[data-local-norms="1"]');
+  expect(normsEl).toBeTruthy();
+  const text = normsEl?.textContent || '';
+  // Domain has the current sample → domain-aware insufficient (n=0 past).
+  expect(text).toMatch(/мало данных|Личные нормы появятся|Пока мало/);
+  expect(text).not.toMatch(/Лучше \d+%/);
+});
