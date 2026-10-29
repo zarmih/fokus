@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const vowelCountManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const vowelCountManifest: ExerciseManifest = {
 };
 
 export function getVowelCountParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return vowelCountManifest.levels![lvl as keyof typeof vowelCountManifest.levels];
+  const levels = vowelCountManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }

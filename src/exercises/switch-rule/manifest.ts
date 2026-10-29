@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const switchRuleManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const switchRuleManifest: ExerciseManifest = {
 };
 
 export function getSwitchRuleParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return switchRuleManifest.levels![lvl as keyof typeof switchRuleManifest.levels];
+  const levels = switchRuleManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }

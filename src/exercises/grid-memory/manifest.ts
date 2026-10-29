@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const gridMemoryManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const gridMemoryManifest: ExerciseManifest = {
 };
 
 export function getGridMemoryParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return gridMemoryManifest.levels![lvl as keyof typeof gridMemoryManifest.levels];
+  const levels = gridMemoryManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }

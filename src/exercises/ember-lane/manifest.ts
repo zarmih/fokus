@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const manifest: ExerciseManifest = {
@@ -21,6 +22,8 @@ export const manifest: ExerciseManifest = {
 };
 
 export function getEmberLaneParams(level: number) {
-  const cfg = manifest.levels![level] || manifest.levels![9];
+  const levels = manifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  const cfg = levels[lvl as keyof typeof levels];
   return { span: cfg.span, delayMs: cfg.delayMs };
 }

@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const oddOneManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const oddOneManifest: ExerciseManifest = {
 };
 
 export function getOddOneParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return oddOneManifest.levels![lvl as keyof typeof oddOneManifest.levels];
+  const levels = oddOneManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }
