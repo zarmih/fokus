@@ -5,6 +5,7 @@ import {
   computeDayStreak,
   daysBetween,
   extractPlayedDays,
+  fokusWallHour,
   nextStreak,
   resolveFokusTimeZone,
   timeZoneSupported
@@ -47,6 +48,17 @@ test('calendar day: Europe/Moscow crosses UTC midnight', () => {
   expect(calendarDayKey('2026-09-05T21:30:00Z', tz)).toBe('2026-09-06');
   expect(calendarDayKey('2026-09-05T20:59:59Z', tz)).toBe('2026-09-05');
   expect(calendarDayKey('2026-09-05T21:30:00Z', 'UTC')).toBe('2026-09-05');
+});
+
+test('fokusWallHour: UTC instants map to Moscow wall hour', () => {
+  if (!timeZoneSupported('Europe/Moscow')) return;
+  const tz = 'Europe/Moscow';
+  // 05:30Z → 08:30 MSK
+  expect(fokusWallHour('2026-10-29T05:30:00.000Z', tz)).toBe(8);
+  // 20:30Z → 23:30 MSK
+  expect(fokusWallHour('2026-10-29T20:30:00.000Z', tz)).toBe(23);
+  // 21:30Z → 00:30 next calendar day MSK
+  expect(fokusWallHour('2026-10-29T21:30:00.000Z', tz)).toBe(0);
 });
 
 test('calendar day: date-only strings stay civil, no TZ shift', () => {

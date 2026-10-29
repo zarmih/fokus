@@ -1,4 +1,5 @@
 import { storage } from './storage';
+import { fokusWallHour } from './streak';
 
 export interface Achievement {
   id: string;
@@ -150,7 +151,7 @@ export function checkAchievements(): string[] {
     if (lastSession.accuracy === 1) unlock('sniper');
   }
 
-  const hour = new Date().getHours();
+  const hour = fokusWallHour();
   if (hour >= 0 && hour < 4) unlock('night_owl');
   if (hour >= 5 && hour < 8) unlock('early_bird');
 

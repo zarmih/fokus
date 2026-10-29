@@ -28,7 +28,7 @@ import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPla
 import { softReturnInstallCopy } from '../../core/reminders';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
-import { calendarDayKey } from '../../core/streak';
+import { calendarDayKey, fokusWallHour, resolveFokusTimeZone } from '../../core/streak';
 import { quietNormsHintFromSessions, quietNormsHintDisclaimerRu } from '../../core/norms-hint';
 
 export function renderToday(container: HTMLElement, cachedState?: any) {
@@ -253,9 +253,9 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
 
   }).join('');
 
-  const hour = new Date().getHours();
+  const hour = fokusWallHour();
   const hello = hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
-  const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+  const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric', timeZone: resolveFokusTimeZone().timeZone };
   const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
 
   const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'

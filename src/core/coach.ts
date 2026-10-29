@@ -8,6 +8,7 @@ import { explainTodayPlan } from './today-plan';
 import type { ContinuitySnapshot } from './continuity';
 import type { TodayRitual } from './onboarding';
 import type { RetentionSnapshot } from './retention';
+import { fokusWallHour } from './streak';
 
 export function getQuietCoachTip(params: {
   continuity: ContinuitySnapshot;
@@ -67,7 +68,7 @@ export interface CoachSpark {
 }
 
 function hourBucket(iso: string): 'morning' | 'afternoon' | 'evening' | 'night' {
-  const h = new Date(iso).getHours();
+  const h = fokusWallHour(iso);
   if (h >= 6 && h < 12) return 'morning';
   if (h >= 12 && h < 18) return 'afternoon';
   if (h >= 18 && h < 23) return 'evening';
