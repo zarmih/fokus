@@ -320,9 +320,11 @@ export function renderTrainers(container: HTMLElement) {
       if (searchInput) searchInput.value = '';
       activeDom = 'all';
       content.querySelectorAll('.filter-chip').forEach(c => {
-        const on = (c as HTMLElement).dataset.dom === 'all';
-        c.classList.toggle('active', on);
-        c.setAttribute('aria-pressed', on ? 'true' : 'false');
+        const el = c as HTMLButtonElement;
+        const on = el.dataset.dom === 'all';
+        el.classList.toggle('active', on);
+        el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        el.tabIndex = on ? 0 : -1;
       });
       updateVisibility();
       if (searchInput) searchInput.focus();
@@ -339,19 +341,42 @@ export function renderTrainers(container: HTMLElement) {
     });
   }
 
-  content.querySelectorAll('.filter-chip').forEach(chip => {
+  const filterChips = () =>
+    [...content.querySelectorAll('.filter-chip')] as HTMLButtonElement[];
+
+  const markFilterChip = (active: HTMLButtonElement) => {
+    for (const c of filterChips()) {
+      const on = c === active;
+      c.classList.toggle('active', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+      c.tabIndex = on ? 0 : -1;
+    }
+  };
+
+  for (const chip of filterChips()) {
     chip.addEventListener('click', () => {
-      activeDom = (chip as HTMLElement).dataset.dom || 'all';
-      
-      content.querySelectorAll('.filter-chip').forEach(c => {
-        const on = c === chip;
-        c.classList.toggle('active', on);
-        c.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-      
+      activeDom = chip.dataset.dom || 'all';
+      markFilterChip(chip);
       updateVisibility();
     });
-  });
+    chip.addEventListener('keydown', (e: KeyboardEvent) => {
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(e.key)) return;
+      const buttons = filterChips().filter((b) => !b.disabled);
+      if (buttons.length === 0) return;
+      const idx = buttons.indexOf(chip);
+      if (idx < 0) return;
+      e.preventDefault();
+      let next = idx;
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % buttons.length;
+      else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + buttons.length) % buttons.length;
+      else if (e.key === 'Home') next = 0;
+      else if (e.key === 'End') next = buttons.length - 1;
+      const target = buttons[next];
+      target.focus();
+      target.click();
+    });
+  }
+  markFilterChip(filterChips().find((c) => c.dataset.dom === 'all') || filterChips()[0]);
 
   content.querySelectorAll('.trainer-card').forEach(card => {
     const el = card as HTMLElement;
