@@ -11,10 +11,49 @@ import { computeAbilityTrajectory } from '../../core/ability-trajectory';
 import { renderIndexSparkline } from '../components/charts';
 import { domainLabel } from '../../core/labels';
 import { ruPlural } from '../../core/transfer';
+import {
+  addCalendarDays,
+  calendarDayKey,
+  PREFERRED_TIME_ZONE,
+  resolveFokusTimeZone
+} from '../../core/streak';
 
 function ruDay(iso: string): string {
   const d = new Date(iso.slice(0, 10) + 'T12:00:00Z');
   return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+}
+
+
+export type WeeklyReviewMoscowWindow = {
+  /** Inclusive start YYYY-MM-DD in Europe/Moscow. */
+  fromKey: string;
+  /** Inclusive end YYYY-MM-DD in Europe/Moscow (today). */
+  toKey: string;
+  /** Russian period label for the header. */
+  periodLabel: string;
+};
+
+function formatRuCivilDay(dayKey: string, timeZone: string): string {
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    timeZone
+  }).format(new Date(`${dayKey}T12:00:00Z`));
+}
+
+/**
+ * Rolling last-7-calendar-days window in Europe/Moscow (not local setDate + UTC toISOString).
+ * Near Moscow midnight, e.g. 2026-10-28T21:30Z → toKey 2026-10-29.
+ */
+export function weeklyReviewMoscowWindow(now: Date = new Date()): WeeklyReviewMoscowWindow {
+  const zone = resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  const toKey = calendarDayKey(now, zone);
+  const fromKey = addCalendarDays(toKey, -7);
+  return {
+    fromKey,
+    toKey,
+    periodLabel: `${formatRuCivilDay(fromKey, zone)} — ${formatRuCivilDay(toKey, zone)}`
+  };
 }
 
 export function renderIntelPanel(intel: CoachIntel): string {
@@ -120,13 +159,18 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   const historyWindow: HistoryWindow = opts?.window === 30 ? 30 : 14;
 
   const now = new Date();
-  const weekAgo = new Date();
-  weekAgo.setDate(now.getDate() - 7);
-  const weekAgoStr = weekAgo.toISOString();
+  const zone = resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  const { fromKey, toKey, periodLabel: periodStr } = weeklyReviewMoscowWindow(now);
 
   const allSummaries = storage.getDaySummaries(60);
-  const sessions = storage.getSessions().filter(s => s.startedAt >= weekAgoStr);
-  const daySummaries = allSummaries.filter(ds => ds.date >= weekAgoStr);
+  const sessions = storage.getSessions().filter((s) => {
+    const key = calendarDayKey(s.startedAt, zone);
+    return key >= fromKey && key <= toKey;
+  });
+  const daySummaries = allSummaries.filter((ds) => {
+    const key = calendarDayKey(ds.date, zone);
+    return key >= fromKey && key <= toKey;
+  });
   
   const totalSessions = sessions.length;
   const activeDays = daySummaries.length;
@@ -324,9 +368,6 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
     }
   }
   
-  const dateFormatter = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'long' });
-  const periodStr = `${dateFormatter.format(weekAgo)} — ${dateFormatter.format(now)}`;
-
   const catalogRefs = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
   const trajectory = computeAbilityTrajectory({ sessions: storage.getSessions(), domains, catalog: catalogRefs });
 
