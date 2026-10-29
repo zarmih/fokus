@@ -29,6 +29,9 @@ import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../co
 import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
 
+export const COUNTDOWN_START_ANNOUNCEMENT = 'Старт через 3 секунды';
+export const COUNTDOWN_GO_ANNOUNCEMENT = 'Начали';
+
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
   const {items, mode = 'normal'} = params;
   const isProbe = mode === 'calibration' || mode === 'recalibration';
@@ -241,9 +244,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       const reducedMotion = prefersReducedMotion();
       const countdown = document.createElement('div');
       countdown.className = `count-overlay ${reducedMotion ? '' : 'is-tick'}`;
-      countdown.setAttribute('role', 'status');
-      countdown.setAttribute('aria-live', 'assertive');
+      // Visual-only digits: screen readers get one polite announcement instead of 3/2/1 spam.
+      countdown.setAttribute('aria-hidden', 'true');
       container.appendChild(countdown);
+      announce(COUNTDOWN_START_ANNOUNCEMENT);
 
       let count = 3;
       countdown.textContent = count.toString();
@@ -255,6 +259,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       const startBlock = (exDispatch: ExerciseModule) => {
         container.removeAttribute('aria-busy');
         countdown.remove();
+        announce(COUNTDOWN_GO_ANNOUNCEMENT);
         content.dataset.sessionPhase = 'play';
         enterStage(container);
         playSessionCue('enter');
