@@ -1,4 +1,5 @@
 import { ExerciseModule, BlockResult } from './contract';
+import { reducedMotionCss } from './reduced-motion-css';
 
 const tokenWarpModule: ExerciseModule = {
   manifest: {
@@ -54,6 +55,7 @@ const tokenWarpModule: ExerciseModule = {
           50% { transform: translateX(5px); }
           75% { transform: translateX(-5px); }
         }
+        ${reducedMotionCss('.tw-rule.warp')}
         .tw-stage {
           flex: 1;
           display: flex;

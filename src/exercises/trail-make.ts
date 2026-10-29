@@ -1,4 +1,5 @@
 import { ExerciseModule, BlockResult } from './contract';
+import { reducedMotionCss } from './reduced-motion-css';
 
 const trailMakeModule: ExerciseModule = {
   manifest: {
@@ -88,6 +89,7 @@ const trailMakeModule: ExerciseModule = {
           25% { transform: translate(-60%, -50%); }
           75% { transform: translate(-40%, -50%); }
         }
+        ${reducedMotionCss('.tm-node.error')}
       </style>
       <div class="tm-arena" id="tm-arena">
         <svg class="tm-svg" id="tm-svg"></svg>
