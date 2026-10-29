@@ -186,7 +186,7 @@ export function renderTrainers(container: HTMLElement) {
           <div style="color: var(--muted); font-size: 14px;">Упражнения временно недоступны.</div>
         </div>
       ` : allCardsHtml}
-      <div id="catalog-empty-state" style="display: none; padding: 56px 24px; text-align: center; background: linear-gradient(145deg, rgba(255,255,255,0.02), transparent); border-radius: 24px; border: 1px dashed var(--line);" role="status">
+      <div id="catalog-empty-state" style="display: none; padding: 56px 24px; text-align: center; background: linear-gradient(145deg, var(--fill-subtle), transparent); border-radius: 24px; border: 1px dashed var(--line);" role="status">
         <div id="empty-state-icon" style="font-size: 56px; margin-bottom: 20px; opacity: 0.8; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));" aria-hidden="true">🔍</div>
         <div id="empty-state-title" style="font-size: 20px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em;">Ничего не найдено</div>
         <div id="empty-state-desc" style="color: var(--muted); font-size: 15px; margin-bottom: 28px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.5;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>

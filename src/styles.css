@@ -21,8 +21,13 @@
   --ok: var(--ql-ok);
   --ok-rgb: var(--ql-ok-rgb);
   --danger-rgb: var(--ql-danger-rgb);
-  /* Neutral progress track: text-tinted so it stays visible on dark and light backgrounds. */
-  --track: color-mix(in srgb, var(--text) 16%, transparent);
+  /* Neutral progress track: text-tinted; the mix is per theme (tokens.css --ql-track-mix) so the
+     track is ≥ 3:1 against bg and cards in both themes (dark 40% ≈ 3.5:1, light 50% ≈ 3.2:1). */
+  --track: color-mix(in srgb, var(--text) var(--ql-track-mix), transparent);
+  /* Decorative panel tints (replace hardcoded rgba(255,255,255,.02–.06), which vanish on the light theme). */
+  --fill-subtle: color-mix(in srgb, var(--text) 4%, transparent);
+  --fill-muted: color-mix(in srgb, var(--text) 7%, transparent);
+  --on-ok: var(--ql-on-ok);
   --shadow-rgb: var(--ql-shadow-rgb);
 
   --dom-attention: var(--ql-dom-attention);
@@ -339,7 +344,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='20' cy='20' r='1' fill='white' opacity='0.1'/%3E%3C/svg%3E");
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--text) 10%, transparent) 0 1px, transparent 1.5px) 0 0 / 40px 40px;
 }
 .streak-card > * { position: relative; z-index: 10; }
 .streak-num { font-size: 56px; font-weight: 800; line-height: 1; text-shadow: 0 4px 12px rgba(var(--shadow-rgb), 0.1); margin-bottom: 8px;}
@@ -443,7 +448,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   margin-bottom: 16px;
 }
 .scale-label { width: 100px; font-size: 14px; font-weight: 600; letter-spacing: 0.5px;}
-.scale-track { flex: 1; height: 8px; background: var(--bg-elev); border-radius: 4px; margin: 0 16px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(var(--shadow-rgb), 0.1); }
+.scale-track { flex: 1; height: 8px; background: var(--track); border-radius: 4px; margin: 0 16px; overflow: hidden; box-shadow: inset 0 1px 2px rgba(var(--shadow-rgb), 0.1); }
 .scale-fill { height: 100%; border-radius: 4px; background: var(--muted); transition: width var(--motion-ritual) var(--ease-enter); }
 .scale-value { width: 44px; font-size: 15px; font-weight: 800; text-align: right; }
 
@@ -655,7 +660,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   overflow: hidden;
   max-width: 100%;
   min-width: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06), var(--surface));
+  background: linear-gradient(180deg, var(--fill-subtle), var(--surface));
   padding: 36px 24px 28px;
   border-radius: var(--radius-card);
   text-align: center;
@@ -1169,7 +1174,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 }
 .pn-item.missing {
   background: transparent;
-  border: 3px dashed rgba(255, 255, 255, 0.2);
+  border: 3px dashed var(--stage-placeholder-line);
   color: var(--text);
   box-shadow: none;
   text-shadow: none;
@@ -1717,7 +1722,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 }
 .num-chip.missing {
   background: transparent;
-  border: 3px dashed rgba(255,255,255,0.25);
+  border: 3px dashed var(--stage-placeholder-line);
   color: var(--text);
   box-shadow: none;
 }
@@ -2926,7 +2931,7 @@ html[data-motion="reduce"] .swings-hero.is-reset,
 .catalog-empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
-  filter: drop-shadow(0 4px 12px rgba(255,255,255,0.1));
+  filter: drop-shadow(0 4px 12px var(--fill-muted));
 }
 .catalog-empty h3 {
   font-size: 18px;
@@ -3051,11 +3056,8 @@ html[data-motion="reduce"] .swings-hero.is-reset,
 }
 
 .wr-next-step {
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 100%);
+  background: linear-gradient(135deg, var(--fill-subtle) 0%, transparent 100%);
   border: 1px solid var(--line);
-}
-[data-theme="light"] .wr-next-step {
-  background: linear-gradient(135deg, rgba(var(--shadow-rgb), 0.02) 0%, rgba(var(--shadow-rgb), 0) 100%);
 }
 .wr-next-content {
   display: flex;

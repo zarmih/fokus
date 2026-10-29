@@ -37,6 +37,8 @@
   --stage-text: #F3F1FA;
   --stage-muted: #B4B1C8;
   --stage-accent: #FFC46B;
+  /* Dashed placeholder outline on the (always dark) stage: 50% stage text ≥ 4.3:1 on every sky tone. */
+  --stage-placeholder-line: color-mix(in srgb, var(--stage-text) 50%, transparent);
 
   /* Quiet sky: deep blue-violet field behind every exercise (play arena + stage sky).
      Composed in styles.css (.play-arena / .play-sky) as: glow, domain tint, fade. */
@@ -85,6 +87,8 @@
   --ql-on-danger: #2A0E17;
   --ql-ok: #5DD6A4;
   --ql-ok-rgb: 93, 214, 164;
+  --ql-on-ok: #0F1020;          /* text on ok fills (10.4:1) */
+  --ql-track-mix: 40%;          /* --track = text @ 40%: ≥ 3.5:1 on bg / cards */
   --ql-shadow-rgb: 0, 0, 0;
 
   /* Domain solid colours (text-safe on bg) */
@@ -124,6 +128,8 @@
   --ql-on-danger: #FFFFFF;
   --ql-ok: #1B7F58;
   --ql-ok-rgb: 27, 127, 88;
+  --ql-on-ok: #FFFFFF;          /* text on ok fills (5.0:1) */
+  --ql-track-mix: 50%;          /* --track = text @ 50%: ≥ 3.2:1 on milk / cards */
   --ql-shadow-rgb: 28, 26, 46;  /* ink-tinted shadows on milk */
 
   --ql-dom-attention: #C2452E;

@@ -121,6 +121,6 @@ describe('quest progress track', () => {
     const style = (el.firstElementChild as HTMLElement).getAttribute('style') || '';
     expect(style).toContain('background: var(--track)');
     expect(style).not.toMatch(/rgba\(255,\s*255,\s*255/);
-    expect(css).toMatch(/--track:\s*color-mix\(in srgb, var\(--text\) 16%, transparent\)/);
+    expect(css).toMatch(/--track:\s*color-mix\(in srgb, var\(--text\) var\(--ql-track-mix\), transparent\)/);
   });
 });

@@ -16,12 +16,12 @@ export function renderOfflineBanner(container: HTMLElement) {
   // Stay under the skip-link (z-index 9999) so Tab → skip remains visible on focus.
   banner.style.position = 'relative';
   banner.style.zIndex = '1';
-  banner.style.backgroundColor = 'var(--surface-color, #333)';
-  banner.style.color = 'var(--text-color, #fff)';
+  banner.style.backgroundColor = 'var(--bg-elev)';
+  banner.style.color = 'var(--text)';
   banner.style.padding = '8px 16px';
   banner.style.textAlign = 'center';
   banner.style.fontSize = '14px';
-  banner.style.borderBottom = '1px solid var(--border-color, #444)';
+  banner.style.borderBottom = '1px solid var(--line)';
   banner.innerHTML = `
     <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
