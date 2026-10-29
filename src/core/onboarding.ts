@@ -7,7 +7,7 @@ import type {
 } from './types';
 import { PROBE_DOMAINS, precisionLabel } from './calibration';
 import { domainLabel } from './labels';
-import { calendarDayKey, resolveFokusTimeZone } from './streak';
+import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
 
 export const FIRST_WEEK_DAYS = 7;
 
@@ -186,8 +186,7 @@ export function countMissedDays(
   if (span <= 0) return played.has(start) ? 0 : 0;
   let missed = 0;
   for (let i = 0; i < span; i++) {
-    const t = Date.parse(`${start}T00:00:00Z`) + i * 86400000;
-    const key = new Date(t).toISOString().slice(0, 10);
+    const key = addCalendarDays(start, i);
     if (!played.has(key)) missed += 1;
   }
   return missed;
