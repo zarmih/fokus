@@ -29,6 +29,7 @@ import { softReturnInstallCopy } from '../../core/reminders';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { calendarDayKey } from '../../core/streak';
+import { quietNormsHintFromSessions, quietNormsHintDisclaimerRu } from '../../core/norms-hint';
 
 export function renderToday(container: HTMLElement, cachedState?: any) {
   const content = renderShell(container, { active: 'today' });
@@ -341,6 +342,14 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         weekRitual
       });
 
+  const catalogRefsNorms = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const normsHint = profile.calibrated
+    ? quietNormsHintFromSessions(sessions, catalogRefsNorms, plan.focusDomains.length ? plan.focusDomains : (targetGoal ? [targetGoal] : null))
+    : null;
+  const normsHintHtml = normsHint
+    ? `<p class="norms-quiet-hint" data-local-norms="1" title="${quietNormsHintDisclaimerRu().replace(/"/g, '&quot;')}" style="margin: 8px 0 0; font-size: 13px; color: var(--muted); line-height: 1.4;">${normsHint}</p>`
+    : '';
+
   const transferCardHtml = transferCardFromStorage({ prefer: playedToday ? 'session' : 'week' });
   let retentionHtml = '';
   if (profile.calibrated && planExplain?.rhythmLine && retSnap && retSnap.confidence >= 20) {
@@ -579,6 +588,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     ${recalHtml}
 
     ${actionHtml}
+    ${normsHintHtml}
 
     ${weekHtml}
 
