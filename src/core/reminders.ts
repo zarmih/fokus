@@ -1,6 +1,6 @@
 import { REMINDER_LAST_KEY } from './privacy';
 import { storage } from './storage';
-import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey, type PlayedDaySignals } from './streak';
+import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey, addCalendarDays, type PlayedDaySignals } from './streak';
 import { getWeeklyDomainTips } from './coach-intel';
 
 export { REMINDER_LAST_KEY };
@@ -142,6 +142,84 @@ export function reminderPlayedOnDay(
   return extractPlayedDays(signals, tz).includes(dayKey);
 }
 
+
+function pad2(n: number): string {
+  return n < 10 ? `0${n}` : String(n);
+}
+
+/** Civil wall-clock parts in `timeZone` for an instant (hourCycle h23). */
+function wallParts(
+  instant: Date,
+  timeZone: string
+): { year: number; month: number; day: number; hour: number; minute: number; second: number } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23'
+  }).formatToParts(instant);
+  const get = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number(parts.find((p) => p.type === type)?.value || '0');
+  return {
+    year: get('year'),
+    month: get('month'),
+    day: get('day'),
+    hour: get('hour'),
+    minute: get('minute'),
+    second: get('second')
+  };
+}
+
+/**
+ * UTC instant when the civil clock in `timeZone` reads year-month-day hour:minute:second.
+ * Offset probe via formatToParts — no local setHours/setDate.
+ */
+function instantAtWall(
+  year: number,
+  month: number,
+  day: number,
+  hour: number,
+  minute: number,
+  second: number,
+  timeZone: string
+): Date {
+  let guess = Date.UTC(year, month - 1, day, hour, minute, second, 0);
+  for (let i = 0; i < 4; i++) {
+    const p = wallParts(new Date(guess), timeZone);
+    const asUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second, 0);
+    const offset = asUtc - guess;
+    guess = Date.UTC(year, month - 1, day, hour, minute, second, 0) - offset;
+  }
+  return new Date(guess);
+}
+
+/**
+ * Next instant when civil clock in Fokus TZ (default Europe/Moscow) is `hour:00:00`.
+ * If that civil hour today is already past, returns tomorrow's same hour in that zone.
+ */
+export function nextReminderFireAt(now: Date, hour: number, timeZone?: string): Date {
+  const tz = timeZone ?? resolveFokusTimeZone().timeZone;
+  const p = wallParts(now, tz);
+  const todayKey = `${p.year}-${pad2(p.month)}-${pad2(p.day)}`;
+  let fire = instantAtWall(p.year, p.month, p.day, hour, 0, 0, tz);
+  if (fire.getTime() <= now.getTime()) {
+    const nextKey = addCalendarDays(todayKey, 1);
+    const [y, m, d] = nextKey.split('-').map(Number);
+    fire = instantAtWall(y, m, d, hour, 0, 0, tz);
+  }
+  return fire;
+}
+
+/** Wall-clock hour (0–23) in Fokus TZ — for maybeNotify gate instead of Date#getHours. */
+export function moscowWallHour(now: Date = new Date(), timeZone?: string): number {
+  const tz = timeZone ?? resolveFokusTimeZone().timeZone;
+  return wallParts(now, tz).hour;
+}
+
 export function preferredReminderHour(): number {
   const h = storage.getProfile().reminderHour;
   return typeof h === 'number' ? h : 9;
@@ -156,11 +234,7 @@ export function scheduleLocalReminder(): void {
 
   const hour = profile.reminderHour;
   const now = new Date();
-  const fire = new Date();
-  fire.setHours(hour, 0, 0, 0);
-  if (fire.getTime() <= now.getTime()) {
-    fire.setDate(fire.getDate() + 1);
-  }
+  const fire = nextReminderFireAt(now, hour);
 
   const delay = fire.getTime() - now.getTime();
   window.setTimeout(() => {
@@ -189,7 +263,7 @@ export function maybeNotify(): void {
   const streak = computeDayStreak(played, today);
 
   const hour = preferredReminderHour();
-  if (new Date().getHours() < hour) return;
+  if (moscowWallHour(new Date(), tz) < hour) return;
 
   const domains = storage.getDomains();
   const states = storage.getExerciseStates();
