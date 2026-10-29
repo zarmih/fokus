@@ -1,6 +1,6 @@
 import { REMINDER_LAST_KEY } from './privacy';
 import { storage } from './storage';
-import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey } from './streak';
+import { computeDayStreak, extractPlayedDays, resolveFokusTimeZone, calendarDayKey, type PlayedDaySignals } from './streak';
 import { getWeeklyDomainTips } from './coach-intel';
 
 export { REMINDER_LAST_KEY };
@@ -122,6 +122,26 @@ export function softReturnInstallCopy(softReturnActive: boolean): { title: strin
   };
 }
 
+
+/**
+ * Civil YYYY-MM-DD for reminders / REMINDER_LAST_KEY in Fokus TZ (Europe/Moscow).
+ * Avoids UTC drift near Moscow midnight (`toISOString().slice(0, 10)`).
+ */
+export function reminderDayKey(now: Date = new Date(), timeZone?: string): string {
+  const tz = timeZone ?? resolveFokusTimeZone().timeZone;
+  return calendarDayKey(now, tz);
+}
+
+/** Whether a session/summary already counts for the given civil day in Fokus TZ. */
+export function reminderPlayedOnDay(
+  dayKey: string,
+  signals: PlayedDaySignals,
+  timeZone?: string
+): boolean {
+  const tz = timeZone ?? resolveFokusTimeZone().timeZone;
+  return extractPlayedDays(signals, tz).includes(dayKey);
+}
+
 export function preferredReminderHour(): number {
   const h = storage.getProfile().reminderHour;
   return typeof h === 'number' ? h : 9;
@@ -153,7 +173,8 @@ export function maybeNotify(): void {
   if (typeof window === 'undefined') return;
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-  const today = new Date().toISOString().slice(0, 10);
+  const tz = resolveFokusTimeZone().timeZone;
+  const today = reminderDayKey(new Date(), tz);
   try {
     if (localStorage.getItem(REMINDER_LAST_KEY) === today) return;
   } catch {
@@ -161,18 +182,15 @@ export function maybeNotify(): void {
   }
 
   const summaries = storage.getDaySummaries();
-  const playedToday = summaries.some((d) => d.date.startsWith(today));
-  if (playedToday) return;
+  const sessions = storage.getSessions();
+  if (reminderPlayedOnDay(today, { daySummaries: summaries, sessions }, tz)) return;
 
-  const tz = resolveFokusTimeZone().timeZone;
-  const todayKey = calendarDayKey(new Date(), tz);
-  const played = extractPlayedDays({ daySummaries: summaries, sessions: storage.getSessions() }, tz);
-  const streak = computeDayStreak(played, todayKey);
+  const played = extractPlayedDays({ daySummaries: summaries, sessions }, tz);
+  const streak = computeDayStreak(played, today);
 
   const hour = preferredReminderHour();
   if (new Date().getHours() < hour) return;
 
-  const sessions = storage.getSessions();
   const domains = storage.getDomains();
   const states = storage.getExerciseStates();
 
