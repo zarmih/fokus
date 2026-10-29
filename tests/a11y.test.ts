@@ -35,7 +35,39 @@ test('shell exposes landmarks, skip link and keyboard tabs', () => {
   expect(app.querySelector('nav.tab-bar')?.getAttribute('aria-label')).toBe(t('a11y.nav'));
   expect(app.querySelector('#tab-today')?.tagName).toBe('BUTTON');
   expect(app.querySelector('#tab-today')?.getAttribute('aria-current')).toBe('page');
+  expect(app.querySelector('#tab-today')?.getAttribute('aria-label')).toBe(t('today.title'));
+  expect(app.querySelector('#tab-today span')?.getAttribute('aria-hidden')).toBe('true');
   expect(app.querySelector('.streak-badge')?.getAttribute('aria-label')).toMatch(/Сери/);
+});
+
+test('tab-bar arrow keys move focus between tabs', () => {
+  const p = storage.getProfile();
+  p.onboarded = true;
+  p.calibrated = true;
+  storage.setProfile(p);
+
+  const app = document.getElementById('app')!;
+  renderToday(app);
+
+  const today = app.querySelector('#tab-today') as HTMLButtonElement;
+  const program = app.querySelector('#tab-program') as HTMLButtonElement;
+  const settings = app.querySelector('#tab-settings') as HTMLButtonElement;
+  const nav = app.querySelector('nav.tab-bar') as HTMLElement;
+
+  today.focus();
+  expect(document.activeElement).toBe(today);
+
+  nav.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  expect(document.activeElement).toBe(program);
+
+  nav.dispatchEvent(new KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+  expect(document.activeElement).toBe(settings);
+
+  nav.dispatchEvent(new KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+  expect(document.activeElement).toBe(today);
+
+  nav.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+  expect(document.activeElement).toBe(settings);
 });
 
 test('trainer cards are buttons and filters expose pressed state', () => {

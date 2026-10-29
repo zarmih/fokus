@@ -408,6 +408,9 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   box-shadow: 0 0 10px var(--accent);
   animation: tabIndicatorPop var(--motion-fast) var(--ease-spring) both;
 }
+@media (prefers-reduced-motion: reduce) {
+  .tab-item.active::before { animation: none; }
+}
 .tab-item svg { width: 22px; height: 22px; fill: currentColor; }
 
 /* Chips */
