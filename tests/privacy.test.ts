@@ -243,3 +243,13 @@ test('wipeAppCaches only deletes fokus-* names', async () => {
   expect(deleted).toEqual(['fokus-abc']);
   delete (globalThis as any).caches;
 });
+
+test('buildExportFile date stamp uses Europe/Moscow calendar day', () => {
+  // 21:30 UTC = 00:30 MSK next day
+  const late = new Date('2026-10-28T21:30:00Z');
+  expect(buildExportFile('{}', true, late).filename).toBe('fokus-data-2026-10-29.json');
+  expect(buildExportFile('{}', false, late, 'Europe/Moscow').filename).toBe('fokus-data-2026-10-29-full.json');
+  // 20:59 UTC = 23:59 MSK same day
+  expect(buildExportFile('{}', true, new Date('2026-10-28T20:59:00Z')).filename).toBe('fokus-data-2026-10-28.json');
+  expect(buildExportFile('{}', true, late, 'UTC').filename).toBe('fokus-data-2026-10-28.json');
+});
