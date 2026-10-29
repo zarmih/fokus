@@ -273,3 +273,29 @@ test('a rest gap decays load so yesterday-hard does not lock rest-light forever'
   });
   expect(rested.loadEwma).toBeLessThan(fresh.loadEwma);
 });
+
+function daySum(date: string): DaySummary {
+  return { date, totalScore: 50, domainDeltas: {}, streak: 0, skipped: false };
+}
+
+test('recovery consecutive days use Europe/Moscow calendar boundary', () => {
+  const daySummaries = ['2026-09-09', '2026-09-10', '2026-09-11'].map(daySum);
+  // 22:30Z on 10 Sep = 01:30 MSK on 11 Sep
+  const nowIso = '2026-09-10T22:30:00.000Z';
+  const msk = estimateRecovery({ sessions: [], daySummaries, plannedDurationSec: 300, nowIso, timeZone: 'Europe/Moscow' });
+  const utc = estimateRecovery({ sessions: [], daySummaries, plannedDurationSec: 300, nowIso, timeZone: 'UTC' });
+  expect(msk.consecutiveDays).toBe(3);
+  expect(utc.consecutiveDays).toBe(2);
+});
+
+test('recovery defaults to Moscow day: just before MSK midnight stays on previous day', () => {
+  const daySummaries = ['2026-09-09', '2026-09-10'].map(daySum);
+  // 20:59Z = 23:59 MSK on 10 Sep
+  const snap = estimateRecovery({ sessions: [], daySummaries, plannedDurationSec: 300, nowIso: '2026-09-10T20:59:00.000Z' });
+  expect(snap.consecutiveDays).toBe(2);
+  // 21:00Z = 00:00 MSK on 11 Sep → today not active, streak counts from yesterday
+  const after = estimateRecovery({ sessions: [], daySummaries, plannedDurationSec: 300, nowIso: '2026-09-10T21:00:00.000Z' });
+  expect(after.consecutiveDays).toBe(2);
+  const gap = estimateRecovery({ sessions: [], daySummaries: [daySum('2026-09-09')], plannedDurationSec: 300, nowIso: '2026-09-10T21:00:00.000Z' });
+  expect(gap.consecutiveDays).toBe(0);
+});
