@@ -9,6 +9,7 @@ import {
   type ScoredSession,
   type SessionQuality
 } from './sessionQuality';
+import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
 
 export type RecoveryRecommendation = 'rest-light' | 'steady' | 'push-hard';
 
@@ -60,8 +61,9 @@ export function sessionLoad(session: Session, quality: SessionQuality, sameDayCo
   return clamp(durationLoad + difficultyLoad + volumeLoad + struggleLoad + churnLoad + sleepLoad + stressLoad, 0, 100);
 }
 
-function dayKey(iso: string): string {
-  return iso.slice(0, 10);
+/** Calendar day (YYYY-MM-DD) in the Fokus zone (Europe/Moscow, UTC fallback). */
+function dayKey(iso: string, timeZone: string = resolveFokusTimeZone().timeZone): string {
+  return calendarDayKey(iso, timeZone);
 }
 
 function hoursBetween(fromIso: string, toIso: string): number {
@@ -71,30 +73,24 @@ function hoursBetween(fromIso: string, toIso: string): number {
   return Math.max(0, (b - a) / (1000 * 60 * 60));
 }
 
-function addUtcDays(isoDay: string, delta: number): string {
-  const [y, m, d] = isoDay.split('-').map(Number);
-  const dt = new Date(Date.UTC(y, m - 1, d + delta));
-  return dt.toISOString().slice(0, 10);
-}
-
-function consecutiveTrainingDays(summaries: DaySummary[], nowIso: string): number {
+function consecutiveTrainingDays(summaries: DaySummary[], nowIso: string, tz: string): number {
   const active = new Set(
-    summaries.filter((d) => !d.skipped && d.totalScore > 0).map((d) => dayKey(d.date))
+    summaries.filter((d) => !d.skipped && d.totalScore > 0).map((d) => dayKey(d.date, tz))
   );
-  let key = dayKey(nowIso);
-  if (!active.has(key)) key = addUtcDays(key, -1);
+  let key = dayKey(nowIso, tz);
+  if (!active.has(key)) key = addCalendarDays(key, -1);
   let count = 0;
   for (let i = 0; i < 14; i++) {
     if (!active.has(key)) break;
     count++;
-    key = addUtcDays(key, -1);
+    key = addCalendarDays(key, -1);
   }
   return count;
 }
 
-function lifestyleFor(session: Session, summaries: DaySummary[]): DaySummary['lifestyle'] | undefined {
-  const key = dayKey(session.startedAt);
-  const hit = [...summaries].reverse().find((d) => dayKey(d.date) === key);
+function lifestyleFor(session: Session, summaries: DaySummary[], tz: string): DaySummary['lifestyle'] | undefined {
+  const key = dayKey(session.startedAt, tz);
+  const hit = [...summaries].reverse().find((d) => dayKey(d.date, tz) === key);
   return hit?.lifestyle;
 }
 
@@ -123,7 +119,10 @@ export function estimateRecovery(params: {
   recoveryHintsEnabled?: boolean;
   nowIso?: string;
   catalog?: RitualCatalogItem[];
+  /** IANA zone for calendar days; defaults to resolveFokusTimeZone(). */
+  timeZone?: string;
 }): RecoverySnapshot {
+  const tz = resolveFokusTimeZone(params.timeZone).timeZone;
   const nowIso = params.nowIso || new Date().toISOString();
   const summaries = params.daySummaries || [];
   const scored = scoreSessions(params.sessions).slice(-8);
@@ -135,10 +134,10 @@ export function estimateRecovery(params: {
 
   scored.forEach((row, idx) => {
     const session = params.sessions.find((s) => s.id === row.sessionId) || params.sessions[idx];
-    const key = dayKey(row.startedAt);
+    const key = dayKey(row.startedAt, tz);
     dayCounts[key] = (dayCounts[key] || 0) + 1;
     const load = session
-      ? sessionLoad(session, row.quality, dayCounts[key], lifestyleFor(session, summaries))
+      ? sessionLoad(session, row.quality, dayCounts[key], lifestyleFor(session, summaries, tz))
       : 40;
     if (idx === 0) {
       loadEwma = load;
@@ -158,7 +157,7 @@ export function estimateRecovery(params: {
   const prevQuality = scored.length >= 2 ? scored[scored.length - 2].quality.score : null;
   const qualityDelta = lastQuality && prevQuality !== null ? lastQuality.score - prevQuality : null;
 
-  const consecutiveDays = consecutiveTrainingDays(summaries, nowIso);
+  const consecutiveDays = consecutiveTrainingDays(summaries, nowIso, tz);
   const lastTwoWeak =
     scored.length >= 2 &&
     scored.slice(-2).every((r) => r.quality.score < 58);
