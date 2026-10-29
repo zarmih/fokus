@@ -18,9 +18,14 @@ import {
   resolveFokusTimeZone
 } from '../../core/streak';
 
-function ruDay(iso: string): string {
-  const d = new Date(iso.slice(0, 10) + 'T12:00:00Z');
-  return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' });
+export function ruDay(iso: string): string {
+  const dayKey = iso.slice(0, 10);
+  const zone = resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  return new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    timeZone: zone
+  }).format(new Date(`${dayKey}T12:00:00Z`));
 }
 
 
