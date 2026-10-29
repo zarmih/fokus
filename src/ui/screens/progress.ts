@@ -19,6 +19,11 @@ import { buildCoachIntel } from '../../core/coach-intel';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
 import { calendarDayKey, addCalendarDays } from '../../core/streak';
+import {
+  collectAttemptSamples,
+  normsByDomain,
+  normsDisclaimerRu
+} from '../../core/local-norms';
 
 export function renderProgress(container: HTMLElement) {
   const content = renderShell(container, { active: 'progress' });
@@ -500,6 +505,54 @@ export function renderProgress(container: HTMLElement) {
       </div>
     </div>`;
 
+  const catalogRefsForNorms = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const attemptSamples = collectAttemptSamples(sessions, catalogRefsForNorms, 'accuracy');
+  const domainNormRows = normsByDomain(attemptSamples);
+  const anyNormReady = domainNormRows.some((r) => r.result.status === 'ok');
+  const anyNormAttempts = attemptSamples.length > 0;
+  const localNormsHtml = `
+    <div class="surface local-norms-card" data-local-norms="1" style="margin-bottom: 24px;" role="region" aria-label="Личные нормы">
+      <h3 style="margin-bottom: 8px;">Личные нормы</h3>
+      <p style="font-size: 12px; color: var(--muted); margin: 0 0 12px; line-height: 1.4;">${normsDisclaimerRu()}</p>
+      ${!anyNormAttempts ? `
+        <div class="empty-state" style="padding: 20px 16px; text-align: center; border-radius: 12px; background: rgba(255,255,255,0.02);">
+          <p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">Пока нет своих попыток.<br>После нескольких тренировок здесь появятся перцентили только по вашей истории.</p>
+        </div>
+      ` : `
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          ${domainNormRows.map((row) => {
+            const res = row.result;
+            if (res.status === 'ok') {
+              return `
+              <div class="local-norm-row" data-domain="${row.domain}" data-status="ok" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                  <span style="font-weight: 700; color: var(--dom-${row.domain});">${domainLabel(row.domain)}</span>
+                  <span style="font-size: 13px; font-weight: 600; color: var(--accent);">лучше ${res.latestPercentile}%</span>
+                </div>
+                <div style="font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4;">
+                  Свои прошлые попытки: медиана ${Math.round(res.median * 100)}% · типичный диапазон ${Math.round(res.p25 * 100)}–${Math.round(res.p75 * 100)}%
+                </div>
+              </div>
+            `;
+            }
+            return `
+              <div class="local-norm-row" data-domain="${row.domain}" data-status="insufficient" style="padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.03); border: 1px solid var(--line);">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px;">
+                  <span style="font-weight: 700; color: var(--muted);">${domainLabel(row.domain)}</span>
+                  <span style="font-size: 12px; color: var(--muted);">мало данных (${res.n} из 5)</span>
+                </div>
+                <div style="font-size: 12px; color: var(--muted); margin-top: 6px; line-height: 1.4;">
+                  Нужно ещё несколько попыток в этой области — без выдуманных рейтингов.
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        ${!anyNormReady ? `<p style="font-size: 12px; color: var(--muted); margin: 12px 0 0; line-height: 1.4;">Данных мало: личные перцентили появятся после ${5} попыток в области.</p>` : ''}
+      `}
+    </div>
+  `;
+
   content.innerHTML = `
     <div class="today-head">
       <h2>Статистика</h2>
@@ -507,6 +560,7 @@ export function renderProgress(container: HTMLElement) {
     </div>
     ${habitHtml}
     ${fiHtml}
+    ${localNormsHtml}
     ${renderQualityCard(ritual.snapshot, { detailed: true })}
     ${rhythmHtml}
     ${milestonesHtml}
