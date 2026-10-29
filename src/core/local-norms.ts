@@ -211,3 +211,18 @@ export function domainNormsSummaryRu(domain: string, result: LocalNormsResult): 
 export function normsDisclaimerRu(): string {
   return 'Только по вашей истории на этом устройстве — без сравнения с другими людьми.';
 }
+
+/** Quiet Settings blurb: what «личные нормы» are (and are not). Reuses disclaimer + sample floor. */
+export function settingsNormsHelpTitleRu(): string {
+  return 'Личные нормы';
+}
+
+export function settingsNormsHelpRu(): string {
+  return [
+    `«Личные нормы» — перцентили по вашей истории: число попыток (n), медиана и типичный диапазон (между квартилями).`,
+    `Пока своих попыток меньше ${MIN_NORM_SAMPLES} в области, нормы не считаются — это «мало данных», а не плохой результат.`,
+    normsDisclaimerRu(),
+    'Не среднее «по миру», не сравнение с другими людьми и не оценка интеллекта.'
+  ].join(' ');
+}
+
