@@ -18,6 +18,19 @@ export interface ReminderCopy {
 }
 
 /**
+ * Whole days since 1970-01-01 of the current civil day in the Fokus zone
+ * (Europe/Moscow). Used to rotate reminder tip text so it flips at Moscow
+ * midnight rather than UTC midnight (03:00 MSK).
+ */
+export function fokusRotationDay(now: Date = new Date(), timeZone?: string): number {
+  const zone = timeZone || resolveFokusTimeZone().timeZone;
+  const key = calendarDayKey(now, zone);
+  const m = key.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return Math.floor(now.getTime() / 86400000);
+  return Math.round(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])) / 86400000);
+}
+
+/**
  * Pure reminder copy builder — soft-return aware, no FOMO.
  * Used by maybeNotify and unit tests.
  */
@@ -92,7 +105,7 @@ export function buildReminderCopy(params: {
 
   const target = params.primaryGoal || 'attention';
   const tips = getWeeklyDomainTips(target);
-  const dayOfYear = params.dayOfYear ?? Math.floor(Date.now() / 86400000);
+  const dayOfYear = params.dayOfYear ?? fokusRotationDay();
   return {
     kind: 'daily',
     title: 'Fokus',
