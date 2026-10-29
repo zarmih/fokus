@@ -6,6 +6,51 @@ import { focusMain, setScreenTitle } from './a11y';
 import { streakAriaLabel } from './components/habit-continuity';
 import { syncQueue, type SyncStatus } from '../core/offline-sync';
 
+const OFFLINE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7L12 21.5 23.64 7zM12 4.5c4.7 0 8.35 2.22 9.53 3.03L12 19 2.47 7.53C3.65 6.72 7.3 4.5 12 4.5z"/></svg>';
+const LOCAL_SAVE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>';
+
+export interface SyncIndicatorView {
+  visible: boolean;
+  className: string;
+  html: string;
+}
+
+/** Pure view model for #top-sync-indicator — local-first, no flash at empty queue. */
+export function syncIndicatorView(status: SyncStatus): SyncIndicatorView {
+  const hidden: SyncIndicatorView = { visible: false, className: 'sync-indicator', html: '' };
+  const { state, pendingCount } = status;
+
+  if (state === 'offline') {
+    return {
+      visible: true,
+      className: 'sync-indicator visible offline',
+      html: `${OFFLINE_SVG} Офлайн`
+    };
+  }
+
+  if (state === 'queued' || state === 'error') {
+    if (pendingCount > 0) {
+      return {
+        visible: true,
+        className: `sync-indicator visible ${state}`,
+        html: `${LOCAL_SAVE_SVG} Сохранено локально`
+      };
+    }
+    return hidden;
+  }
+
+  if (state === 'syncing') {
+    return {
+      visible: true,
+      className: 'sync-indicator visible syncing',
+      html: 'Синхронизация...'
+    };
+  }
+
+  // online / unknown: never flash «Синхронизировано» on every shell render
+  return hidden;
+}
+
 let updateBannerAdded = false;
 if (typeof window !== 'undefined') {
   window.addEventListener('pwa-update-available', () => {
@@ -103,43 +148,15 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
   const indicator = container.querySelector('#top-sync-indicator') as HTMLElement;
   if (indicator) {
     const updateIndicator = (status: SyncStatus) => {
-      indicator.className = `sync-indicator visible ${status.state}`;
-      if (status.state === 'offline') {
-        indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7L12 21.5 23.64 7zM12 4.5c4.7 0 8.35 2.22 9.53 3.03L12 19 2.47 7.53C3.65 6.72 7.3 4.5 12 4.5z"/></svg> Офлайн';
-      } else if (status.state === 'queued') {
-        indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg> Сохранено локально';
-      } else if (status.state === 'syncing') {
-        indicator.innerHTML = 'Синхронизация...';
-      } else if (status.state === 'error') {
-        // Not an error counter on main screens. Hide when nothing is queued.
-        if (status.pendingCount > 0) {
-          indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg> Сохранено локально';
-        } else {
-          indicator.className = 'sync-indicator';
-          indicator.innerHTML = '';
-        }
-      } else if (status.state === 'online') {
-        indicator.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg> Синхронизировано';
-        // fade out after 2 seconds
-        setTimeout(() => {
-          if (indicator.classList.contains('online')) {
-            indicator.classList.remove('visible');
-          }
-        }, 2000);
-      } else {
-        indicator.classList.remove('visible');
-      }
+      const view = syncIndicatorView(status);
+      indicator.className = view.className;
+      indicator.innerHTML = view.html;
     };
-    
-    // Initial state
+
     updateIndicator(syncQueue.getStatus());
-    
-    // Listen for changes
+
     const onChange = (e: Event) => updateIndicator((e as CustomEvent<SyncStatus>).detail);
     syncQueue.addEventListener('change', onChange);
-    
-    // Cleanup on container replace (simplistic but works for this SPA if needed)
-    // In our architecture, shell is re-rendered on navigation.
   }
 
   queueMicrotask(() => focusMain());
