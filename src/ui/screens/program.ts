@@ -16,6 +16,7 @@ import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan } from '.
 import { getTodayRitual } from '../../core/onboarding';
 import { describeProgramPhase, phaseForWeek } from '../../core/program-phases';
 import { getQuietCoachTip } from '../../core/coach';
+import { quietNormsHintFromSessions, quietNormsHintDisclaimerRu } from '../../core/norms-hint';
 
 export function renderProgram(container: HTMLElement) {
   const shell = renderShell(container, { active: 'program' });
@@ -257,6 +258,18 @@ export function renderProgram(container: HTMLElement) {
     ? planExplain.whyExercises
     : '';
 
+  const catalogRefsNorms = registry.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+  const normsHint = profile.calibrated
+    ? quietNormsHintFromSessions(
+        sessions,
+        catalogRefsNorms,
+        plan.focusDomains?.length ? plan.focusDomains : (programRetention?.focusDomain ? [programRetention.focusDomain] : null)
+      )
+    : null;
+  const normsHintHtml = normsHint
+    ? `<p class="norms-quiet-hint" data-local-norms="1" title="${quietNormsHintDisclaimerRu().replace(/"/g, '&quot;')}" style="margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.4;">${normsHint}</p>`
+    : '';
+
   let hero = '';
   if (!profile.calibrated) {
     hero = `
@@ -285,6 +298,7 @@ export function renderProgram(container: HTMLElement) {
         <div class="workout-kicker">На сегодня всё</div>
         <h3>Тренировка выполнена</h3>
         <p>${contMsg.body || 'Лучший эффект даст отдых и продолжение занятий завтра.'}</p>
+        ${normsHintHtml}
         <button id="btn-program-start" class="btn-secondary" type="button">Ещё одна сессия</button>
       </div>
     `;
@@ -296,6 +310,7 @@ export function renderProgram(container: HTMLElement) {
         <p class="muted coach-rationale" data-plan-source="${planExplain?.source || 'legacy'}">${coachMessage}</p>
         ${planExplain?.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${planExplain.quietTip}</p>` : ''}
         ${coachWhy ? `<p class="ritual-why plan-why" style="margin-top:8px">${coachWhy}</p>` : ''}
+        ${normsHintHtml}
         <button id="btn-program-start" class="btn-primary" type="button">${ctaLabelFromPlan(planExplain, programRetention?.softenCta ? 'Короткий блок' : 'Начать тренировку')}</button>
       </div>
     `;
