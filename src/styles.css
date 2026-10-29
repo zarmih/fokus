@@ -317,6 +317,10 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   border: 1px solid var(--accent-glow);
 }
 
+.streak-badge-num { font-variant-numeric: tabular-nums; }
+.streak-badge:focus-visible,
+.habit-chip:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+
 /* Streak Card */
 .streak-card {
   text-align: center;

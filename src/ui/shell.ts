@@ -97,9 +97,9 @@ export function renderShell(container: HTMLElement, params: {active: 'today' | '
         Fokus
       </h1>
       <div id="top-sync-indicator" class="sync-indicator" aria-live="polite"></div>
-      <div class="streak-badge habit-chip${streak > 0 ? ' has-streak' : ''}" data-status="${snap.streak.status}" aria-label="${streakLabel}" title="${streakLabel}">
+      <div class="streak-badge habit-chip${streak > 0 ? ' has-streak' : ''}" data-status="${snap.streak.status}" role="img" aria-label="${streakLabel}" title="${streakLabel}">
         <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M12 2C12 2 7 7 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 7 12 2 12 2ZM12 16C10.34 16 9 14.66 9 13C9 10.74 12 6.54 12 6.54C12 6.54 15 10.74 15 13C15 14.66 13.66 16 12 16Z"/></svg>
-        ${streak}
+        <span class="streak-badge-num" aria-hidden="true">${streak}</span>
       </div>
     </header>
   `;
