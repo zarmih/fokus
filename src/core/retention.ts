@@ -1,6 +1,6 @@
 import type { DaySummary, DomainIndex, Session, SessionItem } from './types';
 import { DOMAIN_ORDER, domainLabel } from './labels';
-import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone, DayStreakStatus } from './streak';
+import { extractPlayedDays, computeDayStreak, calendarDayKey, addCalendarDays, resolveFokusTimeZone, PREFERRED_TIME_ZONE, DayStreakStatus } from './streak';
 
 // Wave AD3: Retention, honest streak, and quiet reminders logic
 
@@ -72,9 +72,19 @@ export const RETENTION_WEIGHTS: Record<RetentionSignalId, number> = {
 const LOOKBACK_DAYS = 14;
 const NEGLECT_DAYS = 8;
 
+/**
+ * Civil YYYY-MM-DD for retention day bucketing in Fokus TZ (Europe/Moscow).
+ * Date-only / leading civil keys stay as stored; Date and full ISO timestamps
+ * use calendarDayKey so near-midnight UTC does not drift from product day.
+ */
 export function isoDay(value: Date | string): string {
-  if (typeof value === 'string') return value.slice(0, 10);
-  return value.toISOString().slice(0, 10);
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    // Plain YYYY-MM-DD (summary.date civil keys) — keep as stored product day.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  }
+  const zone = resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  return calendarDayKey(value, zone);
 }
 
 export function daysBetween(fromDay: string, toDay: string): number {
@@ -643,8 +653,7 @@ function earliestDay(summaries: DaySummary[], sessions: Session[]): string | nul
 }
 
 function addDays(day: string, delta: number): string {
-  const ms = Date.parse(`${isoDay(day)}T00:00:00Z`) + delta * 86_400_000;
-  return new Date(ms).toISOString().slice(0, 10);
+  return addCalendarDays(isoDay(day), delta);
 }
 
 function meanAccuracy(items: SessionItem[]): number | null {

@@ -68,8 +68,12 @@ function base(over: Partial<RetentionInput> = {}): RetentionInput {
 const SPAM = /прокачай мозг|нейрофитнес|не пропусти|brain training|you're on fire|возраст мозга|\biq\b|не ломай серию|last chance/i;
 
 describe('iso helpers', () => {
-  test('isoDay and daysBetween are UTC-calendar stable', () => {
-    expect(isoDay('2026-09-08T22:10:00Z')).toBe('2026-09-08');
+  test('isoDay and daysBetween are Moscow-civil-day stable', () => {
+    // 2026-09-08 22:10 UTC = 2026-09-09 01:10 Europe/Moscow
+    expect(isoDay('2026-09-08T22:10:00Z')).toBe('2026-09-09');
+    expect(isoDay(new Date('2026-09-08T22:10:00Z'))).toBe('2026-09-09');
+    // Date-only civil keys stay as stored (summary.date).
+    expect(isoDay('2026-09-08')).toBe('2026-09-08');
     expect(daysBetween('2026-09-08', '2026-09-11')).toBe(3);
   });
 
@@ -135,7 +139,7 @@ describe('assessRetention — adherence', () => {
 
 describe('assessRetention — streak fragility', () => {
   test('long unplayed streak in the evening is fragile', () => {
-    const evening = new Date(2026, 8, 11, 21, 0, 0);
+    const evening = new Date('2026-09-11T18:00:00.000Z'); // 21:00 Europe/Moscow
     const snap = assessRetention(base({
       now: evening,
       daySummaries: [day('2026-09-10T10:00:00Z', 110, { streak: 12 })],
@@ -164,7 +168,7 @@ describe('assessRetention — streak fragility', () => {
   });
 
   test('optional shieldCharges lowers fragility after a forgiven skip', () => {
-    const evening = new Date(2026, 8, 11, 21, 0, 0);
+    const evening = new Date('2026-09-11T18:00:00.000Z'); // 21:00 Europe/Moscow
     const input = {
       now: evening,
       daySummaries: [day('2026-09-10T10:00:00Z', 100, { streak: 9, skipped: true })],
