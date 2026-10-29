@@ -68,7 +68,7 @@ describe('session start countdown a11y', () => {
   });
 
   test('announcement copy', () => {
-    expect(COUNTDOWN_START_ANNOUNCEMENT).toBe('Старт через 3 секунды');
+    expect(COUNTDOWN_START_ANNOUNCEMENT).toBe('Сейчас начнём');
     expect(COUNTDOWN_GO_ANNOUNCEMENT).toBe('Начали');
   });
 });

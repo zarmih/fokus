@@ -13,6 +13,10 @@ import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
 import { safeError } from './core/log';
 import { renderOfflineBanner } from './ui/components/offline-banner';
+import { errorScreenHtml } from './ui/components/accessible-markup';
+
+const INIT_ERROR_MESSAGE = 'Не удалось прочитать локальные данные. Они остаются на этом устройстве и никуда не отправлялись.';
+const NAV_ERROR_MESSAGE = 'Экран не открылся. Данные на устройстве не менялись.';
 
 initInstallPrompt();
 import('./core/progress-sync').then(({ installProgressSyncBridge }) => installProgressSyncBridge()).catch(() => {});
@@ -36,10 +40,7 @@ const screenLoaders: Record<string, () => Promise<ScreenFn>> = {
 
 function showFatal(app: HTMLElement, title: string, err: unknown) {
   const message = err && typeof err === 'object' && 'message' in err ? String((err as Error).message) : String(err);
-  app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
-    <h3>${title}</h3>
-    <p>${message}</p>
-  </div>`;
+  app.innerHTML = errorScreenHtml(title, message);
   safeError('fatal', err);
 }
 
@@ -96,10 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
       renderToday(app);
     }
   } catch (e: unknown) {
-    app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
-      <h3>Ошибка инициализации</h3>
-      <p>Не удалось прочитать локальные данные. Они остаются на этом устройстве и никуда не отправлялись.</p>
-    </div>`;
+    app.innerHTML = errorScreenHtml('Ошибка инициализации', INIT_ERROR_MESSAGE);
     safeError('init failed', e);
   }
 });
@@ -123,17 +121,11 @@ window.addEventListener('navigate', (e: any) => {
       })
       .catch((err) => {
         app.removeAttribute('aria-busy');
-        app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
-          <h3>Ошибка навигации</h3>
-          <p>Экран не открылся. Данные на устройстве не менялись.</p>
-        </div>`;
+        app.innerHTML = errorScreenHtml('Ошибка навигации', NAV_ERROR_MESSAGE);
         safeError('navigate failed', err);
       });
   } catch (err: unknown) {
-    app.innerHTML = `<div style="padding: 20px; color: #f44336; text-align: center;">
-      <h3>Ошибка навигации</h3>
-      <p>Экран не открылся. Данные на устройстве не менялись.</p>
-    </div>`;
+    app.innerHTML = errorScreenHtml('Ошибка навигации', NAV_ERROR_MESSAGE);
     safeError('navigate failed', err);
   }
 });
