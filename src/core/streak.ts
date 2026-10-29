@@ -1,20 +1,18 @@
 /**
- * G8 session-write helper (unchanged): one calendar skip still increments the
- * stored DaySummary.streak. G11 honest UI does **not** use this number —
- * see computeDayStreak() and HABIT_STREAK_G11.md.
+ * G8 session-write helper: advance DaySummary.streak across Fokus civil days
+ * (Europe/Moscow via calendarDayKey / addCalendarDays). Do not use local
+ * Date#setHours midnight math — ISO session timestamps cross UTC midnight
+ * while still consecutive in Moscow.
+ * G11 honest UI does **not** use this number — see computeDayStreak() and
+ * HABIT_STREAK_G11.md.
  */
 export function nextStreak(prevDateStr: string | null, prevStreak: number, todayDateStr: string): {streak: number, skipped: boolean} {
   if (!prevDateStr) return {streak: 1, skipped: false};
-  const prevDate = new Date(prevDateStr);
-  const todayDate = new Date(todayDateStr);
-  prevDate.setHours(0,0,0,0);
-  todayDate.setHours(0,0,0,0);
-  
-  const diffTime = todayDate.getTime() - prevDate.getTime();
-  const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-
-  if (diffDays === 0) return {streak: prevStreak, skipped: false};
-  if (diffDays === 1) return {streak: prevStreak + 1, skipped: false};
+  const { timeZone } = resolveFokusTimeZone();
+  const prev = calendarDayKey(prevDateStr, timeZone);
+  const today = calendarDayKey(todayDateStr, timeZone);
+  if (today === prev) return {streak: prevStreak, skipped: false};
+  if (today === addCalendarDays(prev, 1)) return {streak: prevStreak + 1, skipped: false};
   return {streak: 1, skipped: false};
 }
 
