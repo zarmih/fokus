@@ -5,6 +5,7 @@ import { t } from '../core/i18n';
 import { focusMain, setScreenTitle } from './a11y';
 import { streakAriaLabel } from './components/habit-continuity';
 import { syncQueue, type SyncStatus } from '../core/offline-sync';
+import { listenForPwaUpdate } from './components/pwa-update-banner';
 
 const OFFLINE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7L12 21.5 23.64 7zM12 4.5c4.7 0 8.35 2.22 9.53 3.03L12 19 2.47 7.53C3.65 6.72 7.3 4.5 12 4.5z"/></svg>';
 const LOCAL_SAVE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>';
@@ -51,33 +52,7 @@ export function syncIndicatorView(status: SyncStatus): SyncIndicatorView {
   return hidden;
 }
 
-let updateBannerAdded = false;
-if (typeof window !== 'undefined') {
-  window.addEventListener('pwa-update-available', () => {
-    if (updateBannerAdded) return;
-    updateBannerAdded = true;
-    const app = document.getElementById('app');
-    if (!app) return;
-    const banner = document.createElement('div');
-    banner.className = 'surface pwa-update-banner fx-enter';
-    banner.style.cssText = 'position: fixed; bottom: 80px; left: 16px; right: 16px; z-index: 100; border-left: 4px solid var(--accent); box-shadow: 0 8px 32px rgba(0,0,0,0.4); display: flex; flex-direction: column; gap: 8px;';
-    banner.innerHTML = `
-      <div style="font-weight: 600;">Доступна новая версия</div>
-      <div style="font-size: 13px; color: var(--muted);">Обновите Fokus, чтобы получить последние улучшения.</div>
-      <div style="display: flex; gap: 8px; margin-top: 4px;">
-        <button class="btn-primary" type="button" style="flex: 1;" id="btn-pwa-update">Обновить сейчас</button>
-        <button class="btn-secondary" type="button" style="flex: 1;" id="btn-pwa-dismiss">Позже</button>
-      </div>
-    `;
-    banner.querySelector('#btn-pwa-update')?.addEventListener('click', () => {
-      window.location.reload();
-    });
-    banner.querySelector('#btn-pwa-dismiss')?.addEventListener('click', () => {
-      banner.remove();
-    });
-    app.appendChild(banner);
-  });
-}
+listenForPwaUpdate();
 
 export function renderShell(container: HTMLElement, params: {active: 'today' | 'program' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
   const snap = loadContinuitySnapshot(storage);
