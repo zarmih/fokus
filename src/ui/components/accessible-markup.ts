@@ -30,7 +30,7 @@ export function questProgressValueText(progress: number, target: number): string
 export function questProgressBarHtml(q: { title: string; progress: number; target: number }, pct: number): string {
   const label = escapeHtml(`Прогресс задания: ${q.title}`);
   const valueText = escapeHtml(questProgressValueText(q.progress, q.target));
-  return `<div class="scale-track quest-track" style="height: 6px; border-radius: 3px; background: rgba(255,255,255,0.1); overflow: hidden;" role="progressbar" aria-label="${label}" aria-valuenow="${q.progress}" aria-valuemin="0" aria-valuemax="${q.target}" aria-valuetext="${valueText}"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; height: 100%; width: ${pct}%; background: var(--accent); transition: width 0.3s ease;"></div></div>`;
+  return `<div class="scale-track quest-track" style="height: 6px; border-radius: 3px; background: var(--track); overflow: hidden;" role="progressbar" aria-label="${label}" aria-valuenow="${q.progress}" aria-valuemin="0" aria-valuemax="${q.target}" aria-valuetext="${valueText}"><div class="scale-fill ritual-fill" style="--fill: ${pct}%; height: 100%; width: ${pct}%; background: var(--accent); transition: width 0.3s ease;"></div></div>`;
 }
 
 /** Program header trend chip: a labelled image-like badge, theme text colour (works on dark and light). */

@@ -21,6 +21,8 @@
   --ok: var(--ql-ok);
   --ok-rgb: var(--ql-ok-rgb);
   --danger-rgb: var(--ql-danger-rgb);
+  /* Neutral progress track: text-tinted so it stays visible on dark and light backgrounds. */
+  --track: color-mix(in srgb, var(--text) 16%, transparent);
   --shadow-rgb: var(--ql-shadow-rgb);
 
   --dom-attention: var(--ql-dom-attention);
@@ -2694,6 +2696,34 @@ html[data-motion="reduce"] .play-stage.fx-ok {
 }
 html[data-motion="reduce"] .press-physics,
 html[data-motion="reduce"] .trainer-card { transition-duration: 0ms; }
+
+/* Reduced-motion pass: remaining entrance/feedback animations and the CTA shine.
+   Honors the app setting (html[data-motion="reduce"] / :root.reduce-motion, set by
+   applyMotionPreference) and the OS preference. Entrance tiles fall back to their
+   resting (fully visible) state; the infinite CTA shine is hidden. */
+html[data-motion="reduce"] .btn-pulse::after,
+:root.reduce-motion .btn-pulse::after { animation: none !important; display: none; }
+html[data-motion="reduce"] .stroop-btn,
+html[data-motion="reduce"] .num-chip,
+html[data-motion="reduce"] .glyph-3d,
+html[data-motion="reduce"] .posner-dot,
+html[data-motion="reduce"] .swings-hero.is-jump,
+html[data-motion="reduce"] .swings-hero.is-reset,
+:root.reduce-motion .stroop-btn,
+:root.reduce-motion .num-chip,
+:root.reduce-motion .glyph-3d,
+:root.reduce-motion .posner-dot,
+:root.reduce-motion .swings-hero.is-jump,
+:root.reduce-motion .swings-hero.is-reset { animation: none !important; opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .btn-pulse::after { animation: none !important; display: none; }
+  .stroop-btn,
+  .num-chip,
+  .glyph-3d,
+  .posner-dot,
+  .swings-hero.is-jump,
+  .swings-hero.is-reset { animation: none !important; opacity: 1; }
+}
 
 
 .privacy-copy {
