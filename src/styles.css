@@ -2372,22 +2372,6 @@ html[data-motion="reduce"] .art-anim-slow {
   white-space: nowrap;
   border: 0;
 }
-.skip-link {
-  position: absolute;
-  left: 12px;
-  top: 8px;
-  z-index: 200;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--accent);
-  color: var(--btn-text);
-  font-weight: 700;
-  text-decoration: none;
-  transform: translateY(-120%);
-}
-.skip-link:focus {
-  transform: translateY(0);
-}
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
