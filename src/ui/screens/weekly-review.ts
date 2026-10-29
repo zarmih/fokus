@@ -19,8 +19,9 @@ import {
 } from '../../core/streak';
 
 export function ruDay(iso: string): string {
-  const dayKey = iso.slice(0, 10);
+  // Full ISO instants → Europe/Moscow civil day; YYYY-MM-DD keys pass through.
   const zone = resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  const dayKey = calendarDayKey(iso, zone);
   return new Intl.DateTimeFormat('ru-RU', {
     day: 'numeric',
     month: 'short',

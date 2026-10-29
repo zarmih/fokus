@@ -31,8 +31,20 @@ test('weeklyReviewMoscowWindow: afternoon UTC same Moscow calendar day', () => {
 });
 
 
-test('ruDay uses Europe/Moscow timeZone for civil day labels', () => {
-  const label = ruDay('2026-10-29T21:30:00.000Z');
-  expect(label).toMatch(/29/);
-  expect(label.toLowerCase()).toMatch(/окт/);
+test('ruDay uses Europe/Moscow civil day for full ISO instants', () => {
+  // 21:30 UTC = 00:30 MSK next day
+  const after = ruDay('2026-10-29T21:30:00.000Z');
+  expect(after).toMatch(/\b30\b/);
+  expect(after.toLowerCase()).toMatch(/окт/);
+  // 20:59 UTC = 23:59 MSK same day
+  const before = ruDay('2026-10-29T20:59:00.000Z');
+  expect(before).toMatch(/\b29\b/);
+  expect(before.toLowerCase()).toMatch(/окт/);
+  // exactly 00:00 MSK
+  expect(ruDay('2026-10-29T21:00:00.000Z')).toMatch(/\b30\b/);
+});
+
+test('ruDay keeps YYYY-MM-DD civil keys unchanged', () => {
+  expect(ruDay('2026-10-29')).toMatch(/\b29\b/);
+  expect(ruDay('2026-10-01')).toMatch(/^1\s/);
 });
