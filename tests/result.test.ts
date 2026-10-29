@@ -1,6 +1,7 @@
 import { expect, test, beforeEach, vi } from 'vitest';
 import { renderResult } from '../src/ui/screens/result';
 import { storage } from '../src/core/storage';
+import { calendarDayKey, resolveFokusTimeZone } from '../src/core/streak';
 import { registry } from '../src/exercises/registry';
 import type { Session, SessionItem } from '../src/core/types';
 
@@ -262,7 +263,7 @@ test('renderResult - First week continuity message', () => {
   const p = storage.getProfile();
   p.onboarded = true;
   p.firstWeekPlan = {
-    startDate: new Date().toISOString().slice(0, 10),
+    startDate: calendarDayKey(new Date(), resolveFokusTimeZone().timeZone),
     targetSessionSec: 300,
     primaryGoal: 'balance',
     skipPolicy: 'one-forgiven',

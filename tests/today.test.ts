@@ -64,7 +64,7 @@ test('today shows first-week strip and transfer framing after probe', () => {
   p.calibrated = true;
   p.primaryGoal = 'memory';
   p.firstWeekPlan = {
-    startDate: new Date().toISOString().slice(0, 10),
+    startDate: calendarDayKey(new Date(), resolveFokusTimeZone().timeZone),
     targetSessionSec: 480,
     primaryGoal: 'memory',
     skipPolicy: 'one-forgiven',
