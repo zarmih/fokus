@@ -80,8 +80,14 @@ const ACC_DIP = 0.08;
 const DOMAIN_GAP = 50;
 const MIN_WEEK_SESSIONS_FOR_FOCUS = 2;
 
-export function dayKey(iso: string): string {
-  return iso.slice(0, 10);
+/**
+ * Civil YYYY-MM-DD in the Fokus zone (Europe/Moscow) for an ISO instant.
+ * Plain date-only keys pass through. Avoids UTC `iso.slice(0, 10)` drift
+ * between 00:00 and 03:00 Moscow time.
+ */
+export function dayKey(iso: string, timeZone?: string): string {
+  const zone = timeZone || resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  return calendarDayKey(iso, zone);
 }
 
 /** Civil YYYY-MM-DD for `now` in the Fokus product zone (Europe/Moscow). */
