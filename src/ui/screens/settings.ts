@@ -23,6 +23,10 @@ import {
 } from '../../core/privacy';
 import { qrChunksFromBackup, qrSvg, assembleQrChunks } from '../../core/device-transfer';
 import { parseBackup } from '../../core/offline-sync';
+import {
+  settingsNormsHelpRu,
+  settingsNormsHelpTitleRu
+} from '../../core/local-norms';
 
 function privacyPanelHtml(report: InventoryReport): string {
   const rows = report.items.map((item) => {
@@ -295,6 +299,10 @@ export function renderSettings(container: HTMLElement) {
 
     <section aria-labelledby="section-privacy">
       <h3 id="section-privacy" style="font-size: 20px; margin-bottom: 16px; color: var(--fg); font-weight: 600;">Приватность</h3>
+      <div class="surface settings-norms-help" data-settings-norms-help="1" role="region" aria-labelledby="norms-help-heading" style="margin-bottom: 16px;">
+        <h4 id="norms-help-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">${settingsNormsHelpTitleRu()}</h4>
+        <p class="privacy-copy" style="font-size: 13px; line-height: 1.45; margin: 0;">${settingsNormsHelpRu()}</p>
+      </div>
       ${privacyPanelHtml(storage.inventory())}
     </section>
     
