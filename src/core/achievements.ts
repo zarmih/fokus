@@ -1,5 +1,18 @@
 import { storage } from './storage';
-import { fokusWallHour } from './streak';
+import { fokusWallHour, calendarDayKey, daysBetween, resolveFokusTimeZone } from './streak';
+
+/** First-week plan is complete after 7 Europe/Moscow calendar days, not 7×24h from a UTC instant. */
+export function firstWeekPlanComplete(
+  startDate: string | undefined | null,
+  now: Date = new Date(),
+  timeZone?: string
+): boolean {
+  if (!startDate) return false;
+  const tz = timeZone ?? resolveFokusTimeZone().timeZone;
+  const startKey = calendarDayKey(startDate, tz);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(startKey)) return false;
+  return daysBetween(startKey, calendarDayKey(now, tz)) >= 7;
+}
 
 export interface Achievement {
   id: string;
@@ -105,7 +118,7 @@ export function getAchievementsState(): AchievementState[] {
         case 'return_hero': progress = returnedStatus ? 1 : 0; break;
         case 'phoenix': progress = returnedFromLongPause ? 1 : 0; break;
         case 'first_week_complete': 
-          progress = (profile.firstWeekPlan && Date.now() - Date.parse(profile.firstWeekPlan.startDate) >= 7 * 86400000) ? 1 : 0;
+          progress = firstWeekPlanComplete(profile.firstWeekPlan?.startDate) ? 1 : 0;
           break;
       }
     }
@@ -184,11 +197,8 @@ export function checkAchievements(): string[] {
     if (ds.status === 'returned' && ds.daysSinceLastPlay !== null && ds.daysSinceLastPlay >= 7) unlock('phoenix');
   });
 
-  if (profile.firstWeekPlan) {
-    const daysSinceStart = (Date.now() - Date.parse(profile.firstWeekPlan.startDate)) / 86400000;
-    if (daysSinceStart >= 7) {
-      unlock('first_week_complete');
-    }
+  if (firstWeekPlanComplete(profile.firstWeekPlan?.startDate)) {
+    unlock('first_week_complete');
   }
 
   if (newly.length > 0) {
