@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const shapeEquationManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const shapeEquationManifest: ExerciseManifest = {
 };
 
 export function getShapeEquationParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return shapeEquationManifest.levels![lvl as keyof typeof shapeEquationManifest.levels];
+  const levels = shapeEquationManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }

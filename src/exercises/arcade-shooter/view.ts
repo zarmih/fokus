@@ -1,6 +1,7 @@
 import { manifest } from './manifest';
 import type { BlockResult } from '../contract';
 import { mountStage } from '../stage';
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 
 export function renderArcadeShooter(
   container: HTMLElement,
@@ -29,7 +30,7 @@ export function renderArcadeShooter(
   window.addEventListener('resize', resize);
   resize();
 
-  const levelIdx = Math.min(Math.floor(difficulty), manifest.levels.length - 1);
+  const levelIdx = resolveLevelIndex(difficulty, manifest.levels.length);
   const cfg = manifest.levels[levelIdx];
   const state = {
     shipX: width / 2,

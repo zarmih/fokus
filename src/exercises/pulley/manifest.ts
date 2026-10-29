@@ -1,3 +1,5 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
+
 export const pulleyManifest = {
   id: 'pulley',
   name: 'Шкив',
@@ -32,9 +34,9 @@ export const LEVELS = [
 
 export function getPulleyParams(level: number) {
   // Session difficulty is fractional (e.g. 1.4); index LEVELS by an integer level.
-  const l = Math.min(LEVELS.length, Math.max(1, Math.floor(Number(level) || 1)));
-  const data = LEVELS[l - 1];
-  const deadlineMs = Math.max(15000, 35000 - (l - 1) * 800);
+  const idx = resolveLevelIndex(level, LEVELS.length);
+  const data = LEVELS[idx];
+  const deadlineMs = Math.max(15000, 35000 - idx * 800);
   return { doors: 4, pool: [...data.pool], need: [...data.need], deadlineMs, targetMs: deadlineMs * 0.7 };
 }
 

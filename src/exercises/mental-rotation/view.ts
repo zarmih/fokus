@@ -1,6 +1,7 @@
 import { MentalRotationEngine } from './engine';
 import { mentalRotationManifest } from './manifest';
 import { mountStage } from '../stage';
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 
 function fLetter() {
   return `<div class="f3d">
@@ -16,7 +17,9 @@ export function renderMentalRotation(
   onBlockEnd: (result: {accuracy: number, avgRtMs: number, rounds: number}) => void,
   isTimeUp: () => boolean
 ) {
-  const cfg = mentalRotationManifest.levels?.[Math.max(1, Math.floor(Number(level) || 1)) as keyof typeof mentalRotationManifest.levels] ?? { trials: 20, maxAngle: 270 }; // session difficulty is fractional
+  const levels = mentalRotationManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  const cfg = levels[lvl as keyof typeof levels] ?? { trials: 20, maxAngle: 270 };
   const engine = new MentalRotationEngine(cfg.trials, cfg.maxAngle);
   const stage = mountStage(container, 'flexibility');
   stage.setStatus('Это та же фигура?');

@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const stroopManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const stroopManifest: ExerciseManifest = {
 };
 
 export function getStroopParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return stroopManifest.levels![lvl as keyof typeof stroopManifest.levels];
+  const levels = stroopManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }

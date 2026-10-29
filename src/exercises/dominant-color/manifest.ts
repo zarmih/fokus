@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const dominantColorManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const dominantColorManifest: ExerciseManifest = {
 };
 
 export function getDominantColorParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return dominantColorManifest.levels![lvl as keyof typeof dominantColorManifest.levels];
+  const levels = dominantColorManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }

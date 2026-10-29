@@ -1,3 +1,4 @@
+import { resolveLevelIndex } from '../../core/resolve-level-index';
 import type { ExerciseManifest } from '../types';
 
 export const sequenceManifest: ExerciseManifest = {
@@ -32,6 +33,7 @@ export const sequenceManifest: ExerciseManifest = {
 };
 
 export function getSequenceParams(level: number) {
-  const lvl = Math.max(1, Math.min(20, Math.floor(level)));
-  return sequenceManifest.levels![lvl as keyof typeof sequenceManifest.levels];
+  const levels = sequenceManifest.levels!;
+  const lvl = resolveLevelIndex(level, Object.keys(levels).length) + 1;
+  return levels[lvl as keyof typeof levels];
 }
