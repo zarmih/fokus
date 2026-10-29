@@ -12,6 +12,12 @@ import {
   type TransferDomain,
   type TransferTip
 } from './transfer';
+import {
+  addCalendarDays,
+  calendarDayKey,
+  PREFERRED_TIME_ZONE,
+  resolveFokusTimeZone
+} from './streak';
 
 export type InsightKind =
   | 'session_accuracy'
@@ -78,16 +84,24 @@ export function dayKey(iso: string): string {
   return iso.slice(0, 10);
 }
 
+/** Civil YYYY-MM-DD for `now` in the Fokus product zone (Europe/Moscow). */
+function moscowDayKey(now: Date): string {
+  const zone = resolveFokusTimeZone().timeZone || PREFERRED_TIME_ZONE;
+  return calendarDayKey(now, zone);
+}
+
+/**
+ * Calendar day key `days` before `now` in Europe/Moscow (not UTC).
+ * Near Moscow midnight, UTC setUTCDate/toISOString would shift the window.
+ */
 export function daysAgoKey(now: Date, days: number): string {
-  const d = new Date(now.getTime());
-  d.setUTCDate(d.getUTCDate() - days);
-  return d.toISOString().slice(0, 10);
+  return addCalendarDays(moscowDayKey(now), -days);
 }
 
 export function inLastDays(iso: string, now: Date, days: number): boolean {
   const key = dayKey(iso);
+  const to = moscowDayKey(now);
   const from = daysAgoKey(now, days);
-  const to = now.toISOString().slice(0, 10);
   return key >= from && key <= to;
 }
 
