@@ -24,12 +24,13 @@ import { checkAchievements } from '../../core/achievements';
 import type { ProbeOutcome } from '../../core/calibration';
 import type { SessionItem } from '../../core/types';
 import { announce, bindDialog, setScreenTitle, focusMain, prefersReducedMotion } from '../a11y';
-import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
+import { currentModel, difficultyFor, markEngineCalibrated, planForNow, recordEngineObservation } from '../../core/adaptive-plan';
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
 import { modeFor, setExerciseMode } from '../../exercises/lib/exercise-mode';
-import { blockBudgetSec, interruptAbortsBlock, isScorableBlock, needsTrial, shouldTick, TRIAL_SEC } from '../../core/session-timing';
+import { blockBudgetSec, hasPlayedExercise, interruptAbortsBlock, isScorableBlock, needsTrial, shouldTick, TRIAL_SEC } from '../../core/session-timing';
+import { getSpacing } from '../../core/engine/scheduler';
 
 export const COUNTDOWN_START_ANNOUNCEMENT = 'Сейчас начнём';
 export const COUNTDOWN_GO_ANNOUNCEMENT = 'Начали';
@@ -91,7 +92,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     setScreenTitle(manifest.name);
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
     const blockMode = modeFor(item.exerciseId, storage.getProfile().accessibleMode);
-    trialActive = needsTrial({ mode, hasState: !!state, alreadyTried: triedIds.has(item.exerciseId) });
+    const playedBefore = mode === 'normal' || mode === 'practice'
+      ? hasPlayedExercise(item.exerciseId, getSpacing(currentModel(), item.exerciseId).repetitions, storage.getSessions())
+      : true;
+    trialActive = needsTrial({ mode, playedBefore, alreadyTried: triedIds.has(item.exerciseId) });
     if (trialActive) blockTimeLeft = Math.min(blockTimeLeft, TRIAL_SEC);
     const afterTrial = justTried;
     justTried = false;

@@ -59,8 +59,22 @@ export function isScorableBlock(res: RawBlockResult | null | undefined): boolean
 /** Unscored practice before the first ever scored block of an exercise (core program, step 4). */
 export const TRIAL_SEC = 15;
 
-/** A trial runs once per exercise: in normal/practice sessions, when there is no saved state yet. */
-export function needsTrial(params: { mode: string; hasState: boolean; alreadyTried: boolean }): boolean {
+/**
+ * A trial runs once per exercise in normal/practice sessions, until the person has actually played it.
+ * "Played" means a real block (an engine observation from calibration or a stored session), not a
+ * difficulty state seeded for the whole catalog after calibration.
+ */
+export function needsTrial(params: { mode: string; playedBefore: boolean; alreadyTried: boolean }): boolean {
   if (params.mode !== 'normal' && params.mode !== 'practice') return false;
-  return !params.hasState && !params.alreadyTried;
+  return !params.playedBefore && !params.alreadyTried;
+}
+
+/** Whether this exercise was ever really played: engine spacing (incl. calibration probes) or a stored session. */
+export function hasPlayedExercise(
+  exerciseId: string,
+  spacingRepetitions: number,
+  sessions: { items?: { exerciseId: string }[] }[]
+): boolean {
+  if (spacingRepetitions > 0) return true;
+  return sessions.some((s) => (s.items || []).some((i) => i.exerciseId === exerciseId));
 }
