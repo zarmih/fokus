@@ -162,6 +162,8 @@ export interface Session {
   interrupted?: boolean;
   endReason?: SessionEndReason;
   plannedDurationSec?: number;
+  /** Blocks aborted by pause / hidden tab and replayed; they were never scored. */
+  abortedBlocks?: number;
 }
 export interface HistoryItem {
   date: string;
