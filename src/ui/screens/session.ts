@@ -28,7 +28,8 @@ import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservatio
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
-import { blockBudgetSec, interruptAbortsBlock, isScorableBlock, shouldTick } from '../../core/session-timing';
+import { modeFor, setExerciseMode } from '../../exercises/lib/exercise-mode';
+import { blockBudgetSec, interruptAbortsBlock, isScorableBlock, needsTrial, shouldTick, TRIAL_SEC } from '../../core/session-timing';
 
 export const COUNTDOWN_START_ANNOUNCEMENT = 'Сейчас начнём';
 export const COUNTDOWN_GO_ANNOUNCEMENT = 'Начали';
@@ -53,6 +54,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let abortedBlocks = 0;
   /** Resume after an interrupted block replays the same item (no re-planning). */
   let replaySameItem = false;
+  // Short unscored trial before the first scored block of an exercise.
+  const triedIds = new Set<string>();
+  let trialActive = false;
+  let justTried = false;
 
   const content = renderShell(container, { active: 'today', hideNav: true });
 
@@ -85,6 +90,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     const loadPromise = loadExercise(item.exerciseId);
     setScreenTitle(manifest.name);
     let state = storage.getExerciseStates().find(s => s.exerciseId === item.exerciseId);
+    const blockMode = modeFor(item.exerciseId, storage.getProfile().accessibleMode);
+    trialActive = needsTrial({ mode, hasState: !!state, alreadyTried: triedIds.has(item.exerciseId) });
+    if (trialActive) blockTimeLeft = Math.min(blockTimeLeft, TRIAL_SEC);
+    const afterTrial = justTried;
+    justTried = false;
     if (!state) state = { exerciseId: item.exerciseId, level: isProbe ? 3 : 1, difficulty: isProbe ? 3.0 : 1.0, performance: 0, lastPlayedAt: new Date().toISOString(), lastAccuracy: 0 };
 
     const irtPick = !isProbe
@@ -130,8 +140,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <p>${manifest.instruction}</p>
         <div class="instruction-meta">${contentHints.metaLine}</div>
         <p class="instruction-hint">${contentHints.hintLine}</p>
+        ${blockMode === 'accessible' ? `<p class="instruction-mode" data-mode="accessible">Доступный режим: найдите стрелку с другим наклоном. Результат сравнивается только с блоками в этом режиме.</p>` : ''}
+        ${trialActive ? `<p class="instruction-trial" data-trial="1">Сначала пробный раунд на ${TRIAL_SEC} секунд на лёгком уровне — он не засчитывается.</p>` : ''}
+        ${afterTrial ? `<p class="instruction-trial" data-trial-done="1">Проба завершена. Теперь зачётный блок.</p>` : ''}
       </div>
-      <button id="btn-next" class="btn-primary" type="button">Начать</button>
+      <button id="btn-next" class="btn-primary" type="button">${trialActive ? 'Пробный раунд' : 'Начать'}</button>
       <div id="game-container" class="play-arena"></div>
     `;
 
@@ -224,6 +237,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           const fn = cleanupFn;
           cleanupFn = null;
           if (fn) fn();
+          setExerciseMode('standard');
+          if (trialActive) {
+            // Trial: never scored, never stored; replay the same exercise as the scored block.
+            trialActive = false;
+            triedIds.add(item.exerciseId);
+            justTried = true;
+            announce('Проба завершена. Теперь зачётный блок.');
+            renderCurrent();
+            return;
+          }
           if (!isScorableBlock(res)) {
             // No trial happened (or broken numbers): nothing is recorded, not even a 0 %.
             announce('Блок не засчитан: не было ни одного ответа');
@@ -253,7 +276,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             difficultyBefore: state?.difficulty || 1.0,
             pSuccess: irtPick?.pSuccess,
             rounds: res.rounds,
-            mode: 'standard'
+            mode: blockMode
           };
           
           if (mode === 'normal') {
@@ -372,9 +395,11 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           renderCurrent();
         };
 
-        cleanupFn = exDispatch.render(playHost, state!.difficulty, onBlockEnd, isTimeUp);
+        setExerciseMode(blockMode);
+        cleanupFn = exDispatch.render(playHost, trialActive ? 1 : state!.difficulty, onBlockEnd, isTimeUp);
         // External teardown (back, restart, session end) aborts the block without scoring it.
         currentCleanup = () => {
+          setExerciseMode('standard');
           blockEnded = true;
           const fn = cleanupFn;
           cleanupFn = null;
@@ -680,7 +705,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
 
   timerInterval = setInterval(() => {
     if (!shouldTick(content.dataset.sessionPhase, isPaused, typeof document !== 'undefined' && document.hidden)) return;
-    timeLeft--;
+    if (!trialActive) timeLeft--; // the trial does not spend the session budget
     blockTimeLeft--;
     const t = document.getElementById('session-timer');
     if (t) {

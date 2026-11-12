@@ -417,7 +417,7 @@ export function renderProgress(container: HTMLElement) {
     .slice(0, 8);
   const trendRows = trends.map(({ t, name }) => {
     const hint = t.verdict === 'insufficient' ? `ещё ${t.needMore} ${t.needMore === 1 ? 'блок' : t.needMore < 5 ? 'блока' : 'блоков'} для сравнения` : `${t.observations} сопоставимых блоков`;
-    return `<div class="trend-row" data-trend="${t.verdict}" style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line);"><span>${name}</span><span style="color: var(--muted); text-align: right;">${t.label} · ${hint}</span></div>`;
+    return `<div class="trend-row" data-trend="${t.verdict}" style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line);"><span>${name}${t.mode === 'accessible' ? ' <small data-mode="accessible">(доступный режим)</small>' : ''}</span><span style="color: var(--muted); text-align: right;">${t.label} · ${hint}</span></div>`;
   }).join('');
   const personalTrendHtml = `
     <section class="surface personal-trends" aria-labelledby="pt-title" style="margin: 16px 0; padding: 16px; border-radius: 12px;">

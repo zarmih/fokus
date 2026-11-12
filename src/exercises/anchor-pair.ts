@@ -26,8 +26,7 @@ const anchorPairModule: ExerciseModule = {
     let right = '';
     let probe = '';
     let correctSide: 'L' | 'R' = 'L';
-    let showMs = Math.max(450, 1100 - level * 40);
-    let blankMs = Math.min(900, 400 + level * 25);
+    let { showMs, blankMs } = anchorPairParams(level);
     let startRt = 0;
     let timers: number[] = [];
 
@@ -90,8 +89,7 @@ const anchorPairModule: ExerciseModule = {
       }
       clearTimers();
       rounds++;
-      showMs = Math.max(420, 1100 - level * 40);
-      blankMs = Math.min(1000, 380 + level * 28);
+      ({ showMs, blankMs } = anchorPairParams(level));
       pickPair();
       setEnabled(false);
       probeEl.textContent = '';
@@ -160,3 +158,8 @@ const anchorPairModule: ExerciseModule = {
 };
 
 export default anchorPairModule;
+
+/** Level → exposure (shorter = harder) and retention gap (longer = harder). One formula for every round. */
+export function anchorPairParams(level: number): { showMs: number; blankMs: number } {
+  return { showMs: Math.max(420, 1100 - level * 40), blankMs: Math.min(1000, 380 + level * 28) };
+}

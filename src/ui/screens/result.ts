@@ -90,7 +90,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
           <div class="result-ex">${ex?.name}</div>
           <div class="result-score">+${Math.round(item.score)}</div>
         </div>
-        <div class="result-sub">Точность ${accPct}% · Форма ${p}</div>
+        <div class="result-sub">Точность ${accPct}% · Форма ${p}${item.mode === 'accessible' ? ' · <span class="mode-tag" data-mode="accessible">доступный режим</span>' : ''}</div>
         <div class="result-grid">
           <div class="result-cell">
             <div class="muted">Мастерство</div>

@@ -33,8 +33,7 @@ const tideGateModule: ExerciseModule = {
     };
     let startTime = 0;
     let gateTop = 0.42;
-    let gateH = Math.max(0.08, 0.16 - level * 0.004);
-    let speed = 0.00035 + level * 0.00004;
+    let { gateH, speed } = tideGateParams(level);
     let y = 1.05;
     let phase: 'wait' | 'run' | 'feedback' = 'wait';
     let answered = false;
@@ -100,8 +99,7 @@ const tideGateModule: ExerciseModule = {
       phase = 'run';
       y = 1.05;
       gateTop = 0.28 + Math.random() * 0.3;
-      gateH = Math.max(0.07, 0.15 - level * 0.004);
-      speed = 0.00032 + level * 0.000045 + Math.random() * 0.00008;
+      ({ gateH, speed } = tideGateParams(level, Math.random()));
       layoutGate();
       placeMark();
       status.textContent = 'Ждите полосу ворот…';
@@ -187,3 +185,8 @@ const tideGateModule: ExerciseModule = {
 };
 
 export default tideGateModule;
+
+/** Level → gate height (smaller = harder) and speed (faster = harder). One formula for every round. */
+export function tideGateParams(level: number, jitter = 0): { gateH: number; speed: number } {
+  return { gateH: Math.max(0.07, 0.15 - level * 0.004), speed: 0.00032 + level * 0.000045 + jitter * 0.00008 };
+}

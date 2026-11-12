@@ -55,3 +55,12 @@ export function isScorableBlock(res: RawBlockResult | null | undefined): boolean
   if (!Number.isFinite(res.avgRtMs) || res.avgRtMs < 0) return false;
   return true;
 }
+
+/** Unscored practice before the first ever scored block of an exercise (core program, step 4). */
+export const TRIAL_SEC = 15;
+
+/** A trial runs once per exercise: in normal/practice sessions, when there is no saved state yet. */
+export function needsTrial(params: { mode: string; hasState: boolean; alreadyTried: boolean }): boolean {
+  if (params.mode !== 'normal' && params.mode !== 'practice') return false;
+  return !params.hasState && !params.alreadyTried;
+}

@@ -32,8 +32,7 @@ const cutBarModule: ExerciseModule = {
     let startTime = 0;
     let fillP = 0;
     let cutP = 0.5;
-    let fillSpeed = 0.0004 + level * 0.00003;
-    let lateWindow = Math.max(0.05, 0.25 - level * 0.008);
+    let { fillSpeed, lateWindow } = cutBarParams(level);
     let phase: 'wait' | 'run' | 'feedback' = 'wait';
     let answered = false;
 
@@ -92,8 +91,7 @@ const cutBarModule: ExerciseModule = {
       phase = 'run';
       fillP = 0;
       cutP = 0.3 + Math.random() * 0.4;
-      fillSpeed = 0.00035 + level * 0.000025 + Math.random() * 0.00005;
-      lateWindow = Math.max(0.05, 0.25 - level * 0.008);
+      ({ fillSpeed, lateWindow } = cutBarParams(level, Math.random()));
       renderPositions();
       status.textContent = 'Ждите прохождения рубежа…';
       startTime = performance.now();
@@ -187,3 +185,8 @@ const cutBarModule: ExerciseModule = {
 };
 
 export default cutBarModule;
+
+/** Level → fill speed (faster = harder) and tolerance window (narrower = harder). One formula for every round. */
+export function cutBarParams(level: number, jitter = 0): { fillSpeed: number; lateWindow: number } {
+  return { fillSpeed: 0.00035 + level * 0.000025 + jitter * 0.00005, lateWindow: Math.max(0.05, 0.25 - level * 0.008) };
+}

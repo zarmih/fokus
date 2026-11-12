@@ -210,6 +210,15 @@ export function renderSettings(container: HTMLElement) {
         </label>
       </div>
 
+      <div class="surface" style="margin-bottom: 16px;">
+        <h4 id="a11y-mode-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Доступный режим</h4>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="accessible-toggle" ${profile.accessibleMode ? 'checked' : ''} />
+          <span>Варианты упражнений без опоры на различение цвета</span>
+        </label>
+        <p style="margin-top: 8px; font-size: 13px; color: var(--muted);">Сейчас есть для «Лишнего»: вместо оттенка — наклон стрелки. Это другая задача, поэтому такие результаты помечаются и сравниваются только между собой.</p>
+      </div>
+
       ${profile.probeSnapshot ? `
       <div class="surface probe-summary">
         <h4 style="margin-bottom: 8px; font-size: 16px; font-weight: 500;">Оценка навыков (Калибровка)</h4>
@@ -472,6 +481,12 @@ export function renderSettings(container: HTMLElement) {
   document.getElementById('lifestyle-toggle')?.addEventListener('change', (e) => {
     const p = storage.getProfile();
     p.skipLifestylePrompt = (e.target as HTMLInputElement).checked;
+    storage.setProfile(p);
+  });
+
+  document.getElementById('accessible-toggle')?.addEventListener('change', (e) => {
+    const p = storage.getProfile();
+    p.accessibleMode = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
   });
 

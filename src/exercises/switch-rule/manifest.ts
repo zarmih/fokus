@@ -22,12 +22,12 @@ export const switchRuleManifest: ExerciseManifest = {
     11: { switchEvery: 4, deadlineMs: 1200, targetMs: 900 },
     12: { switchEvery: 3, deadlineMs: 1200, targetMs: 900 },
     13: { switchEvery: 3, deadlineMs: 1100, targetMs: 800 },
-    14: { switchEvery: 3, deadlineMs: 1100, targetMs: 800 },
+    14: { switchEvery: 3, deadlineMs: 1050, targetMs: 760 },
     15: { switchEvery: 2, deadlineMs: 1100, targetMs: 800 },
     16: { switchEvery: 2, deadlineMs: 1000, targetMs: 700 },
-    17: { switchEvery: 2, deadlineMs: 1000, targetMs: 700 },
+    17: { switchEvery: 2, deadlineMs: 975, targetMs: 680 },
     18: { switchEvery: 2, deadlineMs: 950, targetMs: 650 },
-    19: { switchEvery: 2, deadlineMs: 900, targetMs: 600 },
+    19: { switchEvery: 2, deadlineMs: 925, targetMs: 620 },
     20: { switchEvery: 2, deadlineMs: 900, targetMs: 600 }
   }
 };
