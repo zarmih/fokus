@@ -25,6 +25,9 @@ export class GoNoGoEngine {
 
   getScore() {
     if (this.results.length === 0) return { accuracy: 0, avgRtMs: 0, rounds: 0 };
+    // No press at all: withheld no-go trials are not evidence of inhibition, so the block is
+    // reported with 0 rounds (unscorable) instead of "20–40 % accuracy for doing nothing".
+    if (!this.results.some((r) => r.reacted)) return { accuracy: 0, avgRtMs: 0, rounds: 0 };
     const correct = this.results.filter(r => r.isGo === r.reacted).length;
     const goRts = this.results.filter(r => r.isGo && r.reacted).map(r => r.rt);
     const avgRtMs = goRts.length > 0 ? goRts.reduce((a,b) => a+b, 0) / goRts.length : 1000;

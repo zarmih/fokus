@@ -7,7 +7,7 @@ export const switchRuleManifest: ExerciseManifest = {
   domain: 'flexibility',
   skills: ['rule_switching', 'task_switching', 'cognitive_flexibility'],
   metricModel: 'speed-accuracy',
-  instruction: 'Смотри на подпись. Да или нет. Правило меняется.',
+  instruction: 'Над числами вопрос: «Левое чётное?» или «Левое больше?». Ответьте «Да» или «Нет». Вопрос время от времени меняется — читайте его перед каждым ответом.',
   levels: {
     1: { switchEvery: 8, deadlineMs: 2000, targetMs: 1500 },
     2: { switchEvery: 8, deadlineMs: 1800, targetMs: 1400 },

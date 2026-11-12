@@ -7,7 +7,7 @@ export const oddOneManifest: ExerciseManifest = {
   domain: 'attention',
   skills: ['visual_scanning', 'selective_attention', 'processing_speed'],
   metricModel: 'speed-accuracy',
-  instruction: 'Найди элемент, который отличается от остальных.',
+  instruction: 'Все плитки одного оттенка, кроме одной. Нажмите на плитку, которая отличается по цвету.',
   levels: {
     1: { grid: 3, deltaHue: 60, targetMs: 5000, deadlineMs: 8000 },
     2: { grid: 3, deltaHue: 40, targetMs: 4000, deadlineMs: 7000 },

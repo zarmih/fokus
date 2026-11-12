@@ -6,7 +6,7 @@ export const pulleyManifest = {
   domain: 'logic',
   skills: ['logical_reasoning', 'mental_calculation', 'working_memory'],
   metricModel: 'logic-correctness',
-  instruction: 'Подвесь ровно столько, сколько нужно двери. Лишнее — канат не тянет как надо.'
+  instruction: 'У двери указан нужный вес. Перенесите на крюк один или два груза с пола, чтобы сумма была ровно такой, и нажмите «Идти». Грузы можно вернуть на пол.'
 };
 
 export const LEVELS = [

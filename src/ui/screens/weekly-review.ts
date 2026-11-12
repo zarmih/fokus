@@ -1,4 +1,5 @@
 import { storage } from '../../core/storage';
+import { exerciseIconSrc } from '../exercise-icon';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { renderShell } from '../shell';
 import { navigateTo } from '../router';
@@ -365,7 +366,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
               <div class="wr-next-name">${nextEx.name}</div>
               <div class="wr-next-reason">${nextItem.reason}</div>
             </div>
-            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" alt="Иконка упражнения ${nextEx.name}" width="40" height="40" class="wr-next-icon">
+            <img src="${exerciseIconSrc(nextEx.id, nextEx.domain)}" alt="Иконка упражнения ${nextEx.name}" width="40" height="40" class="wr-next-icon">
           </div>
         </section>
       `;

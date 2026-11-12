@@ -6,7 +6,7 @@ export const goNoGoManifest: ExerciseManifest = {
   domain: 'attention',
   skills: ['inhibition', 'sustained_attention'],
   metricModel: 'speed-accuracy',
-  instruction: 'Нажимайте КРАСНУЮ кнопку, когда видите ЗЕЛЕНЫЙ круг. НИЧЕГО НЕ НАЖИМАЙТЕ, если круг КРАСНЫЙ.',
+  instruction: 'Появился зелёный круг со стрелкой ▶ — нажмите «Жми». Красный квадрат со знаком ✕ — ничего не нажимайте. Без нажатий блок не засчитывается.',
   levels: {
     1: { trials: 15, noGoRatio: 0.2 },
     2: { trials: 20, noGoRatio: 0.3 },

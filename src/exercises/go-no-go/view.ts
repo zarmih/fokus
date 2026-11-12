@@ -14,9 +14,9 @@ export function renderGoNoGo(
   const cfg = levels[lvl as keyof typeof levels] ?? { trials: 30, noGoRatio: 0.4 };
   const engine = new GoNoGoEngine(cfg.trials, cfg.noGoRatio);
   const stage = mountStage(container, 'attention');
-  stage.setStatus('Зелёный — жми, красный — стой');
+  stage.setStatus('▶ — жми, ✕ — стой');
   stage.board.innerHTML = `
-    <div class="go-orb" id="stimulus"></div>
+    <div class="go-orb" id="stimulus" role="img"></div>
     <button id="btn-react" class="btn-primary" style="width:220px;height:64px;font-size:20px;margin:0">ЖМИ</button>
   `;
   const stimulus = stage.board.querySelector('#stimulus') as HTMLElement;
@@ -34,10 +34,15 @@ export function renderGoNoGo(
     }
     isWaiting = true;
     stimulus.className = 'go-orb';
+    stimulus.textContent = '';
+    stimulus.removeAttribute('aria-label');
     btnReact.disabled = true;
     timeoutId = window.setTimeout(() => {
       currentIsGo = engine.nextTrial();
       stimulus.className = `go-orb ${currentIsGo ? 'go' : 'nogo'}`;
+      // Shape + symbol, not colour alone (colour-vision deficiency).
+      stimulus.textContent = currentIsGo ? '▶' : '✕';
+      stimulus.setAttribute('aria-label', currentIsGo ? 'Жми' : 'Стоп');
       showTime = performance.now();
       btnReact.disabled = false;
       isWaiting = false;

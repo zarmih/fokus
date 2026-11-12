@@ -1784,7 +1784,10 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
   transform: rotateX(12deg);
 }
 .go-orb.go { background: radial-gradient(circle at 32% 28%, #bbf7d0, #10b981 55%, #047857); box-shadow: 0 0 40px rgba(var(--ok-rgb), 0.7), 0 18px 40px rgba(var(--shadow-rgb), 0.3); transform: scale(1.08) rotateX(8deg); }
-.go-orb.nogo { background: radial-gradient(circle at 32% 28%, #fecaca, #ef4444 55%, #991b1b); box-shadow: 0 0 40px rgba(var(--danger-rgb), 0.7), 0 18px 40px rgba(var(--shadow-rgb), 0.3); transform: scale(1.08) rotateX(8deg); }
+.go-orb.go, .go-orb.nogo { display: flex; align-items: center; justify-content: center; font-size: 44px; font-weight: 900; }
+.go-orb.go { color: var(--on-ok, currentColor); }
+.go-orb.nogo { color: var(--on-danger, currentColor); }
+.go-orb.nogo { border-radius: 18%; background: radial-gradient(circle at 32% 28%, #fecaca, #ef4444 55%, #991b1b); box-shadow: 0 0 40px rgba(var(--danger-rgb), 0.7), 0 18px 40px rgba(var(--shadow-rgb), 0.3); transform: scale(1.08) rotateX(8deg); }
 .posner-lane {
   position: relative;
   width: 100%; max-width: 420px; height: 160px;
@@ -3207,3 +3210,8 @@ html[data-motion="reduce"] .swings-hero.is-reset,
 
 /* Domain bars (progress scales) */
 .scale-row[class*="dom-"] .scale-fill { background: linear-gradient(90deg, var(--skill-a), var(--skill-b)); }
+
+/* Result: short summary first, details folded (core program step 4) */
+.result-summary .result-observation { margin: 0 0 8px 0; line-height: 1.5; }
+.result-summary .result-next-step { margin: 0; font-weight: 600; color: var(--accent-ink, var(--text)); }
+.result-details > summary { cursor: pointer; padding: 12px 4px; font-weight: 600; color: var(--muted); list-style-position: inside; }

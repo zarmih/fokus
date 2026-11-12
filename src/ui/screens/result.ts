@@ -9,6 +9,7 @@ import { getLevelProgress } from '../../core/xp';
 import { ACHIEVEMENTS_DEF } from '../../core/achievements';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
 import { exerciseTrend, METRIC_COPY } from '../../core/analytics/methodology';
+import { summarizeSession } from '../../core/session-summary';
 import { domainLabel } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
@@ -347,6 +348,20 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     ? `<div class="result-compare">${scoreDelta >= 0 ? '+' : ''}${Math.round(scoreDelta)} к прошлой сессии</div>`
     : '';
 
+  const summary = noData ? null : summarizeSession({
+    session,
+    sessions: sessionsWithCurrent,
+    nameOf: (id) => getManifest(id)?.name || id,
+    nextDurationSec: profile.sessionLengthSec || 300,
+    calibration: isCalibration || isRecalibration
+  });
+  const summaryHtml = summary ? `
+    <section class="surface result-summary" data-summary-kind="${summary.kind}" aria-labelledby="result-summary-title">
+      <h3 id="result-summary-title">Итог</h3>
+      <p class="result-observation">${summary.observation}</p>
+      <p class="result-next-step">${summary.nextStep}</p>
+    </section>` : '';
+
   content.innerHTML = `
     <div class="result-hero fx-celebrate" id="result-hero">
       <div class="result-kicker">${isCalibration ? 'Профиль готов' : isRecalibration ? 'Оценка обновлена' : 'Тренировка завершена'}</div>
@@ -359,6 +374,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
     ${leveledUp ? `<div class="level-up fx-celebrate">Новый уровень ${lvl.currentLevel}</div>` : ''}
     ${unlockedHtml}
+    ${summaryHtml}
 
     ${fi.coverage > 0 ? `
       <div class="fi-hero compact">
@@ -373,6 +389,8 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
     ${probeHtml}
 
+    <details class="result-details"${summary ? '' : ' open'}>
+    <summary>Подробности</summary>
     ${isCalibration ? '' : `<div class="surface">
       <h3>Сдвиги навыков</h3>
       ${deltasHtml}
@@ -383,10 +401,12 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
     <div class="surface">
       <h3>Результаты и прогресс</h3>
+      <p class="muted metric-copy" style="font-size: 12px;">${METRIC_COPY.exerciseResult.measures} ${METRIC_COPY.exerciseResult.cannotConclude}</p>
       ${itemsHtml}
     </div>
 
     ${insightHtml}
+    </details>
     ${checkInHtml}
     ${feedbackHtml}
     ${nextActionHtml}
