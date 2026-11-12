@@ -22,7 +22,7 @@ test('buildSession 5 min logic with 6 domains', () => {
     yesterdayDomains: []
   });
   
-  expect(res.length).toBe(2);
+  expect(res.length).toBe(3); // targetBlockCount(300) — same rule as the engine ritual
   
   const domains = res.map(r => catalog.find(c => c.id === r.exerciseId)!.domain);
   const counts = domains.reduce((a, c) => (a[c] = (a[c] || 0) + 1, a), {} as any);
@@ -127,7 +127,8 @@ test('rerollTrainingPlanSlot swaps one item, keeps others fixed, no second rerol
   const catalog = [
     { manifest: { id: 'a1', domain: 'A', skills: [] } },
     { manifest: { id: 'a2', domain: 'A', skills: [] } },
-    { manifest: { id: 'b1', domain: 'B', skills: [] } }
+    { manifest: { id: 'b1', domain: 'B', skills: [] } },
+    { manifest: { id: 'b2', domain: 'B', skills: [] } }
   ];
   
   const plan = buildTrainingPlan({

@@ -1,3 +1,4 @@
+import { targetBlockCount } from './engine/scheduler';
 import type { ExerciseManifest } from '../exercises/contract';
 import type { DomainIndex, SkillIndex, ExerciseState } from './types';
 import { weeklyFocusBias } from './transfer';
@@ -223,9 +224,8 @@ export function buildTrainingPlan(params: {
   const { durationSec, catalog, domains, skills, states, primaryGoal = 'balance', focusOfTheWeek, programWeek, programDay, programPhase, fatigueOrChurn, excludeIds = [], isSparse = states.length < 9 } = params;
   
   const phaseId = programPhase ?? phaseForWeek(programWeek ?? 1).id;
-  const blockDurationSec = 180; // ~3 minutes per block
-  let targetBlocks = Math.max(2, Math.round(durationSec / blockDurationSec));
-  if (targetBlocks > 6) targetBlocks = 6;
+  // Same block count as the engine ritual (engine/scheduler.targetBlockCount): one rule for every planner.
+  let targetBlocks = targetBlockCount(durationSec);
   if (phaseId === 'orient' && targetBlocks > 3) targetBlocks = 3;
   if (phaseId === 'sustain' && fatigueOrChurn && targetBlocks > 2) targetBlocks = 2;
 

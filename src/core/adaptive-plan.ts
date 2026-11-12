@@ -15,6 +15,7 @@ import type { AdaptivePlan } from './engine';
 import type { Observation } from './engine/types';
 import type { DifficultyPick } from './engine';
 import { phaseForWeek } from './program-phases';
+import { inCoreProgram, nonCoreExclusions, programDayNumber } from './core-catalog';
 
 export function planForNow(opts?: {
   durationSec?: number;
@@ -43,6 +44,15 @@ export function planForNow(opts?: {
     }
   }
 
+  // 14-day program: draw from the core catalog (docs/core-program/core-catalog.md), the rest stays
+  // in the catalog. Falls back to the full catalog if resting domains leave the core too thin.
+  const pos = getProgramPosition(snapshot, profile as any);
+  const programDay = programDayNumber(pos.playedCount, pos.playedToday);
+  if (inCoreProgram(programDay)) {
+    const refs = registry.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
+    for (const id of nonCoreExclusions(refs, toExclude)) toExclude.add(id);
+  }
+
   const plan = buildAdaptivePlan({
     durationSec,
     catalog: registry as any,
@@ -55,6 +65,8 @@ export function planForNow(opts?: {
     snoozedUntil: profile.recalibrationSnoozedUntil || null,
     excludeIds: Array.from(toExclude),
     nowMs: opts?.nowMs,
+    // Same day + same inputs → same plan, so Today, Program and a re-render never disagree.
+    rng: dayRng(`${snapshot.today}|${(opts?.excludeIds || []).join(',')}`),
     programWeek: weekIndex,
     programDay: dayInWeek,
     programPhase: phaseForWeek(weekIndex).id,
@@ -69,7 +81,6 @@ export function planForNow(opts?: {
     registry.map(c => ({ id: c.manifest.id, domain: c.manifest.domain }))
   );
 
-  const model = currentModel(opts?.nowMs);
   return {
     ...plan,
     focusDomains: biased.focusDomains || [],
@@ -140,4 +151,21 @@ export function getProgramPosition(snapshot: any, profile: { programWeek?: numbe
   const isSparse = playedCount < 3;
   
   return { weekIndex, dayInWeek, playedCount, isSparse, playedToday };
+}
+
+/** Deterministic PRNG (mulberry32) seeded from a string, e.g. the calendar day. */
+export function dayRng(seed: string): () => number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  let a = h >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }

@@ -267,7 +267,7 @@ test('buildTrainingPlan without focusOfTheWeek stays a no-op for existing caller
     states: [],
     primaryGoal: 'balance'
   });
-  expect(plan.items.length).toBe(2);
+  expect(plan.items.length).toBe(3);
   expect(plan.focusDomains).not.toContain(undefined);
 });
 

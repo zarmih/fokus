@@ -2,6 +2,7 @@ import type { DomainIndex, ExerciseState, Session, SkillIndex } from './types';
 import { domainLabel } from './labels';
 import { computeAbilityTrajectory, type AbilityTrajectory, type CatalogDomainRef } from './ability-trajectory';
 import { inspectSpacing } from './spaced-difficulty';
+import { targetBlockCount } from './engine/scheduler';
 
 /**
  * Ritual targeter: pick the next 3–5 catalog slots.
@@ -48,10 +49,9 @@ export interface RitualPlan {
   explored: boolean;
 }
 
+/** Delegates to the engine rule so every planner agrees on block count for a budget. */
 export function ritualSlotCount(durationSec: number): number {
-  if (durationSec >= 720) return MAX_SLOTS;
-  if (durationSec >= 480) return 4;
-  return MIN_SLOTS;
+  return Math.max(MIN_SLOTS, Math.min(MAX_SLOTS, targetBlockCount(durationSec)));
 }
 
 function hoursSince(iso: string | undefined, now: number): number {

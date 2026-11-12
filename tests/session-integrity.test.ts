@@ -20,6 +20,7 @@ vi.mock('../src/exercises/load-exercise', () => ({
 }));
 
 import { renderSession } from '../src/ui/screens/session';
+import { loadExercise } from '../src/exercises/load-exercise';
 import { storage } from '../src/core/storage';
 
 describe('session timing rules', () => {
@@ -157,5 +158,17 @@ describe('session screen integrity', () => {
     calls[0].onEnd({ accuracy: 0, avgRtMs: 1000, rounds: 0 });
     expect(storage.getExerciseStates().find((s) => s.exerciseId === 'stroop')).toBeUndefined();
     expect(document.querySelector('.session-block-info')?.textContent).toContain('Блок 2');
+  });
+
+  it('plays exactly the planned items in order — no mid-session re-plan', async () => {
+    vi.mocked(loadExercise).mockClear();
+    renderSession(document.getElementById('app')!, { mode: 'normal', items: items(), durationSec: 300 });
+    for (let i = 0; i < 3; i++) {
+      await start();
+      calls[i].onEnd({ accuracy: 0.8, avgRtMs: 600, rounds: 10 });
+      await vi.advanceTimersByTimeAsync(5000);
+    }
+    const loaded = [...new Set(vi.mocked(loadExercise).mock.calls.map((c) => c[0]))];
+    expect(loaded).toEqual(['stroop', 'odd-one', 'pattern-next']);
   });
 });

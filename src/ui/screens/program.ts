@@ -8,12 +8,13 @@ import { SLOT_LABEL, getDomain, isRecalibrationActive } from '../../core/engine'
 import { DOMAIN_IDS } from '../../core/engine/constants';
 import { domainLabel } from '../../core/labels';
 import type { DomainId } from '../../core/engine/types';
-import { loadContinuitySnapshot, getContinuityMessage, applyGentleReturnBias, ritualDurationSec } from '../../core/continuity';
-import { planWithRecovery } from '../../core/recovery';
-import { describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
+import { planToday, PRIMARY_CTA } from '../../core/daily-plan';
+import { abilityTrendChip } from '../../core/adaptive-depth';
+import { computeAbilityTrajectory } from '../../core/ability-trajectory';
 import { programTrendChipHtml } from '../components/accessible-markup';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
-import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan } from '../../core/today-plan';
+import { explainTodayPlan } from '../../core/today-plan';
 import { getTodayRitual } from '../../core/onboarding';
 import { describeProgramPhase, phaseForWeek } from '../../core/program-phases';
 import { getQuietCoachTip } from '../../core/coach';
@@ -36,7 +37,9 @@ export function renderProgram(container: HTMLElement) {
   const states = storage.getExerciseStates();
 
   const profileLengthSec = profile.sessionLengthSec || 900;
-  let ritualDuration = ritualDurationSec(profileLengthSec, snapshot.ritual);
+  // Single source of truth: the same plan Today shows and Session plays.
+  const daily = planToday();
+  const ritualDuration = daily.durationSec;
 
   let programRetention = null as ReturnType<typeof describeProgramRetention> | null;
   try {
@@ -56,33 +59,12 @@ export function renderProgram(container: HTMLElement) {
       softReturnActive: snapshot.ritual.active,
       playedToday
     });
-    if (programRetention.durationSec != null) {
-      ritualDuration = Math.min(ritualDuration, programRetention.durationSec);
-    }
   } catch {
     programRetention = null;
   }
 
-  const ritual = planWithRecovery({
-    durationSec: ritualDuration,
-    catalog: registry as any,
-    domains,
-    skills,
-    states,
-    primaryGoal: profile.primaryGoal,
-    sessions,
-    daySummaries: ds,
-    recoveryHintsEnabled: profile.recoveryHints !== false
-  });
-
-  const catalogHints = registry.map(c => ({ id: c.manifest.id, domain: c.manifest.domain }));
-  const biased = applyGentleReturnBias(
-    ritual.plan as any,
-    snapshot.ritual,
-    catalogHints
-  );
-
-  let plan = { ...ritual.plan, items: biased.items, focusDomains: biased.focusDomains };
+  const ritual = { plan: { items: daily.items, focusDomains: daily.focusDomains }, snapshot: daily.recovery, recalibration: daily.recalibration };
+  const plan = { ...ritual.plan };
 
   let planExplain = null as ReturnType<typeof explainTodayPlan> | null;
   try {
@@ -97,14 +79,6 @@ export function renderProgram(container: HTMLElement) {
       shieldCharges: (profile as any).shieldCharges,
       now: new Date()
     });
-    const ordered = applyRetentionRitualOrder(plan as any, {
-      focusDomain: programRetention?.focusDomain ?? retSnap.neglectedDomain,
-      band: retSnap.band,
-      gapDays: retSnap.gapDays,
-      softReturnActive: snapshot.ritual.active,
-      catalog: catalogHints
-    });
-    plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
     const phaseId = phaseForWeek(getProgramPosition(snapshot, profile as any).weekIndex).id;
     const quietTip = retSnap ? getQuietCoachTip({
       continuity: snapshot,
@@ -137,51 +111,15 @@ export function renderProgram(container: HTMLElement) {
   const model = currentModel();
   
   const { weekIndex, dayInWeek, playedCount, isSparse, playedToday: pt } = getProgramPosition(snapshot, profile as any);
-  const planDurationMins = plan.items.length * 3;
+  const planDurationMins = Math.max(1, Math.round(daily.durationSec / 60));
 
-  const adaptiveDepth = describeAdaptiveDepth({
-    sessions: sessions as any,
-    domains: domains as any,
-    states: states as any,
-    catalog: registry.map(c => ({ manifest: c.manifest })) as any,
-    durationSec: ritualDuration,
-    primaryGoal: profile.primaryGoal,
-    now: Date.now()
-  });
-  const chip = adaptiveDepth.chip;
-
-  if (planExplain && adaptiveDepth.why && (planExplain.source === 'default' || planExplain.source === 'adaptive')) {
-    try {
-      const retSnap2 = assessRetention({
-        daySummaries: ds,
-        sessions,
-        domains,
-        playedToday,
-        streak: snapshot.streak.current,
-        skippedYesterday: snapshot.streak.status === 'soft_return' || snapshot.streak.status === 'fresh_start',
-        sessionLengthSec: profileLengthSec,
-        shieldCharges: (profile as any).shieldCharges,
-        now: new Date()
-      });
-      planExplain = explainTodayPlan({
-        calibrated: !!profile.calibrated,
-        playedToday,
-        continuity: snapshot,
-        retention: retSnap2,
-        programRetention,
-        focusDomains: plan.focusDomains,
-        planItems: plan.items,
-        adaptiveWhy: adaptiveDepth.why,
-        recoveryHint: ritual.snapshot.gate.active ? (ritual.snapshot.gate.reason || ritual.snapshot.hint.body) : null,
-        inFirstWeek: weekRitual.inFirstWeek,
-        weekRitualCopy: weekRitual.copy || null,
-        weekRitual,
-        quietTip: planExplain?.quietTip ?? null
-      });
-    } catch {
-      /* keep prior planExplain */
-    }
+  let chip: ReturnType<typeof abilityTrendChip> = null;
+  try {
+    chip = abilityTrendChip(computeAbilityTrajectory({ sessions, domains, catalog: registry.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain })) }));
+  } catch {
+    chip = null;
   }
+  const adaptiveDepth = { chip, why: daily.why };
 
   const abilityHtml = DOMAIN_IDS.map((id: DomainId) => {
     const d = getDomain(model, id);
@@ -312,7 +250,7 @@ export function renderProgram(container: HTMLElement) {
         ${planExplain?.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${planExplain.quietTip}</p>` : ''}
         ${coachWhy ? `<p class="ritual-why plan-why" style="margin-top:8px">${coachWhy}</p>` : ''}
         ${normsHintHtml}
-        <button id="btn-program-start" class="btn-primary" type="button">${ctaLabelFromPlan(planExplain, programRetention?.softenCta ? 'Короткий блок' : 'Начать тренировку')}</button>
+        <button id="btn-program-start" class="btn-primary" type="button">${PRIMARY_CTA}</button>
       </div>
     `;
   }
@@ -407,7 +345,7 @@ export function renderProgram(container: HTMLElement) {
     });
   };
   const startRitual = () => {
-    navigateTo('session', { mode: 'normal', items: plan.items });
+    navigateTo('session', { mode: 'normal', items: plan.items, durationSec: daily.durationSec });
   };
   const startRecal = () => {
     const fallback = calibrationSessionItems({

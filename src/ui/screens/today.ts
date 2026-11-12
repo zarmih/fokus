@@ -1,8 +1,10 @@
 import { storage } from '../../core/storage';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
-import { planWithRecovery } from '../../core/recovery';
-import { describeAdaptiveDepth } from '../../core/adaptive-depth';
+import { abilityTrendChip } from '../../core/adaptive-depth';
+import { computeAbilityTrajectory } from '../../core/ability-trajectory';
+import { planToday, BUDGET_REASON, PRIMARY_CTA, type DailyPlan } from '../../core/daily-plan';
+export { PRIMARY_CTA };
 import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from '../../core/continuity';
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration, getProgramPosition } from '../../core/adaptive-plan';
@@ -26,7 +28,7 @@ import { getTodayRitual } from '../../core/onboarding';
 import { bindLifestyleField, lifestyleCheckinHtml } from '../components/lifestyle-checkin';
 import { questProgressBarHtml } from '../components/accessible-markup';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
-import { explainTodayPlan, applyRetentionRitualOrder, ctaLabelFromPlan, emptyPlanCopy, applySlotSnooze } from '../../core/today-plan';
+import { explainTodayPlan, applyRetentionRitualOrder, emptyPlanCopy, applySlotSnooze } from '../../core/today-plan';
 import { softReturnInstallCopy } from '../../core/reminders';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
@@ -84,6 +86,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   let recal: any = { probe: [] as any[], forced: false, summary: '' };
   let depth = { chip: null as any, why: null as string | null, ritual: null as any, trajectory: null as any };
   let ritual: any = null;
+  let dailyPlan: DailyPlan | null = null;
   let errorState = false;
   let noPlanState = false;
   let snoozeApplied = false;
@@ -94,100 +97,35 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     recal = cachedState.recal;
     depth = cachedState.depth;
     ritual = cachedState.ritual;
+    dailyPlan = cachedState.dailyPlan ?? null;
     errorState = cachedState.errorState;
     noPlanState = cachedState.noPlanState;
     snoozeApplied = cachedState.snoozeApplied || false;
   } else {
 
   try {
-    ritual = planWithRecovery({
-      durationSec: effectiveDurationSec,
-      catalog,
-      domains,
-      skills,
-      states,
-      primaryGoal: targetGoal,
-      sessions,
-      daySummaries: ds,
-      recoveryHintsEnabled: profile.recoveryHints !== false,
-      excludeIds: unfinishedSession ? unfinishedSession.items.map((i: any) => i.exerciseId) : []
+    // One plan for what is shown, explained and played (core/daily-plan.ts).
+    const daily = planToday({
+      excludeIds: unfinishedSession ? unfinishedSession.items.map((i: any) => i.exerciseId) : [],
+      resumeSec: unfinishedSession ? effectiveDurationSec : undefined
     });
-    plan = ritual.plan;
-    const catalogHints = catalog.map((r) => ({ id: r.manifest.id, domain: r.manifest.domain }));
-    const biased = applyGentleReturnBias(plan as any, snap.ritual, catalogHints);
-    plan = { ...plan, items: biased.items, focusDomains: biased.focusDomains };
-
-    let retSnapForOrder = null as ReturnType<typeof assessRetention> | null;
-    let programRet = null as ReturnType<typeof describeProgramRetention> | null;
+    dailyPlan = daily;
+    ritual = { plan: { items: daily.items, focusDomains: daily.focusDomains }, snapshot: daily.recovery, recalibration: daily.recalibration };
+    plan = { items: daily.items.map((it) => ({ ...it })), focusDomains: daily.focusDomains };
+    ritualDuration = daily.durationSec;
+    recal = daily.recalibration;
+    let trajectory: any = null;
     try {
-      retSnapForOrder = assessRetention({
-        daySummaries: ds,
+      trajectory = computeAbilityTrajectory({
         sessions,
         domains,
-        playedToday,
-        streak,
-        skippedYesterday,
-        sessionLengthSec: profile.sessionLengthSec,
-        shieldCharges: typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
-          ? (profile as { shieldCharges?: number }).shieldCharges
-          : undefined
+        catalog: catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }))
       });
-      programRet = describeProgramRetention(retSnapForOrder, {
-        profileLengthSec: profile.sessionLengthSec,
-        softReturnActive: snap.ritual.active,
-        playedToday
-      });
-      if (programRet.durationSec != null && !snap.ritual.active) {
-        ritualDuration = Math.min(effectiveDurationSec, programRet.durationSec);
-      }
-      const ordered = applyRetentionRitualOrder(plan as any, {
-        focusDomain: programRet.focusDomain,
-        band: retSnapForOrder.band,
-        gapDays: retSnapForOrder.gapDays,
-        softReturnActive: snap.ritual.active,
-        catalog: catalogHints
-      });
-      plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
     } catch {
-      retSnapForOrder = null;
-      programRet = null;
+      trajectory = null;
     }
+    depth = { chip: trajectory ? abilityTrendChip(trajectory) : null, why: daily.why, ritual: null, trajectory };
 
-    ritualDuration = Math.min(ritual.snapshot.durationSec, ritualDuration || effectiveDurationSec);
-    recal = ritual.recalibration;
-    depth = describeAdaptiveDepth({
-      sessions,
-      domains,
-      skills,
-      states,
-      catalog,
-      durationSec: ritualDuration,
-      primaryGoal: targetGoal
-    });
-    if (!snap.ritual.active && !ritual.snapshot.gate.active && depth.ritual && depth.ritual.items.length) {
-      plan.items = depth.ritual.items.map((s: any) => ({
-        exerciseId: s.exerciseId,
-        reason: s.reasonLabel,
-        domain: s.domain,
-        nextExerciseId: s.nextExerciseId,
-        nextDomain: s.nextDomain,
-        rerolled: s.rerolled
-      }));
-      plan.focusDomains = depth.ritual.focusDomains;
-    }
-
-    // Retention → ritual order must run after depth overwrite so neglect wins visibly.
-    if (programRet && retSnapForOrder) {
-      const ordered = applyRetentionRitualOrder(plan as any, {
-        focusDomain: programRet.focusDomain,
-        band: retSnapForOrder.band,
-        gapDays: retSnapForOrder.gapDays,
-        softReturnActive: snap.ritual.active,
-        catalog: catalogHints
-      });
-      plan = { ...plan, items: ordered.items, focusDomains: ordered.focusDomains };
-    }
-    
     if (plan.items.length === 0) {
       noPlanState = true;
     } else {
@@ -216,6 +154,9 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const trendChipHtml = depth.chip
     ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
     : '';
+  const budgetWhyHtml = dailyPlan
+    ? `<p class="plan-budget-why" data-budget-source="${dailyPlan.budgetSource}" data-program-day="${dailyPlan.programDay}" style="font-size: 13px; opacity: 0.85; margin-bottom: 12px;">${dailyPlan.why} Длительность: ${BUDGET_REASON[dailyPlan.budgetSource]}.</p>`
+    : '';
   const ritualWhyHtml = depth.why
     ? `<p class="ritual-why">${depth.why}</p>`
     : '';
@@ -238,7 +179,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
     const slot = item.slot ? SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL] : '';
-    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" style="display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px 12px 18px; gap: 6px; height: auto; border-radius: 12px; width: 100%; box-sizing: border-box;">
+    return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" data-exercise-id="${item.exerciseId}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px 12px 18px; gap: 6px; height: auto; border-radius: 12px; width: 100%; box-sizing: border-box;">
       <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
         <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="20" height="20" alt="" decoding="async" style="border-radius: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
         <span style="font-weight: 700; font-size: 14px; flex: 1;">${r?.name}</span>
@@ -495,6 +436,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
           Осталось ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
+        ${budgetWhyHtml}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">Вы уже начали эту тренировку сегодня. Продолжаем.</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Оставшиеся упражнения" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
@@ -540,15 +482,15 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-2); margin-bottom: 12px;">
           ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
         </p>
+        ${budgetWhyHtml}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>${ctaLabelFromPlan(planExplain, 'Мягкий старт')}</span>
+          <span>${PRIMARY_CTA}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
-        <button id="btn-full-start" class="btn-secondary" type="button" style="margin-top: 8px; width: 100%;">Обычная нагрузка</button>
       </div>
     `;
   } else {
@@ -564,6 +506,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
           ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
+        ${budgetWhyHtml}
         ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 8px;">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
@@ -571,7 +514,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>${ctaLabelFromPlan(planExplain)}</span>
+          <span>${PRIMARY_CTA}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
@@ -642,7 +585,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         const res = rerollTodayPlanSlot(plan.items, idx);
         if (res.applied) {
           plan.items = res.items;
-          renderToday(container, { plan, ritualDuration, recal, depth, ritual, errorState, noPlanState, snoozeApplied });
+          renderToday(container, { plan, ritualDuration, recal, depth, ritual, dailyPlan, errorState, noPlanState, snoozeApplied });
         }
       });
     });
@@ -658,7 +601,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         const res = applySlotSnooze(plan.items, item.exerciseId);
         if (res.applied) {
           plan.items = res.items;
-          renderToday(container, { plan, ritualDuration, recal, depth, ritual, errorState, noPlanState, snoozeApplied: true });
+          renderToday(container, { plan, ritualDuration, recal, depth, ritual, dailyPlan, errorState, noPlanState, snoozeApplied: true });
         }
       }
     });
@@ -793,11 +736,6 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     handleStart(plan.items, ritualDuration);
   });
 
-  content.querySelector('#btn-full-start')?.addEventListener('click', () => {
-    if (ritual && ritual.plan) {
-      handleStart(ritual.plan.items, ritual.snapshot.durationSec);
-    }
-  });
 
   content.querySelector('#btn-restart')?.addEventListener('click', () => {
     const pSessions = storage.getSessions();
