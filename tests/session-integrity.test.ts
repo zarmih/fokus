@@ -77,6 +77,7 @@ describe('session screen integrity', () => {
     storage.setProfile(p);
     // Exercises already known (a trial only precedes the first ever scored block).
     storage.setExerciseStates(['stroop', 'odd-one', 'pattern-next'].map((exerciseId) => ({ exerciseId, level: 2, difficulty: 2, performance: 0.5, lastPlayedAt: '2026-11-01T00:00:00Z', lastAccuracy: 0.7, attempts: 3 } as any)));
+    storage.setSessions([{ id: 'past', date: '2026-11-01T00:00:00Z', durationSec: 300, items: ['stroop', 'odd-one', 'pattern-next'].map((exerciseId) => ({ exerciseId })) } as any]);
     document.body.innerHTML = '<div id="a11y-status" role="status" aria-live="polite"></div><div id="app"></div>';
     hidden = false;
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
@@ -176,6 +177,7 @@ describe('session screen integrity', () => {
 
   it('first time with an exercise: a short unscored trial at level 1 that does not spend the budget, then the scored block', async () => {
     storage.setExerciseStates([]);
+    storage.setSessions([]);
     renderSession(document.getElementById('app')!, { mode: 'normal', items: [{ exerciseId: 'go-no-go' }, { exerciseId: 'stroop' }], durationSec: 300 });
     expect(document.querySelector('[data-trial="1"]')).toBeTruthy();
     expect(document.getElementById('btn-next')!.textContent).toBe('Пробный раунд');
@@ -197,5 +199,17 @@ describe('session screen integrity', () => {
     // Second exercise was trialled? No — it has no state either, so it gets its own trial.
     await vi.advanceTimersByTimeAsync(3000);
     expect(document.querySelector('[data-trial="1"]')).toBeTruthy();
+  });
+
+  it('difficulty states seeded by calibration do not skip the trial; an exercise played in calibration does', async () => {
+    storage.setSessions([]);
+    storage.setExerciseStates(['go-no-go', 'stroop'].map((exerciseId) => ({ exerciseId, level: 3, difficulty: 3, performance: 0.5, lastPlayedAt: null, lastAccuracy: 0.5, attempts: 1 } as any)));
+    const { recordEngineObservation } = await import('../src/core/adaptive-plan');
+    recordEngineObservation({ exerciseId: 'stroop', domain: 'flexibility', skills: [], metricModel: 'speed-accuracy', difficulty: 3, accuracy: 0.8, avgRtMs: 700, targetMs: 1500, performance: 600, probe: true } as any);
+    renderSession(document.getElementById('app')!, { mode: 'normal', items: [{ exerciseId: 'go-no-go' }], durationSec: 300 });
+    expect(document.querySelector('[data-trial="1"]')).toBeTruthy();
+    document.getElementById('app')!.innerHTML = '';
+    renderSession(document.getElementById('app')!, { mode: 'normal', items: [{ exerciseId: 'stroop' }], durationSec: 300 });
+    expect(document.querySelector('[data-trial="1"]')).toBeNull();
   });
 });

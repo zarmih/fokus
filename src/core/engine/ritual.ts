@@ -96,6 +96,7 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
 
     const ranked = scoreCatalog({
       ...params,
+      fullCatalog: params.catalog,
       catalog,
       rng,
       wantedSlot: wanted,
@@ -140,6 +141,7 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
 
     const ranked = scoreCatalog({
       ...params,
+      fullCatalog: params.catalog,
       catalog,
       rng,
       wantedSlot: currentItem.slot,
@@ -208,13 +210,16 @@ function scoreCatalog(params: ComposeRitualParams & {
   focusOfTheWeek?: string | null;
   isSparse?: boolean;
   phaseId: string;
+  fullCatalog?: CatalogItem[];
 }): ScoredCandidate[] {
   const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng, programWeek, programDay, focusOfTheWeek, isSparse, phaseId } = params;
 
   // Domain rotation: a domain not trained for a while gets a bonus so all five areas are covered
   // within a few days even at 3 blocks/day (before, the same 3 domains could repeat for days).
   const domainLastMs = new Map<string, number>();
-  const domainById = new Map(catalog.map((c) => [c.id, c.domain] as const));
+  // Map over the full catalog: an area played via a non-core/excluded exercise (e.g. a calibration probe)
+  // still counts as recently trained.
+  const domainById = new Map([...(params.fullCatalog || catalog)].map((c) => [c.id, c.domain] as const));
   for (const sp of model.spacing) {
     const d = domainById.get(sp.exerciseId);
     const t = sp.lastPlayedAt ? Date.parse(sp.lastPlayedAt) : NaN;
@@ -263,6 +268,8 @@ function scoreCatalog(params: ComposeRitualParams & {
     if (anyPlayed) {
       const last = domainLastMs.get(item.domain);
       rotation = last == null ? 60 : clip((nowMs - last) / (72 * 3600000), 0, 1) * 48;
+      // Rotation pulls an area into the day once; it must not outweigh the diversity rule.
+      if (selectedDomains.includes(item.domain)) rotation = 0;
     }
     score += rotation;
 
@@ -406,6 +413,7 @@ export function rerollRitualSlot(params: ComposeRitualParams, ritual: RitualPlan
 
   const ranked = scoreCatalog({
     ...params,
+    fullCatalog: params.catalog,
     catalog,
     rng,
     wantedSlot: currentItem.slot,
