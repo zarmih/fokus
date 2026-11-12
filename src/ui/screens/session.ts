@@ -28,6 +28,7 @@ import { difficultyFor, markEngineCalibrated, planForNow, recordEngineObservatio
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
+import { blockBudgetSec, interruptAbortsBlock, isScorableBlock, shouldTick } from '../../core/session-timing';
 
 export const COUNTDOWN_START_ANNOUNCEMENT = 'Сейчас начнём';
 export const COUNTDOWN_GO_ANNOUNCEMENT = 'Начали';
@@ -48,6 +49,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   let isPaused = false;
   let currentCleanup: any = null;
   let fatigueCounter = 0;
+  /** Blocks aborted by pause/background (restarted, never scored). */
+  let abortedBlocks = 0;
+  /** Resume after an interrupted block replays the same item (no re-planning). */
+  let replaySameItem = false;
 
   const content = renderShell(container, { active: 'today', hideNav: true });
 
@@ -56,9 +61,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       finishSession();
       return;
     }
-    blockTimeLeft = mode === 'calibration' ? PROBE_BLOCK_SEC : isProbe ? 30 : timeLeft;
+    blockTimeLeft = blockBudgetSec({
+      mode,
+      timeLeftSec: timeLeft,
+      remainingBlocks: items.length - currentIndex,
+      probeBlockSec: PROBE_BLOCK_SEC
+    });
 
-    if (mode === 'normal' && currentIndex > 0) {
+    const replay = replaySameItem;
+    replaySameItem = false;
+    if (mode === 'normal' && currentIndex > 0 && !replay) {
       const profile = storage.getProfile();
       const ritual = planWithRecovery({
         durationSec: Math.max(180, timeLeft),
@@ -154,60 +166,16 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     document.getElementById('btn-back')?.addEventListener('click', () => {
       if (currentCleanup) currentCleanup();
       clearInterval(timerInterval);
+      stopVisibility();
       if (mode === 'normal' && sessionResults.length > 0) {
         persistAbandonedSession();
       }
       navigateTo(mode === 'practice' ? 'trainers' : 'today');
     });
 
-    document.getElementById('btn-pause')?.addEventListener('click', (e) => {
-      const btn = e.target as HTMLButtonElement;
-      isPaused = !isPaused;
-      btn.textContent = isPaused ? 'Прод.' : 'Пауза';
-      btn.setAttribute('aria-pressed', isPaused ? 'true' : 'false');
-      let overlay = document.getElementById('pause-overlay');
-      if (isPaused) {
-        if (!overlay) {
-          overlay = document.createElement('div');
-          overlay.id = 'pause-overlay';
-          overlay.className = 'pause-overlay';
-          overlay.innerHTML = `
-            <div class="pause-card">
-              <div style="margin-bottom:16px;">Пауза</div>
-              <button id="btn-unpause" class="btn-primary" type="button">Продолжить</button>
-            </div>
-          `;
-          document.getElementById('game-container')?.appendChild(overlay);
-
-          const unpause = () => {
-            isPaused = false;
-            btn.textContent = 'Пауза';
-            btn.setAttribute('aria-pressed', 'false');
-            if (overlay) {
-              const unbind = (overlay as any)._unbind;
-              if (unbind) unbind();
-              overlay.remove();
-            }
-            announce('Продолжаем');
-            btn.focus();
-          };
-
-          overlay.querySelector('#btn-unpause')?.addEventListener('click', unpause);
-          const unbind = bindDialog(overlay, {
-            label: 'Пауза',
-            onClose: unpause
-          });
-          (overlay as any)._unbind = unbind;
-        }
-        announce('Пауза');
-      } else {
-        if (overlay) {
-          const unbind = (overlay as any)._unbind;
-          if (unbind) unbind();
-          overlay.remove();
-        }
-        announce('Продолжаем');
-      }
+    document.getElementById('btn-pause')?.addEventListener('click', () => {
+      if (isPaused) resumeSession();
+      else pauseSession('button');
     });
 
     document.getElementById('btn-restart')?.addEventListener('click', () => {
@@ -275,6 +243,13 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
           const fn = cleanupFn;
           cleanupFn = null;
           if (fn) fn();
+          if (!isScorableBlock(res)) {
+            // No trial happened (or broken numbers): nothing is recorded, not even a 0 %.
+            announce('Блок не засчитан: не было ни одного ответа');
+            currentIndex++;
+            renderCurrent();
+            return;
+          }
           content.dataset.sessionPhase = 'feedback';
           const ok = res.accuracy >= 0.8;
           const stageEl = container.querySelector('.play-stage') as HTMLElement | null;
@@ -466,6 +441,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
   const finishSession = () => {
     if (currentCleanup) currentCleanup();
     clearInterval(timerInterval);
+    stopVisibility();
     
     if (mode === 'calibration') {
       if (probeOutcomes.length === 0 && sessionResults.length === 0) {
@@ -540,7 +516,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       items: sessionResults,
       interrupted: false,
       endReason: sessionEndReason,
-      plannedDurationSec: sessionBudget
+      plannedDurationSec: sessionBudget,
+      abortedBlocks
     };
     storage.addSession(s);
 
@@ -652,8 +629,72 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     });
   }
 
-  timerInterval = setInterval(() => {
+  function pauseSession(source: 'button' | 'background') {
     if (isPaused) return;
+    isPaused = true;
+    const phase = content.dataset.sessionPhase;
+    const aborted = interruptAbortsBlock(phase);
+    if (aborted) {
+      // The exercise keeps its own trial timers; letting them run would record misses the user never
+      // played. Abort the block without scoring and replay it from the instruction on resume.
+      if (currentCleanup) currentCleanup();
+      currentCleanup = null;
+      abortedBlocks++;
+      replaySameItem = true;
+      content.dataset.sessionPhase = 'paused';
+    }
+    const btn = document.getElementById('btn-pause');
+    if (btn) {
+      btn.textContent = 'Прод.';
+      btn.setAttribute('aria-pressed', 'true');
+    }
+    document.getElementById('pause-overlay')?.remove();
+    const overlay = document.createElement('div');
+    overlay.id = 'pause-overlay';
+    overlay.className = 'pause-overlay';
+    overlay.dataset.aborted = aborted ? '1' : '0';
+    overlay.dataset.source = source;
+    overlay.innerHTML = `
+      <div class="pause-card">
+        <div style="margin-bottom:8px;">Пауза</div>
+        ${aborted ? '<p class="pause-note" style="margin:0 0 16px;font-size:14px;">Блок начнётся заново. Прерванная попытка не засчитана.</p>' : ''}
+        <button id="btn-unpause" class="btn-primary" type="button">Продолжить</button>
+      </div>
+    `;
+    (document.getElementById('game-container') || content).appendChild(overlay);
+    overlay.querySelector('#btn-unpause')?.addEventListener('click', () => resumeSession());
+    (overlay as any)._unbind = bindDialog(overlay, { label: 'Пауза', onClose: () => resumeSession() });
+    announce(aborted ? 'Пауза. Блок начнётся заново' : 'Пауза');
+  }
+
+  function resumeSession() {
+    if (!isPaused) return;
+    isPaused = false;
+    const overlay = document.getElementById('pause-overlay');
+    const aborted = overlay?.dataset.aborted === '1';
+    if (overlay) {
+      const unbind = (overlay as any)._unbind;
+      if (unbind) unbind();
+      overlay.remove();
+    }
+    const btn = document.getElementById('btn-pause');
+    if (btn) {
+      btn.textContent = 'Пауза';
+      btn.setAttribute('aria-pressed', 'false');
+    }
+    announce('Продолжаем');
+    if (aborted) renderCurrent();
+    else btn?.focus();
+  }
+
+  const onVisibility = () => {
+    if (document.hidden) pauseSession('background');
+  };
+  document.addEventListener('visibilitychange', onVisibility);
+  const stopVisibility = () => document.removeEventListener('visibilitychange', onVisibility);
+
+  timerInterval = setInterval(() => {
+    if (!shouldTick(content.dataset.sessionPhase, isPaused, typeof document !== 'undefined' && document.hidden)) return;
     timeLeft--;
     blockTimeLeft--;
     const t = document.getElementById('session-timer');
