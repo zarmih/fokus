@@ -16,7 +16,6 @@ import {
   mapAccuracyToStartLevel
 } from '../../core/calibration';
 import { buildFirstWeekPlan } from '../../core/onboarding';
-import { planWithRecovery } from '../../core/recovery';
 import type { Session, SessionEndReason } from '../../core/types';
 import { safeError } from '../../core/log';
 import { computeFokusIndex } from '../../core/fokus-index';
@@ -68,28 +67,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       probeBlockSec: PROBE_BLOCK_SEC
     });
 
-    const replay = replaySameItem;
+    // Play exactly the plan that Today showed (core/daily-plan.ts). No mid-session re-plan: difficulty
+    // still adapts per block via difficultyFor(), but the exercise list stays the one the user saw.
     replaySameItem = false;
-    if (mode === 'normal' && currentIndex > 0 && !replay) {
-      const profile = storage.getProfile();
-      const ritual = planWithRecovery({
-        durationSec: Math.max(180, timeLeft),
-        catalog,
-        domains: storage.getDomains(),
-        skills: storage.getSkills(),
-        states: storage.getExerciseStates(),
-        primaryGoal: profile.primaryGoal,
-        sessions: storage.getSessions(),
-        daySummaries: storage.getDaySummaries(),
-        recoveryHintsEnabled: profile.recoveryHints !== false,
-        excludeIds: sessionResults.map((sr) => sr.exerciseId)
-      });
-      const nextItem = ritual.plan.items.find(pi => !sessionResults.some(sr => sr.exerciseId === pi.exerciseId));
-      if (nextItem) {
-        items[currentIndex].exerciseId = nextItem.exerciseId;
-        items[currentIndex].difficulty = nextItem.difficulty;
-      }
-    }
 
     const item = items[currentIndex];
     const preview = getManifest(item.exerciseId);

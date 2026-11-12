@@ -211,6 +211,18 @@ function scoreCatalog(params: ComposeRitualParams & {
 }): ScoredCandidate[] {
   const { model, catalog, states, nowMs, wantedSlot, selectedIds, selectedDomains, goal, rng, programWeek, programDay, focusOfTheWeek, isSparse, phaseId } = params;
 
+  // Domain rotation: a domain not trained for a while gets a bonus so all five areas are covered
+  // within a few days even at 3 blocks/day (before, the same 3 domains could repeat for days).
+  const domainLastMs = new Map<string, number>();
+  const domainById = new Map(catalog.map((c) => [c.id, c.domain] as const));
+  for (const sp of model.spacing) {
+    const d = domainById.get(sp.exerciseId);
+    const t = sp.lastPlayedAt ? Date.parse(sp.lastPlayedAt) : NaN;
+    if (!d || !Number.isFinite(t)) continue;
+    domainLastMs.set(d, Math.max(domainLastMs.get(d) ?? 0, t));
+  }
+  const anyPlayed = domainLastMs.size > 0;
+
   return catalog.map((item) => {
     const spacing = getSpacing(model, item.id);
     const slot = classifySlot(spacing, nowMs);
@@ -246,6 +258,13 @@ function scoreCatalog(params: ComposeRitualParams & {
     let weeklyFocusPts = 0;
     if (focusOfTheWeek && item.domain === focusOfTheWeek) weeklyFocusPts = 18;
     score += weeklyFocusPts;
+
+    let rotation = 0;
+    if (anyPlayed) {
+      const last = domainLastMs.get(item.domain);
+      rotation = last == null ? 60 : clip((nowMs - last) / (72 * 3600000), 0, 1) * 48;
+    }
+    score += rotation;
 
     let diversity = 0;
     if (selectedDomains.includes(item.domain)) diversity = -42;
@@ -298,7 +317,7 @@ function scoreCatalog(params: ComposeRitualParams & {
       isSparse: isSparse ?? (conf < 0.4)
     });
 
-    const trace = `I:${info.toFixed(2)} Urg:${urgency(spacing, nowMs).toFixed(2)} Need:${need.toFixed(2)} Slot:${slotMatch} Goal:${goalPts} WFocus:${weeklyFocusPts} Div:${diversity} Rep:${repeat} Plat:${plateau} Nov:${novelty} = ${score.toFixed(1)}`;
+    const trace = `I:${info.toFixed(2)} Urg:${urgency(spacing, nowMs).toFixed(2)} Need:${need.toFixed(2)} Slot:${slotMatch} Goal:${goalPts} WFocus:${weeklyFocusPts} Rot:${rotation.toFixed(0)} Div:${diversity} Rep:${repeat} Plat:${plateau} Nov:${novelty} = ${score.toFixed(1)}`;
 
     return {
       exerciseId: item.id,

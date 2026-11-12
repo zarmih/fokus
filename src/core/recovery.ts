@@ -372,9 +372,11 @@ export function planWithRecovery(params: {
   });
 
   const durationSec = snapshot.durationSec;
+  const nowMs = params.nowIso ? Date.parse(params.nowIso) : NaN;
   const adaptive = planForNow({
     durationSec,
-    excludeIds: (params as { excludeIds?: string[] }).excludeIds
+    excludeIds: (params as { excludeIds?: string[] }).excludeIds,
+    nowMs: Number.isFinite(nowMs) ? nowMs : undefined
   });
 
   return {
