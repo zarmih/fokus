@@ -140,7 +140,7 @@ describe('storage migration 4 → 5', () => {
   test('new day summaries are written as method 2', () => {
     storage.reset();
     storage.addDaySummary({ date: new Date().toISOString(), totalScore: 1, domainDeltas: {}, streak: 1, skipped: false, fokusIndex: 500 });
-    expect(storage.getDaySummaries().at(-1)?.fokusIndexMethod).toBe(2);
+    expect(storage.getDaySummaries().slice(-1)[0]?.fokusIndexMethod).toBe(2);
     expect(storage.getMeta()?.analyticsMethodologyVersion).toBe(2);
   });
 });
