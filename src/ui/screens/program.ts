@@ -1,4 +1,5 @@
 import { renderShell } from '../shell';
+import { exerciseIconSrc } from '../exercise-icon';
 import { storage } from '../../core/storage';
 import { navigateTo } from '../router';
 import { registry } from '../../exercises/registry';
@@ -141,7 +142,7 @@ export function renderProgram(container: HTMLElement) {
     return `
       <div class="ritual-row">
         <div class="ritual-idx">${i + 1}</div>
-        <img src="${import.meta.env.BASE_URL}art/icon-${r?.manifest.id}.svg" width="28" height="28" alt="">
+        <img src="${exerciseIconSrc(r?.manifest.id, r?.manifest.domain)}" width="28" height="28" alt="">
         <div class="ritual-copy">
           <div class="ritual-name" aria-label="Упражнение: ${r?.manifest.name || item.exerciseId}">${r?.manifest.name || item.exerciseId}</div>
           <div class="muted">${item.reason}</div>

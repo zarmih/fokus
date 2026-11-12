@@ -1,4 +1,5 @@
 import { storage } from '../../core/storage';
+import { exerciseIconSrc } from '../exercise-icon';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
 import { abilityTrendChip } from '../../core/adaptive-depth';
@@ -181,7 +182,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     const slot = item.slot ? SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL] : '';
     return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" data-exercise-id="${item.exerciseId}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px 12px 18px; gap: 6px; height: auto; border-radius: 12px; width: 100%; box-sizing: border-box;">
       <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
-        <img src="${import.meta.env.BASE_URL}art/icon-${r?.id}.svg" width="20" height="20" alt="" decoding="async" style="border-radius: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
+        <img src="${exerciseIconSrc(r?.id, r?.domain)}" width="20" height="20" alt="" decoding="async" style="border-radius: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
         <span style="font-weight: 700; font-size: 14px; flex: 1;">${r?.name}</span>
         ${slot ? `<span class="slot-tag" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg-elev); padding: 4px 8px; border-radius: 8px; color: var(--muted); border: 1px solid var(--line);">${slot}</span>` : ''}
       </div>

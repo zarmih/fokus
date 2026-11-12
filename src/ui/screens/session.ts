@@ -1,4 +1,5 @@
 import { navigateTo } from '../router';
+import { exerciseIconSrc } from '../exercise-icon';
 import { renderShell } from '../shell';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { loadExercise } from '../../exercises/load-exercise';
@@ -124,7 +125,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       ${lastBanner}
       <div class="instruction-card ${motionClass}" id="instruction-card" tabindex="-1">
         <div class="instruction-glow" aria-hidden="true"></div>
-        <img src="${import.meta.env.BASE_URL}art/icon-${manifest.id}.svg" width="72" height="72" alt="" class="instruction-icon">
+        <img src="${exerciseIconSrc(manifest.id, manifest.domain)}" width="72" height="72" alt="" class="instruction-icon">
         <h2>${manifest.name}</h2>
         <p>${manifest.instruction}</p>
         <div class="instruction-meta">${contentHints.metaLine}</div>

@@ -1,4 +1,5 @@
 import { navigateTo } from '../router';
+import { exerciseIconSrc } from '../exercise-icon';
 import { generateInsights } from "../../core/insights";
 import { planWithRecovery } from "../../core/recovery";
 import { loadContinuitySnapshot } from '../../core/continuity';
@@ -265,7 +266,7 @@ export function renderProgress(container: HTMLElement) {
               <div style="font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 4px;">${nextEx.name}</div>
               <div style="font-size: 13px; color: var(--text); opacity: 0.8;">${nextItem.reason}</div>
             </div>
-            <img src="${import.meta.env.BASE_URL}art/icon-${nextEx.id}.svg" width="40" height="40" alt="" decoding="async" style="border-radius: 8px; opacity: 0.9;">
+            <img src="${exerciseIconSrc(nextEx.id, nextEx.domain)}" width="40" height="40" alt="" decoding="async" style="border-radius: 8px; opacity: 0.9;">
           </div>
         </div>
       `;
