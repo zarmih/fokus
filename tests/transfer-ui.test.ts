@@ -80,7 +80,7 @@ test('stats screen shows the week transfer card', () => {
   const app = document.getElementById('app')!;
   renderProgress(app);
   expect(app.querySelector('.transfer-card')).toBeTruthy();
-  expect(app.textContent).toMatch(/Навык в жизни|Где это встречается/);
+  expect(app.textContent).toMatch(/Где похожая задача встречается|Где это встречается/);
 });
 
 test('settings guide lists honest non-claims and everyday situations', () => {

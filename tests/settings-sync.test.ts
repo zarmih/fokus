@@ -21,7 +21,7 @@ test('settings data panel shows offline health and export/import', () => {
   renderSettings(app);
   expect(app.textContent).toMatch(/Приватность|Управление данными/i);
   expect(app.textContent).toMatch(/Локально, без сервера|Офлайн-копия на этом устройстве/);
-  expect(app.textContent).toMatch(/Схема 4/);
+  expect(app.textContent).toMatch(/Схема 5/);
   expect(app.textContent).toMatch(/Нет аккаунта|У нас нет аккаунтов/i);
   expect(document.getElementById('btn-export')).toBeTruthy();
   expect(document.getElementById('btn-import')).toBeTruthy();

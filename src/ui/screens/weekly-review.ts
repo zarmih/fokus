@@ -71,10 +71,8 @@ export function renderIntelPanel(intel: CoachIntel): string {
       ? renderIndexSparkline(intel.sparkline)
       : `<p class="intel-empty" style="color: var(--muted); font-size: 13px;">Fokus Index появится на графике после нескольких дней регулярных тренировок. Мы показываем только реальные подтверждённые тренды.</p>`;
 
-  const pb = intel.personalBest;
-  const pbHtml = pb
-    ? `<span class="intel-pb${pb.isLatest ? ' now' : ''}">рекорд ${pb.value} · ${ruDay(pb.date)}</span>`
-    : '';
+  // Methodology v2: no index personal record.
+  const pbHtml = '';
 
   const domainHtml = intel.domains
     .map((d) => {

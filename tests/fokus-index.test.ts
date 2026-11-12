@@ -6,7 +6,9 @@ test('empty domains → zero index and no fake coverage', () => {
   const fi = computeFokusIndex([]);
   expect(fi.value).toBe(0);
   expect(fi.coverage).toBe(0);
-  expect(fi.confidence).toBe(0);
+  expect(fi.dataSufficiency.level).toBe('none');
+  expect(fi.methodologyVersion).toBe(2);
+  expect('confidence' in fi).toBe(false);
   expect(fi.byDomain).toHaveLength(5);
   expect(fi.byDomain.every(d => !d.ready)).toBe(true);
 });
@@ -19,7 +21,7 @@ test('partial coverage averages only ready domains', () => {
   const fi = computeFokusIndex(domains);
   expect(fi.coverage).toBe(2);
   expect(fi.value).toBe(Math.round(((800 + 400) / 2)));
-  expect(fi.confidence).toBe(24); // coverageRatio*0.6 + exploredFactor*0.4
+  expect(fi.dataSufficiency.level).toBe('low'); // no sessions passed → conservative
   expect(fi.byDomain.find(d => d.id === 'speed')?.ready).toBe(false);
 });
 

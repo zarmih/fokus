@@ -69,7 +69,7 @@ test('storage migrate (mock)', () => {
   const s2 = new Storage(backend as any);
   expect(s2.getProfile().schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
   expect(s2.getProfile().onboarded).toBe(true);
-  expect(s2.getMeta()?.schemaVersion).toBe(4);
+  expect(s2.getMeta()?.schemaVersion).toBe(5);
 });
 
 test('old profiles pick up soundVolume and hapticsOn defaults', () => {
@@ -188,7 +188,7 @@ test('storage migrate v3 to v4 keeps probe fields optional', () => {
   }));
   const s2 = new Storage(backend as any);
   const p = s2.getProfile();
-  expect(p.schemaVersion).toBe(4);
+  expect(p.schemaVersion).toBe(5);
   expect(p.probeSnapshot).toBeUndefined();
   expect(p.firstWeekPlan).toBeUndefined();
 });
@@ -280,7 +280,7 @@ test('legacy raw import still migrates', () => {
   expect(storage.getProfile().onboarded).toBe(true);
   expect(storage.getProfile().sessionLengthSec).toBe(480);
   expect(storage.getSessions()[0].id).toBe('old');
-  expect(storage.getProfile().schemaVersion).toBe(4);
+  expect(storage.getProfile().schemaVersion).toBe(5);
 });
 
 test('future backup is rejected and does not clobber live', () => {
@@ -333,7 +333,7 @@ test('getHealth after first write', () => {
   storage.setProfile({ ...storage.getProfile(), name: 'Ada' });
   const h = storage.getHealth();
   expect(h.empty).toBe(false);
-  expect(h.schemaVersion).toBe(4);
+  expect(h.schemaVersion).toBe(5);
   expect(h.rev).toBeGreaterThan(0);
   expect(h.bytes).toBeGreaterThan(0);
   expect(h.deviceId).toMatch(/^f-/);

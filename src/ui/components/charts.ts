@@ -102,9 +102,7 @@ export function renderIndexSparkline(
       const cx = xOf(p);
       const cy = yOf(p);
       const isLast = i === model.points.length - 1;
-      if (p.personalBest) {
-        return `<circle class="spark-pb" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="4.5" fill="var(--ok)" stroke="var(--surface)" stroke-width="1.5"><title>Личный рекорд · ${p.value}</title></circle>`;
-      }
+      // Methodology v2: no index "personal record" marker — the index mixes exercises and levels.
       if (isLast || values.length <= 8) {
         return `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="2.4" fill="var(--accent)"/>`;
       }

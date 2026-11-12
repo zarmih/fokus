@@ -1,4 +1,5 @@
-import type { DomainIndex, DaySummary, ExerciseState } from './types';
+import type { DomainIndex, DaySummary, ExerciseState, Session } from './types';
+import { ANALYTICS_METHODOLOGY_VERSION, SUFFICIENCY_LABEL, assessDataSufficiency, sufficiencyAtLeast, type DataSufficiency } from './analytics/methodology';
 import { DOMAIN_ORDER } from './labels';
 import { catalog } from '../exercises/catalog';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
@@ -20,7 +21,12 @@ export type DomainBalance = 'balanced' | 'specialized' | 'asymmetric' | 'unknown
 
 export interface FokusIndex {
   value: number;
-  confidence: number;
+  /**
+   * Methodology v2: how much recent data there is (a category, not a probability).
+   * Replaces the v1 heuristic `confidence` percentage.
+   */
+  dataSufficiency: DataSufficiency;
+  methodologyVersion: number;
   coverage: number;
   byDomain: DomainSlice[];
   trend: number;
@@ -38,7 +44,16 @@ export interface FokusIndex {
   };
 }
 
-export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseState[] = []): FokusIndex {
+function fallbackSufficiency(coverage: number): DataSufficiency {
+  const level = coverage === 0 ? 'none' : 'low';
+  return { level, label: SUFFICIENCY_LABEL[level], blocks28d: 0, domainsCovered: coverage, daysSinceLast: null, facts: `${coverage} из 5 областей` };
+}
+
+export function computeFokusIndex(
+  domains: DomainIndex[],
+  exStates: ExerciseState[] = [],
+  opts: { sessions?: Session[]; nowMs?: number } = {}
+): FokusIndex {
   const byDomain: DomainSlice[] = DOMAIN_ORDER.map((id) => {
     const d = domains.find((x) => x.domain === id);
     const ready = !!(d && d.value > 0);
@@ -59,9 +74,15 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
   const ready = byDomain.filter((d) => d.ready);
   const coverage = ready.length;
   
+  const domainOf = new Map(catalog.map((c) => [c.manifest.id, c.manifest.domain] as const));
+  const dataSufficiency = opts.sessions
+    ? assessDataSufficiency({ sessions: opts.sessions, domainOf: (id) => domainOf.get(id), nowMs: opts.nowMs })
+    : fallbackSufficiency(coverage);
+  const methodologyVersion = ANALYTICS_METHODOLOGY_VERSION;
+
   if (coverage === 0) {
     return {
-      value: 0, confidence: 0, coverage: 0, byDomain, trend: 0, depth,
+      value: 0, dataSufficiency, methodologyVersion, coverage: 0, byDomain, trend: 0, depth,
       phase: 'empty', balance: 'unknown',
       explain: {
         state: 'Недостаточно данных',
@@ -73,9 +94,6 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
 
   const mean = ready.reduce((sum, d) => sum + d.value, 0) / ready.length;
   const value = Math.round(mean);
-  const coverageRatio = coverage / DOMAIN_ORDER.length;
-  const explorationFactor = Math.min(1, explored / 10);
-  const confidence = Math.round((coverageRatio * 0.6 + explorationFactor * 0.4) * 100);
   const trend = ready.reduce((sum, d) => sum + d.trend, 0) / ready.length;
 
   let phase: FokusPhase = 'empty';
@@ -90,25 +108,27 @@ export function computeFokusIndex(domains: DomainIndex[], exStates: ExerciseStat
     actionStr = `Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : (3 - coverage === 2 ? 'области' : 'областей')} для оценки. Fokus накапливает статистику, чтобы показатель отражал вашу фактическую форму, а не случайную догадку.`;
   } else {
     phase = 'established';
-    stateStr = `Уверенность ${confidence}%.`;
-    actionStr = 'Индекс — честный снимок вашей формы на сегодня. Мы показываем только те тренды, которые подтверждены данными сессий.';
-    
+    stateStr = `${dataSufficiency.label}.`;
+    actionStr = 'Индекс — сводное число по вашим упражнениям. Его изменение может отражать смену упражнений и уровней; динамику смотрите по каждому упражнению отдельно.';
+  }
+  // Profile shape only once there is enough data to say anything (methodology v2 §4).
+  if (phase === 'established' && sufficiencyAtLeast(dataSufficiency.level, 'partial')) {
     const vals = ready.map(d => d.value);
     const maxDiff = Math.max(...vals) - Math.min(...vals);
     if (maxDiff <= 150) {
       balance = 'balanced';
-      balanceStr = 'Сбалансированный профиль (развитие областей идёт гармонично).';
+      balanceStr = 'Сбалансированный профиль: результаты по областям близки.';
     } else if (maxDiff > 350) {
       balance = 'asymmetric';
-      balanceStr = 'Асимметричный профиль (присутствует выраженный фокус или дисбаланс, рекомендуется уделить внимание слабым зонам).';
+      balanceStr = 'Асимметричный профиль: результаты по областям заметно различаются.';
     } else {
       balance = 'specialized';
-      balanceStr = 'Специализированный профиль (есть явные сильные стороны и зоны для подтягивания).';
+      balanceStr = 'Неравномерный профиль: в одних областях результаты выше, чем в других.';
     }
   }
 
   return {
-    value, confidence, coverage, byDomain, trend, depth,
+    value, dataSufficiency, methodologyVersion, coverage, byDomain, trend, depth,
     phase, balance,
     explain: { state: stateStr, action: actionStr, balanceStr }
   };
@@ -136,7 +156,8 @@ export function indexDelta(current: number, previous: number | null, daysAgo: nu
   const labelSuffix = daysAgo === 7 ? 'к прошлой неделе' : 'ко вчерашнему дню';
   if (Math.abs(delta) <= 8) return { delta, label: `естественный фон (${labelSuffix})` };
   const sign = delta > 0 ? '+' : '';
-  return { delta, label: `${sign}${delta} ${labelSuffix}` };
+  // Methodology v2: the index mixes exercises and levels, so a change is not by itself "growth".
+  return { delta, label: `${sign}${delta} ${labelSuffix} · состав упражнений мог отличаться` };
 }
 
 export function personalIndexBand(summaries: { date: string; fokusIndex?: number }[], todayIso: string): { min: number; max: number; days: number; line: string } | null {

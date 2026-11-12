@@ -149,6 +149,10 @@ export interface SessionItem {
   progressionState?: string;
   pSuccess?: number;
   slot?: string;
+  /** Trials in the block (methodology v2; absent on older items). */
+  rounds?: number;
+  /** Measurement mode (methodology v2): accessible-mode blocks are compared only among themselves. */
+  mode?: 'standard' | 'accessible';
 }
 export type SessionEndReason = 'completed' | 'fatigue' | 'timeout' | 'abandoned';
 
@@ -164,6 +168,8 @@ export interface Session {
   plannedDurationSec?: number;
   /** Blocks aborted by pause / hidden tab and replayed; they were never scored. */
   abortedBlocks?: number;
+  /** Session kind (methodology v2); calibration blocks are excluded from personal trends. */
+  mode?: 'normal' | 'calibration' | 'recalibration' | 'practice';
 }
 export interface HistoryItem {
   date: string;
@@ -180,11 +186,15 @@ export interface DaySummary {
   skipped: boolean;
   lifestyle?: { sleep: string | null; stress: string | null };
   fokusIndex?: number;
+  /** Analytics methodology the stored fokusIndex was computed with (1 = before 2026-11-12). */
+  fokusIndexMethod?: number;
   /** End-of-day domain snapshot. Optional for legacy summaries. */
   domainValues?: Record<string, number>;
 }
 export interface StorageMeta {
   schemaVersion: number;
+  /** Analytics methodology version of newly written values (schema ≥ 5). */
+  analyticsMethodologyVersion?: number;
   deviceId: string;
   rev: number;
   updatedAt: string;
