@@ -23,9 +23,10 @@ export function exerciseDomainMap(): Record<string, string> {
 }
 
 function confidenceLabel(level: TransferSurface['insight']['confidence']): string {
-  if (level === 'high') return 'уверенный';
-  if (level === 'medium') return 'подтверждается';
-  return 'изучаем';
+  // Methodology v2: describes how much in-app data backs the note, never certainty about life outside the app.
+  if (level === 'high') return 'данных достаточно';
+  if (level === 'medium') return 'данных частично';
+  return 'данных мало';
 }
 
 export function renderTransferCard(
@@ -80,7 +81,7 @@ export function renderTransferCard(
 
   return `
     <section class="transfer-card" aria-labelledby="transfer-card-title" data-insight-kind="${esc(insight.kind)}">
-      <div class="transfer-kicker">Навык в жизни · ${esc(confidenceLabel(insight.confidence))}</div>
+      <div class="transfer-kicker">Где похожая задача встречается · ${esc(confidenceLabel(insight.confidence))}</div>
       <h3 id="transfer-card-title">${esc(insight.title)}</h3>
       <p class="transfer-body">${esc(insight.body)}</p>
       <p class="transfer-action">${esc(insight.action)}</p>

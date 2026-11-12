@@ -8,6 +8,7 @@ import { renderShell } from '../shell';
 import { catalog, getManifest } from '../../exercises/catalog';
 import { renderScatterPlot, renderRadarChart, renderIndexSparkline } from '../components/charts';
 import { computeFokusIndex, personalIndexBand } from '../../core/fokus-index';
+import { METRIC_COPY, exerciseTrend } from '../../core/analytics/methodology';
 import { domainLabel, skillLabel } from '../../core/labels';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
@@ -177,7 +178,6 @@ export function renderProgress(container: HTMLElement) {
           </div>
           
           ${isReliable ? `<div style="font-size: 10px; color: var(--muted); margin-top: 4px; display: flex; justify-content: space-between;">
-            <span>Уверенность: ${Math.round(s.confidence)}%</span>
             <span>Попыток: ${s.attempts}</span>
           </div>` : ''}
         </div>
@@ -300,7 +300,7 @@ export function renderProgress(container: HTMLElement) {
     <div class="legend-box">
       <div style="margin-bottom: 6px;"><strong>Форма (Performance)</strong> — как вы справляетесь прямо сейчас.</div>
       <div style="margin-bottom: 6px;"><strong>Освоение (Mastery)</strong> — насколько результаты устойчиво закреплены.</div>
-      <div><strong>Уверенность (Confidence)</strong> — насколько Fokus уверен в оценке.</div>
+      <div><strong>Полнота данных</strong> — сколько свежих наблюдений есть; это не вероятность и не точность оценки.</div>
     </div>
   `;
 
@@ -362,7 +362,7 @@ export function renderProgress(container: HTMLElement) {
             <div>
               <div class="fi-kicker">Ритм тренировок</div>
               <div class="rhythm-value">${retSnap.rhythm}</div>
-              <div class="fi-meta">${rhythmLine} · уверенность ${retSnap.confidence}%</div>
+              <div class="fi-meta">${rhythmLine}</div>
             </div>
           </div>
           <p class="rhythm-nudge-title" data-plan-title="${planExplain.source}">${storyTitle}</p>
@@ -376,7 +376,7 @@ export function renderProgress(container: HTMLElement) {
   }
 
 
-  const fi = computeFokusIndex(domains, exStates);
+  const fi = computeFokusIndex(domains, exStates, { sessions });
   const intel = buildCoachIntel({
     summaries: ds,
     domains,
@@ -388,9 +388,7 @@ export function renderProgress(container: HTMLElement) {
   const sparkHtml = sparkCount >= 2
     ? `<div class="fi-spark">${renderIndexSparkline(intel.sparkline, { width: 220, height: 44 })}<span class="fi-spark-lbl">${intel.sparkline.deltaLabel}</span></div>`
     : '';
-  const pbNote = intel.personalBest
-    ? `<div class="fi-pb">${intel.personalBest.isLatest ? 'личный рекорд' : 'рекорд'} · ${intel.personalBest.value}</div>`
-    : '';
+  // Methodology v2: no index personal record (the index mixes exercises and levels).
 
   const band = personalIndexBand(ds, new Date().toISOString());
   const bandHtml = band ? `<div class="fi-personal-band" data-personal-band="1" style="font-size: 12px; color: var(--text); opacity: 0.9; margin-top: 8px; background: var(--fill-muted); padding: 8px; border-radius: 6px;">${band.line}</div>` : '';
@@ -409,13 +407,35 @@ export function renderProgress(container: HTMLElement) {
     </div>
   `;
 
+  // Methodology v2: personal trend per exercise under comparable conditions — separate from the index.
+  const trendIds = [...new Set(sessions.filter((x) => x.mode !== 'calibration' && x.mode !== 'recalibration').flatMap((x) => x.items.map((i) => i.exerciseId)))];
+  const trends = trendIds
+    .map((id) => ({ t: exerciseTrend({ sessions, exerciseId: id }), name: getManifest(id)?.name || id }))
+    .filter((x) => x.t.observations > 0)
+    .sort((a, b) => b.t.observations - a.t.observations)
+    .slice(0, 8);
+  const trendRows = trends.map(({ t, name }) => {
+    const hint = t.verdict === 'insufficient' ? `ещё ${t.needMore} ${t.needMore === 1 ? 'блок' : t.needMore < 5 ? 'блока' : 'блоков'} для сравнения` : `${t.observations} сопоставимых блоков`;
+    return `<div class="trend-row" data-trend="${t.verdict}" style="display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 6px 0; border-bottom: 1px solid var(--line);"><span>${name}</span><span style="color: var(--muted); text-align: right;">${t.label} · ${hint}</span></div>`;
+  }).join('');
+  const personalTrendHtml = `
+    <section class="surface personal-trends" aria-labelledby="pt-title" style="margin: 16px 0; padding: 16px; border-radius: 12px;">
+      <h3 id="pt-title" style="margin: 0 0 4px 0; font-size: 16px;">${METRIC_COPY.personalTrend.title}</h3>
+      <p style="margin: 0 0 8px 0; font-size: 12px; color: var(--muted);">${METRIC_COPY.personalTrend.measures}</p>
+      ${trendRows || '<p style="font-size: 13px; color: var(--muted);">Появится, когда в одном упражнении наберётся 6 сопоставимых блоков.</p>'}
+      <p style="margin: 8px 0 0 0; font-size: 11px; color: var(--muted);">${METRIC_COPY.personalTrend.cannotConclude}</p>
+      <p data-data-sufficiency="${fi.dataSufficiency.level}" style="margin: 8px 0 0 0; font-size: 12px;"><strong>${METRIC_COPY.dataSufficiency.title}:</strong> ${fi.dataSufficiency.label} · ${fi.dataSufficiency.facts}</p>
+    </section>
+  `;
+
   const fiExplainHtml = `
     <div id="fi-explainer" style="display: none; margin-top: 16px; padding: 12px; background: var(--fill-muted); border-radius: 8px; font-size: 12px; line-height: 1.5; color: var(--text); text-align: left;">
       <p style="margin: 0 0 8px 0;"><strong>Как работает Fokus Index?</strong></p>
       <p style="margin: 0 0 8px 0; color: var(--muted);">Это прозрачный индикатор вашей текущей тренировочной формы. Он опирается на фактические результаты, а не на выдуманные цифры, и отражает реальную скорость и точность в упражнениях.</p>
-      <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Уверенность (${fi.confidence}%)</strong> показывает полноту собранных данных: показатель растёт по мере охвата разных областей (${fi.coverage} из 5) и освоения каталога (${fi.depth.explored}).</p>
+      <p style="margin: 0 0 8px 0; color: var(--muted);"><strong>${METRIC_COPY.fokusIndex.title}.</strong> ${METRIC_COPY.fokusIndex.measures} ${METRIC_COPY.fokusIndex.cannotConclude}</p>
+      <p data-data-sufficiency="${fi.dataSufficiency.level}" style="margin: 0 0 8px 0; color: var(--muted);"><strong>${METRIC_COPY.dataSufficiency.title}: ${fi.dataSufficiency.label}</strong> (${fi.dataSufficiency.facts}). ${METRIC_COPY.dataSufficiency.cannotConclude}</p>
       ${fi.explain.balanceStr ? `<p style="margin: 0 0 8px 0; color: var(--muted);"><strong>Баланс:</strong> ${fi.explain.balanceStr}</p>` : ''}
-      <p style="margin: 0; color: var(--muted);">Небольшие колебания индекса — нормальное физиологическое явление (усталость, качество сна). Мы показываем тренды без сглаживания и прикрас.</p>
+      <p style="margin: 0; color: var(--muted);">Небольшие колебания индекса — обычный разброс (усталость, сон, время суток). Значения до 12.11.2026 посчитаны по прежней методике (версия 1) и не пересчитывались.</p>
     </div>
   `;
 
@@ -428,7 +448,6 @@ export function renderProgress(container: HTMLElement) {
         <div class="fi-value">${fi.value}</div>
         <div class="fi-meta">${fi.coverage} из 5 областей · ${fi.explain.state}</div>
         ${fi.balance !== 'unknown' && fi.explain.balanceStr ? `<div class="fi-meta" style="margin-top: 4px; opacity: 0.8; font-size: 12px; max-width: 280px; margin-left: auto; margin-right: auto; line-height: 1.3;">${fi.explain.balanceStr}</div>` : ''}
-        ${pbNote}
         ${bandHtml}
         ${sparkHtml}
         ${depthHtml}
@@ -572,6 +591,7 @@ export function renderProgress(container: HTMLElement) {
     </div>
     ${habitHtml}
     ${fiHtml}
+    ${personalTrendHtml}
     ${localNormsHtml}
     <div id="session-feel-agg-slot"></div>
     ${renderQualityCard(ritual.snapshot, { detailed: true })}

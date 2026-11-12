@@ -50,7 +50,7 @@ test('migrate v1 to v4 sets onboarded from calibrated and adds meta', () => {
   expect(s.history).toEqual([]);
   expect(s.skills).toEqual([]);
   expect(s.meta?.deviceId).toBe('f-dev');
-  expect(s.meta?.schemaVersion).toBe(4);
+  expect(s.meta?.schemaVersion).toBe(5);
   expect(s.meta?.rev).toBe(1);
 });
 
@@ -63,7 +63,7 @@ test('migrate v2 to v4 fills sources, mastery, stability', () => {
     },
     { now, deviceId: 'f-dev' }
   );
-  expect(s.profile.schemaVersion).toBe(4);
+  expect(s.profile.schemaVersion).toBe(5);
   expect(s.skills[0].sources).toEqual([]);
   expect(s.exerciseStates[0].mastery).toBe(0);
   expect(s.exerciseStates[0].stability).toBe(0.5);
@@ -96,7 +96,7 @@ test('missing schemaVersion is treated as v1', () => {
   expect(inferSchemaVersion({ profile: { name: 'x' } })).toBe(1);
   const s = migrateState({ profile: { name: 'x', calibrated: true } }, { now, deviceId: 'f' });
   expect(s.profile.onboarded).toBe(true);
-  expect(s.profile.schemaVersion).toBe(4);
+  expect(s.profile.schemaVersion).toBe(5);
 });
 
 test('future schema throws from migrateState', () => {
@@ -126,7 +126,7 @@ test('envelope roundtrip with checksum', () => {
   if (parsed.ok) {
     expect(parsed.legacy).toBe(false);
     expect(parsed.checksumOk).toBe(true);
-    expect(parsed.schemaVersion).toBe(4);
+    expect(parsed.schemaVersion).toBe(5);
   }
 });
 

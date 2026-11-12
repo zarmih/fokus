@@ -250,7 +250,9 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             performance: perf,
             masteryBefore: state?.mastery || 0,
             difficultyBefore: state?.difficulty || 1.0,
-            pSuccess: irtPick?.pSuccess
+            pSuccess: irtPick?.pSuccess,
+            rounds: res.rounds,
+            mode: 'standard'
           };
           
           if (mode === 'normal') {
@@ -497,7 +499,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       interrupted: false,
       endReason: sessionEndReason,
       plannedDurationSec: sessionBudget,
-      abortedBlocks
+      abortedBlocks,
+      mode: mode as Session['mode']
     };
     storage.addSession(s);
 
@@ -568,7 +571,8 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       items: sessionResults,
       interrupted: true,
       endReason: 'abandoned',
-      plannedDurationSec: sessionBudget
+      plannedDurationSec: sessionBudget,
+      mode: mode as Session['mode']
     });
   }
 

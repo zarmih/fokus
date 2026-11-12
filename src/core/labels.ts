@@ -45,7 +45,7 @@ export const SKILL_LABELS: Record<string, string> = {
 };
 
 export const GOAL_COPY: { id: string; title: string; desc: string }[] = [
-  { id: 'balance', title: 'Баланс', desc: 'Равномерно прокачивать все области' },
+  { id: 'balance', title: 'Баланс', desc: 'Тренировать все области поровну' },
   { id: 'memory', title: 'Память', desc: 'Удерживать и воспроизводить информацию' },
   { id: 'attention', title: 'Внимание', desc: 'Дольше концентрироваться и меньше отвлекаться' },
   { id: 'speed', title: 'Скорость', desc: 'Быстрее замечать и принимать решения' },

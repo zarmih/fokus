@@ -4,6 +4,7 @@ import { safeError } from './log';
 import {
   applyImport,
   CURRENT_SCHEMA_VERSION,
+  STORED_ANALYTICS_METHODOLOGY,
   migrateState,
   newDeviceId,
   parseBackup,
@@ -205,7 +206,8 @@ export class Storage {
         schemaVersion: CURRENT_SCHEMA_VERSION,
         deviceId: current.meta?.deviceId || deviceId || newDeviceId(),
         rev: Math.max(current.meta?.rev ?? 0, state.meta?.rev ?? 0) + 1,
-        updatedAt: this.clock()
+        updatedAt: this.clock(),
+        analyticsMethodologyVersion: STORED_ANALYTICS_METHODOLOGY
       }
     };
     const success = this.writeRaw(JSON.stringify(stamped));
@@ -253,7 +255,7 @@ export class Storage {
   }
   addDaySummary(ds: DaySummary) {
     const s = this.getState();
-    s.daySummaries.push(ds);
+    s.daySummaries.push(typeof ds.fokusIndex === 'number' && ds.fokusIndexMethod == null ? { ...ds, fokusIndexMethod: STORED_ANALYTICS_METHODOLOGY } : ds);
     this.saveState(s);
   }
 

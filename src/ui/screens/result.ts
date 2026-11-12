@@ -8,6 +8,7 @@ import { SLOT_LABEL } from '../../core/engine';
 import { getLevelProgress } from '../../core/xp';
 import { ACHIEVEMENTS_DEF } from '../../core/achievements';
 import { computeFokusIndex, previousFokusIndex, indexDelta } from '../../core/fokus-index';
+import { exerciseTrend, METRIC_COPY } from '../../core/analytics/methodology';
 import { domainLabel } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { shareSessionCard } from '../components/share-card';
@@ -44,7 +45,9 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const deltas = ds ? ds.domainDeltas : {};
   const streak = ds?.streak || 0;
 
-  const fi = computeFokusIndex(storage.getDomains());
+  const allSessions = storage.getSessions();
+  const sessionsWithCurrent = allSessions.some((x) => x.id === session.id) ? allSessions : [...allSessions, session];
+  const fi = computeFokusIndex(storage.getDomains(), [], { sessions: allSessions });
   const prevFi = previousFokusIndex(dsList, session.startedAt);
   const fiDelta = indexDelta(fi.value, prevFi);
 
@@ -66,27 +69,18 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     const mAfter = item.masteryAfter || 0;
     const diffBefore = item.difficultyBefore || item.level;
     const diffAfter = item.difficultyAfter || item.level;
-    const conf = item.confidenceAfter;
 
     const mDelta = mAfter - mBefore;
     const mSign = mDelta > 0 ? '+' : '';
     const dDelta = diffAfter - diffBefore;
     const dSign = dDelta > 0 ? '+' : '';
 
-    const isLegacy = conf === undefined;
-    const isCalibrating = isLegacy || conf < 20;
-
-    let pState = item.progressionState;
-    if (isCalibrating) pState = 'calibrating';
-    else if (!pState) pState = mDelta > 0 ? 'up' : (mDelta < 0 ? 'down' : 'stable');
-
-    let stateLabel = 'Стабильно';
-    if (pState === 'up') stateLabel = '📈 Растёт';
-    else if (pState === 'down') stateLabel = '📉 Падает';
-    else if (pState === 'plateau') stateLabel = '➖ Плато';
-    else if (pState === 'calibrating') stateLabel = '🔄 Калибровка';
-
-    const confDisplay = isLegacy ? 'Н/Д' : `${Math.round(conf)}%`;
+    // Methodology v2: personal trend only from comparable blocks of this exercise, never from one block.
+    const trend = exerciseTrend({ sessions: sessionsWithCurrent, exerciseId: item.exerciseId });
+    const stateLabel = trend.label;
+    const trendFacts = trend.verdict === 'insufficient'
+      ? `${trend.observations} из 6`
+      : `${trend.observations}`;
     const accPct = Math.round(item.accuracy * 100);
 
     return `
@@ -105,13 +99,13 @@ export function renderResult(container: HTMLElement, params: { session: Session;
             <div class="muted">Сложность</div>
             <div><b>${Number(diffAfter).toFixed(1)}</b> <span>${dDelta !== 0 ? `(${dSign}${dDelta.toFixed(1)})` : '(=)'}</span></div>
           </div>
-          <div class="result-cell">
-            <div class="muted">Статус</div>
+          <div class="result-cell" data-trend="${trend.verdict}">
+            <div class="muted">Личная динамика</div>
             <div>${stateLabel}</div>
           </div>
           <div class="result-cell">
-            <div class="muted">Уверенность</div>
-            <div>${confDisplay}</div>
+            <div class="muted">Сопоставимых блоков</div>
+            <div>${trendFacts}</div>
           </div>
         </div>
       </div>
@@ -329,11 +323,8 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   ` : '';
 
   const catalogRefsNorms = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
-  const allSessions = storage.getSessions();
   // Include the just-finished session if storage has not persisted it yet.
-  const sessionsForNorms = allSessions.some((s) => s.id === session.id)
-    ? allSessions
-    : [...allSessions, session];
+  const sessionsForNorms = sessionsWithCurrent;
   const attemptSamples = collectAttemptSamples(sessionsForNorms, catalogRefsNorms, 'accuracy');
   const domainsTouched = new Set<string>();
   for (const item of session.items) {

@@ -11,7 +11,9 @@ import type {
   StorageMeta
 } from './types';
 
-export const CURRENT_SCHEMA_VERSION = 4;
+export const CURRENT_SCHEMA_VERSION = 5;
+/** Analytics methodology of newly written values (see core/analytics/methodology.ts). */
+export const STORED_ANALYTICS_METHODOLOGY = 2;
 export const CURRENT_BACKUP_FORMAT = 1;
 export const BACKUP_KIND = 'fokus-backup';
 
@@ -230,6 +232,19 @@ function migrate3to4(state: Record<string, unknown>, opts: { now: string; device
   profile.schemaVersion = 4;
 }
 
+/**
+ * v5: analytics methodology 2. Nothing is recomputed or dropped: stored Fokus Index values are tagged
+ * as method 1 so the UI can label them; new values are written as method 2.
+ */
+function migrate4to5(state: Record<string, unknown>) {
+  state.daySummaries = asArray<DaySummary>(state.daySummaries).map((d) =>
+    typeof d.fokusIndex === 'number' && d.fokusIndexMethod == null ? { ...d, fokusIndexMethod: 1 } : d
+  );
+  const meta = state.meta && typeof state.meta === 'object' ? (state.meta as Record<string, unknown>) : {};
+  state.meta = { ...meta, schemaVersion: 5, analyticsMethodologyVersion: STORED_ANALYTICS_METHODOLOGY };
+  (state.profile as Record<string, unknown>).schemaVersion = 5;
+}
+
 function healV4(state: Record<string, unknown>, opts: { now: string; deviceId: string }) {
   const profile = state.profile as Record<string, unknown>;
   if (typeof profile.sessionLengthSec !== 'number') profile.sessionLengthSec = 300;
@@ -245,7 +260,8 @@ function healV4(state: Record<string, unknown>, opts: { now: string; deviceId: s
     schemaVersion: CURRENT_SCHEMA_VERSION,
     deviceId: typeof prev.deviceId === 'string' && prev.deviceId ? prev.deviceId : opts.deviceId,
     rev: typeof prev.rev === 'number' && prev.rev > 0 ? prev.rev : 1,
-    updatedAt: typeof prev.updatedAt === 'string' && prev.updatedAt ? prev.updatedAt : opts.now
+    updatedAt: typeof prev.updatedAt === 'string' && prev.updatedAt ? prev.updatedAt : opts.now,
+    analyticsMethodologyVersion: STORED_ANALYTICS_METHODOLOGY
   } satisfies StorageMeta;
 }
 
@@ -270,6 +286,10 @@ export function migrateState(
   if (version < 4) {
     migrate3to4(state, { now, deviceId });
     version = 4;
+  }
+  if (version < 5) {
+    migrate4to5(state);
+    version = 5;
   }
   healV4(state, { now, deviceId });
   return state as unknown as AppState;

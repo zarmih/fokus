@@ -46,8 +46,11 @@ test('renderResult Mastery Progression UI v1 - basic provenance', () => {
   expect(html).toContain('(+5)'); // mastery delta
   expect(html).toContain('3.2'); // difficultyAfter
   expect(html).toContain('(+0.2)'); // difficulty delta
-  expect(html).toContain('80%'); // confidence
-  expect(html).toContain('📈 Растёт'); // progression boundaries up
+  // Methodology v2: one block never yields a trend verdict and no confidence percentage is shown.
+  expect(html).not.toContain('80%');
+  expect(html).not.toMatch(/Уверенность|📈 Растёт/);
+  expect(html).toContain('Пока мало сопоставимых блоков');
+  expect(html).toContain('1 из 6');
   
   // Next-step provenance (engine v2 reasons, with legacy-heuristic fallback)
   expect(html).toContain('Дальше:');
@@ -83,8 +86,8 @@ test('renderResult - mastery delta zero / plateau / low confidence', () => {
   
   const html = container.innerHTML;
   expect(html).toContain('(=)'); // Zero delta
-  expect(html).toContain('🔄 Калибровка'); // forced calibrating state due to low confidence
-  expect(html).toContain('10%'); // Low confidence
+  expect(html).toContain('Пока мало сопоставимых блоков');
+  expect(html).not.toContain('10%');
 });
 
 test('renderResult - mastery delta negative / down', () => {
@@ -117,7 +120,8 @@ test('renderResult - mastery delta negative / down', () => {
   const html = container.innerHTML;
   expect(html).toContain('(-5)'); // negative mastery
   expect(html).toContain('(-0.5)'); // negative difficulty
-  expect(html).toContain('📉 Падает'); // down
+  expect(html).not.toContain('📉 Падает'); // a single block is not a downward trend
+  expect(html).toContain('Пока мало сопоставимых блоков');
 });
 
 test('renderResult - legacy / empty state (stale snapshot fallback)', () => {
@@ -143,9 +147,8 @@ test('renderResult - legacy / empty state (stale snapshot fallback)', () => {
   const html = container.innerHTML;
   // Should compute default Fallbacks safely
   expect(html).toContain('Форма 250'); // score * 10
-  expect(html).toContain('Н/Д'); // No fake precision
   expect(html).toContain('(=)');
-  expect(html).toContain('🔄 Калибровка'); // Calibrating for legacy
+  expect(html).toContain('Пока мало сопоставимых блоков'); // legacy item: no fake precision
 });
 
 test('renderResult - V6 Next Action - Weak result (suggests repeat/rest)', () => {
