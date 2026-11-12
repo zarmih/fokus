@@ -115,6 +115,8 @@ export type TrendVerdict = 'better' | 'worse' | 'stable' | 'insufficient';
 
 export interface ExerciseTrend {
   exerciseId: string;
+  /** Mode of the compared blocks (the mode of the latest block). */
+  mode: 'standard' | 'accessible';
   verdict: TrendVerdict;
   observations: number;
   /** How many more comparable blocks are needed (insufficient only). */
@@ -175,7 +177,7 @@ export function exerciseTrend(params: { sessions: Session[]; exerciseId: string;
     (o) => (o.it.mode ?? 'standard') === mode && Math.abs(Number(o.it.difficultyBefore ?? o.it.level) - level) <= 1
   );
 
-  const base = { exerciseId: params.exerciseId, observations: comparable.length };
+  const base = { exerciseId: params.exerciseId, mode: mode as 'standard' | 'accessible', observations: comparable.length };
   if (comparable.length < MIN_OBS) {
     return { ...base, verdict: 'insufficient', needMore: MIN_OBS - comparable.length, label: TREND_LABEL.insufficient };
   }

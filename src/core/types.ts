@@ -85,6 +85,8 @@ export interface Profile {
   lastLifestyle?: { sleep: string | null; stress: string | null; date: string };
   reminderHour?: number | null;
   skipLifestylePrompt?: boolean;
+  /** Prefer accessible exercise variants that do not rely on colour (measured and compared separately). */
+  accessibleMode?: boolean;
   displayName?: string;
   /** When false, Today ignores the recovery gate. Default true. */
   recoveryHints?: boolean;

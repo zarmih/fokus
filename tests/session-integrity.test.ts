@@ -75,6 +75,8 @@ describe('session screen integrity', () => {
     const p = storage.getProfile();
     p.onboarded = true; p.calibrated = true; p.sessionLengthSec = 300;
     storage.setProfile(p);
+    // Exercises already known (a trial only precedes the first ever scored block).
+    storage.setExerciseStates(['stroop', 'odd-one', 'pattern-next'].map((exerciseId) => ({ exerciseId, level: 2, difficulty: 2, performance: 0.5, lastPlayedAt: '2026-11-01T00:00:00Z', lastAccuracy: 0.7, attempts: 3 } as any)));
     document.body.innerHTML = '<div id="a11y-status" role="status" aria-live="polite"></div><div id="app"></div>';
     hidden = false;
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });
@@ -126,7 +128,7 @@ describe('session screen integrity', () => {
     calls[0].onEnd({ accuracy: 0.1, avgRtMs: 900, rounds: 12 });
     await vi.advanceTimersByTimeAsync(60000);
     expect(timer()).toBe(before);
-    expect(storage.getExerciseStates().find((s) => s.exerciseId === 'stroop')).toBeUndefined();
+    expect(storage.getExerciseStates().find((s) => s.exerciseId === 'stroop')?.lastAccuracy).toBe(0.7); // untouched
 
     hidden = false;
     (document.getElementById('btn-unpause') as HTMLButtonElement).click();
@@ -156,7 +158,7 @@ describe('session screen integrity', () => {
     renderSession(document.getElementById('app')!, { mode: 'normal', items: items(), durationSec: 300 });
     await start();
     calls[0].onEnd({ accuracy: 0, avgRtMs: 1000, rounds: 0 });
-    expect(storage.getExerciseStates().find((s) => s.exerciseId === 'stroop')).toBeUndefined();
+    expect(storage.getExerciseStates().find((s) => s.exerciseId === 'stroop')?.lastAccuracy).toBe(0.7); // untouched
     expect(document.querySelector('.session-block-info')?.textContent).toContain('Блок 2');
   });
 
@@ -170,5 +172,30 @@ describe('session screen integrity', () => {
     }
     const loaded = [...new Set(vi.mocked(loadExercise).mock.calls.map((c) => c[0]))];
     expect(loaded).toEqual(['stroop', 'odd-one', 'pattern-next']);
+  });
+
+  it('first time with an exercise: a short unscored trial at level 1 that does not spend the budget, then the scored block', async () => {
+    storage.setExerciseStates([]);
+    renderSession(document.getElementById('app')!, { mode: 'normal', items: [{ exerciseId: 'go-no-go' }, { exerciseId: 'stroop' }], durationSec: 300 });
+    expect(document.querySelector('[data-trial="1"]')).toBeTruthy();
+    expect(document.getElementById('btn-next')!.textContent).toBe('Пробный раунд');
+    await start();
+    expect(calls[0].level).toBe(1);
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(timer()).toBe('5:00'); // trial time is not taken from the session
+    expect(calls[0].isTimeUp()).toBe(false);
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(calls[0].isTimeUp()).toBe(true);
+    calls[0].onEnd({ accuracy: 0.2, avgRtMs: 900, rounds: 5 });
+    expect(storage.getExerciseStates().find((s) => s.exerciseId === 'go-no-go')).toBeUndefined();
+    expect(document.querySelector('[data-trial-done="1"]')).toBeTruthy();
+    expect(document.querySelector('.session-block-info')?.textContent).toContain('Блок 1');
+    expect(document.getElementById('btn-next')!.textContent).toBe('Начать');
+    await start();
+    calls[1].onEnd({ accuracy: 0.9, avgRtMs: 500, rounds: 10 });
+    expect(storage.getExerciseStates().find((s) => s.exerciseId === 'go-no-go')?.lastAccuracy).toBeCloseTo(0.9);
+    // Second exercise was trialled? No — it has no state either, so it gets its own trial.
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(document.querySelector('[data-trial="1"]')).toBeTruthy();
   });
 });

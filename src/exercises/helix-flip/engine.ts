@@ -25,10 +25,10 @@ export class HelixFlipEngine {
     let rightColor: Color;
 
     if (rule === 'Форма') {
-      rightShape = isMatch ? leftShape : this.shapes.find(s => s !== leftShape)!;
+      rightShape = isMatch ? leftShape : pick(this.shapes.filter(s => s !== leftShape));
       rightColor = this.colors[Math.floor(Math.random() * this.colors.length)];
     } else {
-      rightColor = isMatch ? leftColor : this.colors.find(c => c !== leftColor)!;
+      rightColor = isMatch ? leftColor : pick(this.colors.filter(c => c !== leftColor));
       rightShape = this.shapes[Math.floor(Math.random() * this.shapes.length)];
     }
 
@@ -36,4 +36,9 @@ export class HelixFlipEngine {
       leftShape, leftColor, rightShape, rightColor, rule, isMatch
     };
   }
+}
+
+/** Mismatches used to always pick the first other shape/colour, which made them predictable. */
+function pick<T>(xs: T[]): T {
+  return xs[Math.floor(Math.random() * xs.length)];
 }

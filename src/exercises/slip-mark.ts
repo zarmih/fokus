@@ -32,9 +32,7 @@ const slipMarkModule: ExerciseModule = {
     let startTime = 0;
     let markX = -0.1;
     let gateX = 1.1;
-    let markSpeed = 0.0003 + level * 0.00002;
-    let gateSpeed = 0.0002 + level * 0.000015;
-    let gateWidth = Math.max(0.04, 0.12 - level * 0.003);
+    let { markSpeed, gateSpeed, gateWidth } = slipMarkParams(level);
     let markWidth = 0.08;
     let phase: 'wait' | 'run' | 'feedback' = 'wait';
     let answered = false;
@@ -101,9 +99,7 @@ const slipMarkModule: ExerciseModule = {
       phase = 'run';
       markX = -0.15 - Math.random() * 0.1;
       gateX = 1.05 + Math.random() * 0.1;
-      gateWidth = Math.max(0.04, 0.12 - level * 0.003);
-      markSpeed = 0.0003 + level * 0.00002 + Math.random() * 0.00005;
-      gateSpeed = 0.0002 + level * 0.000015 + Math.random() * 0.00003;
+      ({ markSpeed, gateSpeed, gateWidth } = slipMarkParams(level, Math.random(), Math.random()));
       renderPositions();
       status.textContent = 'Ждите совпадения…';
       startTime = performance.now();
@@ -186,3 +182,12 @@ const slipMarkModule: ExerciseModule = {
 };
 
 export default slipMarkModule;
+
+/** Level → speeds (faster = harder) and gate width (narrower = harder). */
+export function slipMarkParams(level: number, j1 = 0, j2 = 0): { markSpeed: number; gateSpeed: number; gateWidth: number } {
+  return {
+    markSpeed: 0.0003 + level * 0.00002 + j1 * 0.00005,
+    gateSpeed: 0.0002 + level * 0.000015 + j2 * 0.00003,
+    gateWidth: Math.max(0.04, 0.12 - level * 0.003)
+  };
+}
