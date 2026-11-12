@@ -18,7 +18,10 @@ export function renderOddOne(
   const minRounds = 6;
   let currentTimer: number;
 
+  // Set by teardown: a pending inter-round delay must not start an orphan round after the block ends.
+  let disposed = false;
   const startRound = () => {
+    if (disposed) return;
     if (isTimeUp()) { finishBlock(); return; }
     const params = getOddOneParams(level);
     const { cells, oddIndex } = engine.start(params);
@@ -62,6 +65,7 @@ export function renderOddOne(
   };
 
   const finishBlock = () => {
+    if (disposed) return;
     stage.cleanup();
     onBlockEnd({
       accuracy: rounds > 0 ? correctCount / rounds : 0,
@@ -71,5 +75,5 @@ export function renderOddOne(
   };
 
   startRound();
-  return () => { clearTimeout(currentTimer); stage.cleanup(); };
+  return () => { disposed = true; clearTimeout(currentTimer); stage.cleanup(); };
 }

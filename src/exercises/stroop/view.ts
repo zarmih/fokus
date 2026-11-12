@@ -19,7 +19,10 @@ export function renderStroop(
   let currentTimer: number;
   let onKey: ((e: KeyboardEvent) => void) | null = null;
 
+  // Set by teardown: a pending inter-round delay must not start an orphan round after the block ends.
+  let disposed = false;
   const startRound = () => {
+    if (disposed) return;
     if (isTimeUp()) { finishBlock(); return; }
     const params = getStroopParams(level);
     const trial = engine.nextTrial(params);
@@ -77,6 +80,7 @@ export function renderStroop(
   };
 
   const finishBlock = () => {
+    if (disposed) return;
     if (onKey) document.removeEventListener('keydown', onKey);
     stage.cleanup();
     onBlockEnd({
@@ -87,7 +91,7 @@ export function renderStroop(
   };
 
   startRound();
-  return () => {
+  return () => { disposed = true;
     clearTimeout(currentTimer);
     if (onKey) document.removeEventListener('keydown', onKey);
     stage.cleanup();

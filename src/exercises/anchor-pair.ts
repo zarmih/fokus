@@ -138,7 +138,10 @@ const anchorPairModule: ExerciseModule = {
     leftBtn.addEventListener('click', () => answer('L'));
     rightBtn.addEventListener('click', () => answer('R'));
 
+    let ended = false;
     function finish() {
+      if (ended) return;
+      ended = true;
       clearTimers();
       onEnd({
         accuracy: rounds > 0 ? hits / rounds : 0,
@@ -148,7 +151,11 @@ const anchorPairModule: ExerciseModule = {
     }
 
     nextRound();
-    return finish;
+    /** Teardown without scoring: the session aborts a block on back/restart/background. */
+    return () => {
+      ended = true;
+      clearTimers();
+    };
   }
 };
 

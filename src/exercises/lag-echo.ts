@@ -159,8 +159,15 @@ const lagEchoModule: ExerciseModule = {
 
     startRound();
 
-    function finish() {
+    let ended = false;
+    /** Teardown without scoring: the session aborts a block on back/restart/background. */
+    function stop() {
       clearTimeout(showTimeout);
+    }
+    function finish() {
+      if (ended) return;
+      ended = true;
+      stop();
       const acc = totalAttempts > 0 ? accuracy / totalAttempts : 0;
       onEnd({
         accuracy: acc,
@@ -169,7 +176,10 @@ const lagEchoModule: ExerciseModule = {
       });
     }
 
-    return finish;
+    return () => {
+      ended = true;
+      stop();
+    };
   }
 };
 

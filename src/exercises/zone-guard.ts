@@ -193,17 +193,22 @@ const zoneGuardModule: ExerciseModule = {
     
     reqId = requestAnimationFrame(loop);
 
-    function finish() {
+    let ended = false;
+    /** Teardown without scoring (session abort). */
+    function stop() {
       isRunning = false;
       cancelAnimationFrame(reqId);
-      
       entities.forEach(e => {
         if (container.contains(e.el)) {
           container.removeChild(e.el);
         }
       });
       entities = [];
-      
+    }
+    function finish() {
+      if (ended) return;
+      ended = true;
+      stop();
       const acc = totalAttempts > 0 ? accuracy / totalAttempts : 0;
       onEnd({
         accuracy: acc,
@@ -212,7 +217,10 @@ const zoneGuardModule: ExerciseModule = {
       });
     }
 
-    return finish;
+    return () => {
+      ended = true;
+      stop();
+    };
   }
 };
 

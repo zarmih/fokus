@@ -33,7 +33,10 @@ export function render(
   const btnLeft = stage.board.querySelector('#pr-btn-left') as HTMLButtonElement;
   const btnRight = stage.board.querySelector('#pr-btn-right') as HTMLButtonElement;
 
+  // Set by teardown: a pending inter-round delay must not start an orphan round after the block ends.
+  let disposed = false;
   const nextRound = () => {
+    if (disposed) return;
     if (isTimeUp()) return finish();
     const params = getParams(level);
     currentState = engine.startRound(params);
@@ -83,6 +86,7 @@ export function render(
   window.addEventListener('keydown', onKey);
 
   const finish = () => {
+    if (disposed) return;
     window.removeEventListener('keydown', onKey);
     stage.cleanup();
     onBlockEnd({
@@ -93,7 +97,7 @@ export function render(
   };
 
   nextRound();
-  return () => {
+  return () => { disposed = true;
     clearTimeout(timer);
     window.removeEventListener('keydown', onKey);
     stage.cleanup();

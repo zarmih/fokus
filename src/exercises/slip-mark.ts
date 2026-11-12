@@ -19,6 +19,16 @@ const slipMarkModule: ExerciseModule = {
     let hits = 0;
     let avgRtMs = 0;
     let raf = 0;
+    // Feedback delays are tracked so teardown can cancel them (no orphan rounds after the block ends).
+    const pending = new Set<number>();
+    let stopped = false;
+    const later = (fn: () => void, ms: number) => {
+      const t = window.setTimeout(() => {
+        pending.delete(t);
+        if (!stopped) fn();
+      }, ms);
+      pending.add(t);
+    };
     let startTime = 0;
     let markX = -0.1;
     let gateX = 1.1;
@@ -109,7 +119,7 @@ const slipMarkModule: ExerciseModule = {
           phase = 'feedback';
           status.textContent = 'Пропуск';
           status.style.color = 'var(--danger, #f87171)';
-          setTimeout(() => {
+          later(() => {
             status.style.color = '';
             nextRound();
           }, 280);
@@ -135,7 +145,7 @@ const slipMarkModule: ExerciseModule = {
         status.textContent = dist > 0 && markX + markWidth <= gateX ? 'Рано' : 'Поздно';
         status.style.color = 'var(--danger, #f87171)';
       }
-      setTimeout(() => {
+      later(() => {
         status.style.color = '';
         nextRound();
       }, 280);
@@ -151,14 +161,27 @@ const slipMarkModule: ExerciseModule = {
       { passive: false }
     );
 
-    function finish() {
+    let ended = false;
+    /** Teardown without scoring: used when the session aborts the block (back, restart, background). */
+    function stop() {
+      stopped = true;
       cancelAnimationFrame(raf);
+      pending.forEach((t) => clearTimeout(t));
+      pending.clear();
+    }
+    function finish() {
+      if (ended) return;
+      ended = true;
+      stop();
       const accuracy = rounds > 0 ? hits / rounds : 0;
       onEnd({ accuracy, avgRtMs: Math.max(180, avgRtMs || 400), rounds });
     }
 
     nextRound();
-    return finish;
+    return () => {
+      ended = true;
+      stop();
+    };
   }
 };
 

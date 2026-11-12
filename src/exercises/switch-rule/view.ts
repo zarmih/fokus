@@ -19,7 +19,10 @@ export function renderSwitchRule(
   let currentTimer: number;
   let onKey: ((e: KeyboardEvent) => void) | null = null;
 
+  // Set by teardown: a pending inter-round delay must not start an orphan round after the block ends.
+  let disposed = false;
   const startRound = () => {
+    if (disposed) return;
     if (isTimeUp()) { finishBlock(); return; }
     const params = getSwitchRuleParams(level);
     const trial = engine.nextTrial(params);
@@ -68,6 +71,7 @@ export function renderSwitchRule(
   };
 
   const finishBlock = () => {
+    if (disposed) return;
     if (onKey) document.removeEventListener('keydown', onKey);
     stage.cleanup();
     onBlockEnd({
@@ -78,7 +82,7 @@ export function renderSwitchRule(
   };
 
   startRound();
-  return () => {
+  return () => { disposed = true;
     clearTimeout(currentTimer);
     if (onKey) document.removeEventListener('keydown', onKey);
     stage.cleanup();

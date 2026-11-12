@@ -14,7 +14,16 @@ export function renderArcadeShooter(
   const canvas = document.createElement('canvas');
   canvas.style.cssText = 'width:100%;height:360px;display:block;border-radius:16px;';
   stage.board.appendChild(canvas);
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    // No 2D canvas (very old browser, blocked canvas, test DOM): end the block unscored instead of throwing.
+    stage.setStatus('Это упражнение недоступно в вашем браузере');
+    const t = window.setTimeout(() => onEnd({ accuracy: 0, avgRtMs: 0, rounds: 0 }), 0);
+    return () => {
+      clearTimeout(t);
+      stage.cleanup();
+    };
+  }
   let width = 0;
   let height = 0;
 

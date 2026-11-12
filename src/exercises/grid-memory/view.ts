@@ -18,7 +18,10 @@ export function renderGridMemory(
   const minRounds = 3;
   let timers: number[] = [];
 
+  // Set by teardown: a pending inter-round delay must not start an orphan round after the block ends.
+  let disposed = false;
   const startRound = () => {
+    if (disposed) return;
     if (isTimeUp()) {
       finish();
       return;
@@ -80,6 +83,7 @@ export function renderGridMemory(
   };
 
   const finish = () => {
+    if (disposed) return;
     stage.cleanup();
     onBlockEnd({
       accuracy: rounds > 0 ? totalAccuracy / rounds : 0,
@@ -89,7 +93,7 @@ export function renderGridMemory(
   };
 
   startRound();
-  return () => {
+  return () => { disposed = true;
     timers.forEach(clearTimeout);
     stage.cleanup();
   };

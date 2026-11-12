@@ -1,3 +1,4 @@
+import { nearbyNumberOptions } from './lib/options';
 import { ExerciseModule, BlockResult } from './contract';
 
 const shapeCountModule: ExerciseModule = {
@@ -139,11 +140,8 @@ const shapeCountModule: ExerciseModule = {
       controls.innerHTML = '';
       
       // Generate options around the target answer
-      const options = [targetAns];
-      while (options.length < 5) {
-        const fake = targetAns + Math.floor(Math.random() * 5) - 2;
-        if (fake >= 0 && !options.includes(fake)) options.push(fake);
-      }
+      // Bounded: for answers 0/1 the old ±2 window had fewer than 5 non-negative values and never finished.
+      const options = nearbyNumberOptions(targetAns, 5);
       options.sort((a,b) => a - b);
 
       options.forEach(opt => {
