@@ -1,3 +1,4 @@
+import { distinctIndices } from './lib/options';
 import { ExerciseModule, BlockResult } from './contract';
 
 const dotSpanModule: ExerciseModule = {
@@ -16,7 +17,9 @@ const dotSpanModule: ExerciseModule = {
     let isGameOver = false;
     let sequence: number[] = [];
     let userStep = 0;
-    let span = Math.max(3, Math.floor(level) + 2);
+    // 16 cells: a span above 9 is not a meaningful memory load, above 16 it used to hang the generator.
+    const MAX_SPAN = 9;
+    let span = Math.min(MAX_SPAN, Math.max(3, Math.floor(level) + 2));
     
     el.innerHTML = `
       <style>
@@ -69,14 +72,7 @@ const dotSpanModule: ExerciseModule = {
       isPlaying = true;
       userStep = 0;
       sequence = [];
-      const used = new Set<number>();
-      
-      for (let i = 0; i < span; i++) {
-        let n;
-        do { n = Math.floor(Math.random() * 16); } while(used.has(n));
-        used.add(n);
-        sequence.push(n);
-      }
+      sequence = distinctIndices(span, 16);
 
       await new Promise(r => setTimeout(r, 500));
       if (isGameOver) return;
@@ -105,7 +101,7 @@ const dotSpanModule: ExerciseModule = {
         if (userStep === sequence.length) {
           totalRounds++;
           correctRounds++;
-          span++;
+          span = Math.min(MAX_SPAN, span + 1);
           rts.push(performance.now() - t0);
           checkEnd();
         }

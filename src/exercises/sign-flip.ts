@@ -164,9 +164,16 @@ const signFlipModule: ExerciseModule = {
 
     generateRound();
 
-    function finish() {
+    let ended = false;
+    /** Teardown without scoring: the session aborts a block on back/restart/background. */
+    function stop() {
       clearTimeout(flipTimeout);
       document.body.style.backgroundColor = '';
+    }
+    function finish() {
+      if (ended) return;
+      ended = true;
+      stop();
       const acc = rounds > 0 ? accuracy / rounds : 0;
       onEnd({
         accuracy: acc,
@@ -175,7 +182,10 @@ const signFlipModule: ExerciseModule = {
       });
     }
 
-    return finish;
+    return () => {
+      ended = true;
+      stop();
+    };
   }
 };
 

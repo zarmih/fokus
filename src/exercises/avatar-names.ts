@@ -1,3 +1,4 @@
+import { distinctOptions } from './lib/options';
 import { ExerciseModule, BlockResult } from './contract';
 
 const avatarNamesModule: ExerciseModule = {
@@ -120,18 +121,9 @@ const avatarNamesModule: ExerciseModule = {
 
         const controls = arena.querySelector('#an-controls') as HTMLElement;
         
-        const options = [targetName];
-        while(options.length < 4) {
-          const fake = pairs[Math.floor(Math.random() * pairs.length)].name;
-          if(!options.includes(fake)) options.push(fake);
-        }
-        // If we didn't have enough pairs to make 4 options, pad with random names
-        while(options.length < 4) {
-          const fake = names[Math.floor(Math.random() * names.length)];
-          if(!options.includes(fake)) options.push(fake);
-        }
-        
-        options.sort(() => Math.random() - 0.5);
+        // Distractors from this round's names first, then from the full list. The old loop drew only
+        // from `pairs` (3 at levels 1–2) and could never find a 4th distinct name — the tab froze.
+        const options = distinctOptions(targetName, 4, pairs.map((p) => p.name), names);
 
         options.forEach(opt => {
           const btn = document.createElement('button');

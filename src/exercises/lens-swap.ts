@@ -191,15 +191,25 @@ const lensSwapModule: ExerciseModule = {
 
     startRound();
 
-    const endBlock = () => {
+    let ended = false;
+    /** Teardown without scoring: the session aborts a block on back/restart/background. */
+    const stop = () => {
       isGameOver = true;
       window.removeEventListener('keydown', onKey);
+    };
+    const endBlock = () => {
+      if (ended) return;
+      ended = true;
+      stop();
       const accuracy = rounds > 0 ? correct / rounds : 0;
       const avgRtMs = rts.length > 0 ? rts.reduce((a,b)=>a+b,0)/rts.length : 1000;
       onEnd({ accuracy, avgRtMs, rounds });
     };
 
-    return endBlock;
+    return () => {
+      ended = true;
+      stop();
+    };
   }
 };
 

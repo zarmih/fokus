@@ -1,3 +1,4 @@
+import { distinctOptions } from './lib/options';
 import { ExerciseModule, BlockResult } from './contract';
 
 const wordPairsModule: ExerciseModule = {
@@ -117,19 +118,9 @@ const wordPairsModule: ExerciseModule = {
 
         const controls = arena.querySelector('#wp-controls') as HTMLElement;
         
-        const options = [targetAnswer];
-        while(options.length < 4) {
-          const fake = isReverse ? pairs[Math.floor(Math.random() * pairs.length)].q : pairs[Math.floor(Math.random() * pairs.length)].a;
-          if(!options.includes(fake)) options.push(fake);
-        }
-        
-        // if we couldn't find enough fakes from current pairs, use random items
-        while(options.length < 4) {
-          const fake = items[Math.floor(Math.random() * items.length)];
-          if(!options.includes(fake)) options.push(fake);
-        }
-
-        options.sort(() => Math.random() - 0.5);
+        // Distractors from this round first, then any item. With 2–3 pairs the old loop could not reach
+        // 4 distinct options and never finished.
+        const options = distinctOptions(targetAnswer, 4, pairs.map((p) => (isReverse ? p.q : p.a)), items);
 
         options.forEach(opt => {
           const btn = document.createElement('button');

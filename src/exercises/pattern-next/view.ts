@@ -18,7 +18,10 @@ export function renderPatternNext(
   const minRounds = 5;
   let currentTimer: number;
 
+  // Set by teardown: a pending inter-round delay must not start an orphan round after the block ends.
+  let disposed = false;
   const startRound = () => {
+    if (disposed) return;
     if (isTimeUp()) { finishBlock(); return; }
     const params = getPatternNextParams(level);
     const trial = engine.nextTrial(params);
@@ -65,6 +68,7 @@ export function renderPatternNext(
   };
 
   const finishBlock = () => {
+    if (disposed) return;
     stage.cleanup();
     onBlockEnd({
       accuracy: rounds > 0 ? correctCount / rounds : 0,
@@ -74,5 +78,5 @@ export function renderPatternNext(
   };
 
   startRound();
-  return () => { clearTimeout(currentTimer); stage.cleanup(); };
+  return () => { disposed = true; clearTimeout(currentTimer); stage.cleanup(); };
 }
