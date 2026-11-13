@@ -152,7 +152,10 @@ export interface SessionItem {
   masteryAfter?: number;
   difficultyBefore?: number;
   difficultyAfter?: number;
+  /** @deprecated Legacy heuristic (attempts/15 × 100), kept only for old history. Use attemptsAfter. */
   confidenceAfter?: number;
+  /** Attempts recorded for this exercise after the block — a count of evidence, not a probability. */
+  attemptsAfter?: number;
   progressionState?: string;
   pSuccess?: number;
   slot?: string;

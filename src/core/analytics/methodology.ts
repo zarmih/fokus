@@ -217,3 +217,13 @@ function plural(n: number, one: string, few: string, many: string): string {
   if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
   return many;
 }
+
+/**
+ * Attempts behind an exercise result. New items store the count; items saved before
+ * methodology v2 stored a heuristic "confidence" (attempts/15 × 100, capped), which maps back losslessly below 15.
+ */
+export function attemptsEvidence(item: { attemptsAfter?: number; confidenceAfter?: number }): number {
+  if (typeof item.attemptsAfter === 'number') return item.attemptsAfter;
+  if (typeof item.confidenceAfter === 'number') return Math.round((item.confidenceAfter / 100) * 15);
+  return 0;
+}

@@ -379,7 +379,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             
             sr.masteryAfter = state.mastery;
             sr.difficultyAfter = state.difficulty;
-            sr.confidenceAfter = Math.min(1.0, (state.attempts || 1) / 15) * 100;
+            sr.attemptsAfter = state.attempts || 1;
             if ((state.attempts || 1) < 3) sr.progressionState = 'calibrating';
             else if (state.mastery! > sr.masteryBefore!) sr.progressionState = 'up';
             else if (state.mastery! < sr.masteryBefore!) sr.progressionState = 'down';
