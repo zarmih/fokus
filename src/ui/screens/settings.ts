@@ -6,7 +6,7 @@ import { loadContinuitySnapshot } from '../../core/continuity';
 import { renderShell } from '../shell';
 import { applyTheme } from '../theme';
 import { ADAPTIVE_SETTINGS_COPY, describeAdaptiveDepth } from '../../core/adaptive-depth';
-import { registry } from '../../exercises/registry';
+import { registry } from '../../exercises/manifest-registry';
 import { transferCardFromStorage } from '../components/transfer-card';
 import { navigateTo } from '../router';
 import { domainLabel } from '../../core/labels';

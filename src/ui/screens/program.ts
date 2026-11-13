@@ -2,7 +2,7 @@ import { renderShell } from '../shell';
 import { exerciseIconSrc } from '../exercise-icon';
 import { storage } from '../../core/storage';
 import { navigateTo } from '../router';
-import { registry } from '../../exercises/registry';
+import { registry } from '../../exercises/manifest-registry';
 import { calibrationSessionItems } from '../../core/calibration';
 import { currentModel, snoozeRecalibration, getProgramPosition } from '../../core/adaptive-plan';
 import { SLOT_LABEL, getDomain, isRecalibrationActive } from '../../core/engine';

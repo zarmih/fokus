@@ -12,7 +12,7 @@
  * one retention re-order, one explanation derived from the items actually planned.
  */
 import { storage } from './storage';
-import { registry } from '../exercises/registry';
+import { registry } from '../exercises/manifest-registry';
 import { planWithRecovery } from './recovery';
 import { loadContinuitySnapshot, ritualDurationSec } from './continuity';
 import { assessRetention, describeProgramRetention } from './retention';
