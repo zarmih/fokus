@@ -389,6 +389,9 @@ export function renderProgress(container: HTMLElement) {
   const sparkHtml = sparkCount >= 2
     ? `<div class="fi-spark">${renderIndexSparkline(intel.sparkline, { width: 220, height: 44 })}<span class="fi-spark-lbl">${intel.sparkline.deltaLabel}</span></div>`
     : '';
+  const legacyNoteHtml = intel.sparkline.legacyDays > 0
+    ? `<p class="fi-legacy-note" data-legacy-days="${intel.sparkline.legacyDays}" style="font-size: 12px; color: var(--muted); margin: 4px 0 0;">Дней по прежней методике (v1): ${intel.sparkline.legacyDays}. Они сохранены, но не показаны на графике и не сравниваются с текущими.</p>`
+    : '';
   // Methodology v2: no index personal record (the index mixes exercises and levels).
 
   const band = personalIndexBand(ds, new Date().toISOString());
@@ -451,6 +454,7 @@ export function renderProgress(container: HTMLElement) {
         ${fi.balance !== 'unknown' && fi.explain.balanceStr ? `<div class="fi-meta" style="margin-top: 4px; opacity: 0.8; font-size: 12px; max-width: 280px; margin-left: auto; margin-right: auto; line-height: 1.3;">${fi.explain.balanceStr}</div>` : ''}
         ${bandHtml}
         ${sparkHtml}
+        ${legacyNoteHtml}
         ${depthHtml}
         <p class="fi-disclaimer" style="font-size: 10px; color: var(--muted); margin-top: 12px; line-height: 1.3;">${fi.explain.action}</p>
         ${btnExplain}
