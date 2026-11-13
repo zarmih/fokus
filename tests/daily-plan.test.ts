@@ -7,6 +7,8 @@ import { recordEngineObservation, markEngineCalibrated } from '../src/core/adapt
 import { registry } from '../src/exercises/registry';
 import { renderToday } from '../src/ui/screens/today';
 import { renderProgram } from '../src/ui/screens/program';
+import { buildFirstWeekPlan } from '../src/core/onboarding';
+import { domainLabel } from '../src/core/labels';
 
 class MockStorage {
   data: Record<string, string> = {};
@@ -161,5 +163,39 @@ describe('one plan: shown on Today == explained on Program == played in Session'
     const start = nav.calls.find((c) => c.screenId === 'session');
     expect(start.params.items.map((i: any) => i.exerciseId)).toEqual(expected.items.map((i) => i.exerciseId));
     expect(start.params.durationSec).toBe(expected.durationSec);
+  });
+
+  test('first week after calibration: header focus and «Акцент дня» only name areas the plan trains', () => {
+    const now = Date.now();
+    for (const goal of ['balance', 'attention', 'speed', 'memory']) {
+      (storage as any).backend = new MockStorage();
+      storage.reset();
+      document.body.innerHTML = '<div id="app"></div>';
+      calibratedUser(300);
+      const p = storage.getProfile();
+      p.primaryGoal = goal as any;
+      p.firstWeekPlan = buildFirstWeekPlan({ primaryGoal: goal, sessionLengthSec: 300, startDate: new Date(now).toISOString() });
+      storage.setProfile(p);
+      // Calibration probes, incl. a non-core speed probe.
+      for (const id of ['odd-one', 'grid-memory', 'stroop', 'pattern-next', 'reaction-strike']) {
+        const m = registry.find((r) => r.manifest.id === id)!.manifest;
+        recordEngineObservation({ exerciseId: id, domain: m.domain as any, skills: [...m.skills], metricModel: (m.metricModel || 'speed-accuracy') as any,
+          difficulty: 3, accuracy: 0.7, avgRtMs: 900, targetMs: 1500, performance: 0.6, rounds: 6, probe: true } as any, now - 60_000);
+      }
+      markEngineCalibrated(now - 30_000);
+      const plan = planToday();
+      const app = document.getElementById('app')!;
+      renderToday(app);
+      const chipDomains = new Set([...app.querySelectorAll<HTMLElement>('.workout-chip[data-exercise-id]')].map((el) => domainOf.get(el.dataset.exerciseId!)));
+      const doms = plan.items.map((i) => i.domain);
+      expect(new Set(doms).size).toBeGreaterThanOrEqual(goal === 'balance' ? doms.length : doms.length - 1);
+      const header = app.querySelector<HTMLElement>('[data-plan-focus]');
+      if (header) for (const d of header.dataset.planFocus!.split(',').filter(Boolean)) expect(chipDomains.has(d as any)).toBe(true);
+      const allowed = new Set([...chipDomains].map((d) => domainLabel(d as string)));
+      const text = app.textContent || '';
+      for (const m of text.matchAll(/Акцент дня: ([^.]+)\./g)) {
+        for (const name of m[1].split(/ \+ | и /)) expect(allowed.has(name.trim())).toBe(true);
+      }
+    }
   });
 });

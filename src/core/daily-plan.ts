@@ -82,6 +82,18 @@ export interface DailyPlan {
   softReturn: boolean;
 }
 
+/**
+ * The day's focus may only name areas the plan actually trains; otherwise the area of the first block.
+ * Today's header, the first-week card and the why-line all read this one value.
+ */
+export function honestFocus(focus: string[], items: { domain?: string }[]): string[] {
+  const inPlan = new Set(items.map((i) => i.domain).filter(Boolean) as string[]);
+  const kept = focus.filter((d) => inPlan.has(d));
+  if (kept.length) return kept;
+  const first = items.find((i) => i.domain)?.domain;
+  return first ? [first] : [];
+}
+
 export function explainComposition(items: { domain?: string; core?: boolean }[], programDay: number, durationSec: number): string {
   const domains = [...new Set(items.map((i) => i.domain).filter((d): d is string => !!d))];
   const minutes = Math.max(1, Math.round(durationSec / 60));
@@ -183,6 +195,7 @@ export function planToday(opts: { nowMs?: number; excludeIds?: string[]; resumeS
   }
   const domainOf = new Map(registry.map((r) => [r.manifest.id, r.manifest.domain] as const));
   items = items.map((it) => ({ ...it, domain: it.domain || domainOf.get(it.exerciseId), core: isCoreExercise(it.exerciseId) }));
+  focusDomains = honestFocus(focusDomains, items);
 
   const pos = getProgramPosition(snap, profile as any);
   const programDay = programDayNumber(pos.playedCount, pos.playedToday);

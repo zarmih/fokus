@@ -250,7 +250,7 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
 
   if (inFirstWeek) {
     const fw =
-      (weekRitual && describeFirstWeekContinuity(weekRitual)) ||
+      (weekRitual && describeFirstWeekContinuity(weekRitual, focusDomains)) ||
       null;
     if (fw || weekRitualCopy) {
       const title = fw?.title || 'Первая неделя';

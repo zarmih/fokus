@@ -504,7 +504,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
           ${finalKicker}
         </div>
         <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'first_week' ? planExplain.title : 'Тренировка дня'}</h3>
-        <p style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
+        <p data-plan-focus="${plan.focusDomains.join(',')}" style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
           ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
         </p>
         ${budgetWhyHtml}
