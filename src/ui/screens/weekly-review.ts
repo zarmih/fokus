@@ -1,3 +1,4 @@
+import { attemptsEvidence } from '../../core/analytics/methodology';
 import { storage } from '../../core/storage';
 import { exerciseIconSrc } from '../exercise-icon';
 import { catalog, getManifest } from '../../exercises/catalog';
@@ -247,7 +248,7 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
   }
 
   // WHAT CHANGED
-  const exerciseDeltas = new Map<string, { mBefore: number, mAfter: number, dBefore: number, dAfter: number, conf: number }>();
+  const exerciseDeltas = new Map<string, { mBefore: number, mAfter: number, dBefore: number, dAfter: number, attempts: number }>();
   
   sessions.forEach(s => {
     s.items.forEach(item => {
@@ -257,13 +258,13 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
           mAfter: item.masteryAfter || 0,
           dBefore: item.difficultyBefore || item.level,
           dAfter: item.difficultyAfter || item.level,
-          conf: item.confidenceAfter || 0
+          attempts: attemptsEvidence(item)
         });
       } else {
         const current = exerciseDeltas.get(item.exerciseId)!;
         current.mAfter = item.masteryAfter || current.mAfter;
         current.dAfter = item.difficultyAfter || current.dAfter;
-        current.conf = item.confidenceAfter || current.conf;
+        current.attempts = Math.max(current.attempts, attemptsEvidence(item));
       }
     });
   });
@@ -275,10 +276,10 @@ export function renderWeeklyReview(container: HTMLElement, opts?: { window?: His
       name: getManifest(id)?.name || id,
       mDelta: data.mAfter - data.mBefore,
       dDelta: data.dAfter - data.dBefore,
-      conf: data.conf,
+      attempts: data.attempts,
       mAfter: data.mAfter
     };
-  }).filter(d => d.conf >= 20); // Need evidence (>= 3 attempts)
+  }).filter(d => d.attempts >= 3); // Need evidence: at least 3 attempts
 
   sortedDeltas.sort((a, b) => b.mDelta - a.mDelta);
 
