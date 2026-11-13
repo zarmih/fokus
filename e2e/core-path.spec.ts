@@ -69,7 +69,8 @@ test('coming back after a week: history kept, calm plan offered', async ({ page 
   await navigate(page, 'today');
   await expect(page.locator('#btn-start')).toBeVisible();
   const src = await page.locator('[data-budget-source]').first().getAttribute('data-budget-source');
-  expect(src).toBeTruthy();
+  expect(src).toBe('soft-return');
+  await expect(page.locator('[data-budget-source]').first()).toContainText('мягкое возвращение');
   const after = await stored(page);
   expect(after.sessions.length).toBe(before.sessions.length);
   expect(after.daySummaries.length).toBe(before.daySummaries.length);
