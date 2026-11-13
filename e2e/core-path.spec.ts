@@ -2,9 +2,13 @@ import { expect, test } from '@playwright/test';
 import { calibrateNewUser, navigate, openFresh, phase, playThrough, startToday, stored, tick } from './helpers';
 
 test('first launch → calibration → «Тренировка на сегодня» with a balanced plan in budget', async ({ page }) => {
+  const outbound: string[] = [];
+  page.on('request', (r) => { if (!r.url().startsWith('http://localhost:4173/fokus/')) outbound.push(r.url()); });
   const errors = await openFresh(page);
   await calibrateNewUser(page);
   await expect(page.locator('#btn-start')).toHaveText(/Тренировка на сегодня/);
+  // Privacy: no account, no beacon — every request stays inside the app's own files.
+  expect(outbound).toEqual([]);
   const s = await stored(page);
   expect(s.profile.onboarded).toBe(true);
   expect(s.profile.calibrated).toBe(true);

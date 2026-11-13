@@ -655,19 +655,12 @@ export type SyncPoster = (
   signal: AbortSignal
 ) => Promise<Response | null>;
 
-/** Override for tests / progress-sync transport. Default: POST /api/sync. */
-let syncPoster: SyncPoster = async (snapshot, signal) => {
-  try {
-    return await fetch('/api/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(snapshot),
-      signal
-    });
-  } catch {
-    return null;
-  }
-};
+/**
+ * Transport for queued saves. Default: no network at all — Fokus works without an account,
+ * so nothing leaves the device until a real cloud transport is installed explicitly
+ * (progress-sync installs a bridge to the configured CloudSyncTransport, noop by default).
+ */
+let syncPoster: SyncPoster = async () => null;
 
 export function setSyncPoster(poster: SyncPoster) {
   syncPoster = poster;
