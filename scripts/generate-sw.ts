@@ -1,8 +1,27 @@
-/** Shell + core assets only. Exercise chunks and per-game icons are runtime-cached. */
+import { CORE_EXERCISE_IDS } from '../src/core/core-catalog';
+
+/**
+ * Exercises that must work offline right after the first visit: the 14-day core program plus every
+ * calibration probe (src/core/calibration.ts PREFERRED_PROBE — a unit test keeps the lists in sync).
+ * The rest of the catalog is runtime-cached the first time it is played online.
+ */
+export const CALIBRATION_PROBE_IDS = [
+  'grid-memory', 'corsi', 'n-back', 'dot-span', 'odd-one', 'posner', 'go-no-go', 'schulte',
+  'pattern-next', 'pulley', 'reaction-strike', 'math-sprint', 'stroop', 'switch-rule'
+] as const;
+export const OFFLINE_EXERCISE_IDS: ReadonlySet<string> = new Set([...CORE_EXERCISE_IDS, ...CALIBRATION_PROBE_IDS]);
+
+const EX_CHUNK = /^assets\/ex-(.+)-[A-Za-z0-9_-]{8}\.js$/;
+const EX_ICON = /^art\/icon-(.+)\.svg$/;
+
+/** Shell, core + calibration exercises and the shared exercise lib. Other exercise chunks/icons are runtime-cached. */
 export function shouldPrecache(relPath: string): boolean {
   if (relPath.endsWith('.map')) return false;
+  const chunk = relPath.match(EX_CHUNK);
+  if (chunk) return chunk[1] === 'lib' || OFFLINE_EXERCISE_IDS.has(chunk[1]);
   if (relPath.startsWith('assets/ex-')) return false;
-  if (relPath.startsWith('art/icon-')) return false;
+  const icon = relPath.match(EX_ICON);
+  if (icon) return icon[1].startsWith('domain-') || OFFLINE_EXERCISE_IDS.has(icon[1]);
   if (relPath.startsWith('art/tiles/')) return false;
   if (relPath === 'art/screenshot.jpg') return false;
   return true;
@@ -45,18 +64,18 @@ self.addEventListener('fetch', (event) => {
       try {
         const fresh = await fetch(req);
         const cache = await caches.open(CACHE);
-        const shell = await caches.match(toUrl('index.html'));
+        const shell = await caches.match(toUrl('index.html'), { ignoreVary: true });
         if (fresh.ok) cache.put(req, fresh.clone());
         return fresh;
       } catch {
-        return (await caches.match(toUrl('index.html'))) || Response.error();
+        return (await caches.match(req, { ignoreVary: true })) || (await caches.match(toUrl('index.html'), { ignoreVary: true })) || Response.error();
       }
     })());
     return;
   }
 
   event.respondWith((async () => {
-    const cached = await caches.match(req);
+    const cached = await caches.match(req, { ignoreVary: true });
     if (cached) return cached;
     try {
       const fresh = await fetch(req);

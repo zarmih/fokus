@@ -3,3 +3,7 @@ dist/
 .env
 .DS_Store
 dist/
+test-results/
+playwright-report/
+screenshots/
+perf-baseline.md
