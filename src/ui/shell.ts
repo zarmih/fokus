@@ -1,7 +1,7 @@
 import { storage } from '../core/storage';
 import { loadContinuitySnapshot } from '../core/continuity';
 import { navigateTo } from './router';
-import { t } from '../core/i18n';
+import { t, L } from '../core/i18n';
 import { focusMain, setScreenTitle } from './a11y';
 import { streakAriaLabel } from './components/habit-continuity';
 import { syncQueue, type SyncStatus } from '../core/offline-sync';
@@ -25,7 +25,7 @@ export function syncIndicatorView(status: SyncStatus): SyncIndicatorView {
     return {
       visible: true,
       className: 'sync-indicator visible offline',
-      html: `${OFFLINE_SVG} Офлайн`
+      html: `${OFFLINE_SVG} ${L('Офлайн', 'Offline')}`
     };
   }
 
@@ -34,7 +34,7 @@ export function syncIndicatorView(status: SyncStatus): SyncIndicatorView {
       return {
         visible: true,
         className: `sync-indicator visible ${state}`,
-        html: `${LOCAL_SAVE_SVG} Сохранено локально`
+        html: `${LOCAL_SAVE_SVG} ${L('Сохранено локально', 'Saved on this device')}`
       };
     }
     return hidden;
@@ -44,7 +44,7 @@ export function syncIndicatorView(status: SyncStatus): SyncIndicatorView {
     return {
       visible: true,
       className: 'sync-indicator visible syncing',
-      html: 'Синхронизация...'
+      html: L('Синхронизация...', 'Syncing...')
     };
   }
 

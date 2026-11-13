@@ -40,7 +40,7 @@ test('English device: onboarding, calibration, Today and result have no Russian 
 
   await navigate(page, 'today');
   await expect(page.locator('#btn-start')).toHaveText(/Today's workout/);
-  seen.push(...(await cyrillicIn(page, ['.today-head', '.workout-card', 'nav'])));
+  seen.push(...(await cyrillicIn(page, ['.today-head', '.workout-card', 'nav', '#top-sync-indicator'])));
 
   await startToday(page);
   await expect(page.locator('[data-session-phase="intro"]')).toBeVisible();
@@ -49,6 +49,11 @@ test('English device: onboarding, calibration, Today and result have no Russian 
   await tick(page, 1500);
   seen.push(...(await cyrillicIn(page, ['#result-hero', '.result-summary', '.next-action-card'])));
   await expect(page.getByText('Summary').first()).toBeVisible();
+
+  await navigate(page, 'settings');
+  const tz = page.locator('[data-tz-current]');
+  await expect(tz).toContainText('Time zone');
+  seen.push(...(await cyrillicIn(page, ['[data-tz-current]'])));
 
   expect(seen).toEqual([]);
   expect(await page.evaluate(() => document.documentElement.lang)).toBe('en');
