@@ -324,15 +324,18 @@ export interface FirstWeekContinuity {
  * Turn getTodayRitual() into a concrete day-1…7 handoff — not a generic stub.
  * Callers feed this into explainTodayPlan so CTA / coach / week card share one voice.
  */
-export function describeFirstWeekContinuity(ritual: TodayRitual): FirstWeekContinuity | null {
+export function describeFirstWeekContinuity(ritual: TodayRitual, planFocus?: string[]): FirstWeekContinuity | null {
   if (!ritual.inFirstWeek || !ritual.ritualDay) return null;
 
   const d = ritual.ritualDay;
   const minutes = Math.max(1, Math.round(d.durationSec / 60));
-  const focusNames = d.focusDomains.map((id) => domainLabel(id)).filter(Boolean);
+  // The day's focus comes from today's plan (planToday), never from the static first-week template,
+  // so the card cannot name an area the plan does not train. Without a plan: no focus claim.
+  const focusIds = (planFocus || []) as CognitiveDomain[];
+  const focusNames = focusIds.map((id) => domainLabel(id)).filter(Boolean);
   const focusLine =
     focusNames.length === 0
-      ? 'Сбалансированный набор на сегодня.'
+      ? ''
       : focusNames.length === 1
         ? `Акцент дня: ${focusNames[0]}.`
         : `Акцент дня: ${focusNames.join(' + ')}.`;
@@ -358,7 +361,7 @@ export function describeFirstWeekContinuity(ritual: TodayRitual): FirstWeekConti
   // Prefer day identity; keep skip policy visible without drowning the ritual.
   const body =
     ritual.skipState === 'on-track'
-      ? `${dayBit} ${focusLine}`
+      ? `${dayBit} ${focusLine}`.trim()
       : `${dayBit} ${skipBit}`.trim();
 
   return {
@@ -368,7 +371,7 @@ export function describeFirstWeekContinuity(ritual: TodayRitual): FirstWeekConti
     nextAction,
     softenCta: soften,
     tone,
-    focusDomains: [...d.focusDomains],
+    focusDomains: [...focusIds],
     durationSec: d.durationSec,
     day: d.day,
     label: d.label

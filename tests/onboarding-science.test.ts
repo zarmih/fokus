@@ -126,7 +126,9 @@ describe('describeFirstWeekContinuity — handoff into today-plan', () => {
       startDate: '2026-09-11'
     });
     const ritual = getTodayRitual(plan, '2026-09-11', []);
-    const fw = describeFirstWeekContinuity(ritual);
+    // Without today's plan the card makes no focus claim; with it, it names the plan's focus.
+    expect(describeFirstWeekContinuity(ritual)!.whyExercises).toBe('');
+    const fw = describeFirstWeekContinuity(ritual, ['memory']);
     expect(fw).not.toBeNull();
     expect(fw!.day).toBe(1);
     expect(fw!.title).toMatch(/День 1/);
