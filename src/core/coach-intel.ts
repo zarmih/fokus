@@ -1,3 +1,4 @@
+import { ANALYTICS_METHODOLOGY_VERSION } from './analytics/methodology';
 import type { DaySummary, DomainIndex } from './types';
 import { computeFokusIndex } from './fokus-index';
 import { DOMAIN_ORDER, domainLabel } from './labels';
@@ -14,6 +15,11 @@ export interface IndexDay {
   skipped: boolean;
   streak: number;
   fokusIndex: number | null;
+  /**
+   * Index stored under an older methodology. It stays in history but is never drawn on the same
+   * scale, compared, or used for deltas and personal bests with the current methodology.
+   */
+  legacyFokusIndex?: number | null;
   byDomain: Record<string, number | null>;
   personalBest: boolean;
 }
@@ -36,6 +42,8 @@ export interface SparklineModel {
   delta: number | null;
   deltaLabel: string;
   personalBestIndex: number | null;
+  /** Played days whose stored index uses an older methodology: kept, but not plotted or compared. */
+  legacyDays: number;
 }
 
 export interface DomainBreakdown {
@@ -103,6 +111,8 @@ interface DayBucket {
   streak: number;
   skipped: boolean;
   fokusIndex: number | null;
+  /** Methodology version of the stored Fokus Index (undefined = computed now, current version). */
+  fokusIndexMethod?: number;
   played: boolean;
 }
 
@@ -149,10 +159,9 @@ export function collapseSummaries(summaries: DaySummary[]): DayBucket[] {
     for (const [k, v] of Object.entries(s.domainDeltas || {})) {
       deltas[k] = (deltas[k] || 0) + v;
     }
-    const fokus =
-      typeof s.fokusIndex === 'number' && s.fokusIndex > 0
-        ? s.fokusIndex
-        : prev?.fokusIndex ?? null;
+    const own = typeof s.fokusIndex === 'number' && s.fokusIndex > 0;
+    const fokus = own ? s.fokusIndex! : prev?.fokusIndex ?? null;
+    const fokusIndexMethod = own ? s.fokusIndexMethod : prev?.fokusIndexMethod;
     const snapshot = s.domainValues && Object.keys(s.domainValues).length > 0
       ? { ...s.domainValues }
       : prev?.domainValues;
@@ -164,6 +173,7 @@ export function collapseSummaries(summaries: DaySummary[]): DayBucket[] {
       streak: s.streak,
       skipped: !!(prev?.skipped || s.skipped),
       fokusIndex: fokus,
+      fokusIndexMethod,
       // A day summary is written after a session — skipped means a forgiven gap, not an empty day.
       played: true
     });
@@ -263,7 +273,8 @@ export function buildSparkline(days: IndexDay[], window: HistoryWindow): Sparkli
     last,
     delta,
     deltaLabel: windowDeltaLabel(delta, window, numbered.length),
-    personalBestIndex: pbIndex
+    personalBestIndex: pbIndex,
+    legacyDays: days.filter((d) => d.legacyFokusIndex != null).length
   };
 }
 
@@ -622,7 +633,10 @@ export function buildCoachIntel(input: {
       byDomain[id] = typeof snap === 'number' && snap > 0 ? snap : null;
     }
     let fokus = b?.fokusIndex ?? null;
-    if (fokus == null && b?.played && b.domainValues) {
+    const legacy = fokus != null && b?.fokusIndexMethod != null && b.fokusIndexMethod < ANALYTICS_METHODOLOGY_VERSION;
+    const legacyFokusIndex = legacy && b?.played ? fokus : null;
+    if (legacy) fokus = null;
+    if (fokus == null && !legacy && b?.played && b.domainValues) {
       fokus = indexFromValues(b.domainValues);
     }
     return {
@@ -631,6 +645,7 @@ export function buildCoachIntel(input: {
       skipped: !!b?.skipped,
       streak: b?.streak || 0,
       fokusIndex: b?.played ? fokus : null,
+      legacyFokusIndex,
       byDomain,
       personalBest: false
     };
