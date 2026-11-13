@@ -10,7 +10,7 @@ import { DOMAIN_IDS } from '../../core/engine/constants';
 import { domainLabel } from '../../core/labels';
 import type { DomainId } from '../../core/engine/types';
 import { loadContinuitySnapshot, getContinuityMessage } from '../../core/continuity';
-import { planToday, PRIMARY_CTA } from '../../core/daily-plan';
+import { planToday, primaryCta } from '../../core/daily-plan';
 import { abilityTrendChip } from '../../core/adaptive-depth';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
 import { programTrendChipHtml } from '../components/accessible-markup';
@@ -251,7 +251,7 @@ export function renderProgram(container: HTMLElement) {
         ${planExplain?.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent); font-weight: 500;">${planExplain.quietTip}</p>` : ''}
         ${coachWhy ? `<p class="ritual-why plan-why" style="margin-top:8px">${coachWhy}</p>` : ''}
         ${normsHintHtml}
-        <button id="btn-program-start" class="btn-primary" type="button">${PRIMARY_CTA}</button>
+        <button id="btn-program-start" class="btn-primary" type="button">${primaryCta()}</button>
       </div>
     `;
   }

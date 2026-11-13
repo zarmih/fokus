@@ -1,3 +1,4 @@
+import { L, getLocale } from './i18n';
 import type {
   CognitiveDomain,
   FirstWeekPlan,
@@ -24,6 +25,21 @@ const COMPLEMENT: Record<string, CognitiveDomain[]> = {
   logic: ['memory', 'attention', 'flexibility', 'speed'],
   balance: ['attention', 'memory', 'flexibility', 'logic', 'speed']
 };
+
+const DAY_LABELS_EN: Record<string, string> = {
+  'Знакомство с форматом (без спешки)': 'Getting to know the format (no rush)',
+  'Входим в ритм (адаптация)': 'Finding the rhythm (adapting)',
+  'Расширяем зону фокуса': 'Widening the focus',
+  'Лёгкий день (отдых важен)': 'Light day (rest matters)',
+  'Усиление слабых мест': 'Working on weaker areas',
+  'Синтез навыков': 'Putting skills together',
+  'Первый полный ритуал': 'First full session'
+};
+
+/** Day labels are stored in the profile in Russian; show them in the UI language. */
+export function dayLabel(label: string): string {
+  return getLocale() === 'en' ? DAY_LABELS_EN[label] || label : label;
+}
 
 const DAY_LABELS = [
   'Знакомство с форматом (без спешки)',
@@ -203,18 +219,18 @@ export function countMissedDays(
 
 export function skipCopy(state: WeekSkipState): string {
   if (state === 'forgiven') {
-    return 'Отдых — это нормально. Сегодня просто продолжаем с комфортного ритуала — навёрстывать вчера не нужно.';
+    return L('Отдых — это нормально. Сегодня просто продолжаем с комфортного ритуала — навёрстывать вчера не нужно.', 'Rest is fine. Today we simply continue at a comfortable pace — no need to make up for yesterday.');
   }
   if (state === 'resume') {
-    return 'Возвращайтесь с сегодняшнего дня, в своём темпе. Пропущенные дни мы не копим и не заставляем «отрабатывать».';
+    return L('Возвращайтесь с сегодняшнего дня, в своём темпе. Пропущенные дни мы не копим и не заставляем «отрабатывать».', 'Pick up from today, at your own pace. Missed days are not piled up or owed.');
   }
   if (state === 'complete') {
-    return 'Первая неделя позади. Дальше — обычный ритуал в выбранном темпе.';
+    return L('Первая неделя позади. Дальше — обычный ритуал в выбранном темпе.', 'First week done. From here on: the regular session at your chosen pace.');
   }
   if (state === 'on-track') {
-    return 'Идём по плану. Если пропустите день — ничего страшного, навёрстывать не придётся.';
+    return L('Идём по плану. Если пропустите день — ничего страшного, навёрстывать не придётся.', 'On track. If you miss a day, that is fine — nothing to make up.');
   }
-  return 'Первая неделя начнётся после калибровки.';
+  return L('Первая неделя начнётся после калибровки.', 'Your first week starts after calibration.');
 }
 
 export function getTodayRitual(
@@ -293,13 +309,13 @@ export function pickTransferTip(input: {
 export function abilityCaption(snapshot: ProbeSnapshot): string {
   const probed = snapshot.domains.filter((d) => d.probed).length;
   const label = precisionLabel(snapshot.overallPrecision);
-  return `${probed} из 5 областей · ${label}. Это не IQ и не сравнение с другими.`;
+  return L(`${probed} из 5 областей · ${label}. Это не IQ и не сравнение с другими.`, `${probed} of 5 areas · ${label}. Not an IQ score and not a comparison with others.`);
 }
 
 export function firstWeekPreviewLines(plan: FirstWeekPlan): string[] {
   return plan.days.map((d) => {
     const minutes = Math.round(d.durationSec / 60);
-    return `<span style="font-weight: 600; min-width: 55px; display: inline-block;">День ${d.day}</span> &middot; <span style="opacity: 0.85;">${minutes} мин</span> &middot; ${d.label}`;
+    return `<span style="font-weight: 600; min-width: 55px; display: inline-block;">${L('День', 'Day')} ${d.day}</span> &middot; <span style="opacity: 0.85;">${minutes} ${L('мин', 'min')}</span> &middot; ${dayLabel(d.label)}`;
   });
 }
 
@@ -337,16 +353,16 @@ export function describeFirstWeekContinuity(ritual: TodayRitual, planFocus?: str
     focusNames.length === 0
       ? ''
       : focusNames.length === 1
-        ? `Акцент дня: ${focusNames[0]}.`
-        : `Акцент дня: ${focusNames.join(' + ')}.`;
+        ? L(`Акцент дня: ${focusNames[0]}.`, `Today's focus: ${focusNames[0]}.`)
+        : L(`Акцент дня: ${focusNames.join(' + ')}.`, `Today's focus: ${focusNames.join(' + ')}.`);
 
   const soften =
     d.intensity === 'gentle' || ritual.skipState === 'forgiven' || ritual.skipState === 'resume';
 
-  let nextAction = 'Идём по плану';
-  if (d.intensity === 'gentle') nextAction = 'Лёгкий старт';
-  else if (d.day === 7 || d.intensity === 'full') nextAction = 'Полный ритуал';
-  else if (d.intensity === 'steady') nextAction = 'Продолжить ритуал';
+  let nextAction = L('Идём по плану', 'On track');
+  if (d.intensity === 'gentle') nextAction = L('Лёгкий старт', 'Easy start');
+  else if (d.day === 7 || d.intensity === 'full') nextAction = L('Полный ритуал', 'Full session');
+  else if (d.intensity === 'steady') nextAction = L('Продолжить ритуал', 'Continue');
 
   let tone: FirstWeekTone = 'start';
   if (ritual.skipState === 'forgiven' || ritual.skipState === 'resume') tone = 'recovery';
@@ -355,8 +371,8 @@ export function describeFirstWeekContinuity(ritual: TodayRitual, planFocus?: str
   const skipBit = ritual.copy?.trim() || '';
   const dayBit =
     d.intensity === 'gentle'
-      ? `${d.label}. Сегодня короче обычного — около ${minutes} мин.`
-      : `${d.label}. Около ${minutes} мин в выбранном темпе.`;
+      ? L(`${d.label}. Сегодня короче обычного — около ${minutes} мин.`, `${dayLabel(d.label)}. Shorter than usual today — about ${minutes} min.`)
+      : L(`${d.label}. Около ${minutes} мин в выбранном темпе.`, `${dayLabel(d.label)}. About ${minutes} min at your chosen pace.`);
 
   // Prefer day identity; keep skip policy visible without drowning the ritual.
   const body =
@@ -365,7 +381,7 @@ export function describeFirstWeekContinuity(ritual: TodayRitual, planFocus?: str
       : `${dayBit} ${skipBit}`.trim();
 
   return {
-    title: `День ${d.day} · ${d.label}`,
+    title: L(`День ${d.day} · ${d.label}`, `Day ${d.day} · ${dayLabel(d.label)}`),
     body,
     whyExercises: focusLine,
     nextAction,
@@ -402,5 +418,5 @@ export function gentleDayIndex(plan: { days: { durationSec: number; intensity?: 
 export function gentleDayNote(plan: { days: { durationSec: number; intensity?: string }[] } | null | undefined): string | null {
   const idx = gentleDayIndex(plan);
   if (idx === null) return null;
-  return `День ${idx} будет короче — это часть плана, ничего наверстывать не нужно.`;
+  return L(`День ${idx} будет короче — это часть плана, ничего наверстывать не нужно.`, `Day ${idx} is shorter on purpose — nothing to make up.`);
 }

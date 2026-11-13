@@ -1,3 +1,4 @@
+import { L } from '../core/i18n';
 import { ExerciseModule } from './contract';
 
 /**
@@ -60,8 +61,8 @@ const slipMarkModule: ExerciseModule = {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn-primary';
-    btn.textContent = 'Сейчас';
-    btn.setAttribute('aria-label', 'Нажать, когда метка в воротах');
+    btn.textContent = L('Сейчас', 'Now');
+    btn.setAttribute('aria-label', L('Нажать, когда метка в воротах', 'Tap when the marker is in the gate'));
     btn.style.width = 'min(320px,90vw)';
 
     stage.appendChild(gate);
@@ -101,7 +102,7 @@ const slipMarkModule: ExerciseModule = {
       gateX = 1.05 + Math.random() * 0.1;
       ({ markSpeed, gateSpeed, gateWidth } = slipMarkParams(level, Math.random(), Math.random()));
       renderPositions();
-      status.textContent = 'Ждите совпадения…';
+      status.textContent = L('Ждите совпадения…', 'Wait for them to line up…');
       startTime = performance.now();
       cancelAnimationFrame(raf);
       const tick = (now: number) => {
@@ -113,7 +114,7 @@ const slipMarkModule: ExerciseModule = {
         renderPositions();
         if (markX > 1.1 || gateX < -0.1) {
           phase = 'feedback';
-          status.textContent = 'Пропуск';
+          status.textContent = L('Пропуск', 'Missed');
           status.style.color = 'var(--danger, #f87171)';
           later(() => {
             status.style.color = '';
@@ -135,10 +136,10 @@ const slipMarkModule: ExerciseModule = {
       avgRtMs = avgRtMs === 0 ? dist * 1000 : (avgRtMs + dist * 1000) / 2;
       if (overlap) {
         hits++;
-        status.textContent = 'Точно';
+        status.textContent = L('Точно', 'Spot on');
         status.style.color = 'var(--ok)';
       } else {
-        status.textContent = dist > 0 && markX + markWidth <= gateX ? 'Рано' : 'Поздно';
+        status.textContent = dist > 0 && markX + markWidth <= gateX ? L('Рано', 'Early') : L('Поздно', 'Late');
         status.style.color = 'var(--danger, #f87171)';
       }
       later(() => {

@@ -1,3 +1,4 @@
+import { L, getLocale } from './i18n';
 /**
  * The one daily plan. Today (what you see), Program (what is explained) and Session (what you play)
  * all consume `planToday()`; nothing re-plans on its own.
@@ -37,6 +38,25 @@ export const BUDGET_REASON: Record<BudgetSource, string> = {
   recovery: 'облегчённый день по нагрузке последних сессий',
   resume: 'остаток начатой тренировки'
 };
+
+const BUDGET_REASON_EN: Record<BudgetSource, string> = {
+  profile: 'your chosen length',
+  'first-week': 'first-week ramp-up',
+  'soft-return': 'easy return after a break',
+  retention: 'a short day to keep the rhythm',
+  recovery: 'a lighter day based on recent load',
+  resume: 'the rest of a started workout'
+};
+
+/** Primary action label in the UI language. */
+export function primaryCta(): string {
+  return L(PRIMARY_CTA, "Today's workout");
+}
+
+/** Why the day has this length, in the UI language. */
+export function budgetReason(source: BudgetSource): string {
+  return getLocale() === 'en' ? BUDGET_REASON_EN[source] : BUDGET_REASON[source];
+}
 
 /** The tightest applicable cap wins; ties keep the earlier (more specific) source. */
 export function resolveDailyBudget(caps: Partial<Record<BudgetSource, number | null | undefined>> & { profile: number }): {
@@ -98,6 +118,12 @@ export function explainComposition(items: { domain?: string; core?: boolean }[],
   const domains = [...new Set(items.map((i) => i.domain).filter((d): d is string => !!d))];
   const minutes = Math.max(1, Math.round(durationSec / 60));
   const areas = domains.map((d) => domainLabel(d)).join(', ');
+  if (getLocale() === 'en') {
+    const program = inCoreProgram(programDay)
+      ? `Day ${programDay} of ${CORE_PROGRAM_DAYS}: exercises from the core set.`
+      : '14-day program done: the whole catalog is in play.';
+    return `${program} ${items.length} ${items.length === 1 ? 'block' : 'blocks'} ≈ ${minutes} min, areas: ${areas || '—'}.`;
+  }
   const program = inCoreProgram(programDay)
     ? `День ${programDay} из ${CORE_PROGRAM_DAYS}: упражнения из основного набора.`
     : 'Программа 14 дней пройдена: подключаем весь каталог.';

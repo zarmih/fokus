@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { ShapeEquationEngine } from './engine';
 import { getShapeEquationParams } from './manifest';
 import { mountStage } from '../stage';
@@ -26,7 +27,7 @@ export function renderShapeEquation(
     const params = getShapeEquationParams(level);
     const { equations, targetShape, targetVal, options } = engine.start(params);
     const roundStartTime = Date.now();
-    stage.setStatus('Чему равна фигура?');
+    stage.setStatus(L('Чему равна фигура?', 'What is the shape worth?'));
 
     stage.board.innerHTML = `
       <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; width:100%;">

@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { CorsiEngine } from './engine';
 import { getCorsiParams } from './manifest';
 import { mountStage } from '../stage';
@@ -28,7 +29,7 @@ export function renderCorsi(
       return { top: (row * 33 + 4) + '%', left: (col * 33 + 4) + '%' };
     });
 
-    stage.setStatus('Запоминайте путь');
+    stage.setStatus(L('Запоминайте путь', 'Remember the path'));
     stage.board.innerHTML = `
       <div class="corsi-arena">
         ${positions.map((p, i) => `<div class="corsi-block" data-idx="${i}" style="top:${p.top};left:${p.left};"><span class="cube-lid"></span><span class="cube-face"></span></div>`).join('')}
@@ -43,7 +44,7 @@ export function renderCorsi(
       if (hasEnded) return;
       if (step >= seq.length) {
         isShowing = false;
-        stage.setStatus('Повторите');
+        stage.setStatus(L('Повторите', 'Your turn'));
         roundStartTime = Date.now();
         return;
       }
@@ -79,7 +80,7 @@ export function renderCorsi(
           }
         } else {
           (b as HTMLElement).style.background = 'linear-gradient(180deg, #f87171, var(--danger))';
-          stage.setStatus('Мимо');
+          stage.setStatus(L('Мимо', 'Miss'));
           stage.pulse(false);
           rounds++;
           setTimeout(startRound, 700);

@@ -1,3 +1,4 @@
+import { L } from './i18n';
 import type {
   CognitiveDomain,
   DomainAbility,
@@ -100,10 +101,10 @@ export function thetaToPerformance(theta: number): number {
 
 export function precisionLabel(precision: number): string {
   const se = 1 / Math.sqrt(Math.max(0.15, precision));
-  if (se > 0.85) return 'очень мало данных';
-  if (se > 0.6) return 'черновик';
-  if (se > 0.4) return 'предварительно';
-  return 'можно опираться';
+  if (se > 0.85) return L('очень мало данных', 'very little data');
+  if (se > 0.6) return L('черновик', 'draft');
+  if (se > 0.4) return L('предварительно', 'preliminary');
+  return L('можно опираться', 'reliable');
 }
 
 export function updateAbility(

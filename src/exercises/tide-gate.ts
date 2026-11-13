@@ -1,3 +1,4 @@
+import { L } from '../core/i18n';
 import { ExerciseModule } from './contract';
 
 /**
@@ -58,8 +59,8 @@ const tideGateModule: ExerciseModule = {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn-primary';
-    btn.textContent = 'Сейчас';
-    btn.setAttribute('aria-label', 'Нажать, когда метка в воротах');
+    btn.textContent = L('Сейчас', 'Now');
+    btn.setAttribute('aria-label', L('Нажать, когда метка в воротах', 'Tap when the marker is in the gate'));
     btn.style.width = 'min(280px,80vw)';
 
     stage.appendChild(gate);
@@ -102,7 +103,7 @@ const tideGateModule: ExerciseModule = {
       ({ gateH, speed } = tideGateParams(level, Math.random()));
       layoutGate();
       placeMark();
-      status.textContent = 'Ждите полосу ворот…';
+      status.textContent = L('Ждите полосу ворот…', 'Wait for the gate band…');
       startTime = performance.now();
       cancelAnimationFrame(raf);
       const tick = (now: number) => {
@@ -114,7 +115,7 @@ const tideGateModule: ExerciseModule = {
         if (y < -0.05) {
           // missed
           phase = 'feedback';
-          status.textContent = 'Пропуск';
+          status.textContent = L('Пропуск', 'Missed');
           status.style.color = 'var(--danger, #f87171)';
           later(() => {
             status.style.color = '';
@@ -137,10 +138,10 @@ const tideGateModule: ExerciseModule = {
       avgRtMs = avgRtMs === 0 ? dist * 1000 : (avgRtMs + dist * 1000) / 2;
       if (inGate) {
         hits++;
-        status.textContent = 'В воротах';
+        status.textContent = L('В воротах', 'In the gate');
         status.style.color = 'var(--ok)';
       } else {
-        status.textContent = dist > 0 && y < gateTop ? 'Рано' : 'Поздно';
+        status.textContent = dist > 0 && y < gateTop ? L('Рано', 'Early') : L('Поздно', 'Late');
         status.style.color = 'var(--danger, #f87171)';
       }
       later(() => {

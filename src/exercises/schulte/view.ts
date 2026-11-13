@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { SchulteEngine } from './engine';
 import { getSchulteParams } from './manifest';
 import { mountStage } from '../stage';
@@ -22,7 +23,7 @@ export function renderSchulte(
     const engine = new SchulteEngine(size);
     roundStartTime = Date.now();
     const grid = engine.getGrid();
-    stage.setStatus('Найдите 1');
+    stage.setStatus(L('Найдите 1', 'Find 1'));
     stage.board.innerHTML = `
       <div style="display:grid;grid-template-columns:repeat(${size},1fr);gap:8px;width:100%;max-width:380px;aspect-ratio:1">
         ${grid.map(num => `<button class="schulte-btn" data-num="${num}" style="font-size:${size > 4 ? '1.05rem' : '1.4rem'}">${num}</button>`).join('')}
@@ -43,7 +44,7 @@ export function renderSchulte(
             stage.pulse(true);
             setTimeout(startRound, 280);
           } else {
-            stage.setStatus(`Найдите ${engine.getExpected()}`);
+            stage.setStatus(L(`Найдите ${engine.getExpected()}`, `Find ${engine.getExpected()}`));
           }
         } else {
           errors++;

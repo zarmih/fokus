@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { HelixFlipEngine, HelixTrial, Shape, Color } from './engine';
 import { getHelixFlipParams } from './manifest';
 import { mountStage } from '../stage';
@@ -45,7 +46,7 @@ export function renderHelixFlip(
     currentRule = currentTrial.rule;
     hasAnswered = false;
     
-    stage.setStatus(`Совпадают по правилу: ${currentRule.toUpperCase()}`);
+    stage.setStatus(L(`Совпадают по правилу: ${currentRule.toUpperCase()}`, `Match by rule: ${currentRule === 'Форма' ? 'SHAPE' : 'COLOUR'}`));
     
     stage.board.innerHTML = `
       <div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 40px; margin-top: 20px;">
@@ -57,8 +58,8 @@ export function renderHelixFlip(
         </div>
       </div>
       <div class="play-choice">
-        <button id="btn-no" class="btn-secondary">Нет ←</button>
-        <button id="btn-yes" class="btn-secondary">Да →</button>
+        <button id="btn-no" class="btn-secondary">${L('Нет', 'No')} ←</button>
+        <button id="btn-yes" class="btn-secondary">${L('Да', 'Yes')} →</button>
       </div>
     `;
 

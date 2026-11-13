@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { GoNoGoEngine } from './engine';
 import { goNoGoManifest } from './manifest';
 import { mountStage } from '../stage';
@@ -14,10 +15,10 @@ export function renderGoNoGo(
   const cfg = levels[lvl as keyof typeof levels] ?? { trials: 30, noGoRatio: 0.4 };
   const engine = new GoNoGoEngine(cfg.trials, cfg.noGoRatio);
   const stage = mountStage(container, 'attention');
-  stage.setStatus('▶ — жми, ✕ — стой');
+  stage.setStatus(L('▶ — жми, ✕ — стой', '▶ — tap, ✕ — hold'));
   stage.board.innerHTML = `
     <div class="go-orb" id="stimulus" role="img"></div>
-    <button id="btn-react" class="btn-primary" style="width:220px;height:64px;font-size:20px;margin:0">ЖМИ</button>
+    <button id="btn-react" class="btn-primary" style="width:220px;height:64px;font-size:20px;margin:0">${L('ЖМИ', 'GO')}</button>
   `;
   const stimulus = stage.board.querySelector('#stimulus') as HTMLElement;
   const btnReact = stage.board.querySelector('#btn-react') as HTMLButtonElement;
@@ -42,7 +43,7 @@ export function renderGoNoGo(
       stimulus.className = `go-orb ${currentIsGo ? 'go' : 'nogo'}`;
       // Shape + symbol, not colour alone (colour-vision deficiency).
       stimulus.textContent = currentIsGo ? '▶' : '✕';
-      stimulus.setAttribute('aria-label', currentIsGo ? 'Жми' : 'Стоп');
+      stimulus.setAttribute('aria-label', currentIsGo ? L('Жми', 'Go') : L('Стоп', 'Stop'));
       showTime = performance.now();
       btnReact.disabled = false;
       isWaiting = false;

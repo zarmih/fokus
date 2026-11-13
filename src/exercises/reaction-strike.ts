@@ -1,3 +1,4 @@
+import { L } from '../core/i18n';
 import { ExerciseModule, BlockResult } from './contract';
 
 const reactionStrikeModule: ExerciseModule = {
@@ -67,7 +68,7 @@ const reactionStrikeModule: ExerciseModule = {
           <div class="rs-zone" id="rs-zone"></div>
           <div class="rs-target" id="rs-target"></div>
         </div>
-        <button class="rs-btn" id="rs-btn">УДАР!</button>
+        <button class="rs-btn" id="rs-btn">${L('УДАР!', 'HIT!')}</button>
       </div>
     `;
 

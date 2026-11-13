@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { GridMemoryEngine } from './engine';
 import { getGridMemoryParams } from './manifest';
 import { mountStage } from '../stage';
@@ -29,7 +30,7 @@ export function renderGridMemory(
     const params = getGridMemoryParams(level);
     const { cellsToRemember } = engine.start(params);
     const totalCells = params.grid * params.grid;
-    stage.setStatus('Запомните клетки');
+    stage.setStatus(L('Запомните клетки', 'Remember the cells'));
 
     stage.board.innerHTML = `
       <div class="grid-memory-board" style="grid-template-columns: repeat(${params.grid}, 1fr);">
@@ -41,7 +42,7 @@ export function renderGridMemory(
     const cells = [...stage.board.querySelectorAll('.grid-cell')] as HTMLButtonElement[];
 
     const t = window.setTimeout(() => {
-      stage.setStatus('Повторите');
+      stage.setStatus(L('Повторите', 'Your turn'));
       cells.forEach(btn => {
         btn.classList.remove('highlight');
         btn.disabled = false;

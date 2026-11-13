@@ -1,3 +1,4 @@
+import { L } from '../core/i18n';
 import { ExerciseModule } from './contract';
 
 /**
@@ -59,8 +60,8 @@ const cutBarModule: ExerciseModule = {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'btn-primary';
-    btn.textContent = 'Сейчас';
-    btn.setAttribute('aria-label', 'Нажать после рубежа');
+    btn.textContent = L('Сейчас', 'Now');
+    btn.setAttribute('aria-label', L('Нажать после рубежа', 'Tap after the threshold'));
     btn.style.width = 'min(320px,90vw)';
 
     stage.appendChild(fill);
@@ -93,7 +94,7 @@ const cutBarModule: ExerciseModule = {
       cutP = 0.3 + Math.random() * 0.4;
       ({ fillSpeed, lateWindow } = cutBarParams(level, Math.random()));
       renderPositions();
-      status.textContent = 'Ждите прохождения рубежа…';
+      status.textContent = L('Ждите прохождения рубежа…', 'Wait for the threshold…');
       startTime = performance.now();
       cancelAnimationFrame(raf);
       const tick = (now: number) => {
@@ -105,7 +106,7 @@ const cutBarModule: ExerciseModule = {
         
         if (fillP >= 1) {
           phase = 'feedback';
-          status.textContent = 'Пропуск (слишком долго)';
+          status.textContent = L('Пропуск (слишком долго)', 'Missed (too slow)');
           status.style.color = 'var(--danger, #f87171)';
           later(() => {
             status.style.color = '';
@@ -114,7 +115,7 @@ const cutBarModule: ExerciseModule = {
           return;
         } else if (fillP > cutP + lateWindow && !answered) {
            phase = 'feedback';
-           status.textContent = 'Поздно';
+           status.textContent = L('Поздно', 'Late');
            status.style.color = 'var(--danger, #f87171)';
            later(() => {
              status.style.color = '';
@@ -137,10 +138,10 @@ const cutBarModule: ExerciseModule = {
       
       if (passed) {
         hits++;
-        status.textContent = 'Успех';
+        status.textContent = L('Успех', 'Success');
         status.style.color = 'var(--ok)';
       } else {
-        status.textContent = 'Рано';
+        status.textContent = L('Рано', 'Early');
         status.style.color = 'var(--danger, #f87171)';
       }
       

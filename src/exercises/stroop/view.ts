@@ -1,3 +1,8 @@
+import { L } from '../../core/i18n';
+
+const EN_WORD: Record<string, string> = { red: 'Red', blue: 'Blue', green: 'Green', yellow: 'Yellow' };
+/** Colour words follow the UI language (the Stroop conflict needs the reader's language). */
+const colorWord = (c: { id: string; word: string }) => L(c.word, EN_WORD[c.id] || c.word);
 import { StroopEngine, COLORS } from './engine';
 import { getStroopParams } from './manifest';
 import { mountStage } from '../stage';
@@ -29,14 +34,14 @@ export function renderStroop(
     const roundStartTime = Date.now();
     const ink = COLORS.find(c => c.id === trial.ink)!;
     const word = COLORS.find(c => c.id === trial.word)!;
-    stage.setStatus('Цвет чернил, не слово');
+    stage.setStatus(L('Цвет чернил, не слово', 'Ink colour, not the word'));
     stage.board.innerHTML = `
       <div class="stroop-board">
-        <div class="stroop-word" style="color:${ink.hex}">${word.word}</div>
+        <div class="stroop-word" style="color:${ink.hex}">${colorWord(word)}</div>
         <div class="stroop-options" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:360px;">
           ${trial.options.map(opt => {
             const c = COLORS.find(x => x.id === opt)!;
-            return `<button class="stroop-btn" data-color="${opt}" style="background:${c.hex}">${c.word}</button>`;
+            return `<button class="stroop-btn" data-color="${opt}" style="background:${c.hex}">${colorWord(c)}</button>`;
           }).join('')}
         </div>
       </div>
@@ -53,7 +58,7 @@ export function renderStroop(
       const wordEl = stage.board.querySelector('.stroop-word') as HTMLElement;
       if (wordEl) {
         wordEl.style.color = correct ? '#10b981' : '#ef4444';
-        wordEl.textContent = correct ? 'Верно' : 'Мимо';
+        wordEl.textContent = correct ? L('Верно', 'Correct') : L('Мимо', 'Miss');
       }
       stage.board.querySelectorAll('.stroop-btn').forEach(b => (b as HTMLButtonElement).disabled = true);
       setTimeout(() => {

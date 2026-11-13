@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { PatternNextEngine } from './engine';
 import { getPatternNextParams } from './manifest';
 import { mountStage } from '../stage';
@@ -26,7 +27,7 @@ export function renderPatternNext(
     const params = getPatternNextParams(level);
     const trial = engine.nextTrial(params);
     const roundStartTime = Date.now();
-    stage.setStatus('Какое число дальше?');
+    stage.setStatus(L('Какое число дальше?', 'Which number comes next?'));
     stage.board.innerHTML = `
       <div class="pn-seq" style="display:flex;gap:10px;margin-bottom:36px;flex-wrap:wrap;justify-content:center">
         ${trial.sequence.map(n => `<div class="num-chip pn-item">${n}</div>`).join('')}

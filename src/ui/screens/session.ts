@@ -19,6 +19,8 @@ import {
 import { buildFirstWeekPlan } from '../../core/onboarding';
 import type { Session, SessionEndReason } from '../../core/types';
 import { safeError } from '../../core/log';
+import { L } from '../../core/i18n';
+import { exerciseInstruction, exerciseName } from '../../core/exercise-copy';
 import { computeFokusIndex } from '../../core/fokus-index';
 import { checkAchievements } from '../../core/achievements';
 import type { ProbeOutcome } from '../../core/calibration';
@@ -34,6 +36,8 @@ import { getSpacing } from '../../core/engine/scheduler';
 
 export const COUNTDOWN_START_ANNOUNCEMENT = 'Сейчас начнём';
 export const COUNTDOWN_GO_ANNOUNCEMENT = 'Начали';
+const countdownStart = () => L(COUNTDOWN_START_ANNOUNCEMENT, 'Starting now');
+const countdownGo = () => L(COUNTDOWN_GO_ANNOUNCEMENT, 'Go');
 
 export function renderSession(container: HTMLElement, params: {mode?: string, items: {exerciseId: string, difficulty?: number}[], durationSec?: number}) {
   const {items, mode = 'normal'} = params;
@@ -129,26 +133,26 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     content.innerHTML = `
       <div class="session-header">
         <div class="session-controls" style="display: flex; gap: 4px;">
-          <button id="btn-back" class="btn-tiny" type="button">Назад</button>
-          <button id="btn-pause" class="btn-tiny" type="button">Пауза</button>
-          <button id="btn-restart" class="btn-tiny" type="button">Заново</button>
+          <button id="btn-back" class="btn-tiny" type="button">${L('Назад', 'Back')}</button>
+          <button id="btn-pause" class="btn-tiny" type="button">${L('Пауза', 'Pause')}</button>
+          <button id="btn-restart" class="btn-tiny" type="button">${L('Заново', 'Restart')}</button>
         </div>
         <div class="session-timer" id="session-timer" role="timer" aria-live="off">${Math.floor(timeLeft/60)}:${(timeLeft%60).toString().padStart(2,'0')}</div>
-        <div class="session-block-info">${mode === 'calibration' ? `Зонд · блок ${currentIndex + 1}` : `Блок ${currentIndex + 1} из ${items.length}`}</div>
+        <div class="session-block-info">${mode === 'calibration' ? L(`Зонд · блок ${currentIndex + 1}`, `Probe · block ${currentIndex + 1}`) : L(`Блок ${currentIndex + 1} из ${items.length}`, `Block ${currentIndex + 1} of ${items.length}`)}</div>
       </div>
       ${lastBanner}
       <div class="instruction-card ${motionClass}" id="instruction-card" tabindex="-1">
         <div class="instruction-glow" aria-hidden="true"></div>
         <img src="${exerciseIconSrc(manifest.id, manifest.domain)}" width="72" height="72" alt="" class="instruction-icon">
-        <h2>${manifest.name}</h2>
-        <p>${manifest.instruction}</p>
+        <h2>${exerciseName(manifest)}</h2>
+        <p>${exerciseInstruction(manifest)}</p>
         <div class="instruction-meta">${contentHints.metaLine}</div>
         <p class="instruction-hint">${contentHints.hintLine}</p>
-        ${blockMode === 'accessible' ? `<p class="instruction-mode" data-mode="accessible">Доступный режим: найдите стрелку с другим наклоном. Результат сравнивается только с блоками в этом режиме.</p>` : ''}
-        ${trialActive ? `<p class="instruction-trial" data-trial="1">Сначала пробный раунд на ${TRIAL_SEC} секунд на лёгком уровне — он не засчитывается.</p>` : ''}
-        ${afterTrial ? `<p class="instruction-trial" data-trial-done="1">Проба завершена. Теперь зачётный блок.</p>` : ''}
+        ${blockMode === 'accessible' ? `<p class="instruction-mode" data-mode="accessible">${L('Доступный режим: найдите стрелку с другим наклоном. Результат сравнивается только с блоками в этом режиме.', 'Accessible mode: find the arrow tilted differently. Results are compared only with blocks in this mode.')}</p>` : ''}
+        ${trialActive ? `<p class="instruction-trial" data-trial="1">${L(`Сначала пробный раунд на ${TRIAL_SEC} секунд на лёгком уровне — он не засчитывается.`, `First a ${TRIAL_SEC}-second practice round at an easy level — it does not count.`)}</p>` : ''}
+        ${afterTrial ? `<p class="instruction-trial" data-trial-done="1">${L('Проба завершена. Теперь зачётный блок.', 'Practice done. Now the scored block.')}</p>` : ''}
       </div>
-      <button id="btn-next" class="btn-primary" type="button">${trialActive ? 'Пробный раунд' : 'Начать'}</button>
+      <button id="btn-next" class="btn-primary" type="button">${trialActive ? L('Пробный раунд', 'Practice round') : L('Начать', 'Start')}</button>
       <div id="game-container" class="play-arena"></div>
     `;
 
@@ -187,7 +191,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       isPaused = false;
       document.getElementById('pause-overlay')?.remove();
       const pBtn = document.getElementById('btn-pause');
-      if (pBtn) pBtn.textContent = 'Пауза';
+      if (pBtn) pBtn.textContent = L('Пауза', 'Pause');
       
       currentIndex = 0;
       sessionResults.length = 0;
@@ -213,7 +217,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       // Visual-only digits: screen readers get one polite announcement instead of 3/2/1 spam.
       countdown.setAttribute('aria-hidden', 'true');
       container.appendChild(countdown);
-      announce(COUNTDOWN_START_ANNOUNCEMENT);
+      announce(countdownStart());
 
       let count = 3;
       countdown.textContent = count.toString();
@@ -225,7 +229,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
       const startBlock = (exDispatch: ExerciseModule) => {
         container.removeAttribute('aria-busy');
         countdown.remove();
-        announce(COUNTDOWN_GO_ANNOUNCEMENT);
+        announce(countdownGo());
         content.dataset.sessionPhase = 'play';
         enterStage(container);
         playSessionCue('enter');
@@ -247,13 +251,13 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
             trialActive = false;
             triedIds.add(item.exerciseId);
             justTried = true;
-            announce('Проба завершена. Теперь зачётный блок.');
+            announce(L('Проба завершена. Теперь зачётный блок.', 'Practice done. Now the scored block.'));
             renderCurrent();
             return;
           }
           if (!isScorableBlock(res)) {
             // No trial happened (or broken numbers): nothing is recorded, not even a 0 %.
-            announce('Блок не засчитан: не было ни одного ответа');
+            announce(L('Блок не засчитан: не было ни одного ответа', 'Block not counted: there were no answers'));
             currentIndex++;
             renderCurrent();
             return;
@@ -611,10 +615,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     overlay.className = 'modal-root';
     overlay.innerHTML = `
       <div class="surface modal-card">
-        <h3 id="fatigue-title">Похоже, внимание падает</h3>
-        <p class="modal-lead">Два слабых блока подряд — это маркер усталости, не провала. Можно сохранить результат и остановиться.</p>
-        <button id="btn-fatigue-end" class="btn-primary" type="button">Завершить сессию</button>
-        <button id="btn-fatigue-go" class="btn-secondary" type="button">Продолжить</button>
+        <h3 id="fatigue-title">${L('Похоже, внимание падает', 'Your attention seems to be dropping')}</h3>
+        <p class="modal-lead">${L('Два слабых блока подряд — это маркер усталости, не провала. Можно сохранить результат и остановиться.', 'Two weak blocks in a row signal tiredness, not failure. You can save the result and stop.')}</p>
+        <button id="btn-fatigue-end" class="btn-primary" type="button">${L('Завершить сессию', 'End session')}</button>
+        <button id="btn-fatigue-go" class="btn-secondary" type="button">${L('Продолжить', 'Continue')}</button>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -659,7 +663,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
     const btn = document.getElementById('btn-pause');
     if (btn) {
-      btn.textContent = 'Прод.';
+      btn.textContent = L('Прод.', 'Resume');
       btn.setAttribute('aria-pressed', 'true');
     }
     document.getElementById('pause-overlay')?.remove();
@@ -670,15 +674,15 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     overlay.dataset.source = source;
     overlay.innerHTML = `
       <div class="pause-card">
-        <div style="margin-bottom:8px;">Пауза</div>
-        ${aborted ? '<p class="pause-note" style="margin:0 0 16px;font-size:14px;">Блок начнётся заново. Прерванная попытка не засчитана.</p>' : ''}
-        <button id="btn-unpause" class="btn-primary" type="button">Продолжить</button>
+        <div style="margin-bottom:8px;">${L('Пауза', 'Paused')}</div>
+        ${aborted ? `<p class="pause-note" style="margin:0 0 16px;font-size:14px;">${L('Блок начнётся заново. Прерванная попытка не засчитана.', 'The block will restart. The interrupted attempt does not count.')}</p>` : ''}
+        <button id="btn-unpause" class="btn-primary" type="button">${L('Продолжить', 'Continue')}</button>
       </div>
     `;
     (document.getElementById('game-container') || content).appendChild(overlay);
     overlay.querySelector('#btn-unpause')?.addEventListener('click', () => resumeSession());
-    (overlay as any)._unbind = bindDialog(overlay, { label: 'Пауза', onClose: () => resumeSession() });
-    announce(aborted ? 'Пауза. Блок начнётся заново' : 'Пауза');
+    (overlay as any)._unbind = bindDialog(overlay, { label: L('Пауза', 'Paused'), onClose: () => resumeSession() });
+    announce(aborted ? L('Пауза. Блок начнётся заново', 'Paused. The block will restart') : L('Пауза', 'Paused'));
   }
 
   function resumeSession() {
@@ -693,10 +697,10 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
     }
     const btn = document.getElementById('btn-pause');
     if (btn) {
-      btn.textContent = 'Пауза';
+      btn.textContent = L('Пауза', 'Pause');
       btn.setAttribute('aria-pressed', 'false');
     }
-    announce('Продолжаем');
+    announce(L('Продолжаем', 'Resuming'));
     if (aborted) renderCurrent();
     else btn?.focus();
   }

@@ -4,7 +4,9 @@ import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
 import { abilityTrendChip } from '../../core/adaptive-depth';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
-import { planToday, BUDGET_REASON, PRIMARY_CTA, type DailyPlan } from '../../core/daily-plan';
+import { planToday, PRIMARY_CTA, primaryCta, budgetReason, type DailyPlan } from '../../core/daily-plan';
+import { L, getLocale } from '../../core/i18n';
+import { planReasonText, slotLabelText } from '../../core/plan-copy';
 export { PRIMARY_CTA };
 import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from '../../core/continuity';
 import { navigateTo } from '../router';
@@ -25,7 +27,8 @@ import { domainLabel, leagueName } from '../../core/labels';
 import { renderRadarChart } from '../components/charts';
 import { renderQualityCard } from '../components/quality-card';
 import { calibrationSessionItems } from '../../core/calibration';
-import { getTodayRitual } from '../../core/onboarding';
+import { getTodayRitual, dayLabel } from '../../core/onboarding';
+import { exerciseName } from '../../core/exercise-copy';
 import { bindLifestyleField, lifestyleCheckinHtml } from '../components/lifestyle-checkin';
 import { questProgressBarHtml } from '../components/accessible-markup';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
@@ -156,7 +159,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
     : '';
   const budgetWhyHtml = dailyPlan
-    ? `<p class="plan-budget-why" data-budget-source="${dailyPlan.budgetSource}" data-program-day="${dailyPlan.programDay}" style="font-size: 13px; opacity: 0.85; margin-bottom: 12px;">${dailyPlan.why} Длительность: ${BUDGET_REASON[dailyPlan.budgetSource]}.</p>`
+    ? `<p class="plan-budget-why" data-budget-source="${dailyPlan.budgetSource}" data-program-day="${dailyPlan.programDay}" style="font-size: 13px; opacity: 0.85; margin-bottom: 12px;">${dailyPlan.why} ${L('Длительность', 'Length')}: ${budgetReason(dailyPlan.budgetSource)}.</p>`
     : '';
   const ritualWhyHtml = depth.why
     ? `<p class="ritual-why">${depth.why}</p>`
@@ -170,7 +173,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
 
   const focusText = plan.focusDomains.length > 0
     ? plan.focusDomains.map(d => domainLabel(d)).join(' + ')
-    : 'Сбалансированная тренировка';
+    : L('Сбалансированная тренировка', 'Balanced workout');
 
   // Skill whose gradient tints the workout card (first focus domain, else first exercise's domain).
   const focusSkill = plan.focusDomains[0] || (plan.items[0] ? getManifest(plan.items[0].exerciseId)?.domain : undefined);
@@ -179,18 +182,18 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const compositionHtml = plan.items.map((item, index) => {
     const r = getManifest(item.exerciseId);
     const isPrimary = index === 0;
-    const slot = item.slot ? SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL] : '';
+    const slot = item.slot ? slotLabelText(SLOT_LABEL[item.slot as keyof typeof SLOT_LABEL]) : '';
     return `<div class="chip dom-${r?.domain} workout-chip ${isPrimary ? 'primary' : ''}" role="listitem" data-exercise-id="${item.exerciseId}" style="display: flex; flex-direction: column; align-items: flex-start; padding: 12px 14px 12px 18px; gap: 6px; height: auto; border-radius: 12px; width: 100%; box-sizing: border-box;">
       <div style="display: flex; align-items: center; gap: 8px; width: 100%;">
         <img src="${exerciseIconSrc(r?.id, r?.domain)}" width="20" height="20" alt="" decoding="async" style="border-radius: 6px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
-        <span style="font-weight: 700; font-size: 14px; flex: 1;">${r?.name}</span>
+        <span style="font-weight: 700; font-size: 14px; flex: 1;">${r ? exerciseName(r) : ''}</span>
         ${slot ? `<span class="slot-tag" style="font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; background: var(--bg-elev); padding: 4px 8px; border-radius: 8px; color: var(--muted); border: 1px solid var(--line);">${slot}</span>` : ''}
       </div>
       <div style="display: flex; justify-content: space-between; align-items: baseline; width: 100%;">
-        <div style="font-size: 12px; opacity: 0.9; line-height: 1.4; font-weight: 500;">${item.reason}</div>
+        <div style="font-size: 12px; opacity: 0.9; line-height: 1.4; font-weight: 500;">${planReasonText(item.reason)}</div>
         <div style="display: flex; gap: 6px;">
-          ${(plan.items.length > 1 && item.exerciseId) ? `<button type="button" data-snooze-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">Не сегодня</button>` : ''}
-          ${(item.nextExerciseId && !item.rerolled) ? `<button type="button" data-reroll-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">Другой вариант</button>` : ''}
+          ${(plan.items.length > 1 && item.exerciseId) ? `<button type="button" data-snooze-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">${L('Не сегодня', 'Not today')}</button>` : ''}
+          ${(item.nextExerciseId && !item.rerolled) ? `<button type="button" data-reroll-slot="${index}" style="font-size: 11px; padding: 2px 6px; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--text); cursor: pointer;">${L('Другой вариант', 'Swap')}</button>` : ''}
         </div>
       </div>
     </div>`;
@@ -198,9 +201,9 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   }).join('');
 
   const hour = fokusWallHour();
-  const hello = hour < 12 ? 'Доброе утро' : hour < 18 ? 'Добрый день' : 'Добрый вечер';
+  const hello = hour < 12 ? L('Доброе утро', 'Good morning') : hour < 18 ? L('Добрый день', 'Good afternoon') : L('Добрый вечер', 'Good evening');
   const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', month: 'long', day: 'numeric', timeZone: resolveFokusTimeZone().timeZone };
-  const dateStr = new Date().toLocaleDateString('ru-RU', dateOptions);
+  const dateStr = new Date().toLocaleDateString(getLocale() === 'en' ? 'en-GB' : 'ru-RU', dateOptions);
 
   const shieldCharges = typeof (profile as { shieldCharges?: number }).shieldCharges === 'number'
     ? (profile as { shieldCharges?: number }).shieldCharges
@@ -263,7 +266,8 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     : null;
 
   // Shared story wins; fall back to legacy spark only if retention assess failed.
-  const spark = planExplain
+  const enCopy = getLocale() === 'en';
+  const rawSpark = planExplain
     ? { title: planExplain.title, body: planExplain.body, tone: planExplain.tone, quietTip: planExplain.quietTip }
     : getDailySpark({
         domains,
@@ -285,6 +289,9 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         planItems: plan.items,
         weekRitual
       });
+  // Coach copy is Russian-only for now: in English the card keeps the plan facts and drops the coach prose.
+  const spark = enCopy ? { ...rawSpark, title: 'Today', body: '', quietTip: undefined } : rawSpark;
+  const sparkTitle = spark.title;
 
   const catalogRefsNorms = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
   const normsHint = profile.calibrated
@@ -303,8 +310,8 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
 
 
   const weekHtml = profile.calibrated && weekRitual.inFirstWeek && weekRitual.ritualDay ? `
-    <div class="week-card" aria-label="Первая неделя, день ${weekRitual.day} из 7">
-      <div class="week-kicker">Первая неделя · день ${weekRitual.day} из 7 · ${weekRitual.ritualDay.label}</div>
+    <div class="week-card" aria-label="${L(`Первая неделя, день ${weekRitual.day} из 7`, `First week, day ${weekRitual.day} of 7`)}">
+      <div class="week-kicker">${L(`Первая неделя · день ${weekRitual.day} из 7`, `First week · day ${weekRitual.day} of 7`)} · ${dayLabel(weekRitual.ritualDay.label)}</div>
       <div class="week-strip" role="list">
         ${profile.firstWeekPlan!.days.map((d) => {
           const state = d.day < (weekRitual.day || 0) ? 'past' : d.day === weekRitual.day ? 'now' : 'next';
@@ -431,33 +438,33 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
       <div class="workout-card fx-enter coach-${spark.tone} ${skillClass}" role="region" aria-labelledby="cta-resume-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          Возвращение к сессии
+          ${L('Возвращение к сессии', 'Back to your session')}
         </div>
-        <h3 id="cta-resume-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">Продолжить с того места</h3>
+        <h3 id="cta-resume-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${L('Продолжить с того места', 'Pick up where you left off')}</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
-          Осталось ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
+          ${L(`Осталось ${Math.floor(ritualDuration / 60)} минут`, `${Math.floor(ritualDuration / 60)} min left`)} &middot; ${focusText}
         </p>
         ${budgetWhyHtml}
-        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">Вы уже начали эту тренировку сегодня. Продолжаем.</p>
+        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${L('Вы уже начали эту тренировку сегодня. Продолжаем.', 'You already started this workout today. Let’s continue.')}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
-        <div class="workout-chips" role="list" aria-label="Оставшиеся упражнения" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
-        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
+        <div class="workout-chips" role="list" aria-label="${L('Оставшиеся упражнения', 'Remaining exercises')}" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">${L('Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.', 'This exercise comes back tomorrow. Today’s plan still works.')}</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>Продолжить тренировку</span>
+          <span>${L('Продолжить тренировку', 'Continue workout')}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
         </button>
-        <button id="btn-restart" class="btn-secondary" type="button" style="margin-top: 8px; width: 100%;">Начать заново</button>
+        <button id="btn-restart" class="btn-secondary" type="button" style="margin-top: 8px; width: 100%;">${L('Начать заново', 'Start over')}</button>
       </div>
     `;
   } else if (playedToday) {
     actionHtml = `
-      <div class="workout-card done fx-celebrate coach-${spark.tone}" role="region" aria-label="Тренировка выполнена">
+      <div class="workout-card done fx-celebrate coach-${spark.tone}" role="region" aria-label="${L('Тренировка выполнена', 'Workout done')}">
         <div class="workout-kicker">${spark.title}</div>
-        <h3>План выполнен</h3>
+        <h3>${L('План выполнен', 'Plan done')}</h3>
         ${trendChipHtml}
         <p class="workout-coach-insight">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
-        <button id="btn-start" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">Ещё одна сессия</button>
+        <button id="btn-start" class="btn-secondary" type="button" style="width: 100%; margin-top: 8px;">${L('Ещё одна сессия', 'One more session')}</button>
       </div>
     `;
   } else if (noPlanState) {
@@ -472,50 +479,50 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   } else if (snap.ritual.active) {
     const returnFocus = plan.focusDomains.length > 0
       ? plan.focusDomains.map(d => domainLabel(d)).join(', ')
-      : 'знакомые области';
+      : L('знакомые области', 'familiar areas');
     actionHtml = `
       <div class="workout-card fx-enter coach-${spark.tone} ${skillClass}" role="region" aria-labelledby="cta-return-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           ${spark.title}
         </div>
-        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'soft_return' && planExplain.title ? planExplain.title : 'Мягкое возвращение'}</h3>
+        <h3 id="cta-return-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'soft_return' && planExplain.title ? enCopy ? 'Easy return' : planExplain.title : L('Мягкое возвращение', 'Easy return')}</h3>
         <p style="font-size: 14px; font-weight: 600; color: var(--accent-2); margin-bottom: 12px;">
-          ${Math.floor(ritualDuration / 60)} минут &middot; ${returnFocus}
+          ${Math.floor(ritualDuration / 60)} ${L('минут', 'min')} &middot; ${returnFocus}
         </p>
         ${budgetWhyHtml}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
-        <div class="workout-chips" role="list" aria-label="Упражнения для мягкого старта" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
-        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
+        <div class="workout-chips" role="list" aria-label="${L('Упражнения для мягкого старта', 'Exercises for an easy start')}" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">${L('Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.', 'This exercise comes back tomorrow. Today’s plan still works.')}</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>${PRIMARY_CTA}</span>
+          <span>${primaryCta()}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
     `;
   } else {
     const rest = ritual?.snapshot?.gate?.active;
-    const finalKicker = rest ? 'Сегодня легче' : spark.title;
+    const finalKicker = rest ? L('Сегодня легче', 'Lighter today') : sparkTitle;
     actionHtml = `
       <div class="workout-card fx-enter ${rest ? 'rest-light' : ''} coach-${spark.tone} ${skillClass}" role="region" aria-labelledby="cta-today-title">
         <div class="workout-kicker" aria-hidden="true">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${finalKicker}
         </div>
-        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'first_week' ? planExplain.title : 'Тренировка дня'}</h3>
+        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'first_week' && !enCopy ? planExplain.title : L('Тренировка дня', 'Workout of the day')}</h3>
         <p data-plan-focus="${plan.focusDomains.join(',')}" style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
-          ${Math.floor(ritualDuration / 60)} минут &middot; ${focusText}
+          ${Math.floor(ritualDuration / 60)} ${L('минут', 'min')} &middot; ${focusText}
         </p>
         ${budgetWhyHtml}
         ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 8px;">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
-        ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : (spark.quietTip ? '' : '<div style="margin-bottom: 8px;"></div>')}
-        <div class="workout-chips" role="list" aria-label="Упражнения на сегодня" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
-        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.</p>` : ''}
+        ${!enCopy && planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : (spark.quietTip ? '' : '<div style="margin-bottom: 8px;"></div>')}
+        <div class="workout-chips" role="list" aria-label="${L('Упражнения на сегодня', 'Today’s exercises')}" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">${L('Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.', 'This exercise comes back tomorrow. Today’s plan still works.')}</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>${PRIMARY_CTA}</span>
+          <span>${primaryCta()}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
@@ -528,13 +535,13 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
       <p class="today-date">${dateStr}</p>
     </div>
 
-    ${heroHtml}
+    ${enCopy ? '' : (heroHtml)}
 
-    ${ritual ? renderQualityCard(ritual.snapshot) : ''}
+    ${enCopy ? '' : (ritual ? renderQualityCard(ritual.snapshot) : '')}
     ${recalHtml}
 
     ${actionHtml}
-    ${normsHintHtml}
+    ${enCopy ? '' : (normsHintHtml)}
 
     ${weekHtml}
 
@@ -553,7 +560,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         ${renderStreakChip(snap, 'pill')}
         <div class="stat-pill">
           <div class="stat-num">${streak > 0 ? streak : (snap.streak.consistency30 > 0 ? snap.streak.consistency30 + '%' : 0)}${profile.seriesGoalDays ? ` <span style="font-size: 16px; opacity: 0.5;">/ ${profile.seriesGoalDays}</span>` : ''}</div>
-          <div class="stat-lbl">${profile.seriesGoalDays ? 'цель серии' : (streak > 0 ? 'дней подряд' : (snap.streak.consistency30 > 0 ? 'регулярность' : 'начни серию'))}</div>
+          <div class="stat-lbl">${profile.seriesGoalDays ? L('цель серии', 'streak goal') : (streak > 0 ? L('дней подряд', 'days in a row') : (snap.streak.consistency30 > 0 ? L('регулярность', 'consistency') : L('начни серию', 'start a streak')))}</div>
         </div>
         <div class="stat-pill">
           <div class="stat-num">${lvl.currentLevel}</div>
@@ -561,16 +568,16 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         </div>
         <div class="stat-pill">
           <div class="stat-num">${Math.round(lvl.progressPct)}%</div>
-          <div class="stat-lbl">до ур. ${lvl.currentLevel + 1}</div>
+          <div class="stat-lbl">${L('до ур.', 'to lvl')} ${lvl.currentLevel + 1}</div>
         </div>
       </div>
-      ${renderContinuityHint(snap, 'today')}
-      ${retentionHtml}
+      ${enCopy ? '' : (renderContinuityHint(snap, 'today'))}
+      ${enCopy ? '' : (retentionHtml)}
 
 
-      ${snap.ritual.active ? '' : transferCardHtml}
+      ${enCopy ? '' : (snap.ritual.active ? '' : transferCardHtml)}
 
-      ${questsHtml}
+      ${enCopy ? '' : (questsHtml)}
 
     </div>
   `;

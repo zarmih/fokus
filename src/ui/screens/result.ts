@@ -16,6 +16,9 @@ import { shareSessionCard } from '../components/share-card';
 import { precisionLabel } from '../../core/calibration';
 import { abilityCaption, pickTransferTip } from '../../core/onboarding';
 import { setScreenTitle } from '../a11y';
+import { L, getLocale } from '../../core/i18n';
+import { exerciseName } from '../../core/exercise-copy';
+import { planReasonText } from '../../core/plan-copy';
 import { animateCount, celebrate, playSessionCue } from '../../core/motion';
 import { buildTransferSurface } from '../../core/transfer-insights';
 import { getTodayRitual } from '../../core/onboarding';
@@ -28,7 +31,8 @@ import {
 
 export function renderResult(container: HTMLElement, params: { session: Session; calibration?: boolean; recalibration?: boolean; unlocked?: string[] }) {
   const content = renderShell(container, { active: 'program', hideNav: true });
-  setScreenTitle(params.calibration ? 'Калибровка' : 'Результат');
+  setScreenTitle(params.calibration ? L('Калибровка', 'Calibration') : L('Результат', 'Result'));
+  const enCopy = getLocale() === 'en';
   const session = params.session;
   const isCalibration = !!params.calibration;
   const isRecalibration = !!params.recalibration;
@@ -80,32 +84,32 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     const trend = exerciseTrend({ sessions: sessionsWithCurrent, exerciseId: item.exerciseId });
     const stateLabel = trend.label;
     const trendFacts = trend.verdict === 'insufficient'
-      ? `${trend.observations} из 6`
+      ? L(`${trend.observations} из 6`, `${trend.observations} of 6`)
       : `${trend.observations}`;
     const accPct = Math.round(item.accuracy * 100);
 
     return `
       <div class="result-block staggered-block">
         <div class="result-block-head">
-          <div class="result-ex">${ex?.name}</div>
+          <div class="result-ex">${ex ? exerciseName(ex) : ''}</div>
           <div class="result-score">+${Math.round(item.score)}</div>
         </div>
-        <div class="result-sub">Точность ${accPct}% · Форма ${p}${item.mode === 'accessible' ? ' · <span class="mode-tag" data-mode="accessible">доступный режим</span>' : ''}</div>
+        <div class="result-sub">${L('Точность', 'Accuracy')} ${accPct}% · ${L('Форма', 'Form')} ${p}${item.mode === 'accessible' ? ` · <span class="mode-tag" data-mode="accessible">${L('доступный режим', 'accessible mode')}</span>` : ''}</div>
         <div class="result-grid">
           <div class="result-cell">
-            <div class="muted">Мастерство</div>
+            <div class="muted">${L('Мастерство', 'Mastery')}</div>
             <div><b>${mAfter}</b> <span>${mDelta !== 0 ? `(${mSign}${mDelta})` : '(=)'}</span></div>
           </div>
           <div class="result-cell">
-            <div class="muted">Сложность</div>
+            <div class="muted">${L('Сложность', 'Difficulty')}</div>
             <div><b>${Number(diffAfter).toFixed(1)}</b> <span>${dDelta !== 0 ? `(${dSign}${dDelta.toFixed(1)})` : '(=)'}</span></div>
           </div>
           <div class="result-cell" data-trend="${trend.verdict}">
-            <div class="muted">Личная динамика</div>
-            <div>${stateLabel}</div>
+            <div class="muted">${L('Личная динамика', 'Personal trend')}</div>
+            <div>${enCopy ? ({ insufficient: 'Not enough data yet', better: 'Better', worse: 'Lower', stable: 'Stable' } as Record<string, string>)[trend.verdict] || stateLabel : stateLabel}</div>
           </div>
           <div class="result-cell">
-            <div class="muted">Сопоставимых блоков</div>
+            <div class="muted">${L('Сопоставимых блоков', 'Comparable blocks')}</div>
             <div>${trendFacts}</div>
           </div>
         </div>
@@ -122,17 +126,17 @@ export function renderResult(container: HTMLElement, params: { session: Session;
       <span style="color: ${color}; font-weight: 600;">${sign}${Math.round(d)}</span>
     </div>`;
   }).join('');
-  if (!deltasHtml) deltasHtml = '<div class="muted">Нет изменений</div>';
+  if (!deltasHtml) deltasHtml = `<div class="muted">${L('Нет изменений', 'No changes')}</div>`;
 
   const snapshot = profile.probeSnapshot;
   const probeHtml = isCalibration && snapshot ? `
     <div class="surface probe-summary">
-      <h3>Стартовая оценка</h3>
+      <h3>${L('Стартовая оценка', 'Starting estimate')}</h3>
       <p class="muted">${abilityCaption(snapshot)}</p>
       ${snapshot.domains.filter((d) => d.probed).map((d) => `
         <div class="delta-row">
           <span>${domainLabel(d.domain)}</span>
-          <span>ур. ${d.startLevel.toFixed(1)} · ${precisionLabel(d.precision)}</span>
+          <span>${L('ур.', 'lvl')} ${d.startLevel.toFixed(1)} · ${precisionLabel(d.precision)}</span>
         </div>
       `).join('')}
     </div>
@@ -143,7 +147,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     snapshot,
     cursor: profile.transferTipCursor
   });
-  const transferHtml = isCalibration ? `
+  const transferHtml = isCalibration && !enCopy ? `
     <div class="surface transfer-card">
       <h3>${transfer.title}</h3>
       <p class="muted">${transfer.body}</p>
@@ -152,8 +156,8 @@ export function renderResult(container: HTMLElement, params: { session: Session;
 
   const weekHtml = isCalibration && profile.firstWeekPlan ? `
     <div class="surface">
-      <h3>Первая неделя</h3>
-      <p class="muted">Мягкий разгон. Один пропуск прощается. Навёрстывать дни не нужно.</p>
+      <h3>${L('Первая неделя', 'First week')}</h3>
+      <p class="muted">${L('Мягкий разгон. Один пропуск прощается. Навёрстывать дни не нужно.', 'A gentle ramp-up. One missed day is forgiven. No need to catch up.')}</p>
       <div class="week-strip" aria-hidden="true">
         ${profile.firstWeekPlan.days.map((d) => `<span class="week-pill ${d.day === 1 ? 'now' : 'next'}">${d.day}</span>`).join('')}
       </div>
@@ -172,53 +176,53 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const isSuccess = !noData && avgAcc >= 85;
 
   let primaryActionId = 'done';
-  let primaryActionLabel = 'Готово';
+  let primaryActionLabel = L('Готово', 'Done');
   let primaryActionReason = '';
   let secondaryActionId = '';
   let secondaryActionLabel = '';
 
   if (noData) {
-    primaryActionLabel = 'Программа';
-    primaryActionReason = 'Нет данных о тренировке';
+    primaryActionLabel = L('Программа', 'Program');
+    primaryActionReason = L('Нет данных о тренировке', 'No workout data');
   } else if (isOffline) {
-    primaryActionLabel = 'Готово';
-    primaryActionReason = 'Офлайн (результаты сохранены)';
+    primaryActionLabel = L('Готово', 'Done');
+    primaryActionReason = L('Офлайн (результаты сохранены)', 'Offline (results saved)');
   } else if (isCalibration || isRecalibration) {
-    primaryActionLabel = 'Завершить оценку';
-    primaryActionReason = 'Профиль обновлен';
+    primaryActionLabel = L('Завершить оценку', 'Finish assessment');
+    primaryActionReason = L('Профиль обновлен', 'Profile updated');
   } else if (isEarlyExit) {
     primaryActionId = 'next_skill';
-    primaryActionLabel = nextEx ? `Дальше: ${nextEx.name}` : 'Продолжить';
-    primaryActionReason = 'Короткая разминка, можно ещё';
+    primaryActionLabel = nextEx ? L(`Дальше: ${nextEx.name}`, `Next: ${exerciseName(nextEx)}`) : L('Продолжить', 'Continue');
+    primaryActionReason = L('Короткая разминка, можно ещё', 'Short warm-up — you can do more');
     secondaryActionId = 'done';
-    secondaryActionLabel = 'Вернуться позже';
+    secondaryActionLabel = L('Вернуться позже', 'Come back later');
   } else if (isWeak) {
     primaryActionId = 'done';
-    primaryActionLabel = 'Сделать перерыв';
-    primaryActionReason = 'Точность просела, рекомендуем отдых';
+    primaryActionLabel = L('Сделать перерыв', 'Take a break');
+    primaryActionReason = L('Точность просела, рекомендуем отдых', 'Accuracy dropped — a rest is recommended');
     secondaryActionId = 'repeat';
-    secondaryActionLabel = 'Повторить (ещё раз)';
+    secondaryActionLabel = L('Повторить (ещё раз)', 'Repeat');
   } else if (isSuccess) {
     if (nextEx) {
       primaryActionId = 'next_skill';
-      primaryActionLabel = `Дальше: ${nextEx.name}`;
-      primaryActionReason = nextItem?.reason || 'Отличный ритм, идём дальше';
+      primaryActionLabel = L(`Дальше: ${nextEx.name}`, `Next: ${exerciseName(nextEx)}`);
+      primaryActionReason = planReasonText(nextItem?.reason) || L('Отличный ритм, идём дальше', 'Great rhythm, keep going');
       secondaryActionId = 'done';
-      secondaryActionLabel = 'На сегодня всё';
+      secondaryActionLabel = L('На сегодня всё', 'That’s all for today');
     } else {
-      primaryActionLabel = 'Завершить на сегодня';
-      primaryActionReason = 'План выполнен идеально';
+      primaryActionLabel = L('Завершить на сегодня', 'Finish for today');
+      primaryActionReason = L('План выполнен идеально', 'Plan done perfectly');
     }
   } else {
     if (nextEx) {
       primaryActionId = 'next_skill';
-      primaryActionLabel = `Дальше: ${nextEx.name}`;
-      primaryActionReason = nextItem?.reason || 'Рабочий темп, можно продолжить';
+      primaryActionLabel = L(`Дальше: ${nextEx.name}`, `Next: ${exerciseName(nextEx)}`);
+      primaryActionReason = planReasonText(nextItem?.reason) || L('Рабочий темп, можно продолжить', 'Steady pace — you can continue');
       secondaryActionId = 'done';
-      secondaryActionLabel = 'Закончить на сегодня';
+      secondaryActionLabel = L('Закончить на сегодня', 'Stop for today');
     } else {
-      primaryActionLabel = 'Завершить на сегодня';
-      primaryActionReason = 'План выполнен. Отличная работа.';
+      primaryActionLabel = L('Завершить на сегодня', 'Finish for today');
+      primaryActionReason = L('План выполнен. Отличная работа.', 'Plan done. Great work.');
     }
   }
 
@@ -226,7 +230,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
   const weekRitual = getTodayRitual(profile.firstWeekPlan, session.startedAt, dsList);
   const continuityMsg = getContinuityMessage(continuity, weekRitual);
   
-  const showContinuity = !isCalibration && !isRecalibration && !noData && !isOffline;
+  const showContinuity = !enCopy && !isCalibration && !isRecalibration && !noData && !isOffline;
 
   // Enhance the primary reason with continuity action hint if available
   if (showContinuity && continuityMsg.actionHint && !primaryActionReason.includes(continuityMsg.actionHint)) {
@@ -239,23 +243,23 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     <div class="surface next-action-card" role="region" aria-labelledby="next-step-heading" aria-live="polite">
       ${isOffline ? `
         <div class="offline-sync-hint" style="border-left: 4px solid var(--muted); padding-left: 12px; margin-bottom: 24px;">
-          <h3 id="next-step-heading" style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">Тренировка сохранена</h3>
-          <p class="muted" style="line-height: 1.4;">Вы офлайн. Результаты сохранены на устройстве и будут синхронизированы при подключении к сети.</p>
+          <h3 id="next-step-heading" style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">${L('Тренировка сохранена', 'Workout saved')}</h3>
+          <p class="muted" style="line-height: 1.4;">${L('Вы офлайн. Результаты сохранены на устройстве и будут синхронизированы при подключении к сети.', 'You are offline. Results are saved on this device and will sync when you are back online.')}</p>
         </div>
       ` : showContinuity ? `
         <div class="continuity-hint" style="border-left: 4px solid var(--ok); padding-left: 12px; margin-bottom: 24px;">
           <h3 id="next-step-heading" style="margin-bottom: 6px; font-size: 1.1rem; color: var(--text);">${continuityMsg.title}</h3>
           <p class="muted" style="margin-bottom: 0; line-height: 1.4;">${continuityMsg.body}</p>
         </div>
-      ` : `<h3 id="next-step-heading" class="visually-hidden">Следующий шаг</h3>`}
+      ` : `<h3 id="next-step-heading" class="visually-hidden">${L('Следующий шаг', 'Next step')}</h3>`}
       
       <p class="primary-action-reason" style="margin-bottom: 16px; font-weight: 600; font-size: 15px; text-align: center; color: var(--text);">${primaryActionReason}</p>
       <div class="result-actions" style="display:flex; gap:12px; flex-direction: column; align-items: stretch;">
         <button id="btn-primary-action" class="btn-primary" style="padding: 14px; font-size: 16px; font-weight: 600; border-radius: 12px;" data-action="${primaryActionId}">${primaryActionLabel}</button>
         ${secondaryActionId ? `<button id="btn-secondary-action" class="btn-secondary" style="padding: 12px; font-size: 15px; border-radius: 12px;" data-action="${secondaryActionId}">${secondaryActionLabel}</button>` : ''}
-        <button id="btn-share" class="btn-secondary" style="display:flex; align-items:center; justify-content:center; padding: 12px; font-size: 15px; border-radius: 12px;" aria-label="Поделиться">
+        <button id="btn-share" class="btn-secondary" style="display:flex; align-items:center; justify-content:center; padding: 12px; font-size: 15px; border-radius: 12px;" aria-label="${L('Поделиться', 'Share')}">
           <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="margin-right:8px; vertical-align: middle;" aria-hidden="true"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
-          Поделиться
+          ${L('Поделиться', 'Share')}
         </button>
       </div>
     </div>
@@ -345,35 +349,35 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     : '';
 
   const compareHtml = prevSession
-    ? `<div class="result-compare">${scoreDelta >= 0 ? '+' : ''}${Math.round(scoreDelta)} к прошлой сессии</div>`
+    ? `<div class="result-compare">${scoreDelta >= 0 ? '+' : ''}${Math.round(scoreDelta)} ${L('к прошлой сессии', 'vs last session')}</div>`
     : '';
 
   const summary = noData ? null : summarizeSession({
     session,
     sessions: sessionsWithCurrent,
-    nameOf: (id) => getManifest(id)?.name || id,
+    nameOf: (id) => { const m = getManifest(id); return m ? exerciseName(m) : id; },
     nextDurationSec: profile.sessionLengthSec || 300,
     calibration: isCalibration || isRecalibration
   });
   const summaryHtml = summary ? `
     <section class="surface result-summary" data-summary-kind="${summary.kind}" aria-labelledby="result-summary-title">
-      <h3 id="result-summary-title">Итог</h3>
+      <h3 id="result-summary-title">${L('Итог', 'Summary')}</h3>
       <p class="result-observation">${summary.observation}</p>
       <p class="result-next-step">${summary.nextStep}</p>
     </section>` : '';
 
   content.innerHTML = `
     <div class="result-hero fx-celebrate" id="result-hero">
-      <div class="result-kicker">${isCalibration ? 'Профиль готов' : isRecalibration ? 'Оценка обновлена' : 'Тренировка завершена'}</div>
+      <div class="result-kicker">${isCalibration ? L('Профиль готов', 'Profile ready') : isRecalibration ? L('Оценка обновлена', 'Estimate updated') : L('Тренировка завершена', 'Workout complete')}</div>
       <div class="result-big"><span class="xp-counter" id="xp-counter" data-xp="${Math.round(totalScore)}">${Math.round(totalScore)}</span> <span style="font-size: 24px; color: var(--muted); vertical-align: middle;">XP</span></div>
-      <div class="muted">${isCalibration ? 'стартовая оценка · не IQ' : isRecalibration ? 'мягкая перекалибровка' : 'всего очков'}</div>
-      <div class="result-acc">Средняя точность: <b>${avgAcc}%</b></div>
+      <div class="muted">${isCalibration ? L('стартовая оценка · не IQ', 'starting estimate · not IQ') : isRecalibration ? L('мягкая перекалибровка', 'gentle recalibration') : L('всего очков', 'total points')}</div>
+      <div class="result-acc">${L('Средняя точность', 'Average accuracy')}: <b>${avgAcc}%</b></div>
       ${compareHtml}
-      ${localNormsLineHtml}
+      ${enCopy ? '' : localNormsLineHtml}
     </div>
 
-    ${leveledUp ? `<div class="level-up fx-celebrate">Новый уровень ${lvl.currentLevel}</div>` : ''}
-    ${unlockedHtml}
+    ${leveledUp ? `<div class="level-up fx-celebrate">${L('Новый уровень', 'New level')} ${lvl.currentLevel}</div>` : ''}
+    ${enCopy ? '' : unlockedHtml}
     ${summaryHtml}
 
     ${fi.coverage > 0 ? `
@@ -381,7 +385,7 @@ export function renderResult(container: HTMLElement, params: { session: Session;
         <div class="fi-copy">
           <div class="fi-kicker">Fokus Index</div>
           <div class="fi-value">${fi.value}</div>
-          <div class="fi-meta">${fiDelta.label}</div>
+          <div class="fi-meta">${enCopy ? '' : fiDelta.label}</div>
         </div>
         <div class="fi-radar">${renderRadarChart(fi.byDomain, { size: 160, max: 1200 })}</div>
       </div>
@@ -390,9 +394,9 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     ${probeHtml}
 
     <details class="result-details"${summary ? '' : ' open'}>
-    <summary>Подробности</summary>
+    <summary>${L('Подробности', 'Details')}</summary>
     ${isCalibration ? '' : `<div class="surface">
-      <h3>Сдвиги навыков</h3>
+      <h3>${L('Сдвиги навыков', 'Skill shifts')}</h3>
       ${deltasHtml}
     </div>`}
 
@@ -400,15 +404,15 @@ export function renderResult(container: HTMLElement, params: { session: Session;
     ${weekHtml}
 
     <div class="surface">
-      <h3>Результаты и прогресс</h3>
-      <p class="muted metric-copy" style="font-size: 12px;">${METRIC_COPY.exerciseResult.measures} ${METRIC_COPY.exerciseResult.cannotConclude}</p>
+      <h3>${L('Результаты и прогресс', 'Results and progress')}</h3>
+      ${enCopy ? '' : `<p class="muted metric-copy" style="font-size: 12px;">${METRIC_COPY.exerciseResult.measures} ${METRIC_COPY.exerciseResult.cannotConclude}</p>`}
       ${itemsHtml}
     </div>
 
-    ${insightHtml}
+    ${enCopy ? '' : insightHtml}
     </details>
-    ${checkInHtml}
-    ${feedbackHtml}
+    ${enCopy ? '' : checkInHtml}
+    ${enCopy ? '' : feedbackHtml}
     ${nextActionHtml}
   `;
 

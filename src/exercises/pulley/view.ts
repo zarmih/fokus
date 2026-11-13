@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { PulleyEngine } from './engine';
 import { getPulleyParams, generateDynamicTask } from './manifest';
 import { mountStage } from '../stage';
@@ -9,7 +10,7 @@ export function renderPulley(
   isTimeUp: () => boolean
 ) {
   const stage = mountStage(container, 'logic');
-  stage.setStatus('Соберите нужный вес');
+  stage.setStatus(L('Соберите нужный вес', 'Make the exact weight'));
   let rounds = 0;
   let totalAcc = 0;
   let totalRt = 0;
@@ -51,10 +52,10 @@ export function renderPulley(
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; width: 100%; overflow-x: auto;">
           <div style="display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 32px; color: var(--text);">
             <div style="font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">
-              Двери: ${engine.gates.map((g, i) => `<span style="color: ${i < engine.playerAt ? 'var(--ok)' : (i === engine.playerAt ? 'var(--accent)' : 'var(--muted)')}; margin: 0 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${g.need}</span>`).join(' ')}
+              ${L('Двери', 'Doors')}: ${engine.gates.map((g, i) => `<span style="color: ${i < engine.playerAt ? 'var(--ok)' : (i === engine.playerAt ? 'var(--accent)' : 'var(--muted)')}; margin: 0 4px; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">${g.need}</span>`).join(' ')}
             </div>
             <div style="font-size: 16px; color: var(--muted); text-align: center; font-weight: 500;">
-              На крюке: <b style="color: var(--accent-2); font-size: 18px;">${hookSum}</b> (макс. 2 гири)
+              ${L('На крюке', 'On the hook')}: <b style="color: var(--accent-2); font-size: 18px;">${hookSum}</b> ${L('(макс. 2 гири)', '(max. 2 weights)')}
             </div>
           </div>
           
@@ -115,7 +116,7 @@ export function renderPulley(
 
           <!-- Weights on Hook (Large) -->
           <div style="text-align: center; margin-bottom: 24px;">
-            <div style="font-size: 14px; color: var(--muted); margin-bottom: 12px; font-weight: 600;">НА КРЮКЕ (нажми, чтобы сбросить)</div>
+            <div style="font-size: 14px; color: var(--muted); margin-bottom: 12px; font-weight: 600;">${L('НА КРЮКЕ (нажми, чтобы сбросить)', 'ON THE HOOK (tap to drop)')}</div>
             <div style="min-height: 48px; display: flex; gap: 12px; justify-content: center;">
               ${(currentGate ? currentGate.hook : []).map((w, idx) => `
                 <div class="weight-hook-large" data-idx="${idx}" style="width: 48px; height: 48px; background: linear-gradient(135deg, var(--dom-speed) 0%, #ea580c 100%); color: #fff; border-radius: 12px; box-shadow: 0 4px 8px rgba(234, 88, 12, 0.4); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px; cursor: pointer; transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);">
@@ -135,9 +136,9 @@ export function renderPulley(
           </div>
 
           <div style="display: flex; gap: 16px; margin-bottom: 16px; width: 100%; max-width: 440px;">
-            <button id="btn-walk" class="btn-primary" style="flex: 2; padding: 16px; font-size: 20px; font-weight: 800; opacity: ${canWalk ? 1 : 0.5}; pointer-events: ${canWalk ? 'auto' : 'none'};">ИДТИ</button>
-            <button id="btn-drop-all" class="btn-secondary" style="flex: 1; padding: 16px; font-size: 14px;">Все на пол</button>
-            <button id="btn-reset" class="btn-secondary" style="flex: 1; padding: 16px; font-size: 14px;">Сброс</button>
+            <button id="btn-walk" class="btn-primary" style="flex: 2; padding: 16px; font-size: 20px; font-weight: 800; opacity: ${canWalk ? 1 : 0.5}; pointer-events: ${canWalk ? 'auto' : 'none'};">${L('ИДТИ', 'GO')}</button>
+            <button id="btn-drop-all" class="btn-secondary" style="flex: 1; padding: 16px; font-size: 14px;">${L('Все на пол', 'All to floor')}</button>
+            <button id="btn-reset" class="btn-secondary" style="flex: 1; padding: 16px; font-size: 14px;">${L('Сброс', 'Reset')}</button>
           </div>
         </div>
       `;
