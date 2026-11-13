@@ -1,3 +1,4 @@
+import { isCoreExercise } from '../core/core-catalog';
 import { catalog } from '../exercises/catalog';
 
 export function generateCatalogArt(exerciseId: string, domain: string): string {
@@ -52,7 +53,10 @@ export function generateCatalogArt(exerciseId: string, domain: string): string {
   const template = templates[templateIndex];
   
   // Resolve collisions by checking catalog (as prompt implies we might need the catalog for this)
-  const domainExs = catalog.filter(e => e.manifest.domain === domain).sort((a, b) => a.manifest.name.localeCompare(b.manifest.name, 'ru'));
+  // Same order as the Trainers grid (core program first, then by name) so neighbours differ in sky.
+  const domainExs = catalog.filter(e => e.manifest.domain === domain).sort((a, b) =>
+    (isCoreExercise(a.manifest.id) ? 0 : 1) - (isCoreExercise(b.manifest.id) ? 0 : 1) ||
+    a.manifest.name.localeCompare(b.manifest.name, 'ru'));
   
   let currentSkyIndex = -1;
   let targetSkyIndex = 0;

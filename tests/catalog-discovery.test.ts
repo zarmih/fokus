@@ -29,7 +29,7 @@ describe('Catalog Discovery', () => {
   test('domain chip toggles groups and updates count', () => {
     renderTrainers(container);
     const chips = Array.from(container.querySelectorAll('.filter-chip')) as HTMLElement[];
-    const second = chips.find(c => c.dataset.dom !== 'all' && c.dataset.dom !== 'discovery');
+    const second = chips.find(c => !['all', 'discovery', 'quiet', 'core'].includes(c.dataset.dom!));
     if (!second) return;
     const domainId = second.dataset.dom!;
     const expected = catalog.filter((e) => e.manifest.domain === domainId).length;

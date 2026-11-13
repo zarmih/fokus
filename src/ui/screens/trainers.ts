@@ -9,6 +9,7 @@ import { domainLabel, DOMAIN_ORDER, skillLabel } from '../../core/labels';
 import { bindPressPhysics } from '../../core/motion';
 import { exerciseRecency } from '../../core/catalog-recency';
 import { generateCatalogArt } from '../catalog-art';
+import { isCoreExercise, CORE_EXERCISE_IDS } from '../../core/core-catalog';
 export function renderTrainers(container: HTMLElement) {
   const content = renderShell(container, { active: 'trainers' });
   const exStates = storage.getExerciseStates();
@@ -66,12 +67,13 @@ export function renderTrainers(container: HTMLElement) {
 
 
     const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
-    const ariaLabel = `${ex.manifest.name}. Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
+    const isCore = isCoreExercise(ex.manifest.id);
+    const ariaLabel = `${ex.manifest.name}.${isCore ? ' Основная программа.' : ''} Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
 
     const artHtml = generateCatalogArt(ex.manifest.id, ex.manifest.domain);
 
     return `
-      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-discovery="${isDiscovery}" data-recency="${recency}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}">
+      <button type="button" class="trainer-card press-physics dom-${ex.manifest.domain}" data-id="${ex.manifest.id}" data-core="${isCore}" data-discovery="${isDiscovery}" data-recency="${recency}" data-search="${searchableText.replace(/"/g, '&quot;')}" aria-label="${ariaLabel}">
         <div class="trainer-art-region">
           ${artHtml}
           ${isDiscovery ? `<div class="trainer-new-badge">New</div>` : ''}
@@ -80,6 +82,7 @@ export function renderTrainers(container: HTMLElement) {
           <div class="trainer-name">${ex.manifest.name}</div>
           <div class="trainer-chip-row">
             <span class="trainer-domain-chip">${domainLabel(ex.manifest.domain)}</span>
+            ${isCore ? `<span class="trainer-core-chip" data-core-chip="1"><span aria-hidden="true">★</span> Основное</span>` : ''}
             ${recency === 'quiet' ? `<span class="trainer-quiet-chip" data-recency="quiet">Давно не открывали</span>` : ''}
           </div>
         </div>
@@ -107,6 +110,11 @@ export function renderTrainers(container: HTMLElement) {
     <span style="font-size:14px; margin-right:4px;">🌐</span> Все <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${catalog.length}</span>
   </button>`;
   
+  const coreCount = catalog.filter((ex) => isCoreExercise(ex.manifest.id)).length;
+  filterHtml += `<button class="filter-chip" data-dom="core" type="button" aria-pressed="false" title="${CORE_EXERCISE_IDS.length} упражнений 14-дневной программы">
+    <span style="font-size:14px; margin-right:4px;" aria-hidden="true">★</span> Основная программа <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${coreCount}</span>
+  </button>`;
+
   filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">
     <span style="font-size:14px; margin-right:4px;">✨</span> Новое <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${untriedCount}</span>
   </button>`;
@@ -130,6 +138,9 @@ export function renderTrainers(container: HTMLElement) {
 
   validDomains.forEach((dom) => {
     const exercises = domains.get(dom)!.sort((a, b) => {
+      const coreA = isCoreExercise(a.manifest.id) ? 0 : 1;
+      const coreB = isCoreExercise(b.manifest.id) ? 0 : 1;
+      if (coreA !== coreB) return coreA - coreB;
       const intelA = getExerciseIntelligence(a.manifest.id);
       const intelB = getExerciseIntelligence(b.manifest.id);
       const diffA = Number(intelA.difficulty);
@@ -207,6 +218,7 @@ export function renderTrainers(container: HTMLElement) {
     let allMatches = 0;
     let discoveryMatches = 0;
     let quietMatches = 0;
+    let coreMatches = 0;
     const domainMatches = new Map<string, number>();
 
     content.querySelectorAll('.domain-group').forEach(group => {
@@ -217,6 +229,7 @@ export function renderTrainers(container: HTMLElement) {
       group.querySelectorAll('.trainer-card').forEach(card => {
         const el = card as HTMLElement;
         const isDiscovery = el.dataset.discovery === 'true';
+        const isCore = el.dataset.core === 'true';
         const recency = el.dataset.recency;
         const isQuiet = recency === 'rested' || recency === 'quiet';
         const matchesSearch = query === '' || (el.dataset.search && el.dataset.search.includes(query));
@@ -225,6 +238,7 @@ export function renderTrainers(container: HTMLElement) {
           allMatches++;
           if (isDiscovery) discoveryMatches++;
           if (isQuiet) quietMatches++;
+          if (isCore) coreMatches++;
           groupMatchCount++;
         }
 
@@ -235,6 +249,8 @@ export function renderTrainers(container: HTMLElement) {
           matchesDom = isDiscovery;
         } else if (activeDom === 'quiet') {
           matchesDom = isQuiet;
+        } else if (activeDom === 'core') {
+          matchesDom = isCore;
         } else {
           matchesDom = activeDom === groupDom;
         }
@@ -258,6 +274,7 @@ export function renderTrainers(container: HTMLElement) {
       if (dom === 'all') matches = allMatches;
       else if (dom === 'discovery') matches = discoveryMatches;
       else if (dom === 'quiet') matches = quietMatches;
+      else if (dom === 'core') matches = coreMatches;
       else if (dom) matches = domainMatches.get(dom) || 0;
       
       const countSpan = c.querySelector('.chip-count');
