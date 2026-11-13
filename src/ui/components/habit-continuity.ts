@@ -1,6 +1,7 @@
 import type { ContinuitySnapshot, GentleReturn } from '../../core/continuity';
 import { domainLabel } from '../../core/labels';
 import type { DayStreak } from '../../core/streak';
+import { getLocale } from '../../core/i18n';
 
 function daysWord(n: number): string {
   const abs = Math.abs(n) % 100;
@@ -25,6 +26,15 @@ function familiarPhrase(ritual: GentleReturn): string {
 }
 
 export function streakAriaLabel(streak: DayStreak): string {
+  if (getLocale() === 'en') {
+    const days = `${streak.current} ${streak.current === 1 ? 'day' : 'days'}`;
+    if (streak.status === 'empty') return 'No streak yet';
+    if (streak.status === 'soft_return') return 'Short break. Ease back into rhythm.';
+    if (streak.status === 'fresh_start') return "Fresh start. Streak begins with today's session";
+    if (streak.status === 'returned') return `Streak: ${days}. New count after a short break`;
+    if (streak.status === 'open') return `Streak: ${days} in a row. Today locks it in`;
+    return `Streak: ${days} in a row`;
+  }
   if (streak.status === 'empty') return 'Серии пока нет';
   if (streak.status === 'soft_return') {
     return `Короткая пауза. Возвращайтесь в ритм.`;

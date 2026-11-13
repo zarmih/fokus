@@ -1,5 +1,6 @@
 import type { DomainIndex, ExerciseState, Session, SkillIndex } from './types';
 import { domainLabel } from './labels';
+import { L } from './i18n';
 import {
   computeAbilityTrajectory,
   type AbilityTrajectory,
@@ -63,14 +64,14 @@ export function abilityTrendChip(trajectory: AbilityTrajectory): AbilityTrendChi
   if (!trajectory.ready || !trajectory.headline) return null;
   const d = trajectory.headline;
   const name = domainLabel(d.domain);
-  let label = `${name} стабильно`;
-  let spoken = `Тренд: ${name} стабильно`;
+  let label = L(`${name} стабильно`, `${name} steady`);
+  let spoken = L(`Тренд: ${name} стабильно`, `Trend: ${name} steady`);
   if (d.trend === 'rising') {
-    label = `${name} растёт`;
-    spoken = `Тренд: ${name} растёт`;
+    label = L(`${name} растёт`, `${name} rising`);
+    spoken = L(`Тренд: ${name} растёт`, `Trend: ${name} rising`);
   } else if (d.trend === 'falling') {
-    label = `${name} проседает`;
-    spoken = `Тренд: ${name} проседает`;
+    label = L(`${name} проседает`, `${name} dipping`);
+    spoken = L(`Тренд: ${name} проседает`, `Trend: ${name} dipping`);
   }
   return { label, domain: d.domain, trend: d.trend, aria: spoken };
 }
