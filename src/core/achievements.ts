@@ -1,5 +1,6 @@
 import { storage } from './storage';
 import { fokusWallHour, calendarDayKey, daysBetween, resolveFokusTimeZone } from './streak';
+import { getLocale } from './i18n';
 
 /** First-week plan is complete after 7 Europe/Moscow calendar days, not 7×24h from a UTC instant. */
 export function firstWeekPlanComplete(
@@ -41,6 +42,40 @@ export const ACHIEVEMENTS_DEF: Achievement[] = [
   { id: 'phoenix', name: 'Феникс', description: 'Возвращение к тренировкам после недели отдыха', icon: '🌅' },
   { id: 'first_week_complete', name: 'Адаптация', description: 'Завершена первая неделя тренировок', icon: '🐣' }
 ];
+
+export const ACHIEVEMENTS_EN: Record<string, { name: string; description: string }> = {
+  first_session: { name: 'Start', description: 'First full session completed' },
+  streak_3: { name: 'Fire', description: '3-day training streak' },
+  streak_7: { name: 'Unstoppable', description: '7-day training streak' },
+  streak_14: { name: 'Ritual', description: '14-day training streak' },
+  streak_30: { name: 'Iron Will', description: '30-day training streak' },
+  sniper: { name: 'Sniper', description: '100% accuracy in a session' },
+  night_owl: { name: 'Night Owl', description: 'Training after midnight' },
+  early_bird: { name: 'Early Bird', description: 'Training before 8 AM' },
+  veteran: { name: 'Veteran', description: '50 blocks completed' },
+  master: { name: 'Master', description: '500 blocks completed' },
+  explorer: { name: 'Explorer', description: '10 different exercises completed' },
+  balanced: { name: 'Balance', description: 'Data across all five cognitive domains' },
+  perfectionist: { name: 'Perfectionist', description: '10 blocks without a single mistake' },
+  consistency_80: { name: 'Consistency', description: 'Maintained 80% regularity over 30 days' },
+  return_hero: { name: 'Comeback', description: 'Resumed training after a pause' },
+  phoenix: { name: 'Phoenix', description: 'Resumed training after a week off' },
+  first_week_complete: { name: 'Adaptation', description: 'First week of training completed' }
+};
+
+export function achievementName(def: Achievement, locale: 'ru' | 'en' = getLocale()): string {
+  if (locale === 'en' && ACHIEVEMENTS_EN[def.id]) {
+    return ACHIEVEMENTS_EN[def.id].name;
+  }
+  return def.name;
+}
+
+export function achievementDescription(def: Achievement, locale: 'ru' | 'en' = getLocale()): string {
+  if (locale === 'en' && ACHIEVEMENTS_EN[def.id]) {
+    return ACHIEVEMENTS_EN[def.id].description;
+  }
+  return def.description;
+}
 
 export interface AchievementState extends Achievement {
   progress: number;

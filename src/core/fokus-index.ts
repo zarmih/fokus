@@ -3,6 +3,7 @@ import { ANALYTICS_METHODOLOGY_VERSION, SUFFICIENCY_LABEL, assessDataSufficiency
 import { DOMAIN_ORDER } from './labels';
 import { catalog } from '../exercises/catalog';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
+import { L } from './i18n';
 
 /** Civil YYYY-MM-DD in the Fokus product zone (Europe/Moscow, UTC fallback). */
 function fokusDayKey(instant: Date | string): string {
@@ -85,8 +86,8 @@ export function computeFokusIndex(
       value: 0, dataSufficiency, methodologyVersion, coverage: 0, byDomain, trend: 0, depth,
       phase: 'empty', balance: 'unknown',
       explain: {
-        state: 'Недостаточно данных',
-        action: 'Сбор статистики начнётся после первой сессии. Ваш Fokus Index формируется исключительно на основе реальных фактов: точности и времени реакций, а не абстрактных ожиданий.',
+        state: L('Недостаточно данных', 'Insufficient data'),
+        action: L('Сбор статистики начнётся после первой сессии. Ваш Fokus Index формируется исключительно на основе реальных фактов: точности и времени реакций, а не абстрактных ожиданий.', 'Data collection begins after your first session. Your Fokus Index is formed solely on real facts: accuracy and response times, not abstract expectations.'),
         balanceStr: ''
       }
     };
@@ -104,12 +105,12 @@ export function computeFokusIndex(
 
   if (coverage < 3) {
     phase = 'calibrating';
-    stateStr = `Открыто ${coverage} из 5 областей.`;
-    actionStr = `Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : (3 - coverage === 2 ? 'области' : 'областей')} для оценки. Fokus накапливает статистику, чтобы показатель отражал вашу фактическую форму, а не случайную догадку.`;
+    stateStr = L(`Открыто ${coverage} из 5 областей.`, `${coverage} of 5 domains open.`);
+    actionStr = L(`Требуется ещё ${3 - coverage} ${3 - coverage === 1 ? 'область' : (3 - coverage === 2 ? 'области' : 'областей')} для оценки. Fokus накапливает статистику, чтобы показатель отражал вашу фактическую форму, а не случайную догадку.`, `Need ${3 - coverage} more ${3 - coverage === 1 ? 'domain' : 'domains'} for estimation. Fokus gathers data so the metric reflects actual performance rather than guesswork.`);
   } else {
     phase = 'established';
     stateStr = `${dataSufficiency.label}.`;
-    actionStr = 'Индекс — сводное число по вашим упражнениям. Его изменение может отражать смену упражнений и уровней; динамику смотрите по каждому упражнению отдельно.';
+    actionStr = L('Индекс — сводное число по вашим упражнениям. Его изменение может отражать смену упражнений и уровней; динамику смотрите по каждому упражнению отдельно.', 'The index is a composite number across your exercises. Shifts may reflect changing exercises and levels; see individual exercises for personal trends.');
   }
   // Profile shape only once there is enough data to say anything (methodology v2 §4).
   if (phase === 'established' && sufficiencyAtLeast(dataSufficiency.level, 'partial')) {
@@ -117,13 +118,13 @@ export function computeFokusIndex(
     const maxDiff = Math.max(...vals) - Math.min(...vals);
     if (maxDiff <= 150) {
       balance = 'balanced';
-      balanceStr = 'Сбалансированный профиль: результаты по областям близки.';
+      balanceStr = L('Сбалансированный профиль: результаты по областям близки.', 'Balanced profile: domain results are close.');
     } else if (maxDiff > 350) {
       balance = 'asymmetric';
-      balanceStr = 'Асимметричный профиль: результаты по областям заметно различаются.';
+      balanceStr = L('Асимметричный профиль: результаты по областям заметно различаются.', 'Asymmetric profile: domain results differ noticeably.');
     } else {
       balance = 'specialized';
-      balanceStr = 'Неравномерный профиль: в одних областях результаты выше, чем в других.';
+      balanceStr = L('Неравномерный профиль: в одних областях результаты выше, чем в других.', 'Uneven profile: higher performance in some domains than others.');
     }
   }
 
@@ -150,14 +151,14 @@ export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: st
 
 export function indexDelta(current: number, previous: number | null, daysAgo: number = 1): { delta: number; label: string } {
   if (previous === null || previous === 0) {
-    return { delta: 0, label: 'сбор данных — история формируется' };
+    return { delta: 0, label: L('сбор данных — история формируется', 'collecting data — building history') };
   }
   const delta = current - previous;
-  const labelSuffix = daysAgo === 7 ? 'к прошлой неделе' : 'ко вчерашнему дню';
-  if (Math.abs(delta) <= 8) return { delta, label: `естественный фон (${labelSuffix})` };
+  const labelSuffix = daysAgo === 7 ? L('к прошлой неделе', 'vs last week') : L('ко вчерашнему дню', 'vs yesterday');
+  if (Math.abs(delta) <= 8) return { delta, label: L(`естественный фон (${labelSuffix})`, `normal variation (${labelSuffix})`) };
   const sign = delta > 0 ? '+' : '';
   // Methodology v2: the index mixes exercises and levels, so a change is not by itself "growth".
-  return { delta, label: `${sign}${delta} ${labelSuffix} · состав упражнений мог отличаться` };
+  return { delta, label: L(`${sign}${delta} ${labelSuffix} · состав упражнений мог отличаться`, `${sign}${delta} ${labelSuffix} · exercise mix may have differed`) };
 }
 
 export function personalIndexBand(summaries: { date: string; fokusIndex?: number }[], todayIso: string): { min: number; max: number; days: number; line: string } | null {
@@ -179,6 +180,6 @@ export function personalIndexBand(summaries: { date: string; fokusIndex?: number
     min,
     max,
     days: valid.length,
-    line: `Ваш диапазон за 7 дней: ${min}–${max}. Это ваша полоса, не сравнение с другими.`
+    line: L(`Ваш диапазон за 7 дней: ${min}–${max}. Это ваша полоса, не сравнение с другими.`, `Your 7-day range: ${min}–${max}. This is your band, not a comparison to others.`)
   };
 }
