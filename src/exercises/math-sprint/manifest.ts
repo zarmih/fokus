@@ -6,6 +6,6 @@ export const MathSprintManifest: ExerciseManifest = {
   domain: 'speed',
   skills: ['mental_calculation', 'processing_speed', 'reaction_speed'],
   metricModel: 'logic-correctness',
-  instruction: 'Быстро решайте, верный ли ответ в математическом примере. Нажмите "Да" или "Нет".',
+  instruction: 'Быстро решайте, верный ли ответ в математическом примере. Нажмите «Верно» или «Неверно».',
   levels: {}
 };

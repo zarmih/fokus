@@ -848,7 +848,7 @@ export const MANIFESTS = [
    "reaction_speed"
   ],
   "metricModel": "logic-correctness",
-  "instruction": "Быстро решайте, верный ли ответ в математическом примере. Нажмите \"Да\" или \"Нет\".",
+  "instruction": "Быстро решайте, верный ли ответ в математическом примере. Нажмите «Верно» или «Неверно».",
   "levels": {}
  },
  {
