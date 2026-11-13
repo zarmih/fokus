@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi, type MockInstance } from 'vitest';
-import { SyncQueue } from '../src/core/offline-sync';
+import { SyncQueue, setSyncPoster } from '../src/core/offline-sync';
 
 describe('SyncQueue state transitions and idempotency', () => {
   let fetchMock: MockInstance;
@@ -11,12 +11,21 @@ describe('SyncQueue state transitions and idempotency', () => {
     
     onLineSpy = vi.spyOn(navigator, 'onLine', 'get').mockReturnValue(true);
     fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 200 }));
+    // The default transport is offline-only (privacy); these tests exercise an explicit network transport.
+    setSyncPoster(async (snapshot, signal) => {
+      try {
+        return await fetch('/api/sync', { method: 'POST', body: JSON.stringify(snapshot), signal });
+      } catch {
+        return null;
+      }
+    });
     vi.useFakeTimers();
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
     vi.useRealTimers();
+    setSyncPoster(async () => null);
   });
 
   it('starts online and goes offline', () => {
