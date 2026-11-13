@@ -1,3 +1,4 @@
+import { getLocale } from './i18n';
 export const DOMAIN_ORDER = ['attention', 'memory', 'speed', 'flexibility', 'logic'] as const;
 
 export type DomainId = (typeof DOMAIN_ORDER)[number];
@@ -53,11 +54,46 @@ export const GOAL_COPY: { id: string; title: string; desc: string }[] = [
   { id: 'logic', title: 'Логика', desc: 'Видеть закономерности и решать задачи' }
 ];
 
+export const DOMAIN_LABELS_EN: Record<string, string> = {
+  attention: 'Attention',
+  memory: 'Memory',
+  speed: 'Speed',
+  flexibility: 'Flexibility',
+  logic: 'Logic'
+};
+
+export const SKILL_LABELS_EN: Record<string, string> = {
+  visual_memory: 'Visual memory', working_memory: 'Working memory', spatial_memory: 'Spatial memory', recall: 'Recall',
+  selective_attention: 'Selective attention', processing_speed: 'Processing speed', cognitive_flexibility: 'Cognitive flexibility',
+  inhibitory_control: 'Impulse control', inhibition: 'Inhibition', quantitative_reasoning: 'Calculation',
+  spatial_reasoning: 'Spatial reasoning', motor_control: 'Motor control', divided_attention: 'Divided attention',
+  pattern_recognition: 'Pattern recognition', sustained_attention: 'Sustained attention', task_switching: 'Task switching',
+  rule_switching: 'Rule switching', reaction_speed: 'Reaction speed', visual_scanning: 'Visual search',
+  logical_reasoning: 'Logic', mental_calculation: 'Mental arithmetic', estimation: 'Estimation', numerical_processing: 'Numbers'
+};
+
+const GOAL_COPY_EN: Record<string, { title: string; desc: string }> = {
+  balance: { title: 'Balance', desc: 'Train all areas equally' },
+  memory: { title: 'Memory', desc: 'Hold and recall information' },
+  attention: { title: 'Attention', desc: 'Focus longer, get distracted less' },
+  speed: { title: 'Speed', desc: 'Notice and decide faster' },
+  flexibility: { title: 'Flexibility', desc: 'Switch between rules more easily' },
+  logic: { title: 'Logic', desc: 'Spot patterns and solve problems' }
+};
+
+/** Goal cards in the current language. */
+export function goalCopy(): { id: string; title: string; desc: string }[] {
+  if (getLocale() !== 'en') return GOAL_COPY;
+  return GOAL_COPY.map((g) => ({ id: g.id, ...(GOAL_COPY_EN[g.id] || { title: g.title, desc: g.desc }) }));
+}
+
 export function domainLabel(id: string): string {
+  if (getLocale() === 'en') return DOMAIN_LABELS_EN[id] || id;
   return DOMAIN_LABELS[id] || id;
 }
 
 export function skillLabel(id: string): string {
+  if (getLocale() === 'en') return SKILL_LABELS_EN[id] || id.replace(/_/g, ' ');
   return SKILL_LABELS[id] || id.replace(/_/g, ' ');
 }
 

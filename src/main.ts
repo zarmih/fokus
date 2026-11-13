@@ -5,7 +5,7 @@ import './styles/scenes/index.css';
 import { renderToday } from './ui/screens/today';
 import { storage } from './core/storage';
 import { applyTheme } from './ui/theme';
-import { initI18n } from './core/i18n';
+import { suggestLocale, initI18n } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
 import { unlockAudio } from './core/audio';
 import { initInstallPrompt, consumeSoftReturnQuery } from './pwa-install';
@@ -82,6 +82,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   try {
     const p = storage.getProfile();
+    if (!p.onboarded && !p.language) {
+      // New profile: suggest the language from the device; it can be switched on the first screen.
+      p.language = suggestLocale();
+      storage.setProfile(p);
+    }
     initI18n(p.language);
     applyDocumentLang(p.language);
     applyTheme(p.theme || 'dark');
