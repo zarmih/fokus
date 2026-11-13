@@ -6,6 +6,7 @@ const colorWord = (c: { id: string; word: string }) => L(c.word, EN_WORD[c.id] |
 import { StroopEngine, COLORS } from './engine';
 import { getStroopParams } from './manifest';
 import { mountStage } from '../stage';
+import { getExerciseMode, STROOP_DIRECTION, DIRECTION_WORD, DIRECTION_ROTATION } from '../lib/exercise-mode';
 
 export function renderStroop(
   container: HTMLElement,
@@ -34,6 +35,28 @@ export function renderStroop(
     const roundStartTime = Date.now();
     const ink = COLORS.find(c => c.id === trial.ink)!;
     const word = COLORS.find(c => c.id === trial.word)!;
+    const accessible = getExerciseMode() === 'accessible';
+    stage.board.dataset.mode = accessible ? 'accessible' : 'standard';
+    if (accessible) {
+      const inkDir = STROOP_DIRECTION[trial.ink];
+      const wordDir = STROOP_DIRECTION[trial.word];
+      const dirWord = (d: keyof typeof DIRECTION_WORD) => L(DIRECTION_WORD[d][0], DIRECTION_WORD[d][1]);
+      stage.setStatus(L('Куда указывает стрелка, не слово', 'Where the arrow points, not the word'));
+      stage.board.innerHTML = `
+      <div class="stroop-board">
+        <div class="stroop-word stroop-arrow" data-dir="${inkDir}" style="display:flex;align-items:center;justify-content:center;gap:8px;font-weight:800;">
+          <svg width="72" height="72" viewBox="0 0 100 100" aria-hidden="true" style="transform:rotate(${DIRECTION_ROTATION[inkDir]}deg)"><polygon points="10,35 60,35 60,15 95,50 60,85 60,65 10,65" fill="currentColor"/></svg>
+          <span>${dirWord(wordDir)}</span>
+        </div>
+        <div class="stroop-options" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%;max-width:360px;">
+          ${trial.options.map(opt => {
+            const d = STROOP_DIRECTION[opt];
+            return `<button class="stroop-btn btn-secondary" data-color="${opt}" data-dir="${d}" aria-label="${dirWord(d)}"><span aria-hidden="true" style="display:inline-block;transform:rotate(${DIRECTION_ROTATION[d]}deg)">➜</span> ${dirWord(d)}</button>`;
+          }).join('')}
+        </div>
+      </div>
+    `;
+    } else {
     stage.setStatus(L('Цвет чернил, не слово', 'Ink colour, not the word'));
     stage.board.innerHTML = `
       <div class="stroop-board">
@@ -46,6 +69,7 @@ export function renderStroop(
         </div>
       </div>
     `;
+    }
 
     const finishRound = (choice: any, rt: number) => {
       clearTimeout(currentTimer);

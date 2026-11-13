@@ -30,7 +30,7 @@ import { currentModel, difficultyFor, markEngineCalibrated, planForNow, recordEn
 import { applyFeedback, enterStage, playSessionCue, replayClass } from '../../core/motion';
 import { mountScene } from '../scene';
 import { buildSessionContent } from '../../core/exercise-content';
-import { modeFor, setExerciseMode } from '../../exercises/lib/exercise-mode';
+import { modeFor, setExerciseMode, ACCESSIBLE_NOTE } from '../../exercises/lib/exercise-mode';
 import { blockBudgetSec, hasPlayedExercise, interruptAbortsBlock, isScorableBlock, needsTrial, shouldTick, TRIAL_SEC } from '../../core/session-timing';
 import { getSpacing } from '../../core/engine/scheduler';
 
@@ -148,7 +148,7 @@ export function renderSession(container: HTMLElement, params: {mode?: string, it
         <p>${exerciseInstruction(manifest)}</p>
         <div class="instruction-meta">${contentHints.metaLine}</div>
         <p class="instruction-hint">${contentHints.hintLine}</p>
-        ${blockMode === 'accessible' ? `<p class="instruction-mode" data-mode="accessible">${L('Доступный режим: найдите стрелку с другим наклоном. Результат сравнивается только с блоками в этом режиме.', 'Accessible mode: find the arrow tilted differently. Results are compared only with blocks in this mode.')}</p>` : ''}
+        ${blockMode === 'accessible' ? `<p class="instruction-mode" data-mode="accessible">${L(`${(ACCESSIBLE_NOTE[item.exerciseId] || ACCESSIBLE_NOTE['odd-one'])[0]} Результат сравнивается только с блоками в этом режиме.`, `${(ACCESSIBLE_NOTE[item.exerciseId] || ACCESSIBLE_NOTE['odd-one'])[1]} Results are compared only with blocks in this mode.`)}</p>` : ''}
         ${trialActive ? `<p class="instruction-trial" data-trial="1">${L(`Сначала пробный раунд на ${TRIAL_SEC} секунд на лёгком уровне — он не засчитывается.`, `First a ${TRIAL_SEC}-second practice round at an easy level — it does not count.`)}</p>` : ''}
         ${afterTrial ? `<p class="instruction-trial" data-trial-done="1">${L('Проба завершена. Теперь зачётный блок.', 'Practice done. Now the scored block.')}</p>` : ''}
       </div>

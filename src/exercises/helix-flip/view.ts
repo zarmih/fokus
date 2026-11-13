@@ -2,6 +2,16 @@ import { L } from '../../core/i18n';
 import { HelixFlipEngine, HelixTrial, Shape, Color } from './engine';
 import { getHelixFlipParams } from './manifest';
 import { mountStage } from '../stage';
+import { getExerciseMode, HELIX_FILL, type FillStyle } from '../lib/exercise-mode';
+
+/** Shape drawn with a fill style instead of a colour (accessible mode). */
+function shapeWithFill(shape: Shape, fill: FillStyle, uid: string): string {
+  const base = SHAPE_SVG[shape];
+  if (fill === 'solid') return base;
+  if (fill === 'outline') return base.replace('fill="currentColor"', 'fill="none" stroke="currentColor" stroke-width="8"');
+  return `<defs><pattern id="hx-stripe-${uid}" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="12" fill="currentColor"/></pattern></defs>` +
+    base.replace('fill="currentColor"', `fill="url(#hx-stripe-${uid})" stroke="currentColor" stroke-width="4"`);
+}
 
 const COLOR_MAP: Record<Color, string> = {
   'Красный': '#ef4444',
@@ -46,16 +56,19 @@ export function renderHelixFlip(
     currentRule = currentTrial.rule;
     hasAnswered = false;
     
-    stage.setStatus(L(`Совпадают по правилу: ${currentRule.toUpperCase()}`, `Match by rule: ${currentRule === 'Форма' ? 'SHAPE' : 'COLOUR'}`));
-    
+    const accessible = getExerciseMode() === 'accessible';
+    stage.board.dataset.mode = accessible ? 'accessible' : 'standard';
+    const ruleRu = currentRule === 'Форма' ? 'ФОРМА' : accessible ? 'ЗАЛИВКА' : 'ЦВЕТ';
+    const ruleEn = currentRule === 'Форма' ? 'SHAPE' : accessible ? 'FILL' : 'COLOUR';
+    stage.setStatus(L(`Совпадают по правилу: ${ruleRu}`, `Match by rule: ${ruleEn}`));
+    const glyph = (shape: Shape, color: Color, side: string) => accessible
+      ? `<div class="glyph-3d" data-shape="${shape}" data-fill="${HELIX_FILL[color]}" style="color: var(--text); width: 100px; height: 100px;"><svg viewBox="0 0 100 100" aria-hidden="true">${shapeWithFill(shape, HELIX_FILL[color], side + rounds)}</svg></div>`
+      : `<div class="glyph-3d" style="color: ${COLOR_MAP[color]}; width: 100px; height: 100px;"><svg viewBox="0 0 100 100">${SHAPE_SVG[shape]}</svg></div>`;
+
     stage.board.innerHTML = `
       <div style="display: flex; justify-content: center; align-items: center; gap: 40px; margin-bottom: 40px; margin-top: 20px;">
-        <div class="glyph-3d" style="color: ${COLOR_MAP[currentTrial.leftColor]}; width: 100px; height: 100px;">
-          <svg viewBox="0 0 100 100">${SHAPE_SVG[currentTrial.leftShape]}</svg>
-        </div>
-        <div class="glyph-3d" style="color: ${COLOR_MAP[currentTrial.rightColor]}; width: 100px; height: 100px;">
-          <svg viewBox="0 0 100 100">${SHAPE_SVG[currentTrial.rightShape]}</svg>
-        </div>
+        ${glyph(currentTrial.leftShape, currentTrial.leftColor, 'l')}
+        ${glyph(currentTrial.rightShape, currentTrial.rightColor, 'r')}
       </div>
       <div class="play-choice">
         <button id="btn-no" class="btn-secondary">${L('Нет', 'No')} ←</button>
