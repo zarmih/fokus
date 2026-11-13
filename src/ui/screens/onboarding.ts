@@ -1,4 +1,6 @@
 import { navigateTo } from '../router';
+import { initialZones } from '../../core/time-zone-choice';
+import { deviceTimeZone } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { GOAL_COPY } from '../../core/labels';
 import { calibrationSessionItems } from '../../core/calibration';
@@ -204,6 +206,8 @@ export function renderOnboarding(container: HTMLElement) {
       }
       const p = storage.getProfile();
       p.onboarded = true;
+      // A new profile has no days to re-date: start in the device zone (changeable in Settings).
+      if (!storage.getSessions().length && !storage.getDaySummaries().length) p.timeZones = initialZones(deviceTimeZone());
       p.onboardingCompletedAt = new Date().toISOString();
       p.sessionLengthSec = selectedMin * 60;
       p.primaryGoal = selectedGoal;
