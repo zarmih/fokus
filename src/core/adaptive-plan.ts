@@ -1,4 +1,4 @@
-import { registry } from '../exercises/registry';
+import { registry } from '../exercises/manifest-registry';
 import { buildAdaptivePlan } from './session-builder';
 import { storage } from './storage';
 import { loadContinuitySnapshot, ritualDurationSec, applyGentleReturnBias } from './continuity';

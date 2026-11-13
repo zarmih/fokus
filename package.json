@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "inventory": "vitest run -c scripts/inventory/vitest.inventory.config.ts",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "gen:manifests": "vitest run -c scripts/manifests/vitest.manifests.config.ts"
   },
   "devDependencies": {
     "@playwright/test": "1.64",

@@ -1,5 +1,5 @@
 import { storage } from '../../core/storage';
-import { registry } from '../../exercises/registry';
+import { registry } from '../../exercises/manifest-registry';
 import { TRANSFER_MAP, TRANSFER_DOMAINS } from '../../core/transfer';
 import {
   buildTransferSurface,

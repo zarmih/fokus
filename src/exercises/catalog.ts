@@ -1,4 +1,4 @@
-import { registry } from './registry';
+import { registry } from './manifest-registry';
 import type { ExerciseManifest } from './contract';
 
 const seenIds = new Set<string>();

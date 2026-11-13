@@ -5,7 +5,7 @@ import { storage } from '../../core/storage';
 import { GOAL_COPY } from '../../core/labels';
 import { calibrationSessionItems } from '../../core/calibration';
 import { buildFirstWeekPlan, firstWeekPreviewLines, gentleDayNote } from '../../core/onboarding';
-import { registry } from '../../exercises/registry';
+import { registry } from '../../exercises/manifest-registry';
 import { scheduleLocalReminder } from '../../core/reminders';
 import { bindPressPhysics, enterStage } from '../../core/motion';
 
