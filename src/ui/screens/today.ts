@@ -16,7 +16,8 @@ import { fillRenderedSlotAlternatives } from '../../core/session-builder';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
-import { getDailyQuests } from '../../core/quests';
+import { getDailyQuests, questTitle, questDescription } from '../../core/quests';
+import { isCoreExercise, inCoreProgram } from '../../core/core-catalog';
 import { generateInsights } from '../../core/insights';
 import { suggestFocusOfTheWeek } from '../../core/transfer-insights';
 import { transferCardFromStorage } from '../components/transfer-card';
@@ -289,8 +290,9 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         planItems: plan.items,
         weekRitual
       });
-  // Coach copy is Russian-only for now: in English the card keeps the plan facts and drops the coach prose.
-  const spark = enCopy ? { ...rawSpark, title: 'Today', body: '', quietTip: undefined } : rawSpark;
+  // Un-hide coach prose / spark / quiet tip in English for core exercises and 14-day core program.
+  const isCore = !profile.calibrated || inCoreProgram(dailyPlan?.programDay ?? 1) || plan.items.length === 0 || plan.items.some((it) => it.exerciseId && isCoreExercise(it.exerciseId));
+  const spark = enCopy && !isCore ? { ...rawSpark, title: 'Today', body: '', quietTip: undefined } : rawSpark;
   const sparkTitle = spark.title;
 
   const catalogRefsNorms = catalog.map((c) => ({ id: c.manifest.id, domain: c.manifest.domain }));
@@ -331,25 +333,27 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const questsHtml = `
     <div class="surface quests-card">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-        <h3 style="margin: 0;">Задачи дня</h3>
+        <h3 style="margin: 0;">${L('Задачи дня', 'Daily Quests')}</h3>
       </div>
       ${quests.map((q: any) => {
         const pct = Math.min(100, (q.progress / q.target) * 100);
-        const diffLabel = q.difficulty === 'hard' ? 'Сложно' : q.difficulty === 'easy' ? 'Легко' : 'Средне';
+        const diffLabel = q.difficulty === 'hard' ? L('Сложно', 'Hard') : q.difficulty === 'easy' ? L('Легко', 'Easy') : L('Средне', 'Medium');
         const diffColor = q.difficulty === 'hard' ? 'var(--accent-2)' : q.difficulty === 'easy' ? 'var(--ok)' : 'var(--accent)';
+        const title = questTitle(q);
+        const description = questDescription(q);
         return `
-          <div class="quest-row" style="margin-bottom: 16px;" role="group" aria-label="${q.title}. ${q.description}. ${q.completed ? 'Выполнено' : `Прогресс ${q.progress} из ${q.target}`}">
+          <div class="quest-row" style="margin-bottom: 16px;" role="group" aria-label="${title}. ${description}. ${q.completed ? L('Выполнено', 'Completed') : `${L('Прогресс', 'Progress')} ${q.progress} ${L('из', 'of')} ${q.target}`}">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
               <div>
                 <div class="quest-title ${q.completed ? 'done' : ''}" style="font-weight: 700; font-size: 15px;">
-                  ${q.title}
+                  ${title}
                   <span style="font-size: 10px; font-weight: 800; text-transform: uppercase; margin-left: 6px; color: ${diffColor}; opacity: 0.8;">${diffLabel}</span>
                 </div>
-                <div class="quest-desc" style="font-size: 13px; opacity: 0.7; margin-top: 2px;">${q.description}</div>
+                <div class="quest-desc" style="font-size: 13px; opacity: 0.7; margin-top: 2px;">${description}</div>
               </div>
               <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
                 ${q.completed ? `
-                  <span style="font-size: 12px; font-weight: 700; color: var(--ok);">Выполнено</span>
+                  <span style="font-size: 12px; font-weight: 700; color: var(--ok);">${L('Выполнено', 'Done')}</span>
                 ` : `
                   <div class="quest-count" style="font-size: 14px; font-weight: 600;">${q.progress}/${q.target}</div>
                 `}
@@ -422,13 +426,13 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     `;
   } else if (!profile.calibrated) {
     actionHtml = `
-      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-label="Старт калибровки">
+      <div class="workout-card fx-enter coach-${spark.tone}" role="region" aria-label="${L('Старт калибровки', 'Start calibration')}">
         <div class="workout-kicker">${spark.title}</div>
-        <h3>Калибровка уровня</h3>
+        <h3>${L('Калибровка уровня', 'Level calibration')}</h3>
         <p class="workout-coach-insight">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-top: 12px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
-          <span>Пройти калибровку</span>
+          <span>${L('Пройти калибровку', 'Start calibration')}</span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
       </div>
@@ -510,7 +514,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           ${finalKicker}
         </div>
-        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'first_week' && !enCopy ? planExplain.title : L('Тренировка дня', 'Workout of the day')}</h3>
+        <h3 id="cta-today-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${planExplain?.source === 'first_week' && planExplain.title ? planExplain.title : L('Тренировка дня', 'Workout of the day')}</h3>
         <p data-plan-focus="${plan.focusDomains.join(',')}" style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
           ${Math.floor(ritualDuration / 60)} ${L('минут', 'min')} &middot; ${focusText}
         </p>
@@ -518,7 +522,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         ${trendChipHtml ? `<div style="margin-bottom: 12px;">${trendChipHtml}</div>` : ''}
         <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 8px;">${spark.body}</p>
         ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
-        ${!enCopy && planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : (spark.quietTip ? '' : '<div style="margin-bottom: 8px;"></div>')}
+        ${planExplain && planExplain.recoveryPath && planExplain.whyExercises && planExplain.whyExercises !== spark.body ? `<p class="plan-why" data-plan-source="${planExplain.source}" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85;">${planExplain.whyExercises}</p>` : (spark.quietTip ? '' : '<div style="margin-bottom: 8px;"></div>')}
         <div class="workout-chips" role="list" aria-label="${L('Упражнения на сегодня', 'Today’s exercises')}" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
         ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">${L('Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.', 'This exercise comes back tomorrow. Today’s plan still works.')}</p>` : ''}
         <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
@@ -541,7 +545,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     ${recalHtml}
 
     ${actionHtml}
-    ${enCopy ? '' : (normsHintHtml)}
+    ${normsHintHtml}
 
     ${weekHtml}
 
@@ -571,13 +575,13 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
           <div class="stat-lbl">${L('до ур.', 'to lvl')} ${lvl.currentLevel + 1}</div>
         </div>
       </div>
-      ${enCopy ? '' : (renderContinuityHint(snap, 'today'))}
-      ${enCopy ? '' : (retentionHtml)}
+      ${renderContinuityHint(snap, 'today')}
+      ${retentionHtml}
 
 
       ${enCopy ? '' : (snap.ritual.active ? '' : transferCardHtml)}
 
-      ${enCopy ? '' : (questsHtml)}
+      ${questsHtml}
 
     </div>
   `;

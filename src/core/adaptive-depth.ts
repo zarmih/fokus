@@ -1,4 +1,5 @@
 import type { DomainIndex, ExerciseState, Session, SkillIndex } from './types';
+import { getLocale } from './i18n';
 import { domainLabel } from './labels';
 import {
   computeAbilityTrajectory,
@@ -63,6 +64,18 @@ export function abilityTrendChip(trajectory: AbilityTrajectory): AbilityTrendChi
   if (!trajectory.ready || !trajectory.headline) return null;
   const d = trajectory.headline;
   const name = domainLabel(d.domain);
+  if (getLocale() === 'en') {
+    let label = `${name} steady`;
+    let spoken = `Trend: ${name} steady`;
+    if (d.trend === 'rising') {
+      label = `${name} rising`;
+      spoken = `Trend: ${name} rising`;
+    } else if (d.trend === 'falling') {
+      label = `${name} dipping`;
+      spoken = `Trend: ${name} dipping`;
+    }
+    return { label, domain: d.domain, trend: d.trend, aria: spoken };
+  }
   let label = `${name} стабильно`;
   let spoken = `Тренд: ${name} стабильно`;
   if (d.trend === 'rising') {

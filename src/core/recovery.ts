@@ -1,4 +1,5 @@
 import type { DaySummary, ExerciseState, Session } from './types';
+import { L } from './i18n';
 import { calculateEMA } from './domains';
 import { type TrainingPlan } from './session-builder';
 import { planForNow } from './adaptive-plan';
@@ -248,35 +249,50 @@ function hintFor(
 ): RecoveryHint {
   if (ctx.sample < 2) {
     return {
-      title: 'Пока мало данных',
-      body: 'Качество сессии появится после нескольких ритуалов. Это не балл способностей, а то, насколько чисто прошёл подход.',
+      title: L('Пока мало данных', 'Few data points yet'),
+      body: L(
+        'Качество сессии появится после нескольких ритуалов. Это не балл способностей, а то, насколько чисто прошёл подход.',
+        'Session quality appears after several rituals. It is not an ability score, but how cleanly the session went.'
+      ),
       tone: 'steady'
     };
   }
   if (rec === 'rest-light') {
     if (ctx.lastScore !== null && ctx.lastScore < 60) {
       return {
-        title: 'Сегодня короче',
-        body: 'Последние ритуалы были плотными, а качество просело. Пять минут в другой области сохранят форму лучше, чем ещё один длинный заход.',
+        title: L('Сегодня короче', 'Shorter today'),
+        body: L(
+          'Последние ритуалы были плотными, а качество просело. Пять минут в другой области сохранят форму лучше, чем ещё один длинный заход.',
+          'Recent sessions were intense and quality dipped. Five minutes in a different area preserves form better than another long run.'
+        ),
         tone: 'rest-light'
       };
     }
     return {
-      title: 'Сегодня короче',
-      body: 'Нагрузка за последние дни высокая. Короткий ритуал — нормальный выбор, не откат.',
+      title: L('Сегодня короче', 'Shorter today'),
+      body: L(
+        'Нагрузка за последние дни высокая. Короткий ритуал — нормальный выбор, не откат.',
+        'Recent load has been high. A short session is a healthy choice, not a setback.'
+      ),
       tone: 'rest-light'
     };
   }
   if (rec === 'push-hard') {
     return {
-      title: 'Можно чуть сложнее',
-      body: 'Качество ритуалов ровное, запас по нагрузке есть. Сегодня можно оставить вашу обычную длительность.',
+      title: L('Можно чуть сложнее', 'Can challenge more'),
+      body: L(
+        'Качество ритуалов ровное, запас по нагрузке есть. Сегодня можно оставить вашу обычную длительность.',
+        'Session quality is steady with room for load. Today you can keep your normal duration.'
+      ),
       tone: 'push-hard'
     };
   }
   return {
-    title: 'Держать ритм',
-    body: 'Нагрузка и качество в норме. Обычный ритуал — лучший следующий шаг.',
+    title: L('Держать ритм', 'Maintain rhythm'),
+    body: L(
+      'Нагрузка и качество в норме. Обычный ритуал — лучший следующий шаг.',
+      'Load and quality are in a good balance. A normal session is your best next step.'
+    ),
     tone: 'steady'
   };
 }

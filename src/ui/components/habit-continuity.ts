@@ -1,8 +1,12 @@
 import type { ContinuitySnapshot, GentleReturn } from '../../core/continuity';
+import { L, getLocale } from '../../core/i18n';
 import { domainLabel } from '../../core/labels';
 import type { DayStreak } from '../../core/streak';
 
 function daysWord(n: number): string {
+  if (getLocale() === 'en') {
+    return n === 1 ? 'day' : 'days';
+  }
   const abs = Math.abs(n) % 100;
   const d = abs % 10;
   if (abs > 10 && abs < 20) return 'дней';
@@ -20,11 +24,29 @@ function familiarPhrase(ritual: GentleReturn): string {
     .slice(0, 2)
     .map((id) => domainLabel(id))
     .filter(Boolean);
+  if (getLocale() === 'en') {
+    if (names.length === 0) return 'a short familiar session';
+    return `a short session: ${names.join(' and ')}`;
+  }
   if (names.length === 0) return 'короткий знакомый блок';
   return `короткий блок: ${names.join(' и ')}`;
 }
 
 export function streakAriaLabel(streak: DayStreak): string {
+  if (getLocale() === 'en') {
+    if (streak.status === 'empty') return 'No streak yet';
+    if (streak.status === 'soft_return') {
+      return 'Short break. Get back into your rhythm.';
+    }
+    if (streak.status === 'fresh_start') return 'Fresh start. Streak begins with today’s session';
+    if (streak.status === 'returned') {
+      return `Streak of ${streak.current} ${daysWord(streak.current)}. New count after a short break`;
+    }
+    if (streak.status === 'open') {
+      return `Streak of ${streak.current} ${daysWord(streak.current)} in a row. Today locks in the ritual`;
+    }
+    return `Streak of ${streak.current} ${daysWord(streak.current)} in a row`;
+  }
   if (streak.status === 'empty') return 'Серии пока нет';
   if (streak.status === 'soft_return') {
     return `Короткая пауза. Возвращайтесь в ритм.`;
@@ -40,6 +62,25 @@ export function streakAriaLabel(streak: DayStreak): string {
 }
 
 export function streakChipCaption(streak: DayStreak): { num: string; lbl: string } {
+  if (getLocale() === 'en') {
+    switch (streak.status) {
+      case 'empty':
+        return { num: '0', lbl: 'no streak' };
+      case 'soft_return':
+        return { num: '0', lbl: 'gentle return' };
+      case 'fresh_start':
+        return { num: '0', lbl: 'fresh start' };
+      case 'returned':
+        return { num: String(streak.current), lbl: 'new count' };
+      case 'open':
+        return { num: String(streak.current), lbl: 'locks in today' };
+      default:
+        return {
+          num: String(streak.current),
+          lbl: streak.current === 0 ? 'start a streak' : `${daysWord(streak.current)} in a row`
+        };
+    }
+  }
   switch (streak.status) {
     case 'empty':
       return { num: '0', lbl: 'нет серии' };
@@ -87,7 +128,7 @@ export function renderContinuityHint(
 
   return `
     <div class="continuity-hint" role="status" data-status="${snap.streak.status}">
-      <div class="continuity-hint-kicker">Непрерывность</div>
+      <div class="continuity-hint-kicker">${L('Непрерывность', 'Continuity')}</div>
       <p class="continuity-hint-body">${body}</p>
       ${meter}
     </div>
@@ -96,6 +137,49 @@ export function renderContinuityHint(
 
 function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
   const { streak, weekly, ritual, timeZoneSource } = snap;
+  if (getLocale() === 'en') {
+    const zoneNote =
+      timeZoneSource === 'utc-fallback'
+        ? ' Day is tracked in UTC — Europe/Moscow timezone is unavailable in this environment.'
+        : '';
+
+    if (streak.status === 'empty') {
+      return `After a few days, your habit rhythm will appear here: streak count and a 0–1 score. No IQ tropes, no "brain age".${zoneNote}`;
+    }
+
+    if (streak.status === 'soft_return') {
+      return `A short break is completely normal. Your progress stays with you. Next step: ${familiarPhrase(ritual)} to get back into rhythm.${zoneNote}`;
+    }
+
+    if (streak.status === 'fresh_start') {
+      return `A fresh start. Your accumulated skills remain with you. Next step: complete today’s session at a comfortable pace.${zoneNote}`;
+    }
+
+    if (streak.status === 'returned') {
+      return `Welcome back! New streak count: ${streak.current}. Continue training at your own pace.${zoneNote}`;
+    }
+
+    if (weekly.sufficient) {
+      const gaps =
+        weekly.gapCount === 0
+          ? 'no gaps in window'
+          : weekly.gapCount === 1
+            ? 'one break in window'
+            : `${weekly.gapCount} breaks in window`;
+      const extra =
+        screen === 'stats'
+          ? ` ${weekly.completedDays} of ${weekly.eligibleDays} days, ${gaps}.`
+          : '';
+      return `Weekly continuity: ${scoreText(weekly.score)} out of 1. Session days share minus break penalty.${extra} Not a score of ability.${zoneNote}`;
+    }
+
+    if (streak.status === 'open') {
+      return `Streak of ${streak.current} ${daysWord(streak.current)} is active — today’s ritual will keep it going.${zoneNote}`;
+    }
+
+    return `Streak of ${streak.current} ${daysWord(streak.current)} in a row. Weekly score will appear after a few days.${zoneNote}`;
+  }
+
   const zoneNote =
     timeZoneSource === 'utc-fallback'
       ? ' День считается в UTC — зона Europe/Moscow в этой среде недоступна.'
@@ -140,8 +224,9 @@ function hintBody(snap: ContinuitySnapshot, screen: 'today' | 'stats'): string {
 
 function renderMeter(score: number): string {
   const pct = Math.round(score * 100);
+  const aria = L(`Непрерывность недели ${scoreText(score)} из 1`, `Weekly continuity ${scoreText(score)} out of 1`);
   return `
-    <div class="continuity-meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="Непрерывность недели ${scoreText(score)} из 1">
+    <div class="continuity-meter" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}" aria-label="${aria}">
       <div class="continuity-meter-fill" style="width: ${pct}%;"></div>
     </div>
   `;

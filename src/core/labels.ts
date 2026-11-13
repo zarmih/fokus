@@ -98,6 +98,13 @@ export function skillLabel(id: string): string {
 }
 
 export function leagueName(level: number): string {
+  if (getLocale() === 'en') {
+    if (level < 10) return 'Bronze';
+    if (level < 20) return 'Silver';
+    if (level < 30) return 'Gold';
+    if (level < 40) return 'Platinum';
+    return 'Diamond';
+  }
   if (level < 10) return 'Бронза';
   if (level < 20) return 'Серебро';
   if (level < 30) return 'Золото';

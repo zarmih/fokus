@@ -1,4 +1,5 @@
 import { ANALYTICS_METHODOLOGY_VERSION } from './analytics/methodology';
+import { L, getLocale } from './i18n';
 import type { DaySummary, DomainIndex } from './types';
 import { computeFokusIndex } from './fokus-index';
 import { DOMAIN_ORDER, domainLabel } from './labels';
@@ -430,7 +431,65 @@ const DOMAIN_TIPS: Record<string, string[]> = {
   ]
 };
 
+const DOMAIN_TIPS_EN: Record<string, string[]> = {
+  attention: [
+    'Put your phone screen-down for 20 minutes of deep focus — a quiet screen splits attention.',
+    'Notice when your mind wanders while reading, and gently bring it back to the line.',
+    'Focus on your breath for one minute. If distracted, start again without self-criticism.',
+    'Choose one routine activity and do it with complete presence.',
+    'In conversation, hold back on planning your reply until the speaker has finished.',
+    'Take a 30-second pause between tasks to help your attention reset.',
+    'The 20-20-20 rule: every 20 minutes look 20 feet away for 20 seconds to ease visual fatigue.',
+    'Single-tasking is your best friend: close all tabs except one for the next 15 minutes.'
+  ],
+  memory: [
+    'Keep a short mental list without checking your phone until you arrive.',
+    'Recall the key events of your day in reverse order before sleeping.',
+    'After reading a text, try retelling the core idea in your own words.',
+    'If you need to remember an action, vividly picture yourself doing it.',
+    'Link new information to familiar images — it makes recall much easier.',
+    'When meeting someone, mentally repeat their name three times and anchor it to something familiar.',
+    'Recall phone numbers of those close to you. Memory is a muscle that needs exercise.'
+  ],
+  speed: [
+    'Take a two-minute walk before a demanding task — processing is sharper when the body is active.',
+    'Set a gentle timer for a routine task and finish slightly faster than usual.',
+    'If a task feels overwhelming, give yourself 5 minutes for a quick rough start.',
+    'Jot down distracting thoughts on a note so you do not hold them in working memory.',
+    'Skim simple messages smoothly rather than pronouncing each word.',
+    'Set a 30-second decision timer for low-stakes choices.'
+  ],
+  flexibility: [
+    'Switch the order of your morning routine for one day to break automatic habits.',
+    'When rules change, pause for one breath, then act. Switching takes a moment.',
+    'Ask yourself: "What if my first reaction is not the only valid one?"',
+    'Try doing part of your morning routine with your non-dominant hand.',
+    'If a discussion stalls, genuinely try taking the other person’s side.',
+    'Take a different route on your daily commute or walk.'
+  ],
+  logic: [
+    'Give yourself half a minute to derive an answer before looking it up.',
+    'Explain a complex work idea to someone outside your field in one clear paragraph.',
+    'Break a task down so the very first step takes no more than five minutes.',
+    'Look for counter-evidence rather than just confirming initial assumptions.',
+    'If stuck, reframe the problem from the reverse: how would you guarantee failure?',
+    'Evaluate the situation as an outside observer — distance clarifies what matters.'
+  ]
+};
+
+const DEFAULT_TIPS_EN = [
+  'Consistency matters more than intensity. Short workouts beat rare marathons.',
+  'Quality sleep is essential for consolidating new skills.',
+  'Errors near your limit indicate that you are training in your growth zone.',
+  'Aim for return rather than perfection: restarting after a pause is the real habit.',
+  'Deep focus requires rest. If tired, wrapping up early is the right call.',
+  'A short break is normal. A brief, familiar session is all you need.'
+];
+
 export function getWeeklyDomainTips(domainId: string): string[] {
+  if (getLocale() === 'en') {
+    return DOMAIN_TIPS_EN[domainId] || DEFAULT_TIPS_EN;
+  }
   return DOMAIN_TIPS[domainId] || [
     'Регулярность важнее интенсивности. Короткие тренировки работают лучше долгих марафонов.',
     'Качественный сон — лучшее, что можно сделать для закрепления любого навыка.',
@@ -463,8 +522,11 @@ function buildTips(
   if (adherence.comeback) {
     tips.push({
       kind: 'comeback',
-      title: 'С возвращением',
-      body: 'Долгая пауза не обнуляет навык. Короткий блок вернёт ритм — навёрстывать пропущенное не нужно. Ваш прогресс сохранён.',
+      title: L('С возвращением', 'Welcome back'),
+      body: L(
+        'Долгая пауза не обнуляет навык. Короткий блок вернёт ритм — навёрстывать пропущенное не нужно. Ваш прогресс сохранён.',
+        'A long pause does not erase your skills. A short session will restore your rhythm — no need to make up for lost time. Your progress is preserved.'
+      ),
       tone: 'recovery'
     });
   }
@@ -473,15 +535,21 @@ function buildTips(
   if (justHit) {
     tips.push({
       kind: 'milestone',
-      title: `${justHit.days} дней подряд`,
-      body: 'Отличная серия. Но помните, что пропуск одного дня — это не катастрофа, а повод отдохнуть. Fokus за честный подход и долгосрочный ритм.',
+      title: L(`${justHit.days} дней подряд`, `${justHit.days} days in a row`),
+      body: L(
+        'Отличная серия. Но помните, что пропуск одного дня — это не катастрофа, а повод отдохнуть. Fokus за честный подход и долгосрочный ритм.',
+        'Great streak. Remember that missing a day is not a failure, but an opportunity to rest. Fokus believes in an honest approach and long-term rhythm.'
+      ),
       tone: 'habit'
     });
   } else if (adherence.currentStreak >= 7 && !adherence.comeback) {
     tips.push({
       kind: 'streak',
-      title: `${adherence.currentStreak} дней подряд`,
-      body: 'Вы держите хороший ритм. Если почувствуете усталость, не бойтесь пропустить день — ваша честная серия будет защищена.',
+      title: L(`${adherence.currentStreak} дней подряд`, `${adherence.currentStreak} days in a row`),
+      body: L(
+        'Вы держите хороший ритм. Если почувствуете усталость, не бойтесь пропустить день — ваша честная серия будет защищена.',
+        'You are maintaining a strong rhythm. If you feel tired, do not hesitate to take a day off — your streak is protected.'
+      ),
       tone: 'habit'
     });
   }
@@ -489,8 +557,11 @@ function buildTips(
   if (personalBest && personalBest.isLatest) {
     tips.push({
       kind: 'best',
-      title: 'Личный рекорд Fokus Index',
-      body: `${personalBest.value} — лучшая оценка за ${sparkline.window} дней. Результаты плавают день ото дня, и это естественная динамика.`,
+      title: L('Личный рекорд Fokus Index', 'Personal record: Fokus Index'),
+      body: L(
+        `${personalBest.value} — лучшая оценка за ${sparkline.window} дней. Результаты плавают день ото дня, и это естественная динамика.`,
+        `${personalBest.value} — your best score in ${sparkline.window} days. Performance naturally fluctuates day to day.`
+      ),
       tone: 'science'
     });
   }
@@ -506,8 +577,11 @@ function buildTips(
     if (falling) {
       tips.push({
         kind: 'domain',
-        title: `Цикл адаптации · ${domainLabel(falling.domain)}`,
-        body: `Показатели пошли на спад. Fokus временно снизит сложность, чтобы вы восстановили точность без лишнего напряжения.`,
+        title: L(`Цикл адаптации · ${domainLabel(falling.domain)}`, `Adaptation cycle · ${domainLabel(falling.domain)}`),
+        body: L(
+          `Показатели пошли на спад. Fokus временно снизит сложность, чтобы вы восстановили точность без лишнего напряжения.`,
+          `Scores have dipped slightly. Fokus temporarily eases difficulty so you can rebuild accuracy without unnecessary strain.`
+        ),
         domainId: falling.domain,
         tone: 'recovery'
       });
@@ -515,8 +589,11 @@ function buildTips(
     } else if (risingWeak) {
       tips.push({
         kind: 'domain',
-        title: `Уверенный старт · ${domainLabel(risingWeak.domain)}`,
-        body: `Наметился стабильный рост. Фокус на регулярности даёт плоды, держите заданный темп.`,
+        title: L(`Уверенный старт · ${domainLabel(risingWeak.domain)}`, `Steady start · ${domainLabel(risingWeak.domain)}`),
+        body: L(
+          `Наметился стабильный рост. Фокус на регулярности даёт плоды, держите заданный темп.`,
+          `Positive momentum is building. Consistency pays off, keep this pace.`
+        ),
         domainId: risingWeak.domain,
         tone: 'focus'
       });
@@ -524,8 +601,11 @@ function buildTips(
     } else if (stagnantWeak) {
       tips.push({
         kind: 'domain',
-        title: `Зона роста · ${domainLabel(stagnantWeak.domain)}`,
-        body: `Эта область пока поддаётся сложнее. Короткие регулярные подходы дадут самый заметный эффект.`,
+        title: L(`Зона роста · ${domainLabel(stagnantWeak.domain)}`, `Growth area · ${domainLabel(stagnantWeak.domain)}`),
+        body: L(
+          `Эта область пока поддаётся сложнее. Короткие регулярные подходы дадут самый заметный эффект.`,
+          `This area is currently more challenging. Short, regular practice will yield the most noticeable effect.`
+        ),
         domainId: stagnantWeak.domain,
         tone: 'focus'
       });
@@ -533,8 +613,11 @@ function buildTips(
     } else if (strongStable && !adherence.comeback) {
       tips.push({
         kind: 'domain',
-        title: `Устойчивая база · ${domainLabel(strongStable.domain)}`,
-        body: `Ваша стабильная сильная сторона. Fokus будет поддерживать этот уровень без изнурительных пиковых нагрузок.`,
+        title: L(`Устойчивая база · ${domainLabel(strongStable.domain)}`, `Strong foundation · ${domainLabel(strongStable.domain)}`),
+        body: L(
+          `Ваша стабильная сильная сторона. Fokus будет поддерживать этот уровень без изнурительных пиковых нагрузок.`,
+          `Your reliable strength. Fokus will sustain this level without grueling peak loads.`
+        ),
         domainId: strongStable.domain,
         tone: 'science'
       });
@@ -547,13 +630,17 @@ function buildTips(
     if (weak) {
       const spread = intel.domains.filter((d) => d.ready).reduce((m, d) => Math.max(m, d.current), 0) - weak.current;
       const concrete = pickTip(getWeeklyDomainTips(weak.id), asOf);
-      const lead =
+      const lead = L(
         spread >= 40
           ? `«${domainLabel(weak.id)}» пока слабее остальных.`
-          : `Сейчас фокус на «${domainLabel(weak.id)}».`;
+          : `Сейчас фокус на «${domainLabel(weak.id)}».`,
+        spread >= 40
+          ? `"${domainLabel(weak.id)}" is currently trailing other areas.`
+          : `Focus is currently on "${domainLabel(weak.id)}".`
+      );
       tips.push({
         kind: 'domain',
-        title: `Зона роста · ${domainLabel(weak.id)}`,
+        title: L(`Зона роста · ${domainLabel(weak.id)}`, `Growth area · ${domainLabel(weak.id)}`),
         body: `${lead} ${concrete}`,
         domainId: weak.id,
         tone: 'focus'
@@ -564,22 +651,31 @@ function buildTips(
   if (adherence.adherencePct < 50 && adherence.playedDays > 0 && !adherence.comeback) {
     tips.push({
       kind: 'adherence',
-      title: 'Ритм важнее серии',
-      body: `${adherence.playedDays} из ${adherence.window} дней. Одна лёгкая сессия сегодня закрепит привычку лучше, чем час раз в неделю. Никакого чувства вины.`,
+      title: L('Ритм важнее серии', 'Rhythm over streak'),
+      body: L(
+        `${adherence.playedDays} из ${adherence.window} дней. Одна лёгкая сессия сегодня закрепит привычку лучше, чем час раз в неделю. Никакого чувства вины.`,
+        `${adherence.playedDays} of ${adherence.window} days. One light session today builds habit better than an hour once a week. Zero guilt.`
+      ),
       tone: 'recovery'
     });
   } else if (adherence.playedDays >= 5 && adherence.window === 14) {
     tips.push({
       kind: 'adherence',
-      title: 'Привычка держится',
-      body: `${adherence.playedDays} тренировок за ${adherence.window} дней. Навыки растут от регулярности, не от марафонов.`,
+      title: L('Привычка держится', 'Habit is holding'),
+      body: L(
+        `${adherence.playedDays} тренировок за ${adherence.window} дней. Навыки растут от регулярности, не от марафонов.`,
+        `${adherence.playedDays} sessions in ${adherence.window} days. Skills develop from regularity, not marathons.`
+      ),
       tone: 'habit'
     });
   } else if (adherence.playedDays >= 10 && adherence.window === 30) {
     tips.push({
       kind: 'adherence',
-      title: 'Привычка держится',
-      body: `${adherence.playedDays} тренировок за 30 дней. Регулярность важнее длины одной тренировки.`,
+      title: L('Привычка держится', 'Habit is holding'),
+      body: L(
+        `${adherence.playedDays} тренировок за 30 дней. Регулярность важнее длины одной тренировки.`,
+        `${adherence.playedDays} sessions in 30 days. Consistency matters more than the length of a single session.`
+      ),
       tone: 'habit'
     });
   }
@@ -587,8 +683,11 @@ function buildTips(
   if (adherence.gapDays > 0 && adherence.gapDays <= 2 && tips.every((t) => t.kind !== 'comeback' && t.kind !== 'adherence')) {
     tips.push({
       kind: 'adherence',
-      title: 'Мягкий возврат',
-      body: 'Пауза позади. Накопленный навык остался с вами. Сегодняшний короткий блок поможет плавно вернуться в ритм без надрывов.',
+      title: L('Мягкий возврат', 'Soft return'),
+      body: L(
+        'Пауза позади. Накопленный навык остался с вами. Сегодняшний короткий блок поможет плавно вернуться в ритм без надрывов.',
+        'Break is behind you. Retained skills remain. Today’s short block will gently ease you back into rhythm.'
+      ),
       tone: 'recovery'
     });
   }
@@ -596,8 +695,11 @@ function buildTips(
   if (tips.length === 0 && intel.ready) {
     tips.push({
       kind: 'science',
-      title: 'Короткий ритуал',
-      body: 'Регулярные сессии помогают плавно входить в рабочий ритм.',
+      title: L('Короткий ритуал', 'Short ritual'),
+      body: L(
+        'Регулярные сессии помогают плавно входить в рабочий ритм.',
+        'Regular sessions help smoothly settle into a productive rhythm.'
+      ),
       tone: 'science'
     });
   }
