@@ -87,6 +87,11 @@ export interface Profile {
   skipLifestylePrompt?: boolean;
   /** Prefer accessible exercise variants that do not rely on colour (measured and compared separately). */
   accessibleMode?: boolean;
+  /**
+   * Day zone history (schema 6). Last period = current zone. Changing zone appends a period, so past
+   * days keep the date they were played on. Missing = not chosen yet (legacy Europe/Moscow).
+   */
+  timeZones?: { zone: string; fromMs: number }[];
   displayName?: string;
   /** When false, Today ignores the recovery gate. Default true. */
   recoveryHints?: boolean;

@@ -124,8 +124,8 @@ describe('storage migration 4 → 5', () => {
       meta: { schemaVersion: 4, deviceId: 'd', rev: 7, updatedAt: '2026-11-02T10:00:00Z' }
     };
     const m = migrateState(JSON.parse(JSON.stringify(v4)), { now: '2026-11-12T00:00:00Z', deviceId: 'd' });
-    expect(CURRENT_SCHEMA_VERSION).toBe(5);
-    expect(m.meta?.schemaVersion).toBe(5);
+    expect(CURRENT_SCHEMA_VERSION).toBeGreaterThanOrEqual(5);
+    expect(m.meta?.schemaVersion).toBe(CURRENT_SCHEMA_VERSION);
     expect(m.meta?.analyticsMethodologyVersion).toBe(2);
     expect(m.meta?.rev).toBe(7);
     expect(m.daySummaries).toHaveLength(2);

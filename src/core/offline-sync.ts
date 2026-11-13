@@ -11,7 +11,7 @@ import type {
   StorageMeta
 } from './types';
 
-export const CURRENT_SCHEMA_VERSION = 5;
+export const CURRENT_SCHEMA_VERSION = 6;
 /** Analytics methodology of newly written values (see core/analytics/methodology.ts). */
 export const STORED_ANALYTICS_METHODOLOGY = 2;
 export const CURRENT_BACKUP_FORMAT = 1;
@@ -245,6 +245,20 @@ function migrate4to5(state: Record<string, unknown>) {
   (state.profile as Record<string, unknown>).schemaVersion = 5;
 }
 
+/**
+ * 5 → 6: day zones become explicit. Existing data was dated in Europe/Moscow, so it gets a legacy
+ * period {Europe/Moscow, fromMs: 0}. Nothing is recomputed; the user may switch zone later (from now on).
+ */
+function migrate5to6(state: Record<string, unknown>) {
+  const profile = state.profile as Record<string, unknown>;
+  if (!Array.isArray(profile.timeZones) || profile.timeZones.length === 0) {
+    profile.timeZones = [{ zone: 'Europe/Moscow', fromMs: 0 }];
+  }
+  const meta = state.meta && typeof state.meta === 'object' ? (state.meta as Record<string, unknown>) : {};
+  state.meta = { ...meta, schemaVersion: 6 };
+  profile.schemaVersion = 6;
+}
+
 function healV4(state: Record<string, unknown>, opts: { now: string; deviceId: string }) {
   const profile = state.profile as Record<string, unknown>;
   if (typeof profile.sessionLengthSec !== 'number') profile.sessionLengthSec = 300;
@@ -290,6 +304,10 @@ export function migrateState(
   if (version < 5) {
     migrate4to5(state);
     version = 5;
+  }
+  if (version < 6) {
+    migrate5to6(state);
+    version = 6;
   }
   healV4(state, { now, deviceId });
   return state as unknown as AppState;

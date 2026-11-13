@@ -1,4 +1,6 @@
 import { storage } from '../../core/storage';
+import { changeZone, profileZone, zoneLabel, zoneOptions, zoneSuggestion } from '../../core/time-zone-choice';
+import { deviceTimeZone } from '../../core/streak';
 import { reminderSettingsBlurb } from '../../core/reminders';
 import { loadContinuitySnapshot } from '../../core/continuity';
 import { renderShell } from '../shell';
@@ -209,6 +211,25 @@ export function renderSettings(container: HTMLElement) {
           <span>Пропускать опрос про сон и стресс перед сессией</span>
         </label>
       </div>
+
+      ${(() => {
+        const now = Date.now();
+        const current = profileZone(profile);
+        const device = deviceTimeZone();
+        const suggest = zoneSuggestion(profile, device);
+        const legacy = !profile.timeZones || (profile.timeZones.length === 1 && profile.timeZones[0].zone === 'Europe/Moscow' && profile.timeZones[0].fromMs === 0);
+        return `
+      <div class="surface" style="margin-bottom: 16px;" data-tz-current="${current}">
+        <h4 id="tz-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Часовой пояс</h4>
+        <label for="tz-select" class="sr-only">Часовой пояс для подсчёта дней</label>
+        <select id="tz-select" aria-describedby="tz-help" style="width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px;">
+          ${zoneOptions(device, current, now).map((o) => `<option value="${o.zone}" ${o.zone === current ? 'selected' : ''}>${o.label}${o.zone === device ? ' — устройство' : ''}</option>`).join('')}
+        </select>
+        <p id="tz-help" style="margin-top: 8px; font-size: 13px; color: var(--muted);">По этому поясу считаются дни тренировок, серия и напоминания. При смене пояса прошлые дни сохраняют свои даты — пересчитываются только новые.${legacy ? ' Сейчас используется московское время, как раньше.' : ''}</p>
+        ${suggest ? `<button type="button" id="btn-tz-device" class="btn-secondary" data-zone="${suggest}" style="margin-top: 8px;">Использовать пояс устройства: ${zoneLabel(suggest, now)}</button>` : ''}
+        <p id="tz-status" role="status" aria-live="polite" style="font-size: 13px; min-height: 1.2em; margin-top: 6px;"></p>
+      </div>`;
+      })()}
 
       <div class="surface" style="margin-bottom: 16px;">
         <h4 id="a11y-mode-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Доступный режим</h4>
@@ -483,6 +504,17 @@ export function renderSettings(container: HTMLElement) {
     p.skipLifestylePrompt = (e.target as HTMLInputElement).checked;
     storage.setProfile(p);
   });
+
+  const applyZone = (zone: string) => {
+    const p = storage.getProfile();
+    if (profileZone(p) === zone) return;
+    storage.setProfile(changeZone(p, zone, Date.now()));
+    renderSettings(container);
+    const st = document.getElementById('tz-status');
+    if (st) st.textContent = `Пояс изменён: ${zoneLabel(zone, Date.now())}. Прошлые дни не пересчитаны.`;
+  };
+  document.getElementById('tz-select')?.addEventListener('change', (e) => applyZone((e.target as HTMLSelectElement).value));
+  document.getElementById('btn-tz-device')?.addEventListener('click', (e) => applyZone((e.currentTarget as HTMLElement).dataset.zone!));
 
   document.getElementById('accessible-toggle')?.addEventListener('change', (e) => {
     const p = storage.getProfile();

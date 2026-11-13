@@ -1,6 +1,7 @@
 import type { AppState, Profile, DomainIndex, SkillIndex, ExerciseState, Session, DaySummary, HistoryItem, StorageMeta } from './types';
 import type { AbilityModel } from './engine/types';
 import { safeError } from './log';
+import { configureFokusTimeZones } from './streak';
 import {
   applyImport,
   CURRENT_SCHEMA_VERSION,
@@ -187,9 +188,15 @@ export class Storage {
 
   private getState(): AppState {
     const raw = this.loadRaw();
-    if (!raw) return JSON.parse(JSON.stringify(defaultState));
+    if (!raw) {
+      configureFokusTimeZones(null);
+      return JSON.parse(JSON.stringify(defaultState));
+    }
     try {
-      return migrateState(JSON.parse(raw), { now: this.clock() });
+      const state = migrateState(JSON.parse(raw), { now: this.clock() });
+      // Day accounting everywhere follows the stored zone history (cheap no-op when unchanged).
+      configureFokusTimeZones(state.profile?.timeZones);
+      return state;
     } catch (e) {
       console.error('Storage read failed', e);
       return JSON.parse(JSON.stringify(defaultState));

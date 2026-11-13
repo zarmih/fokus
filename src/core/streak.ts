@@ -19,7 +19,67 @@ export function nextStreak(prevDateStr: string | null, prevStreak: number, today
 /** Preferred civil zone for day-played accounting. */
 export const PREFERRED_TIME_ZONE = 'Europe/Moscow';
 
-export type TimeZoneSource = 'explicit' | 'europe-moscow' | 'utc-fallback';
+export type TimeZoneSource = 'explicit' | 'user' | 'europe-moscow' | 'utc-fallback';
+
+/**
+ * The user's day zone over time. A change of zone appends a period starting at the switch instant;
+ * earlier instants keep the zone they were played in, so past days are never silently re-dated.
+ * Schema-6 migration gives existing users an explicit legacy period {Europe/Moscow, fromMs: 0}.
+ */
+export interface ZonePeriod {
+  zone: string;
+  fromMs: number;
+}
+
+let zonePeriods: ZonePeriod[] = [];
+let zoneKey = '[]';
+
+/** Load the profile's zone periods (storage does this on every read; no-op when unchanged). */
+export function configureFokusTimeZones(periods?: ZonePeriod[] | null): void {
+  const key = JSON.stringify(periods || []);
+  if (key === zoneKey) return;
+  zoneKey = key;
+  zonePeriods = (periods || [])
+    .filter((p) => p && typeof p.zone === 'string' && Number.isFinite(p.fromMs) && timeZoneSupported(p.zone))
+    .slice()
+    .sort((a, b) => a.fromMs - b.fromMs);
+}
+
+/** The zone in force now (null = not chosen yet → legacy Europe/Moscow). */
+export function currentFokusZone(): string | null {
+  return zonePeriods.length ? zonePeriods[zonePeriods.length - 1].zone : null;
+}
+
+/** The zone that was in force at an instant (instants before the first period use the first zone). */
+export function zoneAt(ms: number, periods: ZonePeriod[] = zonePeriods): string {
+  if (!periods.length) return PREFERRED_TIME_ZONE;
+  let zone = periods[0].zone;
+  for (const p of periods) {
+    if (p.fromMs <= ms) zone = p.zone;
+    else break;
+  }
+  return zone;
+}
+
+/** The device's IANA zone (a suggestion only; never applied silently to existing history). */
+export function deviceTimeZone(): string | null {
+  try {
+    const z = new Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return z && timeZoneSupported(z) ? z : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Append a zone change at `atMs`; a no-op when the zone is unchanged. Never rewrites earlier periods. */
+export function withZoneChange(periods: ZonePeriod[] | undefined | null, zone: string, atMs: number): ZonePeriod[] {
+  const list = (periods || []).slice().sort((a, b) => a.fromMs - b.fromMs);
+  if (!timeZoneSupported(zone)) return list;
+  if (!list.length) return [{ zone, fromMs: 0 }];
+  if (list[list.length - 1].zone === zone) return list;
+  const fromMs = Math.max(atMs, list[list.length - 1].fromMs + 1);
+  return [...list, { zone, fromMs }];
+}
 
 export interface ResolvedTimeZone {
   timeZone: string;
@@ -45,6 +105,8 @@ export function resolveFokusTimeZone(explicit?: string): ResolvedTimeZone {
   if (explicit && timeZoneSupported(explicit)) {
     return { timeZone: explicit, source: 'explicit' };
   }
+  const user = currentFokusZone();
+  if (user) return { timeZone: user, source: 'user' };
   if (timeZoneSupported(PREFERRED_TIME_ZONE)) {
     return { timeZone: PREFERRED_TIME_ZONE, source: 'europe-moscow' };
   }
@@ -70,6 +132,8 @@ export function calendarDayKey(instant: Date | string, timeZone: string): string
     instant = parsed;
   }
   if (Number.isNaN(instant.getTime())) return '1970-01-01';
+  // "The user's zone" means the zone in force when the instant happened (see ZonePeriod).
+  if (zonePeriods.length > 1 && timeZone === currentFokusZone()) timeZone = zoneAt(instant.getTime());
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone,
     year: 'numeric',
