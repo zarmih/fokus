@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { MathState, initGame, submitAnswer, getStats } from './engine';
 import type { BlockResult } from '../contract';
 import { mountStage } from '../stage';
@@ -11,12 +12,12 @@ export function renderMathSprint(
   let state = initGame(level);
   let ended = false;
   const stage = mountStage(container, 'logic');
-  stage.setStatus('Верно или нет?');
+  stage.setStatus(L('Верно или нет?', 'Correct or not?'));
   stage.board.innerHTML = `
     <div class="eq-3d" id="eq-display"></div>
     <div class="play-choice">
-      <button id="btn-false" class="btn-primary" style="background:linear-gradient(180deg,#f87171,var(--danger));margin:0">Неверно ←</button>
-      <button id="btn-true" class="btn-primary" style="background:linear-gradient(180deg,#34d399,var(--ok));margin:0">Верно →</button>
+      <button id="btn-false" class="btn-primary" style="background:linear-gradient(180deg,#f87171,var(--danger));margin:0">${L('Неверно', 'Wrong')} ←</button>
+      <button id="btn-true" class="btn-primary" style="background:linear-gradient(180deg,#34d399,var(--ok));margin:0">${L('Верно', 'Correct')} →</button>
     </div>
   `;
   const eqDisplay = stage.board.querySelector('#eq-display') as HTMLElement;

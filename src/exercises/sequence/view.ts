@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { SequenceEngine } from './engine';
 import { getSequenceParams } from './manifest';
 import { mountStage } from '../stage';
@@ -26,7 +27,7 @@ export function renderSequence(
     const params = getSequenceParams(level);
     const { sequence } = engine.start(params);
     const totalCells = params.grid * params.grid;
-    stage.setStatus('Смотрите цепочку');
+    stage.setStatus(L('Смотрите цепочку', 'Watch the chain'));
     stage.board.innerHTML = `
       <div class="grid-memory-board" style="grid-template-columns: repeat(${params.grid}, 1fr);">
         ${Array.from({ length: totalCells }, () => `<button class="grid-cell" disabled></button>`).join('')}
@@ -38,7 +39,7 @@ export function renderSequence(
     const playNext = () => {
       if (dead) return;
       if (step >= sequence.length) {
-        stage.setStatus('Повторите');
+        stage.setStatus(L('Повторите', 'Your turn'));
         let selected: number[] = [];
         const roundStartTime = Date.now();
         cells.forEach((btn, idx) => {

@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { PosnerEngine, Side } from './engine';
 import { getPosnerParams } from './manifest';
 import { mountStage } from '../stage';
@@ -20,7 +21,7 @@ export function renderPosner(
   let roundStartTime = 0;
   let actualTargetSide: Side | null = null;
 
-  stage.setStatus('Следите за целью');
+  stage.setStatus(L('Следите за целью', 'Watch for the target'));
   stage.board.innerHTML = `
     <div class="posner-lane">
       <div class="posner-box" id="box-left"></div>
@@ -28,8 +29,8 @@ export function renderPosner(
       <div class="posner-box" id="box-right"></div>
     </div>
     <div class="play-choice" style="margin-top:28px">
-      <button class="posner-btn btn-secondary" data-side="left">← Влево</button>
-      <button class="posner-btn btn-secondary" data-side="right">Вправо →</button>
+      <button class="posner-btn btn-secondary" data-side="left">← ${L('Влево', 'Left')}</button>
+      <button class="posner-btn btn-secondary" data-side="right">${L('Вправо', 'Right')} →</button>
     </div>
   `;
   const boxLeft = stage.board.querySelector('#box-left') as HTMLElement;

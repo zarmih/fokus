@@ -1,3 +1,4 @@
+import { L } from '../core/i18n';
 import { ExerciseModule } from './contract';
 
 const SYMBOLS = ['◆', '●', '▲', '■', '✚', '★', '◇', '○', '△', '□', '✳', '☽'];
@@ -46,8 +47,8 @@ const anchorPairModule: ExerciseModule = {
     };
     const leftBtn = mkCell();
     const rightBtn = mkCell();
-    leftBtn.setAttribute('aria-label', 'Левая сторона');
-    rightBtn.setAttribute('aria-label', 'Правая сторона');
+    leftBtn.setAttribute('aria-label', L('Левая сторона', 'Left side'));
+    rightBtn.setAttribute('aria-label', L('Правая сторона', 'Right side'));
     row.appendChild(leftBtn);
     row.appendChild(rightBtn);
     const probeEl = document.createElement('div');
@@ -93,7 +94,7 @@ const anchorPairModule: ExerciseModule = {
       pickPair();
       setEnabled(false);
       probeEl.textContent = '';
-      prompt.textContent = 'Запомните пару…';
+      prompt.textContent = L('Запомните пару…', 'Remember the pair…');
       leftBtn.textContent = left;
       rightBtn.textContent = right;
       leftBtn.style.opacity = '1';
@@ -103,11 +104,11 @@ const anchorPairModule: ExerciseModule = {
         window.setTimeout(() => {
           leftBtn.textContent = '';
           rightBtn.textContent = '';
-          prompt.textContent = 'Пауза…';
+          prompt.textContent = L('Пауза…', 'Wait…');
           timers.push(
             window.setTimeout(() => {
               probeEl.textContent = probe;
-              prompt.textContent = 'Где был этот знак?';
+              prompt.textContent = L('Где был этот знак?', 'Where was this symbol?');
               setEnabled(true);
               startRt = Date.now();
             }, blankMs)
@@ -123,7 +124,7 @@ const anchorPairModule: ExerciseModule = {
       avgRtMs = avgRtMs === 0 ? rt : (avgRtMs + rt) / 2;
       const ok = side === correctSide;
       if (ok) hits++;
-      prompt.textContent = ok ? 'Верно' : 'Мимо';
+      prompt.textContent = ok ? L('Верно', 'Correct') : L('Мимо', 'Miss');
       prompt.style.color = ok ? 'var(--ok)' : 'var(--danger, #f87171)';
       timers.push(
         window.setTimeout(() => {

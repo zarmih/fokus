@@ -1,3 +1,4 @@
+import { L } from '../../core/i18n';
 import { SwitchRuleEngine } from './engine';
 import { getSwitchRuleParams } from './manifest';
 import { mountStage } from '../stage';
@@ -27,7 +28,7 @@ export function renderSwitchRule(
     const params = getSwitchRuleParams(level);
     const trial = engine.nextTrial(params);
     const roundStartTime = Date.now();
-    const ruleLabel = trial.rule === 'EVEN' ? 'Левое чётное?' : 'Левое больше?';
+    const ruleLabel = trial.rule === 'EVEN' ? L('Левое чётное?', 'Left is even?') : L('Левое больше?', 'Left is larger?');
     stage.setStatus(ruleLabel);
     stage.board.innerHTML = `
       <div style="display:flex;gap:16px;margin-bottom:32px;width:100%;max-width:360px;perspective:700px">
@@ -35,8 +36,8 @@ export function renderSwitchRule(
         <div class="num-chip" style="flex:1;height:120px;font-size:48px;background:linear-gradient(180deg,#67e8f9,var(--dom-flexibility));box-shadow:0 10px 0 #0e7490,0 16px 24px rgba(0,0,0,.3);opacity:${trial.rule === 'EVEN' ? 0.28 : 1}">${trial.right}</div>
       </div>
       <div class="play-choice">
-        <button class="sr-btn btn-primary" data-choice="true" style="background:linear-gradient(180deg,#34d399,var(--ok));margin:0">Да</button>
-        <button class="sr-btn btn-primary" data-choice="false" style="background:linear-gradient(180deg,#f87171,var(--danger));margin:0">Нет</button>
+        <button class="sr-btn btn-primary" data-choice="true" style="background:linear-gradient(180deg,#34d399,var(--ok));margin:0">${L('Да', 'Yes')}</button>
+        <button class="sr-btn btn-primary" data-choice="false" style="background:linear-gradient(180deg,#f87171,var(--danger));margin:0">${L('Нет', 'No')}</button>
       </div>
     `;
 
