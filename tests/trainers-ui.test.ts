@@ -50,7 +50,7 @@ test('renderTrainers filter click toggles domain groups and updates count', () =
   renderTrainers(container);
 
   const chips = Array.from(container.querySelectorAll('.filter-chip')) as HTMLElement[];
-  const secondChip = chips.find(c => c.dataset.dom !== 'all' && c.dataset.dom !== 'discovery');
+  const secondChip = chips.find(c => !['all', 'discovery', 'quiet', 'core'].includes(c.dataset.dom!));
   if (!secondChip) return;
   
   const secondDomainId = secondChip.dataset.dom!;

@@ -618,6 +618,7 @@ button:disabled { opacity: 0.5; pointer-events: none; filter: grayscale(100%); }
 .trainer-card.dom-flexibility .trainer-domain-chip { color: var(--dom-flexibility); background: color-mix(in srgb, var(--dom-flexibility) 15%, transparent); }
 .trainer-card.dom-logic .trainer-domain-chip { color: var(--dom-logic); background: color-mix(in srgb, var(--dom-logic) 15%, transparent); }
 .trainer-quiet-chip { font-size: 10px; color: var(--muted); }
+.trainer-core-chip { font-size: 10px; font-weight: 700; color: var(--accent-ink); border: 1px solid currentColor; border-radius: 999px; padding: 0 6px; }
 .trainer-new-badge {
   position: absolute;
   top: 10px;
