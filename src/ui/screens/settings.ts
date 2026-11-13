@@ -14,7 +14,7 @@ import { precisionLabel } from '../../core/calibration';
 import { abilityCaption } from '../../core/onboarding';
 import { applyDocumentLang } from '../a11y';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
-import { t } from '../../core/i18n';
+import { t, L } from '../../core/i18n';
 import { clampVolume } from '../../core/soundscape';
 import {
   buildExportFile,
@@ -220,24 +220,24 @@ export function renderSettings(container: HTMLElement) {
         const legacy = !profile.timeZones || (profile.timeZones.length === 1 && profile.timeZones[0].zone === 'Europe/Moscow' && profile.timeZones[0].fromMs === 0);
         return `
       <div class="surface" style="margin-bottom: 16px;" data-tz-current="${current}">
-        <h4 id="tz-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Часовой пояс</h4>
-        <label for="tz-select" class="sr-only">Часовой пояс для подсчёта дней</label>
+        <h4 id="tz-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">${L('Часовой пояс', 'Time zone')}</h4>
+        <label for="tz-select" class="sr-only">${L('Часовой пояс для подсчёта дней', 'Time zone used to count days')}</label>
         <select id="tz-select" aria-describedby="tz-help" style="width: 100%; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px;">
-          ${zoneOptions(device, current, now).map((o) => `<option value="${o.zone}" ${o.zone === current ? 'selected' : ''}>${o.label}${o.zone === device ? ' — устройство' : ''}</option>`).join('')}
+          ${zoneOptions(device, current, now).map((o) => `<option value="${o.zone}" ${o.zone === current ? 'selected' : ''}>${o.label}${o.zone === device ? L(' — устройство', ' — this device') : ''}</option>`).join('')}
         </select>
-        <p id="tz-help" style="margin-top: 8px; font-size: 13px; color: var(--muted);">По этому поясу считаются дни тренировок, серия и напоминания. При смене пояса прошлые дни сохраняют свои даты — пересчитываются только новые.${legacy ? ' Сейчас используется московское время, как раньше.' : ''}</p>
-        ${suggest ? `<button type="button" id="btn-tz-device" class="btn-secondary" data-zone="${suggest}" style="margin-top: 8px;">Использовать пояс устройства: ${zoneLabel(suggest, now)}</button>` : ''}
+        <p id="tz-help" style="margin-top: 8px; font-size: 13px; color: var(--muted);">${L('По этому поясу считаются дни тренировок, серия и напоминания. При смене пояса прошлые дни сохраняют свои даты — пересчитываются только новые.', 'Workout days, streaks and reminders are counted in this zone. When you change it, past days keep their dates — only new days use the new zone.')}${legacy ? L(' Сейчас используется московское время, как раньше.', ' Moscow time is used for now, as before.') : ''}</p>
+        ${suggest ? `<button type="button" id="btn-tz-device" class="btn-secondary" data-zone="${suggest}" style="margin-top: 8px;">${L('Использовать пояс устройства', 'Use this device’s zone')}: ${zoneLabel(suggest, now)}</button>` : ''}
         <p id="tz-status" role="status" aria-live="polite" style="font-size: 13px; min-height: 1.2em; margin-top: 6px;"></p>
       </div>`;
       })()}
 
       <div class="surface" style="margin-bottom: 16px;">
-        <h4 id="a11y-mode-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">Доступный режим</h4>
+        <h4 id="a11y-mode-heading" style="margin-bottom: 12px; font-size: 16px; font-weight: 500;">${L('Доступный режим', 'Accessible mode')}</h4>
         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
           <input type="checkbox" id="accessible-toggle" ${profile.accessibleMode ? 'checked' : ''} />
-          <span>Варианты упражнений без опоры на различение цвета</span>
+          <span>${L('Варианты упражнений без опоры на различение цвета', 'Exercise variants that do not rely on telling colours apart')}</span>
         </label>
-        <p style="margin-top: 8px; font-size: 13px; color: var(--muted);">Сейчас есть для «Лишнего»: вместо оттенка — наклон стрелки. Это другая задача, поэтому такие результаты помечаются и сравниваются только между собой.</p>
+        <p style="margin-top: 8px; font-size: 13px; color: var(--muted);">${L('Сейчас есть для «Лишнего» (наклон стрелки вместо оттенка), «Чернил» (направление стрелки вместо цвета чернил) и «Вращения правил» (заливка вместо цвета). Это другая задача, поэтому такие результаты помечаются и сравниваются только между собой.', 'Available for Odd One (arrow tilt instead of hue), Ink (arrow direction instead of ink colour) and Rule Flip (fill instead of colour). It is a different task, so these results are marked and compared only with each other.')}</p>
       </div>
 
       ${profile.probeSnapshot ? `
@@ -511,7 +511,7 @@ export function renderSettings(container: HTMLElement) {
     storage.setProfile(changeZone(p, zone, Date.now()));
     renderSettings(container);
     const st = document.getElementById('tz-status');
-    if (st) st.textContent = `Пояс изменён: ${zoneLabel(zone, Date.now())}. Прошлые дни не пересчитаны.`;
+    if (st) st.textContent = L(`Пояс изменён: ${zoneLabel(zone, Date.now())}. Прошлые дни не пересчитаны.`, `Time zone changed: ${zoneLabel(zone, Date.now())}. Past days were not re-dated.`);
   };
   document.getElementById('tz-select')?.addEventListener('change', (e) => applyZone((e.target as HTMLSelectElement).value));
   document.getElementById('btn-tz-device')?.addEventListener('click', (e) => applyZone((e.currentTarget as HTMLElement).dataset.zone!));
