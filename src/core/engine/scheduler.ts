@@ -133,3 +133,5 @@ export const SLOT_REASON: Record<RitualSlotKind, string> = {
   due: 'Слот дня — в зоне роста',
   fresh: 'Новый стимул — расширяем карту'
 };
+
+export const NEW_EXERCISE_REASON = 'Новое упражнение — знакомство';
