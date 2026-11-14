@@ -1,6 +1,6 @@
 import type { DomainIndex, ExerciseState, Session, SkillIndex } from './types';
+import { L, getLocale } from './i18n';
 import { domainLabel } from './labels';
-import { L } from './i18n';
 import {
   computeAbilityTrajectory,
   type AbilityTrajectory,

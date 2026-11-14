@@ -1,4 +1,5 @@
 import type { DaySummary, ExerciseState, Session } from './types';
+import { L } from './i18n';
 import { calculateEMA } from './domains';
 import { type TrainingPlan } from './session-builder';
 import { planForNow } from './adaptive-plan';
@@ -10,7 +11,6 @@ import {
   type SessionQuality
 } from './sessionQuality';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
-import { L } from './i18n';
 
 export type RecoveryRecommendation = 'rest-light' | 'steady' | 'push-hard';
 

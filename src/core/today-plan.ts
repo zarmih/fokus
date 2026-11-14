@@ -3,11 +3,12 @@
  * Pure view-model: no DOM, no storage. Composes retention + continuity + adaptive why.
  */
 import { domainLabel } from './labels';
-import { L } from './i18n';
+import { L, getLocale } from './i18n';
 import {
   assessRetention,
   bandLabel,
   describeProgramRetention,
+  nudgeCopyEn,
   type ChurnBand,
   type ProgramRetentionView,
   type RetentionSnapshot
@@ -122,16 +123,41 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
   const focusDomain = programRetention.focusDomain;
   const focusNames = focusDomains.map((d) => domainLabel(d)).filter(Boolean);
 
+  function nudgeTitle(nudge: any, domain?: string | null): string | null {
+    if (!nudge) return null;
+    if (getLocale() === 'en') return nudgeCopyEn(nudge, domain).title;
+    return nudge.title;
+  }
+
+  function nudgeBody(nudge: any, domain?: string | null): string | null {
+    if (!nudge) return null;
+    if (getLocale() === 'en') return nudgeCopyEn(nudge, domain).body;
+    return nudge.body;
+  }
+
   let phaseClause = '';
-  if (input.programPhase === 'orient') {
-    phaseClause = ' (знакомый короткий блок)';
-  } else if (input.programPhase === 'balance') {
-    phaseClause = ' (акцент на слабые области)';
-  } else if (input.programPhase === 'focus') {
-    const gl = input.primaryGoal ? domainLabel(input.primaryGoal) : 'цель';
-    phaseClause = ` (фокус на ${gl})`;
-  } else if (input.programPhase === 'sustain' && input.fatigueOrChurn) {
-    phaseClause = ' (короче из-за усталости)';
+  if (getLocale() === 'en') {
+    if (input.programPhase === 'orient') {
+      phaseClause = ' (familiar short block)';
+    } else if (input.programPhase === 'balance') {
+      phaseClause = ' (accent on growth areas)';
+    } else if (input.programPhase === 'focus') {
+      const gl = input.primaryGoal ? domainLabel(input.primaryGoal) : 'goal';
+      phaseClause = ` (focus on ${gl})`;
+    } else if (input.programPhase === 'sustain' && input.fatigueOrChurn) {
+      phaseClause = ' (shorter due to fatigue)';
+    }
+  } else {
+    if (input.programPhase === 'orient') {
+      phaseClause = ' (знакомый короткий блок)';
+    } else if (input.programPhase === 'balance') {
+      phaseClause = ' (акцент на слабые области)';
+    } else if (input.programPhase === 'focus') {
+      const gl = input.primaryGoal ? domainLabel(input.primaryGoal) : 'цель';
+      phaseClause = ` (фокус на ${gl})`;
+    } else if (input.programPhase === 'sustain' && input.fatigueOrChurn) {
+      phaseClause = ' (короче из-за усталости)';
+    }
   }
 
   const baseWhy = composeExerciseWhy({
@@ -146,10 +172,13 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
 
   if (!calibrated) {
     return {
-      title: 'Настроить сложность',
-      body: 'Пройдите калибровку (около 90 секунд), чтобы Fokus узнал вашу стартовую скорость. Это защитит от слишком сложных или скучных блоков.',
-      whyExercises: 'Сначала короткая сверка уровня — затем персональный план.',
-      nextAction: 'Пройти калибровку',
+      title: L('Настроить сложность', 'Set difficulty'),
+      body: L(
+        'Пройдите калибровку (около 90 секунд), чтобы Fokus узнал вашу стартовую скорость. Это защитит от слишком сложных или скучных блоков.',
+        'Take a 90-second calibration so Fokus can learn your baseline pace. This prevents sessions from feeling too hard or too slow.'
+      ),
+      whyExercises: L('Сначала короткая сверка уровня — затем персональный план.', 'First a quick level check — then your personal plan.'),
+      nextAction: L('Пройти калибровку', 'Start calibration'),
       tone: 'start',
       rhythmLine: null,
       band: null,
@@ -158,7 +187,7 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       durationSec: null,
       focusDomain: null,
       recoveryPath: false,
-      aria: 'Нужна калибровка перед персональным планом.',
+      aria: L('Нужна калибровка перед персональным планом.', 'Calibration needed before your personal plan.'),
       source: 'calibration',
       programRetention,
       quietTip: input.quietTip ?? null
@@ -172,15 +201,15 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       (nudge.kind === 'rest' ||
         nudge.kind === 'praise_return' ||
         nudge.kind === 'praise_consistency');
-    const title = restLike ? nudge!.title : 'На сегодня достаточно';
+    const title = restLike ? (nudgeTitle(nudge, retention.neglectedDomain) || L('На сегодня достаточно', 'Enough for today')) : L('На сегодня достаточно', 'Enough for today');
     const body = restLike
-      ? nudge!.body
-      : 'Мозгу нужно время на консолидацию памяти. Завтра Fokus соберёт новую сессию без гонки за объёмом.';
+      ? (nudgeBody(nudge, retention.neglectedDomain) || L('Мозгу нужно время на консолидацию памяти. Завтра Fokus соберёт новую сессию без гонки за объёмом.', 'The brain needs time to consolidate memory. Tomorrow Fokus will assemble a new session without chasing volume.'))
+      : L('Мозгу нужно время на консолидацию памяти. Завтра Fokus соберёт новую сессию без гонки за объёмом.', 'The brain needs time to consolidate memory. Tomorrow Fokus will assemble a new session without chasing volume.');
     return {
       title,
       body,
-      whyExercises: exerciseWhy || 'План дня выполнен — отдых тоже часть тренировки.',
-      nextAction: 'До завтра',
+      whyExercises: exerciseWhy || L('План дня выполнен — отдых тоже часть тренировки.', 'Today’s plan is complete — rest is also part of training.'),
+      nextAction: L('До завтра', 'See you tomorrow'),
       tone: restLike && nudge!.kind !== 'rest' ? 'habit' : 'habit',
       rhythmLine: programRetention.rhythmLine,
       band: retention.band,
@@ -189,7 +218,7 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       durationSec: null,
       focusDomain,
       recoveryPath: false,
-      aria: `План выполнен. ${body}`,
+      aria: `${L('План выполнен', 'Plan completed')}. ${body}`,
       source: 'done',
       programRetention,
       quietTip: input.quietTip ?? null
@@ -197,15 +226,15 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
   }
 
   if (continuity.ritual.active) {
-    const title = retention.primaryNudge?.title || 'Мягкое возвращение';
+    const title = nudgeTitle(retention.primaryNudge, retention.neglectedDomain) || L('Мягкое возвращение', 'Easy return');
     const body =
-      retention.primaryNudge?.body ||
-      'Пауза позади. Короткий знакомый блок без наверстывания — чтобы снова войти в ритм.';
+      nudgeBody(retention.primaryNudge, retention.neglectedDomain) ||
+      L('Пауза позади. Короткий знакомый блок без наверстывания — чтобы снова войти в ритм.', 'The break is behind you. A short, familiar block without catching up — just to get back into rhythm.');
     return {
       title,
       body,
       whyExercises: exerciseWhy,
-      nextAction: 'Мягкий старт',
+      nextAction: L('Мягкий старт', 'Gentle start'),
       tone: 'recovery',
       rhythmLine: programRetention.rhythmLine,
       band: retention.band,
@@ -228,12 +257,12 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
     !!focusDomain;
 
   if (severe && retention.confidence >= 24 && programRetention.coachOverride) {
-    const title = retention.primaryNudge?.title || 'План дня';
+    const title = nudgeTitle(retention.primaryNudge, retention.neglectedDomain) || L('План дня', 'Today’s plan');
     return {
       title,
       body: programRetention.coachOverride,
       whyExercises: exerciseWhy,
-      nextAction: programRetention.softenCta ? 'Короткий блок' : 'Начать тренировку',
+      nextAction: programRetention.softenCta ? L('Короткий блок', 'Short block') : L('Начать тренировку', 'Start workout'),
       tone: focusDomain ? 'focus' : 'recovery',
       rhythmLine: programRetention.rhythmLine,
       band: retention.band,
@@ -254,10 +283,10 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
       (weekRitual && describeFirstWeekContinuity(weekRitual, focusDomains)) ||
       null;
     if (fw || weekRitualCopy) {
-      const title = fw?.title || 'Первая неделя';
+      const title = fw?.title || L('Первая неделя', 'First week');
       const body = fw?.body || weekRitualCopy || '';
       const why = fw?.whyExercises || exerciseWhy;
-      const nextAction = fw?.nextAction || 'Идём по плану';
+      const nextAction = fw?.nextAction || L('Идём по плану', 'On track');
       const soften = fw?.softenCta ?? false;
       const tone = fw?.tone || 'start';
       const durationSec = fw?.durationSec ?? null;
@@ -285,10 +314,10 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
 
   if (recoveryHint) {
     return {
-      title: 'Сегодня легче',
+      title: L('Сегодня легче', 'Lighter today'),
       body: recoveryHint,
       whyExercises: exerciseWhy,
-      nextAction: 'Лёгкий блок',
+      nextAction: L('Лёгкий блок', 'Light block'),
       tone: 'recovery',
       rhythmLine: programRetention.rhythmLine,
       band: retention.band,
@@ -305,11 +334,12 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
   }
 
   if (adaptiveWhy) {
+    const title = nudgeTitle(retention.primaryNudge, retention.neglectedDomain) || L('Тренировка дня', 'Workout of the day');
     return {
-      title: retention.primaryNudge?.title || 'Тренировка дня',
+      title,
       body: adaptiveWhy,
       whyExercises: exerciseWhy || adaptiveWhy,
-      nextAction: 'Начать тренировку',
+      nextAction: L('Начать тренировку', 'Start workout'),
       tone: focusDomain ? 'focus' : 'science',
       rhythmLine: programRetention.rhythmLine,
       band: retention.band,
@@ -327,14 +357,19 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
 
   const defaultBody =
     focusNames.length > 0
-      ? `План построен по вашей истории. Акцент на: ${focusNames.join(' и ')}.`
+      ? L(
+          `План построен по вашей истории. Акцент на: ${focusNames.join(' и ')}.`,
+          `Plan built from your history. Focus on: ${focusNames.join(' and ')}.`
+        )
       : programRetention.body;
 
+  const defaultTitle = nudgeTitle(retention.primaryNudge, retention.neglectedDomain) || L('Честный подход', 'Honest approach');
+
   return {
-    title: retention.primaryNudge?.title || 'Честный подход',
+    title: defaultTitle,
     body: defaultBody,
     whyExercises: exerciseWhy || defaultBody,
-    nextAction: programRetention.softenCta ? 'Короткий блок' : 'Начать тренировку',
+    nextAction: programRetention.softenCta ? L('Короткий блок', 'Short block') : L('Начать тренировку', 'Start workout'),
     tone: focusDomain ? 'focus' : 'science',
     rhythmLine: programRetention.rhythmLine,
     band: retention.band,
@@ -343,7 +378,7 @@ export function explainTodayPlan(input: ExplainTodayPlanInput): TodayPlanExplana
     durationSec: programRetention.durationSec,
     focusDomain,
     recoveryPath: !!focusDomain || retention.gapDays >= 2,
-    aria: `${defaultBody} Ритм ${retention.rhythm} · ${bandLabel(retention.band)}.`,
+    aria: `${defaultBody} ${L(`Ритм ${retention.rhythm} · ${bandLabel(retention.band)}.`, `Rhythm ${retention.rhythm} · ${bandLabel(retention.band)}.`)}`,
     source: 'default',
     programRetention,
     quietTip: input.quietTip ?? null
@@ -358,6 +393,25 @@ function composeExerciseWhy(params: {
   band: ChurnBand;
   gapDays: number;
 }): string {
+  if (getLocale() === 'en') {
+    if (params.softReturn) {
+      return 'A short familiar mix — for an easy transition back into rhythm without catching up.';
+    }
+    if (params.focusDomain) {
+      const name = domainLabel(params.focusDomain);
+      return `Starting with "${name}": restoring balance to an area without recent load.`;
+    }
+    if (params.gapDays >= 2 || params.band === 'at_risk' || params.band === 'critical') {
+      return 'Slots tailored for your return: shorter and calmer than the usual pace.';
+    }
+    if (params.items.length > 0 && params.focusNames.length > 0) {
+      return `Today's plan: ${params.focusNames.join(' + ')} — an adaptive mix for balanced development.`;
+    }
+    if (params.focusNames.length > 0) {
+      return `Today's focus: ${params.focusNames.join(' and ')}.`;
+    }
+    return 'Balanced training block: maintaining tone and familiar volume.';
+  }
   if (params.softReturn) {
     return 'Короткий знакомый набор — для лёгкого включения в ритм без наверстывания.';
   }

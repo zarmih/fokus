@@ -4,8 +4,8 @@
  */
 
 import type { Session } from './types';
+import { L, getLocale } from './i18n';
 import { domainLabel } from './labels';
-import { getLocale } from './i18n';
 import {
   collectAttemptSamples,
   latestPercentileLineRu,

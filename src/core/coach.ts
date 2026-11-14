@@ -1,7 +1,7 @@
 // AM5: Coach intelligence and retention nudges.
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
+import { L, getLocale } from './i18n';
 import { domainLabel } from './labels';
-import { L } from './i18n';
 import { computeFokusIndex } from './fokus-index';
 import { assessRetention, sparkFromRetention } from './retention';
 import { buildCoachIntel } from './coach-intel';
@@ -24,37 +24,61 @@ export function getQuietCoachTip(params: {
 
   if (inFirstWeek) {
     if (continuity.streak.current <= 3) {
-      return L('Первые дни мы калибруем базовую сложность. Ошибаться — нормально.', 'In the first few days, we calibrate baseline difficulty. Making mistakes is normal.');
+      return L(
+        'Первые дни мы калибруем базовую сложность. Ошибаться — нормально.',
+        'We calibrate baseline difficulty over the first few days. Mistakes are completely normal.'
+      );
     }
     return null;
   }
 
   if (continuity.ritual.active) {
-    return L('Паузы защищают от переутомления. Накопленный опыт сохранён, сегодня просто спокойный вход.', 'Breaks protect against fatigue. Experience is retained; today is just a calm return.');
+    return L(
+      'Паузы защищают от переутомления. Накопленный опыт сохранён, сегодня просто спокойный вход.',
+      'Breaks protect against fatigue. Your progress is preserved; today is just a gentle restart.'
+    );
   }
 
   if (retention.gapDays >= 2 && retention.band !== 'critical') {
-    return L('Пропуски — часть длинной дистанции. Навёрстывать ничего не нужно, достаточно одной сессии в вашем темпе.', 'Gaps are part of the long run. No need to catch up, one session at your pace is enough.');
+    return L(
+      'Пропуски — часть длинной дистанции. Навёрстывать ничего не нужно, достаточно одной сессии в вашем темпе.',
+      'Gaps are part of the journey. No need to catch up; one session at your own pace is enough.'
+    );
   }
 
   if (programPhase === 'balance' && continuity.streak.current > 3) {
-    return L('В фазе баланса мы подтягиваем слабые зоны. Временное снижение точности здесь — сигнал полезной работы.', 'In the balance phase we lift weaker areas. A temporary dip in accuracy is a sign of useful work.');
+    return L(
+      'В фазе баланса мы подтягиваем слабые зоны. Временное снижение точности здесь — сигнал полезной работы.',
+      'In the balance phase we reinforce growth areas. A temporary dip in accuracy is a healthy sign of progress.'
+    );
   }
 
   if (programPhase === 'sustain') {
     const fatigueScore = retention.signals.find(s => s.id === 'session_fatigue')?.score || 0;
     if (fatigueScore >= 50) {
-      return L('В фазе поддержки можно позволить себе более лёгкий темп, если чувствуете усталость.', 'In the sustain phase, take a lighter pace if you feel tired.');
+      return L(
+        'В фазе поддержки можно позволить себе более лёгкий темп, если чувствуете усталость.',
+        'In the sustain phase, take a lighter pace if you feel tired.'
+      );
     }
-    return L('В фазе поддержки важно просто удерживать плато. Регулярность работает лучше марафонов.', 'In the sustain phase, the goal is holding steady. Regularity works better than marathons.');
+    return L(
+      'В фазе поддержки важно просто удерживать плато. Регулярность работает лучше марафонов.',
+      'In the sustain phase, steady maintenance is key. Consistency matters more than marathon sessions.'
+    );
   }
 
   if (programPhase === 'focus' && continuity.streak.current >= 4) {
-    return L('Прицельная тренировка требует больше ресурса. Если фокус падает, лучше закончить сессию раньше.', 'Focused training demands more effort. If focus drops, it is better to finish the session early.');
+    return L(
+      'Прицельная тренировка требует больше ресурса. Если фокус падает, лучше закончить сессию раньше.',
+      'Targeted practice demands more energy. If focus slips, it is better to wrap up early.'
+    );
   }
 
   if (retention.band === 'stable' && continuity.streak.current >= 14 && continuity.streak.current % 5 === 0) {
-    return L('Длинная серия даёт запас прочности. Если сегодня нет ресурса на тренировку, один день отдыха её не сломает.', 'A long streak builds resilience. If you lack energy today, a single rest day won\'t break it.');
+    return L(
+      'Длинная серия даёт запас прочности. Если сегодня нет ресурса на тренировку, один день отдыха её не сломает.',
+      'A steady streak builds resilience. If you need rest today, a single day off will not derail your routine.'
+    );
   }
 
   return null;
@@ -79,6 +103,7 @@ function hourBucket(iso: string): 'morning' | 'afternoon' | 'evening' | 'night' 
 export function analyzeChronotype(sessions: Session[]): {
   bucket: 'morning' | 'afternoon' | 'evening' | null;
   label: string;
+  labelEn?: string;
   sample: number;
 } {
   const buckets: Record<string, { score: number; n: number }> = {
@@ -100,16 +125,18 @@ export function analyzeChronotype(sessions: Session[]): {
     .map(([k, v]) => ({ bucket: k as 'morning' | 'afternoon' | 'evening', avg: v.score / v.n, n: v.n }))
     .sort((a, b) => b.avg - a.avg);
 
-  if (ranked.length < 2) return { bucket: null, label: '', sample: 0 };
+  if (ranked.length < 2) return { bucket: null, label: '', labelEn: '', sample: 0 };
 
   const labels = {
     morning: L('утром', 'in the morning'),
     afternoon: L('днём', 'in the afternoon'),
     evening: L('вечером', 'in the evening')
   };
+  const labelsEn = { morning: 'in the morning', afternoon: 'in the afternoon', evening: 'in the evening' };
   return {
     bucket: ranked[0].bucket,
     label: labels[ranked[0].bucket],
+    labelEn: labelsEn[ranked[0].bucket],
     sample: ranked[0].n
   };
 }
@@ -159,8 +186,11 @@ export function getDailySpark(params: {
 
   if (!calibrated) {
     return {
-      title: 'Настроить сложность',
-      body: 'Пройдите калибровку (около 90 секунд), чтобы Fokus узнал вашу стартовую скорость. Это защитит от слишком сложных или скучных блоков.',
+      title: L('Настроить сложность', 'Set difficulty'),
+      body: L(
+        'Пройдите калибровку (около 90 секунд), чтобы Fokus узнал вашу стартовую скорость. Это защитит от слишком сложных или скучных блоков.',
+        'Take a 90-second calibration so Fokus can learn your baseline pace. This prevents sessions from feeling too hard or too slow.'
+      ),
       tone: 'start'
     };
   }
@@ -219,37 +249,50 @@ export function getDailySpark(params: {
     if (retention) {
       const t = retention.title.toLowerCase();
       // Allow specific nudges that apply after a session
-      if (t.includes('достаточно') || t.includes('восстановлен') || t.includes('стабильность')) {
+      if (t.includes('достаточно') || t.includes('восстановлен') || t.includes('стабильность') ||
+          t.includes('enough') || t.includes('restored') || t.includes('consistency')) {
         return retention;
       }
     }
     return {
-      title: 'На сегодня достаточно',
-      body: 'Мозгу нужно время на консолидацию памяти. Завтра Fokus соберёт новую сессию без гонки за объёмом.',
+      title: L('На сегодня достаточно', 'Enough for today'),
+      body: L(
+        'Мозгу нужно время на консолидацию памяти. Завтра Fokus соберёт новую сессию без гонки за объёмом.',
+        'The brain needs time to consolidate memory. Tomorrow Fokus will assemble a new session without chasing volume.'
+      ),
       tone: 'habit'
     };
   }
 
   if (skippedYesterday && daySummaries.length > 0) {
     return {
-      title: 'Ритм на месте',
-      body: 'Пропущенный день — это просто отдых, а не провал. Ваша честная серия защищена. Короткий блок сегодня — это всё, что нужно для возвращения.',
+      title: L('Ритм на месте', 'Rhythm intact'),
+      body: L(
+        'Пропущенный день — это просто отдых, а не провал. Ваша честная серия защищена. Короткий блок сегодня — это всё, что нужно для возвращения.',
+        'A missed day is just rest, not a setback. Your honest streak is preserved. A short session today is all it takes to return.'
+      ),
       tone: 'recovery'
     };
   }
 
   if (streak === 0 && daySummaries.length > 0) {
     return {
-      title: 'Мягкий вход',
-      body: 'Без чувства вины за паузу. Вам не нужно компенсировать пропущенные дни, Fokus предлагает начать с короткой сессии.',
+      title: L('Мягкий вход', 'Gentle return'),
+      body: L(
+        'Без чувства вины за паузу. Вам не нужно компенсировать пропущенные дни, Fokus предлагает начать с короткой сессии.',
+        'Zero guilt for a pause. No need to make up for missed days; Fokus suggests starting with a short session.'
+      ),
       tone: 'recovery'
     };
   }
 
   if (daySummaries.length === 0) {
     return {
-      title: 'Первый ритуал',
-      body: 'Пройдите первую сессию — Fokus начнёт собирать статистику и подстраивать нагрузку под ваш ритм.',
+      title: L('Первый ритуал', 'First ritual'),
+      body: L(
+        'Пройдите первую сессию — Fokus начнёт собирать статистику и подстраивать нагрузку под ваш ритм.',
+        'Complete your first session — Fokus will begin gathering data and adapting the load to your rhythm.'
+      ),
       tone: 'start'
     };
   }
@@ -262,9 +305,15 @@ export function getDailySpark(params: {
     if (topInsight.type === 'improvement' || topInsight.type === 'area_to_focus') tone = 'focus';
     else if (topInsight.type === 'recovery' || topInsight.type === 'plateau') tone = 'recovery';
     else if (topInsight.type === 'consistency' || topInsight.type === 'milestone') tone = 'habit';
+    const title = getLocale() === 'en' && /[А-Яа-яЁё]/.test(topInsight.title)
+      ? 'Coach Insight'
+      : topInsight.title;
+    const body = getLocale() === 'en' && /[А-Яа-яЁё]/.test(topInsight.description)
+      ? 'Your cognitive trajectory is adapting steadily. Regular short sessions reinforce your results.'
+      : topInsight.description;
     return {
-      title: topInsight.title,
-      body: topInsight.description,
+      title,
+      body,
       tone
     };
   }
@@ -273,9 +322,13 @@ export function getDailySpark(params: {
   if (chrono.bucket && chrono.sample >= 3) {
     const nowBucket = hourBucket((now ?? new Date()).toISOString());
     if (nowBucket === chrono.bucket) {
+      const timeLabel = getLocale() === 'en' ? (chrono.labelEn || 'at this time') : chrono.label;
       return {
-        title: 'Ваше сильное окно',
-        body: `По прошлым сессиям вы точнее ${chrono.label}. Хорошее время для сложного блока без лишнего напряжения.`,
+        title: L('Ваше сильное окно', 'Your peak window'),
+        body: L(
+          `По прошлым сессиям вы точнее ${chrono.label}. Хорошее время для сложного блока без лишнего напряжения.`,
+          `Based on past sessions, you are more accurate ${timeLabel}. A good time for a challenging block without unnecessary strain.`
+        ),
         tone: 'time'
       };
     }
@@ -290,16 +343,25 @@ export function getDailySpark(params: {
 
   if (intel.tips.length > 0) {
     const tip = intel.tips[0];
+    const title = getLocale() === 'en' && /[А-Яа-яЁё]/.test(tip.title)
+      ? 'Balanced Practice'
+      : tip.title;
+    const body = getLocale() === 'en' && /[А-Яа-яЁё]/.test(tip.body)
+      ? 'Focusing on your training areas restores balance without unnecessary strain.'
+      : tip.body;
     return {
-      title: tip.title,
-      body: tip.body,
+      title,
+      body,
       tone: tip.tone
     };
   }
 
   return {
-    title: 'Честный подход',
-    body: 'Регулярность важнее марафонов. Одна короткая тренировка сегодня принесёт больше пользы, чем час занятий раз в неделю.',
+    title: L('Честный подход', 'Honest approach'),
+    body: L(
+      'Регулярность важнее марафонов. Одна короткая тренировка сегодня принесёт больше пользы, чем час занятий раз в неделю.',
+      'Consistency matters more than marathons. One short session today does more good than an hour once a week.'
+    ),
     tone: 'science'
   };
 }

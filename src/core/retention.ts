@@ -1,7 +1,7 @@
 import type { DaySummary, DomainIndex, Session, SessionItem } from './types';
 import { DOMAIN_ORDER, domainLabel } from './labels';
 import { extractPlayedDays, computeDayStreak, calendarDayKey, addCalendarDays, resolveFokusTimeZone, PREFERRED_TIME_ZONE, DayStreakStatus, fokusWallHour } from './streak';
-import { L } from './i18n';
+import { L, getLocale } from './i18n';
 
 // Wave AD3: Retention, honest streak, and quiet reminders logic
 
@@ -231,12 +231,92 @@ const NUDGE_TONE: Record<NudgeKind, SoftSpark['tone']> = {
   praise_return: 'recovery'
 };
 
+export function nudgeCopyEn(nudge: RetentionNudge, neglectedDomain?: string | null): { title: string; body: string } {
+  switch (nudge.id) {
+    case 'praise_return':
+      return {
+        title: 'Rhythm restored',
+        body: 'Welcome back! Fokus values returning after a pause more than a perfect streak. Your skills are preserved.'
+      };
+    case 'praise_consistency':
+      return {
+        title: 'High consistency',
+        body: 'Long-term rhythm matters more than an unbroken streak. Fokus values an honest approach.'
+      };
+    case 'rest':
+      return {
+        title: 'Enough for today',
+        body: 'Fatigue is an obstacle to cognitive growth. Wrap up the session now — rest is part of training.'
+      };
+    case 'very_long_pause':
+      return {
+        title: 'No guilt',
+        body: 'Life does not always follow a schedule. Fokus has a light session ready to help you ease back into your rhythm.'
+      };
+    case 'long_pause':
+      return {
+        title: 'After a week',
+        body: 'Focus does not disappear in a week. A calm warm-up will help you re-enter your rhythm when you are ready.'
+      };
+    case 'pause_3_days':
+      return {
+        title: 'At your pace',
+        body: 'Breaks help prevent burnout. Fokus is ready for a short session at your pace — no marathons.'
+      };
+    case 'soft_return':
+      return {
+        title: 'Gentle return',
+        body: 'Breaks happen. An honest approach means zero guilt. One calm session is enough.'
+      };
+    case 'resume':
+      return {
+        title: 'Smooth return',
+        body: 'A few days of rest were well spent. A light, pressure-free block today locks in your gains.'
+      };
+    case 'protect_streak':
+      return {
+        title: 'Rhythm without stress',
+        body: 'Your streak gives you room to pause without losing momentum. A short warm-up today protects your honest progress.'
+      };
+    case 'short_session':
+      return {
+        title: 'Less pressure',
+        body: 'Fokus tailored the load to your break. One short session without guilt will bring you back on track.'
+      };
+    case 'fresh_start':
+      return {
+        title: 'Honest start',
+        body: 'Zero guilt for missed days. Shall we begin with a light warm-up?'
+      };
+    case 'rebalance': {
+      const name = neglectedDomain ? domainLabel(neglectedDomain) : 'focus';
+      return {
+        title: 'Targeting growth areas',
+        body: `The "${name}" area has had no recent training. Today it takes focus to restore balance.`
+      };
+    }
+    default:
+      return {
+        title: nudge.kind === 'resume' ? 'Smooth return' : 'Daily plan',
+        body: 'A short session at your own pace — no marathons and zero guilt.'
+      };
+  }
+}
+
 export function sparkFromRetention(snap: RetentionSnapshot): SoftSpark | null {
   const nudge = snap.primaryNudge;
   if (!nudge) return null;
   const severe = snap.band === 'at_risk' || snap.band === 'critical';
   const loudSignal = snap.signals.some((s) => s.score >= 70);
   if (!severe && !loudSignal) return null;
+  if (getLocale() === 'en') {
+    const enNudge = nudgeCopyEn(nudge, snap.neglectedDomain);
+    return {
+      title: enNudge.title,
+      body: enNudge.body,
+      tone: NUDGE_TONE[nudge.kind]
+    };
+  }
   return {
     title: nudge.title,
     body: nudge.body,
@@ -305,12 +385,13 @@ export function describeProgramRetention(
             'Honest rhythm without pressure. Fokus adjusts length and focus to your pace.'
           );
 
-  const body = nudge?.body ?? calmBody;
+  const enNudge = nudge && getLocale() === 'en' ? nudgeCopyEn(nudge, snap.neglectedDomain) : null;
+  const body = enNudge?.body ?? (getLocale() === 'en' ? calmBody : (nudge?.body ?? calmBody));
 
   let coachOverride: string | null = null;
   if (snap.confidence >= 24 && !softReturnActive) {
     if (nudge && (nudge.kind === 'resume' || nudge.kind === 'short_session' || nudge.kind === 'protect_streak')) {
-      coachOverride = `${nudge.title}. ${nudge.body}`;
+      coachOverride = enNudge ? `${enNudge.title}. ${enNudge.body}` : `${nudge.title}. ${nudge.body}`;
     } else if (nudge && nudge.kind === 'rebalance' && snap.neglectedDomain) {
       const name = domainLabel(snap.neglectedDomain);
       coachOverride = L(
@@ -318,9 +399,9 @@ export function describeProgramRetention(
         `Focus on "${name}": this domain has been quiet — today's plan restores balance.`
       );
     } else if (playedToday && nudge?.kind === 'rest') {
-      coachOverride = nudge.body;
+      coachOverride = enNudge ? enNudge.body : nudge.body;
     } else if (playedToday && (nudge?.kind === 'praise_return' || nudge?.kind === 'praise_consistency')) {
-      coachOverride = nudge.body;
+      coachOverride = enNudge ? enNudge.body : nudge.body;
     }
   }
 
