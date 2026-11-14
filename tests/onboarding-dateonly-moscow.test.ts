@@ -1,8 +1,16 @@
 import { expect, test } from 'vitest';
 import { timeZoneSupported } from '../src/core/streak';
-import { buildFirstWeekPlan, dateOnly, daysBetween, getTodayRitual } from '../src/core/onboarding';
+import { buildFirstWeekPlan, dateOnly, dayKey, daysBetween, getTodayRitual } from '../src/core/onboarding';
 
 const TZ = 'Europe/Moscow';
+
+test('dayKey: aliases dateOnly and maps Moscow midnight correctly', () => {
+  if (!timeZoneSupported(TZ)) return;
+  expect(dayKey('2026-10-01T21:30:00.000Z')).toBe('2026-10-02');
+  expect(dayKey('2026-10-01T20:59:59.000Z')).toBe('2026-10-01');
+  expect(dayKey('2026-10-01')).toBe('2026-10-01');
+  expect(dayKey('2026-10-01T21:30:00.000Z', 'UTC')).toBe('2026-10-01');
+});
 
 test('dateOnly: instant just after Moscow midnight maps to the Moscow civil day', () => {
   if (!timeZoneSupported(TZ)) return;
