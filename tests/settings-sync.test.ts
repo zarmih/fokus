@@ -1,4 +1,4 @@
-import { expect, test, beforeEach } from 'vitest';
+import { expect, test, beforeEach, afterEach, vi } from 'vitest';
 import { renderSettings } from '../src/ui/screens/settings';
 import { storage } from '../src/core/storage';
 
@@ -11,9 +11,14 @@ class MockStorage {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers();
   (storage as any).backend = new MockStorage();
   storage.reset();
   document.body.innerHTML = '<div id="app"></div>';
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 test('settings data panel shows offline health and export/import', () => {
@@ -40,16 +45,13 @@ test('settings preview offers merge and replace for a valid backup', () => {
   Object.defineProperty(input, 'files', { value: [file] });
   input.dispatchEvent(new Event('change'));
 
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      const preview = document.getElementById('import-preview')!;
-      expect(preview.style.display).toBe('block');
-      expect(preview.textContent).toMatch(/Home/);
-      expect(preview.textContent).toMatch(/Объединить/);
-      expect(preview.textContent).toMatch(/Заменить/);
-      resolve();
-    }, 30);
-  });
+  vi.advanceTimersByTime(50);
+
+  const preview = document.getElementById('import-preview')!;
+  expect(preview.style.display).toBe('block');
+  expect(preview.textContent).toMatch(/Home/);
+  expect(preview.textContent).toMatch(/Объединить/);
+  expect(preview.textContent).toMatch(/Заменить/);
 });
 
 test('settings preview rejects a broken file', () => {
@@ -60,12 +62,9 @@ test('settings preview rejects a broken file', () => {
   Object.defineProperty(input, 'files', { value: [file] });
   input.dispatchEvent(new Event('change'));
 
-  return new Promise<void>((resolve) => {
-    setTimeout(() => {
-      expect(document.getElementById('import-preview')?.textContent).toMatch(/не резервная копия/i);
-      resolve();
-    }, 30);
-  });
+  vi.advanceTimersByTime(50);
+
+  expect(document.getElementById('import-preview')?.textContent).toMatch(/не резервная копия/i);
 });
 
 test('settings health after a write mentions revision', () => {
