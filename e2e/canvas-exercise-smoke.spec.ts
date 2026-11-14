@@ -65,11 +65,12 @@ test.describe('Canvas Exercise Smoke Tests', () => {
         }));
       }, item.id);
 
+      await page.locator('[data-session-phase="intro"]').waitFor({ state: 'visible' });
       const nextBtn = page.locator('#btn-next');
       await nextBtn.waitFor({ state: 'visible' });
       await nextBtn.click();
       await tick(page, 3500);
-      expect(await phase(page)).toBe('play');
+      await expect(page.locator('[data-session-phase="play"]')).toBeVisible();
 
       const count = await page.locator('#game-container canvas').count();
       if (item.hasCanvas) {
@@ -93,13 +94,14 @@ test.describe('Canvas Exercise Smoke Tests', () => {
     }, 'helix-flip');
 
     // 2. Wait for #btn-next (intro screen), click to enter trial round
+    await page.locator('[data-session-phase="intro"]').waitFor({ state: 'visible' });
     const nextBtn = page.locator('#btn-next');
     await nextBtn.waitFor({ state: 'visible' });
     await nextBtn.click();
 
     // 3. Advance through the countdown timer to enter play phase
     await tick(page, 3500);
-    expect(await phase(page)).toBe('play');
+    await expect(page.locator('[data-session-phase="play"]')).toBeVisible();
 
     // 4. Locate <canvas> element, assert present and attached
     const canvasLocator = page.locator('#game-container canvas, canvas.play-fx, canvas').first();
@@ -136,13 +138,14 @@ test.describe('Canvas Exercise Smoke Tests', () => {
     }, 'switch-rule');
 
     // 2. Wait for #btn-next (intro screen), click to enter trial round
+    await page.locator('[data-session-phase="intro"]').waitFor({ state: 'visible' });
     const nextBtn = page.locator('#btn-next');
     await nextBtn.waitFor({ state: 'visible' });
     await nextBtn.click();
 
     // 3. Advance countdown into play phase
     await tick(page, 3500);
-    expect(await phase(page)).toBe('play');
+    await expect(page.locator('[data-session-phase="play"]')).toBeVisible();
 
     // 4. Locate <canvas> element, assert present and attached
     const canvasLocator = page.locator('#game-container canvas, canvas.play-fx, canvas').first();

@@ -58,6 +58,10 @@ export async function playThrough(page: Page, maxSteps = 4000): Promise<void> {
       await tick(page, 3500);
       continue;
     }
+    if (ph === 'countdown' || ph === 'feedback') {
+      await tick(page, 500);
+      continue;
+    }
     if (ph === 'other') {
       if (++other > 12) return;
       await tick(page, 500);
