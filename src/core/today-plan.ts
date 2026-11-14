@@ -3,6 +3,7 @@
  * Pure view-model: no DOM, no storage. Composes retention + continuity + adaptive why.
  */
 import { domainLabel } from './labels';
+import { L } from './i18n';
 import {
   assessRetention,
   bandLabel,
@@ -571,36 +572,36 @@ export interface EmptyPlanCopy {
 export function emptyPlanCopy(kind: 'no_history' | 'no_plan' | 'offline' | 'search'): EmptyPlanCopy {
   if (kind === 'offline') {
     return {
-      kicker: 'Офлайн',
-      title: 'Нет подключения',
-      body: 'План на устройстве сохранён. Когда сеть вернётся — продолжим без наверстывания.',
-      cta: 'Проверить сеть',
+      kicker: L('Офлайн', 'Offline'),
+      title: L('Нет подключения', 'No connection'),
+      body: L('План на устройстве сохранён. Когда сеть вернётся — продолжим без наверстывания.', 'Plan is saved on this device. When connection returns, we will continue without rush.'),
+      cta: L('Проверить сеть', 'Check connection'),
       tone: 'recovery'
     };
   }
   if (kind === 'no_plan') {
     return {
-      kicker: 'Отдых',
-      title: 'На сегодня всё',
-      body: 'Сейчас нет подходящего набора блоков. Это не штраф — можно вернуться к короткому ритуалу позже.',
-      cta: 'К плану дня',
+      kicker: L('Отдых', 'Rest'),
+      title: L('На сегодня всё', 'All set for today'),
+      body: L('Сейчас нет подходящего набора блоков. Это не штраф — можно вернуться к короткому ритуалу позже.', 'No suitable set of blocks right now. Take a break and return later.'),
+      cta: L('К плану дня', "To today's plan"),
       tone: 'habit'
     };
   }
   if (kind === 'search') {
     return {
-      kicker: 'Каталог',
-      title: 'Ничего не найдено',
-      body: 'По запросу нет упражнений. Сбросьте поиск или откройте другой раздел — знакомые блоки никуда не делись.',
-      cta: 'Сбросить поиск',
+      kicker: L('Каталог', 'Catalog'),
+      title: L('Ничего не найдено', 'Nothing found'),
+      body: L('По запросу нет упражнений. Сбросьте поиск или откройте другой раздел — знакомые блоки никуда не делись.', 'No exercises found. Reset search or open another section.'),
+      cta: L('Сбросить поиск', 'Reset search'),
       tone: 'science'
     };
   }
   return {
-    kicker: 'Статистика',
-    title: 'Пока нет истории',
-    body: 'После первой тренировки здесь появится честная картина ритма — без приблизительных баллов.',
-    cta: 'К плану дня',
+    kicker: L('Статистика', 'Progress'),
+    title: L('Пока нет истории', 'No history yet'),
+    body: L('После первой тренировки здесь появится честная картина ритма — без приблизительных баллов.', 'After your first session, an honest picture of your rhythm will appear here — without artificial scores.'),
+    cta: L('К плану дня', "To today's plan"),
     tone: 'start'
   };
 }

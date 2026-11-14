@@ -1,6 +1,7 @@
 import type { DaySummary, DomainIndex, Session, SessionItem } from './types';
 import { DOMAIN_ORDER, domainLabel } from './labels';
 import { extractPlayedDays, computeDayStreak, calendarDayKey, addCalendarDays, resolveFokusTimeZone, PREFERRED_TIME_ZONE, DayStreakStatus, fokusWallHour } from './streak';
+import { L } from './i18n';
 
 // Wave AD3: Retention, honest streak, and quiet reminders logic
 
@@ -107,26 +108,26 @@ export function bandFromRisk(risk: number): ChurnBand {
 export function bandLabel(band: ChurnBand): string {
   switch (band) {
     case 'stable':
-      return 'устойчивый';
+      return L('устойчивый', 'steady');
     case 'watch':
-      return 'стоит присмотреться';
+      return L('стоит присмотреться', 'needs attention');
     case 'at_risk':
-      return 'просел';
+      return L('просел', 'at risk');
     case 'critical':
-      return 'давно не было сессии';
+      return L('давно не было сессии', 'inactive');
   }
 }
 
 export function signalLabel(id: RetentionSignalId): string {
   switch (id) {
     case 'adherence_gap':
-      return 'Регулярность';
+      return L('Регулярность', 'Regularity');
     case 'streak_fragility':
-      return 'Серия';
+      return L('Серия', 'Streak');
     case 'domain_neglect':
-      return 'Области';
+      return L('Области', 'Domains');
     case 'session_fatigue':
-      return 'Усталость';
+      return L('Усталость', 'Fatigue');
   }
 }
 
@@ -286,14 +287,23 @@ export function describeProgramRetention(
   const playedToday = opts.playedToday ?? false;
   const bandText = bandLabel(snap.band);
   const nudge = snap.primaryNudge;
-  const rhythmLine = `Ритм ${snap.rhythm} · ${bandText}`;
+  const rhythmLine = `${L('Ритм', 'Rhythm')} ${snap.rhythm} · ${bandText}`;
 
   const calmBody =
     snap.confidence < 30
-      ? 'Пока мало данных для точного ритма — одна спокойная сессия сегодня поможет Fokus сориентироваться.'
+      ? L(
+          'Пока мало данных для точного ритма — одна спокойная сессия сегодня поможет Fokus сориентироваться.',
+          'Sparse data for exact rhythm — a calm session today will help Fokus calibrate.'
+        )
       : snap.band === 'stable'
-        ? 'Ритм устойчивый. Регулярность важнее объёма — держите привычный блок без гонки.'
-        : 'Честный ритм без давления. Fokus подстроит длину и акцент под ваш темп.';
+        ? L(
+            'Ритм устойчивый. Регулярность важнее объёма — держите привычный блок без гонки.',
+            'Rhythm is stable. Regularity matters more than volume — maintain your habit without rushing.'
+          )
+        : L(
+            'Честный ритм без давления. Fokus подстроит длину и акцент под ваш темп.',
+            'Honest rhythm without pressure. Fokus adjusts length and focus to your pace.'
+          );
 
   const body = nudge?.body ?? calmBody;
 
@@ -303,7 +313,10 @@ export function describeProgramRetention(
       coachOverride = `${nudge.title}. ${nudge.body}`;
     } else if (nudge && nudge.kind === 'rebalance' && snap.neglectedDomain) {
       const name = domainLabel(snap.neglectedDomain);
-      coachOverride = `Акцент на «${name}»: зона давно без нагрузки — план дня возвращает баланс.`;
+      coachOverride = L(
+        `Акцент на «${name}»: зона давно без нагрузки — план дня возвращает баланс.`,
+        `Focus on "${name}": this domain has been quiet — today's plan restores balance.`
+      );
     } else if (playedToday && nudge?.kind === 'rest') {
       coachOverride = nudge.body;
     } else if (playedToday && (nudge?.kind === 'praise_return' || nudge?.kind === 'praise_consistency')) {
@@ -334,7 +347,10 @@ export function describeProgramRetention(
     !!nudge &&
     (nudge.kind === 'resume' || nudge.kind === 'short_session' || nudge.kind === 'protect_streak');
 
-  const aria = `Ритм привычки ${snap.rhythm} из 100, состояние: ${bandText}. ${body}`;
+  const aria = L(
+    `Ритм привычки ${snap.rhythm} из 100, состояние: ${bandText}. ${body}`,
+    `Habit rhythm ${snap.rhythm} of 100, status: ${bandText}. ${body}`
+  );
 
   return {
     rhythm: snap.rhythm,

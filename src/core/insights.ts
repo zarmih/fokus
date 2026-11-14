@@ -3,6 +3,8 @@ import { catalog, getManifest } from '../exercises/catalog';
 import { domainLabel, skillLabel } from './labels';
 import { analyzeChronotype } from './coach';
 import { computeAbilityTrajectory } from './ability-trajectory';
+import { L } from './i18n';
+import { exerciseName } from './exercise-copy';
 
 export interface CognitiveInsight {
   type: 'improvement' | 'plateau' | 'consistency' | 'strength' | 'area_to_focus' | 'milestone' | 'recovery';
@@ -38,8 +40,8 @@ export function generateInsights(
     if (risingWeak) {
       insights.push({
         type: 'improvement',
-        title: 'Уверенный старт',
-        description: `В области «${domainLabel(risingWeak.domain)}» наметилась положительная динамика. Регулярные короткие сессии закрепляют результат.`,
+        title: L('Уверенный старт', 'Strong start'),
+        description: L(`В области «${domainLabel(risingWeak.domain)}» наметилась положительная динамика. Регулярные короткие сессии закрепляют результат.`, `Positive trend in "${domainLabel(risingWeak.domain)}". Regular short sessions reinforce progress.`),
         confidence: 'high',
         priority: 85,
         domainId: risingWeak.domain
@@ -51,8 +53,8 @@ export function generateInsights(
     if (falling) {
       insights.push({
         type: 'recovery',
-        title: 'Цикл адаптации',
-        description: `Показатели в «${domainLabel(falling.domain)}» пошли на спад. Fokus временно снизит сложность, чтобы вы восстановили точность без лишнего напряжения.`,
+        title: L('Цикл адаптации', 'Adaptation cycle'),
+        description: L(`Показатели в «${domainLabel(falling.domain)}» пошли на спад. Fokus временно снизит сложность, чтобы вы восстановили точность без лишнего напряжения.`, `Scores in "${domainLabel(falling.domain)}" dipped. Fokus will temporarily ease difficulty so you can rebuild accuracy calmly.`),
         confidence: 'high',
         priority: 82,
         domainId: falling.domain
@@ -64,8 +66,8 @@ export function generateInsights(
     if (stableStrong) {
       insights.push({
         type: 'strength',
-        title: 'Устойчивая база',
-        description: `«${domainLabel(stableStrong.domain)}» — ваша стабильная сильная сторона. Fokus будет поддерживать этот уровень без изнурительных пиковых нагрузок.`,
+        title: L('Устойчивая база', 'Steady base'),
+        description: L(`«${domainLabel(stableStrong.domain)}» — ваша стабильная сильная сторона. Fokus будет поддерживать этот уровень без изнурительных пиковых нагрузок.`, `"${domainLabel(stableStrong.domain)}" is your consistent strength. Fokus will sustain this level without excessive strain.`),
         confidence: 'high',
         priority: 70,
         domainId: stableStrong.domain
@@ -77,8 +79,8 @@ export function generateInsights(
     if (stagnantWeak && !risingWeak && !falling) {
       insights.push({
         type: 'area_to_focus',
-        title: 'Зона роста',
-        description: `«${domainLabel(stagnantWeak.domain)}» пока поддаётся сложнее. Короткие регулярные подходы помогут постепенно освоиться без лишнего напряжения.`,
+        title: L('Зона роста', 'Growth area'),
+        description: L(`«${domainLabel(stagnantWeak.domain)}» пока поддаётся сложнее. Короткие регулярные подходы помогут постепенно освоиться без лишнего напряжения.`, `"${domainLabel(stagnantWeak.domain)}" needs more practice. Short regular sessions will help you adapt without pressure.`),
         confidence: 'high',
         priority: 75,
         domainId: stagnantWeak.domain
@@ -104,8 +106,8 @@ export function generateInsights(
       if (strongest.value > 600) {
         insights.push({
           type: 'strength',
-          title: 'Сильная сторона',
-          description: `«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, балансируя нагрузку с другими областями.`,
+          title: L('Сильная сторона', 'Strength'),
+          description: L(`«${domainLabel(strongest.domain)}» — ваша сильная область. Fokus продолжит её поддерживать, балансируя нагрузку с другими областями.`, `"${domainLabel(strongest.domain)}" is your strong domain. Fokus will keep supporting it while balancing workload across domains.`),
           confidence: strongConf > 70 ? 'high' : (strongConf > 40 ? 'medium' : 'low'),
           priority: 50 + (strongest.value / 100),
           domainId: strongest.domain
@@ -116,8 +118,8 @@ export function generateInsights(
       if (weakest.value < 500 && weakest.value > 0) {
         insights.push({
           type: 'area_to_focus',
-          title: 'Зона роста',
-          description: `«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы помогут постепенно освоиться без лишнего напряжения.`,
+          title: L('Зона роста', 'Growth area'),
+          description: L(`«${domainLabel(weakest.domain)}» пока поддаётся сложнее. Короткие регулярные подходы помогут постепенно освоиться без лишнего напряжения.`, `"${domainLabel(weakest.domain)}" needs more practice. Short regular sessions will help you adapt without pressure.`),
           confidence: weakConf > 70 ? 'high' : (weakConf > 40 ? 'medium' : 'low'),
           priority: 60 + ((500 - weakest.value) / 10),
           domainId: weakest.domain
@@ -133,8 +135,8 @@ export function generateInsights(
     if (manifest) {
       insights.push({
         type: 'area_to_focus',
-        title: 'Предел сложности',
-        description: `В «${manifest.name}» вы достигли уровня, где точность начинает падать. Мы немного откатим сложность для закрепления фундамента.`,
+        title: L('Предел сложности', 'Difficulty ceiling'),
+        description: L(`В «${exerciseName(manifest)}» вы достигли уровня, где точность начинает падать. Мы немного откатим сложность для закрепления фундамента.`, `In "${exerciseName(manifest)}" you reached a level where accuracy begins to dip. We will ease difficulty slightly to reinforce fundamentals.`),
         confidence: 'high',
         priority: 78,
         exerciseId: strugglingState.exerciseId,
@@ -149,8 +151,8 @@ export function generateInsights(
     if (manifest) {
       insights.push({
         type: 'strength',
-        title: 'Высокое мастерство',
-        description: `В «${manifest.name}» вы показываете отличный баланс скорости и точности. Навык переходит в автоматический режим.`,
+        title: L('Высокое мастерство', 'High mastery'),
+        description: L(`В «${exerciseName(manifest)}» вы показываете отличный баланс скорости и точности. Навык переходит в автоматический режим.`, `In "${exerciseName(manifest)}" you demonstrate great speed and accuracy. The skill is becoming automatic.`),
         confidence: 'high',
         priority: 75,
         exerciseId: masteringState.exerciseId,
@@ -165,8 +167,8 @@ export function generateInsights(
     const best = improvingSkills[0];
     insights.push({
       type: 'improvement',
-      title: 'Заметный прогресс',
-      description: `В упражнении «${skillLabel(best.skill)}» наметился чёткий прогресс. Точность и скорость ответов стабильно растут.`,
+      title: L('Заметный прогресс', 'Noticeable progress'),
+      description: L(`В упражнении «${skillLabel(best.skill)}» наметился чёткий прогресс. Точность и скорость ответов стабильно растут.`, `Clear progress in "${skillLabel(best.skill)}". Accuracy and response speed are steadily improving.`),
       confidence: best.confidence > 70 ? 'high' : 'medium',
       priority: 80 + best.trend
     });
@@ -180,8 +182,8 @@ export function generateInsights(
     if (manifest) {
       insights.push({
         type: 'plateau',
-        title: 'Стабилизация',
-        description: `Ваш результат в упражнении «${manifest.name}» стабилизировался. Стоит переключиться на другие задачи, чтобы не превращать тренировку в автоматическую привычку.`,
+        title: L('Стабилизация', 'Plateau'),
+        description: L(`Ваш результат в упражнении «${exerciseName(manifest)}» стабилизировался. Стоит переключиться на другие задачи, чтобы не превращать тренировку в автоматическую привычку.`, `Your score in "${exerciseName(manifest)}" stabilized. Good time to switch to other tasks to prevent rote routine.`),
         confidence: 'high',
         priority: 70 + (plat.consecutivePlateau || 0) * 5,
         exerciseId: plat.exerciseId,
@@ -196,8 +198,8 @@ export function generateInsights(
   if (totalDays >= 5 && activeDays >= 5) {
     insights.push({
       type: 'consistency',
-      title: 'Сила микрошагов',
-      description: `${activeDays} тренировок за последние 7 дней. Короткие, но регулярные усилия формируют нейронные связи гораздо надёжнее, чем редкие марафоны.`,
+      title: L('Сила микрошагов', 'Power of micro-steps'),
+      description: L(`${activeDays} тренировок за последние 7 дней. Короткие, но регулярные усилия формируют нейронные связи гораздо надёжнее, чем редкие марафоны.`, `${activeDays} workouts over the last 7 days. Short regular efforts build connections far more reliably than rare marathons.`),
       confidence: 'high',
       priority: 75
     });
@@ -210,8 +212,8 @@ export function generateInsights(
   if (possible30 >= 14 && played30 / possible30 >= 0.8) {
     insights.push({
       type: 'consistency',
-      title: 'Честная стабильность',
-      description: `Ваша регулярность за месяц — ${Math.round((played30 / possible30) * 100)}%. Fokus ценит долгосрочный ритм: единичные пропуски — это здоровый отдых, который не обнуляет прогресс.`,
+      title: L('Честная стабильность', 'Honest consistency'),
+      description: L(`Ваша регулярность за месяц — ${Math.round((played30 / possible30) * 100)}%. Fokus ценит долгосрочный ритм: единичные пропуски — это здоровый отдых, который не обнуляет прогресс.`, `Your monthly regularity is ${Math.round((played30 / possible30) * 100)}%. Fokus values long-term rhythm: occasional misses are healthy rest, not setbacks.`),
       confidence: 'high',
       priority: 79
     });
@@ -226,8 +228,8 @@ export function generateInsights(
     if (minIdx < scores.length - 1 && min > 0 && last > min * 1.25) {
       insights.push({
         type: 'recovery',
-        title: 'Отскок после спада',
-        description: 'После просадки результаты снова выровнялись. Это естественное колебание формы в течение недели, а не откат ваших способностей.',
+        title: L('Отскок после спада', 'Rebound after dip'),
+        description: L('После просадки результаты снова выровнялись. Это естественное колебание формы в течение недели, а не откат ваших способностей.', 'Results recovered after a dip. This is natural weekly form variation, not a skill decline.'),
         confidence: 'medium',
         priority: 72
       });
@@ -243,8 +245,8 @@ export function generateInsights(
     if (low.length >= 2 && rest.length >= 2 && avg(rest) > avg(low) * 1.12) {
       insights.push({
         type: 'consistency',
-        title: 'Сон и результат',
-        description: 'В дни с недостатком сна результаты обычно ниже. Это не диагноз, но хороший повод чуть снизить темп и не требовать от себя рекордов.',
+        title: L('Сон и результат', 'Sleep and performance'),
+        description: L('В дни с недостатком сна результаты обычно ниже. Это не диагноз, но хороший повод чуть снизить темп и не требовать от себя рекордов.', 'On days with less sleep, performance is typically lower. A good reason to ease pace and not demand peak records.'),
         confidence: withSleep.length >= 8 ? 'high' : 'medium',
         priority: 78
       });
@@ -256,8 +258,8 @@ export function generateInsights(
   if (chrono.bucket && chrono.sample >= 4) {
     insights.push({
       type: 'milestone',
-      title: 'Удачное время',
-      description: `Лучшие сессии у вас проходят ${chrono.label}. Сложные блоки лучше ставить на это окно.`,
+      title: L('Удачное время', 'Optimal time'),
+      description: L(`Лучшие сессии у вас проходят ${chrono.label}. Сложные блоки лучше ставить на это окно.`, `Your best sessions happen during ${chrono.label}. Challenging blocks are best scheduled for this window.`),
       confidence: chrono.sample >= 8 ? 'high' : 'medium',
       priority: 55
     });

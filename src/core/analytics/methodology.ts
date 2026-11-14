@@ -8,6 +8,7 @@
  * No confidence percentages. No claims about transfer outside the app.
  */
 import type { Session, SessionItem } from '../types';
+import { getLocale } from '../i18n';
 
 export const ANALYTICS_METHODOLOGY_VERSION = 2;
 /** Date methodology 2 shipped; earlier persisted values are method 1. */
@@ -38,6 +39,29 @@ export const METRIC_COPY: Record<MetricId, { title: string; measures: string; ca
   }
 };
 
+export const METRIC_COPY_EN: Record<MetricId, { title: string; measures: string; cannotConclude: string }> = {
+  exerciseResult: {
+    title: 'Exercise result',
+    measures: 'Accuracy and response time in this block at this difficulty.',
+    cannotConclude: 'One block is one sample: cannot be compared to other exercises, levels, or people.'
+  },
+  personalTrend: {
+    title: 'Personal trend',
+    measures: 'Whether recent results in this same exercise under comparable difficulty shifted from earlier ones.',
+    cannotConclude: 'Not overall growth in "memory" or "attention" and not changes outside the app: sleep, time of day, and practice effects apply.'
+  },
+  dataSufficiency: {
+    title: 'Data sufficiency',
+    measures: 'How many recent observations exist: 28-day blocks, domains covered, recency of last session.',
+    cannotConclude: 'Reflects data volume, not accuracy or correctness of any metric.'
+  },
+  fokusIndex: {
+    title: 'Fokus Index',
+    measures: 'Composite score across trained domains, based on your exercises.',
+    cannotConclude: 'Index shifts may reflect changing exercises and levels; not a psychometric test or life outcome predictor.'
+  }
+};
+
 export type SufficiencyLevel = 'none' | 'low' | 'partial' | 'enough';
 
 export interface DataSufficiency {
@@ -55,6 +79,13 @@ export const SUFFICIENCY_LABEL: Record<SufficiencyLevel, string> = {
   low: 'Мало данных: выводы рано',
   partial: 'Данных частично: только предварительные выводы',
   enough: 'Данных достаточно для сравнения с собой'
+};
+
+export const SUFFICIENCY_LABEL_EN: Record<SufficiencyLevel, string> = {
+  none: 'No data yet',
+  low: 'Sparse data: too early for conclusions',
+  partial: 'Partial data: preliminary conclusions only',
+  enough: 'Sufficient data for personal comparison'
 };
 
 const DAY_MS = 86_400_000;
@@ -100,14 +131,21 @@ export function assessDataSufficiency(params: {
   else if (domainsCovered >= 3 && blocks >= 10 && daysSinceLast != null && daysSinceLast <= 14) level = 'partial';
   else level = 'low';
 
-  const last = daysSinceLast == null ? '' : daysSinceLast === 0 ? ' · последний сегодня' : ` · последний ${daysSinceLast} дн. назад`;
+  const isEn = getLocale() === 'en';
+  const last = daysSinceLast == null
+    ? ''
+    : isEn
+      ? (daysSinceLast === 0 ? ' · latest today' : ` · latest ${daysSinceLast}d ago`)
+      : (daysSinceLast === 0 ? ' · последний сегодня' : ` · последний ${daysSinceLast} дн. назад`);
   return {
     level,
-    label: SUFFICIENCY_LABEL[level],
+    label: isEn ? SUFFICIENCY_LABEL_EN[level] : SUFFICIENCY_LABEL[level],
     blocks28d: blocks,
     domainsCovered,
     daysSinceLast,
-    facts: `${blocks} ${plural(blocks, 'блок', 'блока', 'блоков')} за 28 дней · ${domainsCovered} из ${DOMAINS} областей${last}`
+    facts: isEn
+      ? `${blocks} ${blocks === 1 ? 'block' : 'blocks'} in 28 days · ${domainsCovered} of ${DOMAINS} domains${last}`
+      : `${blocks} ${plural(blocks, 'блок', 'блока', 'блоков')} за 28 дней · ${domainsCovered} из ${DOMAINS} областей${last}`
   };
 }
 
@@ -133,6 +171,13 @@ export const TREND_LABEL: Record<TrendVerdict, string> = {
   worse: 'Ниже прежнего',
   stable: 'В пределах обычного разброса',
   insufficient: 'Пока мало сопоставимых блоков'
+};
+
+export const TREND_LABEL_EN: Record<TrendVerdict, string> = {
+  better: 'Better than before',
+  worse: 'Lower than before',
+  stable: 'Within normal variation',
+  insufficient: 'Not enough comparable blocks yet'
 };
 
 function median(xs: number[]): number {
@@ -177,14 +222,16 @@ export function exerciseTrend(params: { sessions: Session[]; exerciseId: string;
     (o) => (o.it.mode ?? 'standard') === mode && Math.abs(Number(o.it.difficultyBefore ?? o.it.level) - level) <= 1
   );
 
+  const isEn = getLocale() === 'en';
+  const insufficientLabel = isEn ? TREND_LABEL_EN.insufficient : TREND_LABEL.insufficient;
   const base = { exerciseId: params.exerciseId, mode: mode as 'standard' | 'accessible', observations: comparable.length };
   if (comparable.length < MIN_OBS) {
-    return { ...base, verdict: 'insufficient', needMore: MIN_OBS - comparable.length, label: TREND_LABEL.insufficient };
+    return { ...base, verdict: 'insufficient', needMore: MIN_OBS - comparable.length, label: insufficientLabel };
   }
   const recent = comparable.slice(-WINDOW);
   const prev = comparable.slice(0, comparable.length - recent.length).slice(-WINDOW);
   if (prev.length < MIN_WINDOW || recent.length < MIN_WINDOW) {
-    return { ...base, verdict: 'insufficient', needMore: MIN_WINDOW - Math.min(prev.length, recent.length), label: TREND_LABEL.insufficient };
+    return { ...base, verdict: 'insufficient', needMore: MIN_WINDOW - Math.min(prev.length, recent.length), label: insufficientLabel };
   }
   const accNow = median(recent.map((o) => o.it.accuracy));
   const accBefore = median(prev.map((o) => o.it.accuracy));
@@ -206,7 +253,7 @@ export function exerciseTrend(params: { sessions: Session[]; exerciseId: string;
     accuracyNow: accNow,
     rtBeforeMs: rtBefore,
     rtNowMs: rtNow,
-    label: TREND_LABEL[verdict]
+    label: isEn ? TREND_LABEL_EN[verdict] : TREND_LABEL[verdict]
   };
 }
 

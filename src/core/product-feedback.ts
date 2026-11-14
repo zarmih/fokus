@@ -4,6 +4,8 @@
  * No third-party SDKs, no pixels, no accounts.
  */
 
+import { L } from './i18n';
+
 export const FEEDBACK_KEY = 'fokus.feedback.v1';
 export const FEEDBACK_SCHEMA = 1;
 
@@ -160,5 +162,8 @@ export function exportFeedbackPlain(store: FeedbackStore): string {
 }
 
 export function feedbackPrivacyBlurb(): string {
-  return 'Обратная связь и счётчики хранятся только на этом устройстве. Нет пикселей, нет сторонних аналитик, отправки нет — пока вы сами не скопируете или не экспортируете текст.';
+  return L(
+    'Обратная связь и счётчики хранятся только на этом устройстве. Нет пикселей, нет сторонних аналитик, отправки нет — пока вы сами не скопируете или не экспортируете текст.',
+    'Feedback and counters are stored strictly on this device. No trackers, no third-party analytics, no network calls — unless you choose to copy or export the text.'
+  );
 }
