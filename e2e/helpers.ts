@@ -30,7 +30,13 @@ export async function tick(page: Page, ms: number) {
 export async function onboard(page: Page, name = 'Тест') {
   for (let i = 0; i < 4; i++) {
     if (await page.locator('[data-session-phase]').count()) break;
-    if (await page.locator('#onboard-name').count()) await page.fill('#onboard-name', name);
+    if (await page.locator('#onboard-name').count()) {
+      await page.fill('#onboard-name', name);
+      const next = page.locator('#btn-next');
+      if (await next.count()) await next.click();
+      await tick(page, 500);
+      break;
+    }
     const next = page.locator('#btn-next');
     if (!(await next.count())) break;
     await next.click();

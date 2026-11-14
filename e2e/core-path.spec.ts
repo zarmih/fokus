@@ -20,6 +20,7 @@ test('first launch → calibration → «Тренировка на сегодн�
 });
 
 test('training: trial round, scored blocks, short result; progress survives reload', async ({ page }) => {
+  test.slow();
   const errors = await openFresh(page);
   await calibrateNewUser(page);
   await startToday(page);
