@@ -1,14 +1,16 @@
-import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi, afterEach } from 'vitest';
 import { storage } from '../src/core/storage';
 import { planToday, resolveDailyBudget, PRIMARY_CTA } from '../src/core/daily-plan';
 import { CORE_EXERCISES, CORE_EXERCISE_IDS, CORE_PROGRAM_DAYS, isCoreExercise, nonCoreExclusions } from '../src/core/core-catalog';
-import { targetBlockCount } from '../src/core/engine/scheduler';
+import { targetBlockCount, NEW_EXERCISE_REASON, SLOT_REASON } from '../src/core/engine';
 import { recordEngineObservation, markEngineCalibrated } from '../src/core/adaptive-plan';
 import { registry } from '../src/exercises/registry';
 import { renderToday } from '../src/ui/screens/today';
 import { renderProgram } from '../src/ui/screens/program';
 import { buildFirstWeekPlan } from '../src/core/onboarding';
 import { domainLabel } from '../src/core/labels';
+import { setLocale } from '../src/core/i18n';
+import { planReasonText } from '../src/core/plan-copy';
 
 class MockStorage {
   data: Record<string, string> = {};
@@ -50,6 +52,10 @@ beforeEach(() => {
   (storage as any).backend = new MockStorage();
   storage.reset();
   document.body.innerHTML = '<div id="app"></div>';
+});
+
+afterEach(() => {
+  setLocale('ru');
 });
 
 describe('core catalog', () => {
@@ -120,6 +126,37 @@ describe('planToday', () => {
       recordDay(plan.items, now, d + 1);
     }
     expect([...seen].sort()).toEqual(['attention', 'flexibility', 'logic', 'memory', 'speed']);
+  });
+
+  test('never-played exercises are not given interval elapsed reason; overdue exercises are', () => {
+    calibratedUser(300);
+    const plan = planToday();
+    expect(plan.items.length).toBeGreaterThan(0);
+    // Never-played exercise placed in overdue slot must not get the interval elapsed reason
+    expect(plan.items[0].reason).not.toBe(SLOT_REASON.overdue);
+    expect(plan.items[0].reason).toBe(NEW_EXERCISE_REASON);
+    expect(plan.items.every((it) => it.reason !== SLOT_REASON.overdue)).toBe(true);
+
+    // In English
+    setLocale('en');
+    expect(planReasonText(plan.items[0].reason)).toBe('New exercise — first try');
+    expect(planReasonText(plan.items[0].reason)).not.toBe('Interval is up — time to review');
+    setLocale('ru');
+
+    // User played playedId 2 days ago, and another exercise yesterday (maintaining streak, no gap)
+    const now = Date.now();
+    const playedId = plan.items[0].exerciseId;
+    recordDay([{ exerciseId: playedId }], now - 2 * DAY, 1);
+    recordDay([{ exerciseId: 'grid-memory' }], now - 1 * DAY, 2);
+
+    const nextPlan = planToday({ nowMs: now });
+    const overdueItem = nextPlan.items.find((it) => it.exerciseId === playedId);
+    expect(overdueItem).toBeDefined();
+    expect(overdueItem?.reason).toBe(SLOT_REASON.overdue);
+
+    setLocale('en');
+    expect(planReasonText(overdueItem?.reason)).toBe('Interval is up — time to review');
+    setLocale('ru');
   });
 });
 

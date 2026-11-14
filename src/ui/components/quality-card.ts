@@ -1,6 +1,7 @@
 import type { RecoverySnapshot } from '../../core/recovery';
 import { loadLabel, recoveryConfidenceLabel } from '../../core/recovery';
 import { QUALITY_WEIGHTS, qualityBand, qualityComponentLabel, type QualityComponent } from '../../core/sessionQuality';
+import { L } from '../../core/i18n';
 
 function sparkline(values: number[], w = 132, h = 36): string {
   if (values.length < 2) return '';
@@ -28,9 +29,9 @@ export function renderQualityCard(snapshot: RecoverySnapshot, opts?: { detailed?
   if (!last && snapshot.qualities.length === 0) {
     if (!opts?.detailed) return '';
     return `
-      <section class="quality-card tone-steady" role="region" aria-label="Качество ритуала. Накапливаем данные.">
-        <div class="quality-kicker">Качество ритуала</div>
-        <p class="quality-hint">Здесь будет оценка фокуса и чистоты прохождения. Фокус начнёт собирать её после вашей первой полной сессии.</p>
+      <section class="quality-card tone-steady" role="region" aria-label="${L('Качество ритуала. Накапливаем данные.', 'Ritual quality. Gathering data.')}">
+        <div class="quality-kicker">${L('Качество ритуала', 'Ritual quality')}</div>
+        <p class="quality-hint">${L('Здесь будет оценка фокуса и чистоты прохождения. Фокус начнёт собирать её после вашей первой полной сессии.', 'Focus and execution quality will appear here after your first complete session.')}</p>
       </section>
     `;
   }
@@ -39,10 +40,16 @@ export function renderQualityCard(snapshot: RecoverySnapshot, opts?: { detailed?
   const score = last ? last.score : 0;
   const delta = snapshot.qualityDelta;
   const deltaText =
-    delta === null ? 'первая оценка' : delta > 0 ? `+${Math.round(delta)} к прошлой` : delta < 0 ? `${Math.round(delta)} к прошлой` : 'как в прошлый раз';
+    delta === null
+      ? L('первая оценка', 'first score')
+      : delta > 0
+        ? L(`+${Math.round(delta)} к прошлой`, `+${Math.round(delta)} vs previous`)
+        : delta < 0
+          ? L(`${Math.round(delta)} к прошлой`, `${Math.round(delta)} vs previous`)
+          : L('как в прошлый раз', 'same as last time');
   const tone = snapshot.recommendation;
   const aria = last
-    ? `Качество последнего ритуала ${score} из 100, ${qualityBand(score)}. ${snapshot.hint.body}`
+    ? L(`Качество последнего ритуала ${score} из 100, ${qualityBand(score)}. ${snapshot.hint.body}`, `Last ritual quality: ${score} of 100, ${qualityBand(score)}. ${snapshot.hint.body}`)
     : snapshot.hint.body;
 
   const breakdown = opts?.detailed && last
@@ -58,24 +65,24 @@ export function renderQualityCard(snapshot: RecoverySnapshot, opts?: { detailed?
             <div class="scale-track quality-track" aria-hidden="true">
               <div class="scale-fill" style="width:${value}%"></div>
             </div>
-            <div class="quality-weight">вес ${w}%</div>
+            <div class="quality-weight">${L(`вес ${w}%`, `weight ${w}%`)}</div>
           </li>`;
         }).join('')}
       </ol>
-      <p class="quality-note">Это оценка того, как прошёл ритуал, а не способностей и не «балла мозга».</p>`
+      <p class="quality-note">${L('Это оценка того, как прошёл ритуал, а не способностей и не «балла мозга».', 'This is an evaluation of the session flow, not ability or "brain score".')}</p>`
     : '';
 
   const loadLine = snapshot.qualities.length
-    ? `<div class="quality-load">Нагрузка ${loadLabel(snapshot.loadEwma)} · ${recoveryConfidenceLabel(snapshot.confidence)}</div>`
+    ? `<div class="quality-load">${L(`Нагрузка ${loadLabel(snapshot.loadEwma)} · ${recoveryConfidenceLabel(snapshot.confidence)}`, `Load: ${loadLabel(snapshot.loadEwma)} · ${recoveryConfidenceLabel(snapshot.confidence)}`)}</div>`
     : '';
 
   return `
     <section class="quality-card tone-${tone}" role="region" aria-label="${aria}">
       <div class="quality-head">
         <div>
-          <div class="quality-kicker">Качество ритуала</div>
+          <div class="quality-kicker">${L('Качество ритуала', 'Ritual quality')}</div>
           <div class="quality-value">${last ? score : '—'}</div>
-          <div class="quality-meta">${last ? `${qualityBand(score)} · ${deltaText}` : 'появится после сессии'}</div>
+          <div class="quality-meta">${last ? `${qualityBand(score)} · ${deltaText}` : L('появится после сессии', 'appears after session')}</div>
         </div>
         ${sparkline(points)}
       </div>

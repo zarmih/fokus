@@ -30,7 +30,17 @@ export const EXERCISE_COPY_EN: Record<string, { name: string; instruction: strin
 type Named = { id: string; name: string; instruction: string };
 
 export function exerciseName(m: Named): string {
-  return getLocale() === 'en' ? EXERCISE_COPY_EN[m.id]?.name || m.name : m.name;
+  if (getLocale() === 'en') {
+    if (EXERCISE_COPY_EN[m.id]?.name) return EXERCISE_COPY_EN[m.id].name;
+    if (/[А-Яа-яЁё]/.test(m.name)) {
+      return m.id
+        .split('-')
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+    }
+    return m.name;
+  }
+  return m.name;
 }
 
 export function exerciseInstruction(m: Named): string {

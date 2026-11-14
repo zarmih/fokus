@@ -11,6 +11,7 @@ import {
   type SessionQuality
 } from './sessionQuality';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
+import { L } from './i18n';
 
 export type RecoveryRecommendation = 'rest-light' | 'steady' | 'push-hard';
 
@@ -249,10 +250,10 @@ function hintFor(
 ): RecoveryHint {
   if (ctx.sample < 2) {
     return {
-      title: L('Пока мало данных', 'Few data points yet'),
+      title: L('Пока мало данных', 'Sparse data yet'),
       body: L(
         'Качество сессии появится после нескольких ритуалов. Это не балл способностей, а то, насколько чисто прошёл подход.',
-        'Session quality appears after several rituals. It is not an ability score, but how cleanly the session went.'
+        'Session quality appears after several rituals. It reflects how cleanly the session went, not your inherent ability.'
       ),
       tone: 'steady'
     };
@@ -263,7 +264,7 @@ function hintFor(
         title: L('Сегодня короче', 'Shorter today'),
         body: L(
           'Последние ритуалы были плотными, а качество просело. Пять минут в другой области сохранят форму лучше, чем ещё один длинный заход.',
-          'Recent sessions were intense and quality dipped. Five minutes in a different area preserves form better than another long run.'
+          'Recent rituals were dense and quality dipped. Five minutes in another domain will maintain form better than a long grind.'
         ),
         tone: 'rest-light'
       };
@@ -272,26 +273,26 @@ function hintFor(
       title: L('Сегодня короче', 'Shorter today'),
       body: L(
         'Нагрузка за последние дни высокая. Короткий ритуал — нормальный выбор, не откат.',
-        'Recent load has been high. A short session is a healthy choice, not a setback.'
+        'Load over recent days has been high. A shorter ritual is a healthy choice, not a setback.'
       ),
       tone: 'rest-light'
     };
   }
   if (rec === 'push-hard') {
     return {
-      title: L('Можно чуть сложнее', 'Can challenge more'),
+      title: L('Можно чуть сложнее', 'Ready to challenge'),
       body: L(
         'Качество ритуалов ровное, запас по нагрузке есть. Сегодня можно оставить вашу обычную длительность.',
-        'Session quality is steady with room for load. Today you can keep your normal duration.'
+        'Ritual quality is steady with load capacity available. Today you can maintain standard duration.'
       ),
       tone: 'push-hard'
     };
   }
   return {
-    title: L('Держать ритм', 'Maintain rhythm'),
+    title: L('Держать ритм', 'Keep the rhythm'),
     body: L(
       'Нагрузка и качество в норме. Обычный ритуал — лучший следующий шаг.',
-      'Load and quality are in a good balance. A normal session is your best next step.'
+      'Load and quality are well-balanced. A standard ritual is your best next step.'
     ),
     tone: 'steady'
   };
@@ -408,15 +409,15 @@ export function planWithRecovery(params: {
 }
 
 export function recoveryConfidenceLabel(c: RecoverySnapshot['confidence']): string {
-  if (c === 'high') return 'уверенная оценка';
-  if (c === 'medium') return 'набираем данные';
-  return 'мало наблюдений';
+  if (c === 'high') return L('уверенная оценка', 'high confidence');
+  if (c === 'medium') return L('набираем данные', 'gathering data');
+  return L('мало наблюдений', 'few observations');
 }
 
 export function loadLabel(load: number): string {
-  if (load >= 70) return 'высокая';
-  if (load >= 45) return 'средняя';
-  return 'спокойная';
+  if (load >= 70) return L('высокая', 'high');
+  if (load >= 45) return L('средняя', 'moderate');
+  return L('спокойная', 'light');
 }
 
 export function meanQuality(qualities: ScoredSession[]): number {

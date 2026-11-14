@@ -4,6 +4,7 @@ import type { DaySummary, DomainIndex } from './types';
 import { computeFokusIndex } from './fokus-index';
 import { DOMAIN_ORDER, domainLabel } from './labels';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone, PREFERRED_TIME_ZONE } from './streak';
+import { L } from './i18n';
 
 export const HISTORY_WINDOWS = [14, 30] as const;
 export type HistoryWindow = (typeof HISTORY_WINDOWS)[number];
@@ -224,10 +225,10 @@ export function reconstructDomainSnapshots(
 }
 
 function windowDeltaLabel(delta: number | null, window: HistoryWindow, samples: number): string {
-  if (delta === null || samples < 3) return 'мало данных';
-  if (Math.abs(delta) <= 8) return `на уровне ${window} дней`;
-  if (delta > 0) return `+${delta} за ${window} дней`;
-  return `${delta} за ${window} дней`;
+  if (delta === null || samples < 3) return L('мало данных', 'sparse data');
+  if (Math.abs(delta) <= 8) return L(`на уровне ${window} дней`, `level over ${window} days`);
+  if (delta > 0) return L(`+${delta} за ${window} дней`, `+${delta} over ${window} days`);
+  return L(`${delta} за ${window} дней`, `${delta} over ${window} days`);
 }
 
 export function buildSparkline(days: IndexDay[], window: HistoryWindow): SparklineModel {

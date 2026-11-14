@@ -1,6 +1,7 @@
 import { DOMAIN_COLORS, domainLabel } from '../../core/labels';
 import type { DomainSlice } from '../../core/fokus-index';
 import type { SparklineModel, SparkPoint } from '../../core/coach-intel';
+import { L } from '../../core/i18n';
 
 export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; max?: number }): string {
   const size = opts?.size ?? 280;
@@ -46,8 +47,9 @@ export function renderRadarChart(slices: DomainSlice[], opts?: { size?: number; 
     return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="var(--muted)" font-size="11" font-weight="${s.ready ? '600' : '400'}" opacity="${s.ready ? '1' : '0.6'}">${domainLabel(s.id)}</text>`;
   }).join('');
 
+  const radarAria = `${L('Профиль навыков:', 'Skill profile:')} ${slices.map((s) => `${domainLabel(s.id)} ${s.ready ? Math.round(s.value) : L('нет данных', 'no data')}`).join(', ')}`;
   return `
-    <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="Профиль навыков: ${slices.map((s) => `${domainLabel(s.id)} ${s.ready ? Math.round(s.value) : 'нет данных'}`).join(', ')}">
+    <svg class="radar-svg" viewBox="0 0 ${view} ${view}" role="img" aria-label="${radarAria}">
       ${rings}
       ${axes}
       ${hasData ? `<polygon points="${valuePts}" fill="var(--accent-glow)" stroke="var(--accent)" stroke-width="2" opacity="0.8"/>` : `<polygon points="${valuePts}" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 4" opacity="0.5"/>`}
@@ -110,7 +112,10 @@ export function renderIndexSparkline(
     })
     .join('');
 
-  const label = `Fokus Index за ${model.window} дней${model.deltaLabel ? ' · ' + model.deltaLabel : ''}`;
+  const label = L(
+    `Fokus Index за ${model.window} дней${model.deltaLabel ? ' · ' + model.deltaLabel : ''}`,
+    `Fokus Index over ${model.window} days${model.deltaLabel ? ' · ' + model.deltaLabel : ''}`
+  );
 
   return `
     <svg class="intel-spark" viewBox="0 0 ${width} ${height}" role="img" aria-label="${label}" preserveAspectRatio="none">
@@ -121,7 +126,7 @@ export function renderIndexSparkline(
 }
 
 export function renderScatterPlot(data: {x: number, y: number}[], xLabel: string, yLabel: string): string {
-  if (data.length === 0) return `<div style="text-align:center;color:var(--muted);padding:20px;">Нет данных</div>`;
+  if (data.length === 0) return `<div style="text-align:center;color:var(--muted);padding:20px;">${L('Нет данных', 'No data')}</div>`;
   
   const width = 300;
   const height = 150;
@@ -142,15 +147,19 @@ export function renderScatterPlot(data: {x: number, y: number}[], xLabel: string
     return `<circle cx="${cx}" cy="${cy}" r="4" fill="var(--accent)" opacity="0.8" />`;
   }).join('');
 
+  const scatterAria = L(
+    `Диаграмма рассеяния: зависимость результата от сна. По оси X: ${xLabel}, по оси Y: ${yLabel}`,
+    `Scatter plot: sleep vs. performance. X-axis: ${xLabel}, Y-axis: ${yLabel}`
+  );
   return `
-    <svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;overflow:visible;" role="img" aria-label="Диаграмма рассеяния: зависимость результата от сна. По оси X: ${xLabel}, по оси Y: ${yLabel}">
-      <!-- Оси -->
+    <svg viewBox="0 0 ${width} ${height}" style="width:100%;height:auto;overflow:visible;" role="img" aria-label="${scatterAria}">
+      <!-- Axes -->
       <line x1="${padX}" y1="${height-padY}" x2="${width}" y2="${height-padY}" stroke="var(--line)" stroke-width="1" />
       <line x1="${padX}" y1="0" x2="${padX}" y2="${height-padY}" stroke="var(--line)" stroke-width="1" />
-      <!-- Подписи осей -->
+      <!-- Axis labels -->
       <text x="${width/2}" y="${height}" text-anchor="middle" fill="var(--muted)" font-size="10">${xLabel}</text>
       <text x="10" y="${height/2}" text-anchor="middle" transform="rotate(-90 10 ${height/2})" fill="var(--muted)" font-size="10">${yLabel}</text>
-      <!-- Точки данных -->
+      <!-- Data points -->
       ${points}
     </svg>
   `;

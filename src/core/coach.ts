@@ -10,6 +10,7 @@ import type { ContinuitySnapshot } from './continuity';
 import type { TodayRitual } from './onboarding';
 import type { RetentionSnapshot } from './retention';
 import { fokusWallHour } from './streak';
+import { L } from './i18n';
 
 export function getQuietCoachTip(params: {
   continuity: ContinuitySnapshot;
@@ -127,7 +128,11 @@ export function analyzeChronotype(sessions: Session[]): {
 
   if (ranked.length < 2) return { bucket: null, label: '', labelEn: '', sample: 0 };
 
-  const labels = { morning: 'утром', afternoon: 'днём', evening: 'вечером' };
+  const labels = {
+    morning: L('утром', 'in the morning'),
+    afternoon: L('днём', 'in the afternoon'),
+    evening: L('вечером', 'in the evening')
+  };
   const labelsEn = { morning: 'in the morning', afternoon: 'in the afternoon', evening: 'in the evening' };
   return {
     bucket: ranked[0].bucket,

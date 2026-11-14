@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { setLocale } from '../src/core/i18n';
 import { budgetReason, explainComposition, primaryCta, type BudgetSource } from '../src/core/daily-plan';
 import { planReasonText, slotLabelText } from '../src/core/plan-copy';
-import { SLOT_LABEL, SLOT_REASON } from '../src/core/engine';
+import { SLOT_LABEL, SLOT_REASON, NEW_EXERCISE_REASON } from '../src/core/engine';
 import { summarizeSession } from '../src/core/session-summary';
 import { exerciseName, exerciseInstruction } from '../src/core/exercise-copy';
 import { registry } from '../src/exercises/manifest-registry';
@@ -36,11 +36,13 @@ describe('English copy on the main path', () => {
     setLocale('en');
     const reasons = [
       ...Object.values(SLOT_REASON),
+      NEW_EXERCISE_REASON,
       'Смена контекста для прорыва', 'Ваша цель: день 3 (сбор данных)', 'Неделя 2: цель и отстающий навык',
       'Неделя 1: работа над целью', 'Фокус 2-й недели', 'Фокус недели', 'Сбор данных для адаптации', 'День 4: акцент на отстающий навык'
     ];
     for (const r of reasons) expect(planReasonText(r)).not.toMatch(CYR);
     expect(planReasonText('День 4: акцент на отстающий навык')).toBe('Day 4: focus on the weakest skill');
+    expect(planReasonText(NEW_EXERCISE_REASON)).toBe('New exercise — first try');
     for (const l of Object.values(SLOT_LABEL)) expect(slotLabelText(l)).not.toMatch(CYR);
     expect(planReasonText('незнакомая причина')).toBe('Picked for your plan');
   });
