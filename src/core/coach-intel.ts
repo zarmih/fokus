@@ -4,7 +4,6 @@ import type { DaySummary, DomainIndex } from './types';
 import { computeFokusIndex } from './fokus-index';
 import { DOMAIN_ORDER, domainLabel } from './labels';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone, PREFERRED_TIME_ZONE } from './streak';
-import { L } from './i18n';
 
 export const HISTORY_WINDOWS = [14, 30] as const;
 export type HistoryWindow = (typeof HISTORY_WINDOWS)[number];

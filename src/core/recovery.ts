@@ -11,7 +11,6 @@ import {
   type SessionQuality
 } from './sessionQuality';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
-import { L } from './i18n';
 
 export type RecoveryRecommendation = 'rest-light' | 'steady' | 'push-hard';
 
