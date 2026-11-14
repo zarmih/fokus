@@ -574,17 +574,17 @@ export function emptyPlanCopy(kind: 'no_history' | 'no_plan' | 'offline' | 'sear
     return {
       kicker: L('Офлайн', 'Offline'),
       title: L('Нет подключения', 'No connection'),
-      body: L('План на устройстве сохранён. Когда сеть вернётся — продолжим без наверстывания.', 'The plan is saved on your device. When the network returns, we will continue without catching up.'),
-      cta: L('Проверить сеть', 'Check network'),
+      body: L('План на устройстве сохранён. Когда сеть вернётся — продолжим без наверстывания.', 'Plan is saved on this device. When connection returns, we will continue without rush.'),
+      cta: L('Проверить сеть', 'Check connection'),
       tone: 'recovery'
     };
   }
   if (kind === 'no_plan') {
     return {
       kicker: L('Отдых', 'Rest'),
-      title: L('На сегодня всё', 'Done for today'),
-      body: L('Сейчас нет подходящего набора блоков. Это не штраф — можно вернуться к короткому ритуалу позже.', 'No suitable blocks right now. This is not a penalty — you can return to a short ritual later.'),
-      cta: L('К плану дня', 'To daily plan'),
+      title: L('На сегодня всё', 'All set for today'),
+      body: L('Сейчас нет подходящего набора блоков. Это не штраф — можно вернуться к короткому ритуалу позже.', 'No suitable set of blocks right now. Take a break and return later.'),
+      cta: L('К плану дня', "To today's plan"),
       tone: 'habit'
     };
   }
@@ -592,16 +592,16 @@ export function emptyPlanCopy(kind: 'no_history' | 'no_plan' | 'offline' | 'sear
     return {
       kicker: L('Каталог', 'Catalog'),
       title: L('Ничего не найдено', 'Nothing found'),
-      body: L('По запросу нет упражнений. Сбросьте поиск или откройте другой раздел — знакомые блоки никуда не делись.', 'No exercises match your query. Clear search or open another section — familiar blocks are still here.'),
-      cta: L('Сбросить поиск', 'Clear search'),
+      body: L('По запросу нет упражнений. Сбросьте поиск или откройте другой раздел — знакомые блоки никуда не делись.', 'No exercises found. Reset search or open another section.'),
+      cta: L('Сбросить поиск', 'Reset search'),
       tone: 'science'
     };
   }
   return {
-    kicker: L('Статистика', 'Statistics'),
+    kicker: L('Статистика', 'Progress'),
     title: L('Пока нет истории', 'No history yet'),
-    body: L('После первой тренировки здесь появится честная картина ритма — без приблизительных баллов.', 'After your first workout, an honest picture of your rhythm will appear here — without approximations.'),
-    cta: L('К плану дня', 'To daily plan'),
+    body: L('После первой тренировки здесь появится честная картина ритма — без приблизительных баллов.', 'After your first session, an honest picture of your rhythm will appear here — without artificial scores.'),
+    cta: L('К плану дня', "To today's plan"),
     tone: 'start'
   };
 }

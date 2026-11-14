@@ -245,6 +245,10 @@ export function normsDisclaimerRu(): string {
   return 'Только по вашей истории на этом устройстве — без сравнения с другими людьми.';
 }
 
+export function normsDisclaimerEn(): string {
+  return 'Based strictly on your history on this device — no comparison to others.';
+}
+
 /** Quiet Settings blurb: what «личные нормы» are (and are not). Reuses disclaimer + sample floor. */
 export function settingsNormsHelpTitleRu(): string {
   return 'Личные нормы';

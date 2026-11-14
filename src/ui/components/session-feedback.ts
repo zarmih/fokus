@@ -9,6 +9,7 @@ import {
   submitSessionFeedback,
   type SessionFeel
 } from '../../core/session-feedback';
+import { L, getLocale } from '../../core/i18n';
 
 const FEELS: { id: SessionFeel; emoji: string; label: string }[] = [
   { id: 'up', emoji: '👍', label: 'Легко' },
@@ -101,28 +102,51 @@ export function mountSessionFeedback(
   });
 }
 
+function summaryEn(up: number, neutral: number, down: number, days: number): string {
+  const total = up + neutral + down;
+  if (total === 0) {
+    return `No ratings over ${days} days yet — after sessions you can quickly note how it felt.`;
+  }
+  const parts: string[] = [];
+  if (down > 0) parts.push(`challenging ${down}`);
+  if (up > 0) parts.push(`easy ${up}`);
+  if (neutral > 0) parts.push(`neutral ${neutral}`);
+  let lead: string;
+  if (down > up && down >= neutral) {
+    lead = 'Felt mostly challenging.';
+  } else if (up > down && up >= neutral) {
+    lead = 'Felt mostly easy.';
+  } else if (neutral >= up && neutral >= down) {
+    lead = 'Mostly steady, without extremes.';
+  } else {
+    lead = 'Mixed feelings.';
+  }
+  return `${lead} In ${days}d: ${parts.join(' · ')} (total ${total}).`;
+}
+
 /** Progress: 7-day aggregate card (honest empty state). */
 export function renderSessionFeelAggregateHtml(days = 7): string {
+  const isEn = getLocale() === 'en';
   const agg = aggregateSessionFeel(loadSessionFeedback(), days);
+  const summary = isEn ? summaryEn(agg.up, agg.neutral, agg.down, agg.days) : agg.summaryRu;
   const body = agg.empty
     ? `<div class="empty-state" style="padding: 20px 16px; text-align: center; border-radius: 12px; background: var(--fill-subtle);">
          <p style="color: var(--muted); margin: 0; font-size: 13px; line-height: 1.5;">
-           Пока нет отметок за ${days} дней.<br>
-           После сессии можно нажать 👍 / 😐 / 👎 — здесь появится, что чаще ощущалось сложно или легко.
+           ${L(`Пока нет отметок за ${days} дней.<br>После сессии можно нажать 👍 / 😐 / 👎 — здесь появится, что чаще ощущалось сложно или легко.`, `No ratings for ${days} days yet.<br>After a session you can rate 👍 / 😐 / 👎 — a summary will appear here showing what felt easy or challenging.`)}
          </p>
        </div>`
-    : `<p style="margin: 0; font-size: 14px; line-height: 1.45;">${escapeHtml(agg.summaryRu)}</p>
+    : `<p style="margin: 0; font-size: 14px; line-height: 1.45;">${escapeHtml(summary)}</p>
        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; font-size:13px;">
-         <span title="Легко">👍 ${agg.up}</span>
-         <span title="Нормально">😐 ${agg.neutral}</span>
-         <span title="Сложно">👎 ${agg.down}</span>
+         <span title="${L('Легко', 'Easy')}">👍 ${agg.up}</span>
+         <span title="${L('Нормально', 'Normal')}">😐 ${agg.neutral}</span>
+         <span title="${L('Сложно', 'Challenging')}">👎 ${agg.down}</span>
        </div>`;
 
   return `
-    <div class="surface session-feel-aggregate" data-session-feel-agg="1" style="margin-bottom: 24px;" role="region" aria-label="Ощущения за неделю">
-      <h3 style="margin-bottom: 8px;">Что ощущалось сложно / легко</h3>
+    <div class="surface session-feel-aggregate" data-session-feel-agg="1" style="margin-bottom: 24px;" role="region" aria-label="${L('Ощущения за неделю', 'Weekly session feel')}">
+      <h3 style="margin-bottom: 8px;">${L('Что ощущалось сложно / легко', 'What felt challenging / easy')}</h3>
       <p style="font-size: 12px; color: var(--muted); margin: 0 0 12px; line-height: 1.4;">
-        Сводка ваших отметок после сессий за ${days} дней. Только на устройстве, без сравнений с другими.
+        ${L(`Сводка ваших отметок после сессий за ${days} дней. Только на устройстве, без сравнений с другими.`, `Summary of your post-session ratings over ${days} days. Stored locally only, never compared to others.`)}
       </p>
       ${body}
     </div>

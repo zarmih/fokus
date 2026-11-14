@@ -1,4 +1,5 @@
 import type { Session, SessionItem } from './types';
+import { L, getLocale } from './i18n';
 
 /** Transparent weights. Sum = 1. This is ritual process quality, not an ability index. */
 export const QUALITY_WEIGHTS = {
@@ -52,8 +53,16 @@ const COMPONENT_LABELS_RU: Record<QualityComponent, string> = {
   interruptions: 'Без обрывов'
 };
 
+const COMPONENT_LABELS_EN: Record<QualityComponent, string> = {
+  accuracy: 'Accuracy',
+  rtStability: 'Reaction stability',
+  difficulty: 'Difficulty fit',
+  completion: 'Completion',
+  interruptions: 'Unbroken'
+};
+
 export function qualityComponentLabel(key: QualityComponent): string {
-  return COMPONENT_LABELS_RU[key];
+  return getLocale() === 'en' ? COMPONENT_LABELS_EN[key] : COMPONENT_LABELS_RU[key];
 }
 
 export function clamp(n: number, min: number, max: number): number {
@@ -254,10 +263,10 @@ export function scoreSessions(sessions: Session[]): ScoredSession[] {
 }
 
 export function qualityBand(score: number): string {
-  if (score >= 80) return 'чистый ритуал';
-  if (score >= 65) return 'ровно';
-  if (score >= 50) return 'с просадками';
-  return 'рваный ритуал';
+  if (score >= 80) return L('чистый ритуал', 'clean ritual');
+  if (score >= 65) return L('ровно', 'steady');
+  if (score >= 50) return L('с просадками', 'uneven');
+  return L('рваный ритуал', 'rough ritual');
 }
 
 function round1(n: number): number {

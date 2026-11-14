@@ -37,6 +37,7 @@ export {
   slotMix,
   SLOT_LABEL,
   SLOT_REASON,
+  NEW_EXERCISE_REASON,
   targetBlockCount
 } from './scheduler';
 export {

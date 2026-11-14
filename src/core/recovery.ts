@@ -10,6 +10,7 @@ import {
   type SessionQuality
 } from './sessionQuality';
 import { addCalendarDays, calendarDayKey, resolveFokusTimeZone } from './streak';
+import { L } from './i18n';
 
 export type RecoveryRecommendation = 'rest-light' | 'steady' | 'push-hard';
 
@@ -248,35 +249,50 @@ function hintFor(
 ): RecoveryHint {
   if (ctx.sample < 2) {
     return {
-      title: 'Пока мало данных',
-      body: 'Качество сессии появится после нескольких ритуалов. Это не балл способностей, а то, насколько чисто прошёл подход.',
+      title: L('Пока мало данных', 'Sparse data yet'),
+      body: L(
+        'Качество сессии появится после нескольких ритуалов. Это не балл способностей, а то, насколько чисто прошёл подход.',
+        'Session quality appears after several rituals. It reflects how cleanly the session went, not your inherent ability.'
+      ),
       tone: 'steady'
     };
   }
   if (rec === 'rest-light') {
     if (ctx.lastScore !== null && ctx.lastScore < 60) {
       return {
-        title: 'Сегодня короче',
-        body: 'Последние ритуалы были плотными, а качество просело. Пять минут в другой области сохранят форму лучше, чем ещё один длинный заход.',
+        title: L('Сегодня короче', 'Shorter today'),
+        body: L(
+          'Последние ритуалы были плотными, а качество просело. Пять минут в другой области сохранят форму лучше, чем ещё один длинный заход.',
+          'Recent rituals were dense and quality dipped. Five minutes in another domain will maintain form better than a long grind.'
+        ),
         tone: 'rest-light'
       };
     }
     return {
-      title: 'Сегодня короче',
-      body: 'Нагрузка за последние дни высокая. Короткий ритуал — нормальный выбор, не откат.',
+      title: L('Сегодня короче', 'Shorter today'),
+      body: L(
+        'Нагрузка за последние дни высокая. Короткий ритуал — нормальный выбор, не откат.',
+        'Load over recent days has been high. A shorter ritual is a healthy choice, not a setback.'
+      ),
       tone: 'rest-light'
     };
   }
   if (rec === 'push-hard') {
     return {
-      title: 'Можно чуть сложнее',
-      body: 'Качество ритуалов ровное, запас по нагрузке есть. Сегодня можно оставить вашу обычную длительность.',
+      title: L('Можно чуть сложнее', 'Ready to challenge'),
+      body: L(
+        'Качество ритуалов ровное, запас по нагрузке есть. Сегодня можно оставить вашу обычную длительность.',
+        'Ritual quality is steady with load capacity available. Today you can maintain standard duration.'
+      ),
       tone: 'push-hard'
     };
   }
   return {
-    title: 'Держать ритм',
-    body: 'Нагрузка и качество в норме. Обычный ритуал — лучший следующий шаг.',
+    title: L('Держать ритм', 'Keep the rhythm'),
+    body: L(
+      'Нагрузка и качество в норме. Обычный ритуал — лучший следующий шаг.',
+      'Load and quality are well-balanced. A standard ritual is your best next step.'
+    ),
     tone: 'steady'
   };
 }
@@ -392,15 +408,15 @@ export function planWithRecovery(params: {
 }
 
 export function recoveryConfidenceLabel(c: RecoverySnapshot['confidence']): string {
-  if (c === 'high') return 'уверенная оценка';
-  if (c === 'medium') return 'набираем данные';
-  return 'мало наблюдений';
+  if (c === 'high') return L('уверенная оценка', 'high confidence');
+  if (c === 'medium') return L('набираем данные', 'gathering data');
+  return L('мало наблюдений', 'few observations');
 }
 
 export function loadLabel(load: number): string {
-  if (load >= 70) return 'высокая';
-  if (load >= 45) return 'средняя';
-  return 'спокойная';
+  if (load >= 70) return L('высокая', 'high');
+  if (load >= 45) return L('средняя', 'moderate');
+  return L('спокойная', 'light');
 }
 
 export function meanQuality(qualities: ScoredSession[]): number {

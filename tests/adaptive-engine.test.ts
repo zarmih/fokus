@@ -19,7 +19,9 @@ import {
   slotMix,
   targetBlockCount,
   targetSuccessProb,
-  twoPl
+  twoPl,
+  NEW_EXERCISE_REASON,
+  SLOT_REASON
 } from '../src/core/engine';
 import { getSpacing } from '../src/core/engine/scheduler';
 import type { AbilityModel, CatalogItem, Observation } from '../src/core/engine/types';
@@ -362,6 +364,34 @@ describe('ritual composer', () => {
       rng
     });
     expect(plan.items).toHaveLength(0);
+  });
+
+  test('never-played exercise gets new exercise reason instead of overdue interval reason', () => {
+    const unplayedModel = createAbilityModel(NOW);
+    const unplayedPlan = composeRitual({
+      model: unplayedModel,
+      catalog,
+      states: [],
+      durationSec: 300,
+      nowMs: NOW,
+      rng
+    });
+    // First slot is 'overdue' in slotMix(3), but catalog has never been played
+    expect(unplayedPlan.items[0].reason).not.toBe(SLOT_REASON.overdue);
+    expect(unplayedPlan.items[0].reason).toBe(NEW_EXERCISE_REASON);
+
+    const overdueModel = seededModel();
+    const overduePlan = composeRitual({
+      model: overdueModel,
+      catalog,
+      states: [],
+      durationSec: 300,
+      nowMs: NOW,
+      rng
+    });
+    const overdueItem = overduePlan.items.find((it) => it.slot === 'overdue');
+    expect(overdueItem).toBeDefined();
+    expect(overdueItem?.reason).toBe(SLOT_REASON.overdue);
   });
 });
 

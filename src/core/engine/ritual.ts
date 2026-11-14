@@ -2,7 +2,7 @@ import { DOMAIN_IDS } from './constants';
 import { clip } from './math';
 import { confidence01, getDomain } from './ability';
 import { itemInformation, selectDifficulty } from './irt';
-import { classifySlot, getSpacing, slotMix, targetBlockCount, urgency, SLOT_REASON } from './scheduler';
+import { classifySlot, getSpacing, slotMix, targetBlockCount, urgency, SLOT_REASON, NEW_EXERCISE_REASON } from './scheduler';
 import type {
   AbilityModel,
   CatalogItem,
@@ -300,7 +300,8 @@ function scoreCatalog(params: ComposeRitualParams & {
     score += plateau;
 
     let novelty = 0;
-    const isUnplayed = (!state || spacing.repetitions === 0);
+    const isPlayed = Boolean((spacing.lastPlayedAt && spacing.repetitions > 0) || (state?.lastPlayedAt && (state.attempts ?? 0) > 0));
+    const isUnplayed = !isPlayed;
     if (isUnplayed) {
       if (phaseId !== 'orient') novelty = 16;
     } else {
@@ -321,7 +322,8 @@ function scoreCatalog(params: ComposeRitualParams & {
       programWeek,
       programDay,
       weeklyFocusPts,
-      isSparse: isSparse ?? (conf < 0.4)
+      isSparse: isSparse ?? (conf < 0.4),
+      isUnplayed
     });
 
     const trace = `I:${info.toFixed(2)} Urg:${urgency(spacing, nowMs).toFixed(2)} Need:${need.toFixed(2)} Slot:${slotMatch} Goal:${goalPts} WFocus:${weeklyFocusPts} Rot:${rotation.toFixed(0)} Div:${diversity} Rep:${repeat} Plat:${plateau} Nov:${novelty} = ${score.toFixed(1)}`;
@@ -353,8 +355,12 @@ function reasonFor(args: {
   programDay?: number;
   weeklyFocusPts?: number;
   isSparse: boolean;
+  isUnplayed?: boolean;
 }): string {
   if (args.plateau < 0) return 'Смена контекста для прорыва';
+  if (args.isUnplayed && (args.wantedSlot === 'overdue' || args.slot === 'overdue')) {
+    return NEW_EXERCISE_REASON;
+  }
   if (args.wantedSlot === 'overdue' || args.slot === 'overdue') return SLOT_REASON.overdue;
   
   if (args.goalPts > 0 && args.need > 0.6) {

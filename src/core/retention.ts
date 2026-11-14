@@ -110,11 +110,11 @@ export function bandLabel(band: ChurnBand): string {
     case 'stable':
       return L('устойчивый', 'steady');
     case 'watch':
-      return L('стоит присмотреться', 'keep an eye');
+      return L('стоит присмотреться', 'needs attention');
     case 'at_risk':
-      return L('просел', 'declined');
+      return L('просел', 'at risk');
     case 'critical':
-      return L('давно не было сессии', 'no recent sessions');
+      return L('давно не было сессии', 'inactive');
   }
 }
 
@@ -287,14 +287,23 @@ export function describeProgramRetention(
   const playedToday = opts.playedToday ?? false;
   const bandText = bandLabel(snap.band);
   const nudge = snap.primaryNudge;
-  const rhythmLine = L(`Ритм ${snap.rhythm} · ${bandText}`, `Rhythm ${snap.rhythm} · ${bandText}`);
+  const rhythmLine = `${L('Ритм', 'Rhythm')} ${snap.rhythm} · ${bandText}`;
 
   const calmBody =
     snap.confidence < 30
-      ? L('Пока мало данных для точного ритма — одна спокойная сессия сегодня поможет Fokus сориентироваться.', 'Not enough data for an exact rhythm yet — one calm session today helps Fokus calibrate.')
+      ? L(
+          'Пока мало данных для точного ритма — одна спокойная сессия сегодня поможет Fokus сориентироваться.',
+          'Sparse data for exact rhythm — a calm session today will help Fokus calibrate.'
+        )
       : snap.band === 'stable'
-        ? L('Ритм устойчивый. Регулярность важнее объёма — держите привычный блок без гонки.', 'Rhythm is steady. Regularity matters more than volume — keep your usual routine without rushing.')
-        : L('Честный ритм без давления. Fokus подстроит длину и акцент под ваш темп.', 'Honest rhythm without pressure. Fokus adjusts length and focus to your pace.');
+        ? L(
+            'Ритм устойчивый. Регулярность важнее объёма — держите привычный блок без гонки.',
+            'Rhythm is stable. Regularity matters more than volume — maintain your habit without rushing.'
+          )
+        : L(
+            'Честный ритм без давления. Fokus подстроит длину и акцент под ваш темп.',
+            'Honest rhythm without pressure. Fokus adjusts length and focus to your pace.'
+          );
 
   const body = nudge?.body ?? calmBody;
 
@@ -304,7 +313,10 @@ export function describeProgramRetention(
       coachOverride = `${nudge.title}. ${nudge.body}`;
     } else if (nudge && nudge.kind === 'rebalance' && snap.neglectedDomain) {
       const name = domainLabel(snap.neglectedDomain);
-      coachOverride = L(`Акцент на «${name}»: зона давно без нагрузки — план дня возвращает баланс.`, `Focus on "${name}": this area hasn't been trained recently — today's plan restores balance.`);
+      coachOverride = L(
+        `Акцент на «${name}»: зона давно без нагрузки — план дня возвращает баланс.`,
+        `Focus on "${name}": this domain has been quiet — today's plan restores balance.`
+      );
     } else if (playedToday && nudge?.kind === 'rest') {
       coachOverride = nudge.body;
     } else if (playedToday && (nudge?.kind === 'praise_return' || nudge?.kind === 'praise_consistency')) {
@@ -335,7 +347,10 @@ export function describeProgramRetention(
     !!nudge &&
     (nudge.kind === 'resume' || nudge.kind === 'short_session' || nudge.kind === 'protect_streak');
 
-  const aria = L(`Ритм привычки ${snap.rhythm} из 100, состояние: ${bandText}. ${body}`, `Habit rhythm ${snap.rhythm} of 100, status: ${bandText}. ${body}`);
+  const aria = L(
+    `Ритм привычки ${snap.rhythm} из 100, состояние: ${bandText}. ${body}`,
+    `Habit rhythm ${snap.rhythm} of 100, status: ${bandText}. ${body}`
+  );
 
   return {
     rhythm: snap.rhythm,

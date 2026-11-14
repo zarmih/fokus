@@ -14,6 +14,7 @@ const SLOT_LABEL_EN: Record<string, string> = {
 const REASON_PATTERNS: Array<[RegExp, (m: RegExpMatchArray) => string]> = [
   [/^Смена контекста для прорыва$/, () => 'A change of context to break a plateau'],
   [/^Интервал вышел — пора повторить$/, () => 'Interval is up — time to review'],
+  [/^Новое упражнение — знакомство$/, () => 'New exercise — first try'],
   [/^Слот дня — в зоне роста$/, () => 'Daily slot — in your growth zone'],
   [/^Новый стимул — расширяем карту$/, () => 'A fresh stimulus — widening your map'],
   [/^Ваша цель: день (\d+) \(сбор данных\)$/, (m) => `Your goal: day ${m[1]} (collecting data)`],
