@@ -63,8 +63,8 @@ export function quietNormsHintFromSessions(
 
 /** Disclaimer for title/aria — not shown as a second visible sentence. */
 export function quietNormsHintDisclaimerRu(): string {
-  return L(
-    normsDisclaimerRu(),
-    'Based only on your history on this device — no comparison with others.'
-  );
+  if (getLocale() === 'en') {
+    return 'Based only on your history on this device — no comparisons with others.';
+  }
+  return normsDisclaimerRu();
 }

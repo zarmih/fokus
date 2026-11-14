@@ -646,8 +646,8 @@ export function emptyPlanCopy(kind: 'no_history' | 'no_plan' | 'offline' | 'sear
     return {
       kicker: L('Каталог', 'Catalog'),
       title: L('Ничего не найдено', 'Nothing found'),
-      body: L('По запросу нет упражнений. Сбросьте поиск или откройте другой раздел — знакомые блоки никуда не делись.', 'No exercises found. Reset search or open another section.'),
-      cta: L('Сбросить поиск', 'Reset search'),
+      body: L('По запросу нет упражнений. Сбросьте поиск или откройте другой раздел — знакомые блоки никуда не делись.', 'No exercises match your query. Clear search or open another section — familiar blocks are still here.'),
+      cta: L('Сбросить поиск', 'Clear search'),
       tone: 'science'
     };
   }

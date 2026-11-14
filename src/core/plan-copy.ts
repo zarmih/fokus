@@ -23,11 +23,24 @@ const REASON_PATTERNS: Array<[RegExp, (m: RegExpMatchArray) => string]> = [
   [/^Фокус (\d+)-й недели$/, (m) => `Week ${m[1]} focus`],
   [/^Фокус недели$/, () => 'Focus of the week'],
   [/^Сбор данных для адаптации$/, () => 'Collecting data to adapt'],
-  [/^День (\d+): акцент на отстающий навык$/, (m) => `Day ${m[1]}: focus on the weakest skill`]
+  [/^День (\d+): акцент на отстающий навык$/, (m) => `Day ${m[1]}: focus on the weakest skill`],
+  [/^Веха фазы: (.+)$/, (m) => `Phase milestone: ${m[1] === 'Прилив у ворот' ? 'Tide Gate' : m[1] === 'Якорная пара' ? 'Anchor Pair' : m[1]}`],
+  [/^Знакомый блок — плавное возвращение в ритм$/, () => 'Familiar block — smooth return to rhythm'],
+  [/^Знакомое упражнение — плавное включение$/, () => 'Familiar exercise — easy warm-up'],
+  [/^Сохранённый уровень$/, () => 'Saved level'],
+  [/^Другая область — разгрузка$/, () => 'Different domain — recovery'],
+  [/^Зона вызова$/, () => 'Challenge zone'],
+  [/^Мягкий шаг — модель ещё учится$/, () => 'Gentle step — model is still learning'],
+  [/^Снижаем нагрузку: форма ниже базы$/, () => 'Easing load: current form below baseline'],
+  [/^Жёсткий вызов$/, () => 'High challenge'],
+  [/^Закрепление уверенного уровня$/, () => 'Reinforcing confident level']
 ];
 
 export function slotLabelText(label: string): string {
-  return getLocale() === 'en' ? SLOT_LABEL_EN[label] || label : label;
+  if (getLocale() !== 'en') return label;
+  const en = SLOT_LABEL_EN[label];
+  if (en) return en;
+  return /[А-Яа-яЁё]/.test(label) ? 'Slot' : label;
 }
 
 /** Plan reason in the UI language; unknown reasons in English fall back to a neutral line. */

@@ -10,7 +10,6 @@ import type { ContinuitySnapshot } from './continuity';
 import type { TodayRitual } from './onboarding';
 import type { RetentionSnapshot } from './retention';
 import { fokusWallHour } from './streak';
-import { L } from './i18n';
 
 export function getQuietCoachTip(params: {
   continuity: ContinuitySnapshot;
