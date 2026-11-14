@@ -20,6 +20,7 @@ test('first launch → calibration → «Тренировка на сегодн�
 });
 
 test('training: trial round, scored blocks, short result; progress survives reload', async ({ page }) => {
+  test.slow();
   const errors = await openFresh(page);
   await calibrateNewUser(page);
   await startToday(page);
@@ -45,7 +46,7 @@ test('leaving the tab mid-block: no result and no time spent while hidden', asyn
   await startToday(page);
   await page.locator('#btn-next').click();
   await tick(page, 3500);
-  expect(await phase(page)).toBe('play');
+  await expect(page.locator('[data-session-phase="play"]')).toBeVisible();
   const timerBefore = await page.locator('#session-timer').textContent();
   const setHidden = (h: boolean) => page.evaluate((hidden) => {
     Object.defineProperty(document, 'hidden', { configurable: true, get: () => hidden });

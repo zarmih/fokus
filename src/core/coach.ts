@@ -1,6 +1,7 @@
 // AM5: Coach intelligence and retention nudges.
 import type { DomainIndex, SkillIndex, ExerciseState, DaySummary, Session } from './types';
 import { domainLabel } from './labels';
+import { L } from './i18n';
 import { computeFokusIndex } from './fokus-index';
 import { assessRetention, sparkFromRetention } from './retention';
 import { buildCoachIntel } from './coach-intel';
@@ -9,7 +10,6 @@ import type { ContinuitySnapshot } from './continuity';
 import type { TodayRitual } from './onboarding';
 import type { RetentionSnapshot } from './retention';
 import { fokusWallHour } from './streak';
-import { L } from './i18n';
 
 export function getQuietCoachTip(params: {
   continuity: ContinuitySnapshot;
@@ -24,37 +24,37 @@ export function getQuietCoachTip(params: {
 
   if (inFirstWeek) {
     if (continuity.streak.current <= 3) {
-      return 'Первые дни мы калибруем базовую сложность. Ошибаться — нормально.';
+      return L('Первые дни мы калибруем базовую сложность. Ошибаться — нормально.', 'In the first few days, we calibrate baseline difficulty. Making mistakes is normal.');
     }
     return null;
   }
 
   if (continuity.ritual.active) {
-    return 'Паузы защищают от переутомления. Накопленный опыт сохранён, сегодня просто спокойный вход.';
+    return L('Паузы защищают от переутомления. Накопленный опыт сохранён, сегодня просто спокойный вход.', 'Breaks protect against fatigue. Experience is retained; today is just a calm return.');
   }
 
   if (retention.gapDays >= 2 && retention.band !== 'critical') {
-    return 'Пропуски — часть длинной дистанции. Навёрстывать ничего не нужно, достаточно одной сессии в вашем темпе.';
+    return L('Пропуски — часть длинной дистанции. Навёрстывать ничего не нужно, достаточно одной сессии в вашем темпе.', 'Gaps are part of the long run. No need to catch up, one session at your pace is enough.');
   }
 
   if (programPhase === 'balance' && continuity.streak.current > 3) {
-    return 'В фазе баланса мы подтягиваем слабые зоны. Временное снижение точности здесь — сигнал полезной работы.';
+    return L('В фазе баланса мы подтягиваем слабые зоны. Временное снижение точности здесь — сигнал полезной работы.', 'In the balance phase we lift weaker areas. A temporary dip in accuracy is a sign of useful work.');
   }
 
   if (programPhase === 'sustain') {
     const fatigueScore = retention.signals.find(s => s.id === 'session_fatigue')?.score || 0;
     if (fatigueScore >= 50) {
-      return 'В фазе поддержки можно позволить себе более лёгкий темп, если чувствуете усталость.';
+      return L('В фазе поддержки можно позволить себе более лёгкий темп, если чувствуете усталость.', 'In the sustain phase, take a lighter pace if you feel tired.');
     }
-    return 'В фазе поддержки важно просто удерживать плато. Регулярность работает лучше марафонов.';
+    return L('В фазе поддержки важно просто удерживать плато. Регулярность работает лучше марафонов.', 'In the sustain phase, the goal is holding steady. Regularity works better than marathons.');
   }
 
   if (programPhase === 'focus' && continuity.streak.current >= 4) {
-    return 'Прицельная тренировка требует больше ресурса. Если фокус падает, лучше закончить сессию раньше.';
+    return L('Прицельная тренировка требует больше ресурса. Если фокус падает, лучше закончить сессию раньше.', 'Focused training demands more effort. If focus drops, it is better to finish the session early.');
   }
 
   if (retention.band === 'stable' && continuity.streak.current >= 14 && continuity.streak.current % 5 === 0) {
-    return 'Длинная серия даёт запас прочности. Если сегодня нет ресурса на тренировку, один день отдыха её не сломает.';
+    return L('Длинная серия даёт запас прочности. Если сегодня нет ресурса на тренировку, один день отдыха её не сломает.', 'A long streak builds resilience. If you lack energy today, a single rest day won\'t break it.');
   }
 
   return null;

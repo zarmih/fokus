@@ -26,7 +26,13 @@ test('English device: onboarding, calibration, Today and result have no Russian 
   for (let i = 0; i < 5; i++) {
     if (await page.locator('[data-session-phase]').count()) break;
     seen.push(...(await cyrillicIn(page, ['#app'])));
-    if (await page.locator('#onboard-name').count()) await page.fill('#onboard-name', 'Alex');
+    if (await page.locator('#onboard-name').count()) {
+      await page.fill('#onboard-name', 'Alex');
+      const next = page.locator('#btn-next');
+      if (await next.count()) await next.click();
+      await tick(page, 500);
+      break;
+    }
     const next = page.locator('#btn-next');
     if (!(await next.count())) break;
     await next.click();

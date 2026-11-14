@@ -27,16 +27,22 @@ export const EXERCISE_COPY_EN: Record<string, { name: string; instruction: strin
   'cut-bar': { name: 'Threshold', instruction: 'A bar fills at a steady speed. There is a threshold mark on the track. Tap only after the fill passes the mark, not before. Errors: tapping too early or waiting until the end. Higher levels give less time after the mark.' }
 };
 
+function idToTitleCase(id: string): string {
+  return id
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ');
+}
+
 type Named = { id: string; name: string; instruction: string };
 
 export function exerciseName(m: Named): string {
   if (getLocale() === 'en') {
-    if (EXERCISE_COPY_EN[m.id]?.name) return EXERCISE_COPY_EN[m.id].name;
+    const copy = EXERCISE_COPY_EN[m.id];
+    if (copy?.name) return copy.name;
     if (/[А-Яа-яЁё]/.test(m.name)) {
-      return m.id
-        .split('-')
-        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-        .join(' ');
+      return idToTitleCase(m.id);
     }
     return m.name;
   }
@@ -44,7 +50,12 @@ export function exerciseName(m: Named): string {
 }
 
 export function exerciseInstruction(m: Named): string {
-  return getLocale() === 'en' ? EXERCISE_COPY_EN[m.id]?.instruction || m.instruction : m.instruction;
+  if (getLocale() === 'en') {
+    const copy = EXERCISE_COPY_EN[m.id];
+    if (copy?.instruction) return copy.instruction;
+    return /[А-Яа-яЁё]/.test(m.instruction) ? '' : m.instruction;
+  }
+  return m.instruction;
 }
 
 /** Exercises with full English copy (names, instructions and in-exercise text). */

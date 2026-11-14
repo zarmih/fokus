@@ -5,6 +5,7 @@
 
 import type { Session } from './types';
 import { domainLabel } from './labels';
+import { getLocale } from './i18n';
 import {
   collectAttemptSamples,
   latestPercentileLineRu,
@@ -18,6 +19,9 @@ import {
 
 /** Short domain-tagged line; falls back to latestPercentileLineRu wording. */
 function formatOkLine(domain: string, result: LocalNormsOk): string {
+  if (getLocale() === 'en') {
+    return `${domainLabel(domain)}: better than ${result.latestPercentile}% of your past attempts`;
+  }
   const base = latestPercentileLineRu(result);
   // latestPercentileLineRu already says «Лучше N% своих прошлых попыток»
   return `${domainLabel(domain)}: ${base.charAt(0).toLowerCase()}${base.slice(1)}`;
@@ -59,5 +63,8 @@ export function quietNormsHintFromSessions(
 
 /** Disclaimer for title/aria — not shown as a second visible sentence. */
 export function quietNormsHintDisclaimerRu(): string {
+  if (getLocale() === 'en') {
+    return 'Based only on your history on this device — no comparisons with others.';
+  }
   return normsDisclaimerRu();
 }

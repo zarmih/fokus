@@ -535,16 +535,16 @@ function pickNudges(params: {
     out.push({
       id: 'praise_return',
       kind: 'praise_return',
-      title: 'Ритм восстановлен',
-      body: 'С возвращением! Fokus ценит возвращение после паузы больше, чем идеальную серию. Ваш навык сохранён.',
+      title: L('Ритм восстановлен', 'Rhythm restored'),
+      body: L('С возвращением! Fokus ценит возвращение после паузы больше, чем идеальную серию. Ваш навык сохранён.', 'Welcome back! Fokus values returning after a break more than a perfect streak. Your progress is saved.'),
       priority: 95
     });
   } else if (params.playedToday && params.consistency30 >= 80 && params.streak % 5 === 0 && params.streak > 0) {
     out.push({
       id: 'praise_consistency',
       kind: 'praise_consistency',
-      title: 'Высокая стабильность',
-      body: `Ваша регулярность за месяц — ${params.consistency30}%. Долгосрочный ритм важнее, чем серия без единого отдыха. Fokus за честный подход.`,
+      title: L('Высокая стабильность', 'High consistency'),
+      body: L(`Ваша регулярность за месяц — ${params.consistency30}%. Долгосрочный ритм важнее, чем серия без единого отдыха. Fokus за честный подход.`, `Your 30-day consistency is ${params.consistency30}%. Long-term rhythm matters more than an unbroken streak. Fokus values an honest approach.`),
       priority: 85
     });
   }
@@ -553,8 +553,8 @@ function pickNudges(params: {
     out.push({
       id: 'rest',
       kind: 'rest',
-      title: 'На сегодня достаточно',
-      body: 'Усталость — плохой помощник в развитии когнитивных функций. Завершите сессию сейчас, отдых — тоже часть тренировки.',
+      title: L('На сегодня достаточно', 'Enough for today'),
+      body: L('Усталость — плохой помощник в развитии когнитивных функций. Завершите сессию сейчас, отдых — тоже часть тренировки.', 'Fatigue gets in the way of cognitive gains. Finish the session now; rest is part of training.'),
       priority: 90
     });
   }
@@ -563,40 +563,40 @@ function pickNudges(params: {
     out.push({
       id: 'very_long_pause',
       kind: 'resume',
-      title: 'Без чувства вины',
-      body: 'Жизнь не всегда идёт по плану. Fokus готов предложить лёгкую сессию, чтобы комфортно вернуться в ритм.',
+      title: L('Без чувства вины', 'No guilt'),
+      body: L('Жизнь не всегда идёт по плану. Fokus готов предложить лёгкую сессию, чтобы комфортно вернуться в ритм.', 'Life does not always go to plan. Fokus is ready with an easy session to comfortably return to rhythm.'),
       priority: 95
     });
   } else if (!params.playedToday && params.gapDays >= 7) {
     out.push({
       id: 'long_pause',
       kind: 'resume',
-      title: 'Спустя неделю',
-      body: 'Фокус не пропадает за неделю. Спокойная разминка поможет снова включиться в ритм, когда вы будете готовы.',
+      title: L('Спустя неделю', 'After a week'),
+      body: L('Фокус не пропадает за неделю. Спокойная разминка поможет снова включиться в ритм, когда вы будете готовы.', 'Focus doesn’t disappear in a week. A calm warm-up will help you ease back into rhythm when you are ready.'),
       priority: 92
     });
   } else if (!params.playedToday && params.gapDays === 3) {
     out.push({
       id: 'pause_3_days',
       kind: 'resume',
-      title: 'В вашем темпе',
-      body: 'Паузы помогают избегать выгорания. Fokus готов к короткой сессии в вашем темпе — без марафонов.',
+      title: L('В вашем темпе', 'At your pace'),
+      body: L('Паузы помогают избегать выгорания. Fokus готов к короткой сессии в вашем темпе — без марафонов.', 'Breaks help prevent burnout. Fokus is ready for a short session at your pace — no marathons.'),
       priority: 90
     });
   } else if (!params.playedToday && params.status === 'soft_return') {
     out.push({
       id: 'soft_return',
       kind: 'resume',
-      title: 'Мягкое возвращение',
-      body: 'Пропуски случаются. Честный подход Fokus означает отсутствие вины. Достаточно одной спокойной сессии.',
+      title: L('Мягкое возвращение', 'Gentle return'),
+      body: L('Пропуски случаются. Честный подход Fokus означает отсутствие вины. Достаточно одной спокойной сессии.', 'Misses happen. An honest approach means no guilt. One calm session is enough.'),
       priority: 88
     });
   } else if (!params.playedToday && params.gapDays >= 2) {
     out.push({
       id: 'resume',
       kind: 'resume',
-      title: 'Плавное возвращение',
-      body: 'Пару дней отдыха пошли на пользу. Лёгкий блок без давления сегодня закрепит ваши результаты.',
+      title: L('Плавное возвращение', 'Smooth return'),
+      body: L('Пару дней отдыха пошли на пользу. Лёгкий блок без давления сегодня закрепит ваши результаты.', 'A couple of rest days helped. An easy, pressure-free block today reinforces your gains.'),
       priority: params.gapDays >= 4 ? 88 : 80
     });
   }
@@ -605,8 +605,8 @@ function pickNudges(params: {
     out.push({
       id: 'protect_streak',
       kind: 'protect_streak',
-      title: 'Ритм без напряжения',
-      body: 'Ваша серия уже позволяет сделать паузу без потери ритма. Но короткая разминка сегодня защитит честный прогресс.',
+      title: L('Ритм без напряжения', 'Effortless rhythm'),
+      body: L('Ваша серия уже позволяет сделать паузу без потери ритма. Но короткая разминка сегодня защитит честный прогресс.', 'Your streak allows a break without losing rhythm. A quick warm-up today protects your progress.'),
       priority: 75
     });
   }
@@ -615,8 +615,8 @@ function pickNudges(params: {
     out.push({
       id: 'short_session',
       kind: 'short_session',
-      title: 'Меньше давления',
-      body: 'Fokus подстроил нагрузку под ваш перерыв. Одна короткая сессия без чувства вины вернёт вас в русло.',
+      title: L('Меньше давления', 'Less pressure'),
+      body: L('Fokus подстроил нагрузку под ваш перерыв. Одна короткая сессия без чувства вины вернёт вас в русло.', 'Fokus adjusted workload for your break. One short session without guilt brings you back.'),
       priority: 68
     });
   }
@@ -625,8 +625,8 @@ function pickNudges(params: {
     out.push({
       id: 'fresh_start',
       kind: 'resume',
-      title: 'Честный подход',
-      body: 'Никакого чувства вины за пропуски. Начнём с лёгкой разминки?',
+      title: L('Честный подход', 'Honest approach'),
+      body: L('Никакого чувства вины за пропуски. Начнём с лёгкой разминки?', 'No guilt for missed days. Shall we start with a gentle warm-up?'),
       priority: 82
     });
   }
@@ -636,8 +636,8 @@ function pickNudges(params: {
     out.push({
       id: 'rebalance',
       kind: 'rebalance',
-      title: 'Тренировка отстающего',
-      body: `Зона «${name}» давно не тренировалась. Сегодня она в фокусе, чтобы вернуть баланс способностей.`,
+      title: L(`Баланс: ${name}`, `Balance: ${name}`),
+      body: L(`Зона «${name}» давно не тренировалась. Сегодня она в фокусе, чтобы вернуть баланс способностей.`, `The "${name}" area has gone without practice. A short block today restores balance.`),
       priority: 60
     });
   }
