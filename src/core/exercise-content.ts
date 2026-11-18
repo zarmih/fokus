@@ -107,11 +107,31 @@ const DOMAIN_TIPS_EN: Record<Domain, string[]> = {
   ]
 };
 
-const EXERCISE_TIPS_EN: Record<string, string> = {
+export const EXERCISE_TIPS_EN: Record<string, string> = {
+  // Attention
+  'odd-one': 'Scan the grid in small pairs by a single feature rather than trying to take in the whole field at once.',
+  'go-no-go': 'Keep your finger relaxed above the screen; react to the confirmed target rather than the sudden appearance.',
   'tide-gate': 'Breathe evenly and watch the gate band, not the marker — peripheral vision will tell you when.',
+
+  // Memory
+  'grid-memory': 'Group the lit cells into simple shapes or lines — patterns are much easier to hold in memory.',
+  'sequence': 'Hold the sequence as an inner rhythm or silent count: let each step cue the next.',
   'anchor-pair': 'Whisper “left …, right …” once — the pair lasts longer through the pause.',
+
+  // Speed
+  'math-sprint': 'Round to friendly tens and adjust the difference — calm arithmetic is more accurate than rushing.',
   'slip-mark': 'Focus on the motion between the objects — catch the sliding rhythm without tensing up.',
-  'cut-bar': 'Wait until the fill crosses the threshold — this trains holding back an early impulse.'
+  'cut-bar': 'Wait until the fill crosses the threshold — this trains holding back an early impulse.',
+
+  // Flexibility
+  'stroop': 'Look at the color of the ink rather than reading the word — a calm micro-pause prevents automatic slips.',
+  'switch-rule': 'When the rule flips, take one calm breath and verify the active header before tapping.',
+  'helix-flip': 'Anchor onto one distinctive corner or feature rather than rotating the entire shape in your mind.',
+
+  // Logic
+  'pattern-next': 'Track how a single property shifts at a time — rotation, count, or color follow a steady progression.',
+  'shape-equation': 'Find the row with identical shapes first — it gives you an immediate base value to unlock the rest.',
+  'pulley': 'Trace motion through the chain starting from the drive wheel: direction flips with every direct contact.'
 };
 
 /** Map continuous difficulty (1…30+) to a named RU band. */
@@ -128,21 +148,54 @@ export function difficultyBandLabel(difficulty: number): string {
   return getLocale() === 'en' ? BANDS_EN[b.id]?.label || b.label : b.label;
 }
 
-const EXERCISE_TIPS: Record<string, string> = {
+export const EXERCISE_TIPS: Record<string, string> = {
+  // Attention
+  'odd-one':
+    'Не пытайтесь охватить всё поле сразу — сравнивайте элементы парами по одному признаку.',
+  'go-no-go':
+    'Держите палец расслабленным над экраном — реагируйте на подтверждение цели, а не на само появление фигуры.',
   'tide-gate':
     'Дышите ровно и смотрите на полосу ворот, а не на саму метку — периферия подскажет момент.',
+
+  // Memory
+  'grid-memory':
+    'Группируйте подсвеченные клетки в простые фигуры или линии — так узор легче удержать в памяти.',
+  'sequence':
+    'Удерживайте цепочку внутренним ритмом или счётом: каждый шаг подсказывает следующий.',
   'anchor-pair':
     'Проговорите «слева …, справа …» шёпотом один раз — так пара держится дольше паузы.',
+
+  // Speed
+  'math-sprint':
+    'Округляйте до круглых десятков и выравнивайте разницу — спокойный счёт точнее спешки.',
   'slip-mark':
     'Фокус на движении между объектами — ловите ритм скольжения без лишнего напряжения.',
   'cut-bar':
-    'Дождитесь, когда заливка пересечет рубеж — это учит сдерживать ранний импульс.'
+    'Дождитесь, когда заливка пересечет рубеж — это учит сдерживать ранний импульс.',
+
+  // Flexibility
+  'stroop':
+    'Смотрите на оттенок букв, не читая само слово — короткая микропауза убережёт от автоматической ошибки.',
+  'switch-rule':
+    'Когда правило меняется, сделайте спокойный вдох и взгляните на плашку перед нажатием.',
+  'helix-flip':
+    'Опирайтесь на одну характерную деталь или угол, а не вращайте всю фигуру целиком.',
+
+  // Logic
+  'pattern-next':
+    'Прослеживайте изменение одного свойства за раз — поворот, количество или цвет меняются по порядку.',
+  'shape-equation':
+    'Найдите строку с одинаковыми фигурами первой — она сразу даёт опорное значение для остальных.',
+  'pulley':
+    'Прослеживайте движение по цепочке от ведущего колеса: направление меняется при каждом прямом сцеплении.'
 };
 
 /** Stable tip pick from domain pool (no Math.random — uses floor(difficulty)). */
 export function domainSessionTip(domain: Domain | string, difficulty = 1, exerciseId?: string): string {
   const en = getLocale() === 'en';
-  if (exerciseId && EXERCISE_TIPS[exerciseId]) return en ? EXERCISE_TIPS_EN[exerciseId] : EXERCISE_TIPS[exerciseId];
+  if (exerciseId && (en ? EXERCISE_TIPS_EN[exerciseId] : EXERCISE_TIPS[exerciseId])) {
+    return (en ? EXERCISE_TIPS_EN[exerciseId] : EXERCISE_TIPS[exerciseId])!;
+  }
   const key = (DOMAIN_TIPS[domain as Domain] ? domain : 'attention') as Domain;
   const pool = en ? DOMAIN_TIPS_EN[key] : DOMAIN_TIPS[key];
   const idx = Math.abs(Math.floor(difficulty)) % pool.length;

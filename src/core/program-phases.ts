@@ -4,6 +4,7 @@
  */
 
 import { domainLabel } from './labels';
+import { L } from './i18n';
 
 export type ProgramPhaseId = 'orient' | 'balance' | 'focus' | 'sustain';
 
@@ -31,40 +32,40 @@ export const PROGRAM_PHASES: ProgramPhase[] = [
     index: 1,
     weekFrom: 1,
     weekTo: 2,
-    title: 'Знакомство и ритм',
-    goal: 'Привыкнуть к короткому ритуалу и собрать первые данные без гонки.',
-    body: 'Две недели спокойного входа: формат сессии, комфортная длина, честная серия. Навёрстывать пропуски не нужно.',
-    nextHint: 'Держите привычный блок — точность плана вырастет сама'
+    get title() { return L('Знакомство и ритм', 'Introduction and rhythm'); },
+    get goal() { return L('Привыкнуть к короткому ритуалу и собрать первые данные без гонки.', 'Get used to the short ritual and gather initial data without rushing.'); },
+    get body() { return L('Две недели спокойного входа: формат сессии, комфортная длина, честная серия. Навёрстывать пропуски не нужно.', 'Two weeks of gentle onboarding: session format, comfortable length, honest streak. No need to catch up on missed days.'); },
+    get nextHint() { return L('Держите привычный блок — точность плана вырастет сама', 'Keep your familiar routine — the plan precision will grow on its own'); }
   },
   {
     id: 'balance',
     index: 2,
     weekFrom: 3,
     weekTo: 4,
-    title: 'Баланс областей',
-    goal: 'Выровнять нагрузку по пяти областям и убрать перекосы.',
-    body: 'Недели 3–4: Fokus подтягивает зоны, которые редко попадали в ритуал, и держит знакомые упражнения рядом.',
-    nextHint: 'Смотрите на акцент дня — это баланс, не «прокачка IQ»'
+    get title() { return L('Баланс областей', 'Domain balance'); },
+    get goal() { return L('Выровнять нагрузку по пяти областям и убрать перекосы.', 'Balance the load across five domains and eliminate imbalances.'); },
+    get body() { return L('Недели 3–4: Fokus подтягивает зоны, которые редко попадали в ритуал, и держит знакомые упражнения рядом.', 'Weeks 3–4: Fokus lifts areas rarely included in the ritual, while keeping familiar exercises close.'); },
+    get nextHint() { return L('Смотрите на акцент дня — это баланс, не «прокачка IQ»', 'Focus on today\'s emphasis — this is about balance, not an "IQ boost"'); }
   },
   {
     id: 'focus',
     index: 3,
     weekFrom: 5,
     weekTo: 6,
-    title: 'Фокус цели',
-    goal: 'Усилить выбранную цель онбординга, не забывая остальные области.',
-    body: 'Недели 5–6: больше слотов под вашу цель (память, внимание и т.д.), но ритуал остаётся коротким и честным.',
-    nextHint: 'Цель недели важнее «дня N» — двигайтесь в её сторону'
+    get title() { return L('Фокус цели', 'Goal focus'); },
+    get goal() { return L('Усилить выбранную цель онбординга, не забывая остальные области.', 'Strengthen your onboarding goal without neglecting other domains.'); },
+    get body() { return L('Недели 5–6: больше слотов под вашу цель (память, внимание и т.д.), но ритуал остаётся коротким и честным.', 'Weeks 5–6: more slots for your goal (memory, attention, etc.), while keeping the ritual short and honest.'); },
+    get nextHint() { return L('Цель недели важнее «дня N» — двигайтесь в её сторону', 'The weekly goal matters more than "Day N" — keep moving toward it'); }
   },
   {
     id: 'sustain',
     index: 4,
     weekFrom: 7,
     weekTo: 999,
-    title: 'Удержание формы',
-    goal: 'Сохранять ритм и форму без марафонов и чувства вины.',
-    body: 'С 7-й недели программа циклична: мягкий возврат после пауз, короткие блоки при усталости, акцент на регулярности.',
-    nextHint: 'Регулярность важнее объёма — достаточно одного спокойного ритуала'
+    get title() { return L('Удержание формы', 'Maintaining form'); },
+    get goal() { return L('Сохранять ритм и форму без марафонов и чувства вины.', 'Maintain rhythm and fitness without marathons or guilt.'); },
+    get body() { return L('С 7-й недели программа циклична: мягкий возврат после пауз, короткие блоки при усталости, акцент на регулярности.', 'From week 7 onwards, the program cycles: gentle returns after breaks, shorter sessions when fatigued, focus on regularity.'); },
+    get nextHint() { return L('Регулярность важнее объёма — достаточно одного спокойного ритуала', 'Regularity is more important than volume — one calm ritual is enough'); }
   }
 ];
 
@@ -115,39 +116,63 @@ export function describeProgramPhase(params: {
 
   let goalLine = phase.goal;
   if (phase.id === 'focus' && params.primaryGoal && params.primaryGoal !== 'balance') {
-    goalLine = `Усилить «${domainLabel(params.primaryGoal)}» в коротком ритуале, сохраняя баланс остальных областей.`;
+    goalLine = L(
+      `Усилить «${domainLabel(params.primaryGoal)}» в коротком ритуале, сохраняя баланс остальных областей.`,
+      `Strengthen "${domainLabel(params.primaryGoal)}" in a short ritual, maintaining balance across other domains.`
+    );
   }
   if (!params.calibrated) {
-    goalLine = 'Сначала калибровка — три коротких блока, чтобы Fokus понял стартовый уровень.';
+    goalLine = L(
+      'Сначала калибровка — три коротких блока, чтобы Fokus понял стартовый уровень.',
+      'Calibration first — three short blocks so Fokus can determine your baseline level.'
+    );
   } else if (params.isSparse && phase.id === 'orient') {
-    goalLine = 'Собрать достаточно данных для персонального плана — без спешки и без «дня N» как единственной метрики.';
+    goalLine = L(
+      'Собрать достаточно данных для персонального плана — без спешки и без «дня N» как единственной метрики.',
+      'Gather enough data for a personalized plan — without rushing and without "Day N" as the only metric.'
+    );
   }
 
   const weekLabel =
     phase.weekTo >= 100
-      ? `с ${phase.weekFrom}-й недели`
-      : `недели ${phase.weekFrom}–${phase.weekTo}`;
+      ? L(`с ${phase.weekFrom}-й недели`, `from week ${phase.weekFrom}`)
+      : L(`недели ${phase.weekFrom}–${phase.weekTo}`, `weeks ${phase.weekFrom}–${phase.weekTo}`);
 
   let phaseNarrative = phase.body;
   if (!params.calibrated) {
-    phaseNarrative = 'Первая калибровка важна: пройдите три сессии, чтобы мы подобрали стартовый уровень сложности для каждого навыка.';
+    phaseNarrative = L(
+      'Первая калибровка важна: пройдите три сессии, чтобы мы подобрали стартовый уровень сложности для каждого навыка.',
+      'Initial calibration is important: complete three sessions so we can pick a starting difficulty for each skill.'
+    );
   } else if (params.isSparse && phase.id === 'orient') {
-    phaseNarrative = 'Мы бережно собираем данные о ваших способностях. Решайте без спешки — система сама адаптируется к вашему ритму.';
+    phaseNarrative = L(
+      'Мы бережно собираем данные о ваших способностях. Решайте без спешки — система сама адаптируется к вашему ритму.',
+      'We carefully collect data on your abilities. Take your time — the system adapts to your rhythm.'
+    );
   } else if (phase.id === 'focus' && params.primaryGoal && params.primaryGoal !== 'balance') {
-    phaseNarrative = `В этой фазе мы смещаем акцент на область «${domainLabel(params.primaryGoal)}», сохраняя комфортную длительность тренировок.`;
+    phaseNarrative = L(
+      `В этой фазе мы смещаем акцент на область «${domainLabel(params.primaryGoal)}», сохраняя комфортную длительность тренировок.`,
+      `In this phase, we shift focus toward "${domainLabel(params.primaryGoal)}", keeping session duration comfortable.`
+    );
   }
 
   let milestonePreview: string | null = null;
   const isMilestoneWeek = isPhaseMilestoneDay(weekIndex, 7);
   if (isMilestoneWeek) {
     const exId = milestoneExerciseId(weekIndex);
-    const mName = exId === 'tide-gate' ? 'Прилив у ворот' : 'Якорная пара';
+    const mName = exId === 'tide-gate' ? L('Прилив у ворот', 'Tide Gate') : L('Якорная пара', 'Anchor Pair');
     if (dayInWeek >= 4 && dayInWeek < 7) {
       const daysLeft = 7 - dayInWeek;
-      const daysWord = daysLeft === 1 ? 'день' : 'дня';
-      milestonePreview = `Через ${daysLeft} ${daysWord} рубеж фазы: ${mName}`;
+      const daysWord = daysLeft === 1 ? L('день', 'day') : L('дня', 'days');
+      milestonePreview = L(
+        `Через ${daysLeft} ${daysWord} рубеж фазы: ${mName}`,
+        `Phase milestone in ${daysLeft} ${daysWord}: ${mName}`
+      );
     } else if (dayInWeek === 7) {
-      milestonePreview = `Сегодня рубеж фазы: ${mName}`;
+      milestonePreview = L(
+        `Сегодня рубеж фазы: ${mName}`,
+        `Phase milestone today: ${mName}`
+      );
     }
   }
 
@@ -156,16 +181,16 @@ export function describeProgramPhase(params: {
   if (isLastTwoDays) {
     switch (phase.id) {
       case 'orient':
-        carryLine = 'В следующую фазу уходит ритм, не счётчик.';
+        carryLine = L('В следующую фазу уходит ритм, не счётчик.', 'Rhythm carries into the next phase, not the counter.');
         break;
       case 'balance':
-        carryLine = 'В следующую фазу уходит баланс, а не долг за пропуски.';
+        carryLine = L('В следующую фазу уходит баланс, а не долг за пропуски.', 'Balance carries into the next phase, not a debt for missed days.');
         break;
       case 'focus':
-        carryLine = 'Дальше с вами идёт способность к фокусу, без лишнего напряжения.';
+        carryLine = L('Дальше с вами идёт способность к фокусу, без лишнего напряжения.', 'Focus ability stays with you going forward, without undue strain.');
         break;
       case 'sustain':
-        carryLine = 'С вами остаётся регулярность, которая важнее любых марафонов.';
+        carryLine = L('С вами остаётся регулярность, которая важнее любых марафонов.', 'Regularity stays with you, which is more important than any marathon.');
         break;
     }
   }
@@ -174,12 +199,15 @@ export function describeProgramPhase(params: {
     phase,
     weekIndex,
     dayInWeek,
-    subtitle: `Фаза ${phase.index} · ${phase.title}`,
-    weekDayLine: `Неделя ${weekIndex} · день ${dayInWeek} · ${weekLabel}`,
+    subtitle: L(`Фаза ${phase.index} · ${phase.title}`, `Phase ${phase.index} · ${phase.title}`),
+    weekDayLine: L(`Неделя ${weekIndex} · день ${dayInWeek} · ${weekLabel}`, `Week ${weekIndex} · day ${dayInWeek} · ${weekLabel}`),
     goalLine,
     phaseCoach: `${phase.title}: ${goalLine}`,
     progressInPhase,
-    aria: `Фаза ${phase.index} из 4, ${phase.title}. Цель: ${goalLine}. ${weekLabel}, сейчас неделя ${weekIndex}, день ${dayInWeek}.`,
+    aria: L(
+      `Фаза ${phase.index} из 4, ${phase.title}. Цель: ${goalLine}. ${weekLabel}, сейчас неделя ${weekIndex}, день ${dayInWeek}.`,
+      `Phase ${phase.index} of 4, ${phase.title}. Goal: ${goalLine}. ${weekLabel}, currently week ${weekIndex}, day ${dayInWeek}.`
+    ),
     phaseNarrative,
     milestonePreview,
     carryLine
@@ -207,6 +235,6 @@ export function milestoneExerciseId(weekIndex: number): 'tide-gate' | 'anchor-pa
 
 export function milestoneReason(weekIndex: number): string {
   const exId = milestoneExerciseId(weekIndex);
-  const name = exId === 'tide-gate' ? 'Прилив у ворот' : 'Якорная пара';
-  return `Веха фазы: ${name}`;
+  const name = exId === 'tide-gate' ? L('Прилив у ворот', 'Tide Gate') : L('Якорная пара', 'Anchor Pair');
+  return L(`Веха фазы: ${name}`, `Phase milestone: ${name}`);
 }

@@ -10,6 +10,8 @@ import { bindPressPhysics } from '../../core/motion';
 import { exerciseRecency } from '../../core/catalog-recency';
 import { generateCatalogArt } from '../catalog-art';
 import { isCoreExercise, CORE_EXERCISE_IDS } from '../../core/core-catalog';
+import { L, getLocale, t } from '../../core/i18n';
+import { exerciseName, exerciseInstruction } from '../../core/exercise-copy';
 export function renderTrainers(container: HTMLElement) {
   const content = renderShell(container, { active: 'trainers' });
   const exStates = storage.getExerciseStates();
@@ -56,19 +58,23 @@ export function renderTrainers(container: HTMLElement) {
     const intel = getExerciseIntelligence(ex.manifest.id);
     
     const stateLabels: Record<string, string> = {
-      'CALIBRATING': 'Калибровка',
-      'DEVELOPING': 'Освоение',
-      'STABLE': 'Стабильно',
-      'CHALLENGE': 'Вызов',
-      'PLATEAU': 'Плато'
+      'CALIBRATING': L('Калибровка', 'Calibrating'),
+      'DEVELOPING': L('Освоение', 'Developing'),
+      'STABLE': L('Стабильно', 'Stable'),
+      'CHALLENGE': L('Вызов', 'Challenge'),
+      'PLATEAU': L('Плато', 'Plateau')
     };
 
     const currentStateLabel = stateLabels[intel.state] || intel.state;
+    const exName = exerciseName(ex.manifest);
+    const exInst = exerciseInstruction(ex.manifest);
 
-
-    const searchableText = `${ex.manifest.name} ${ex.manifest.instruction} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
+    const searchableText = `${exName} ${exInst} ${domainLabel(ex.manifest.domain)} ${(ex.manifest.skills || []).map(skillLabel).join(' ')}`.toLowerCase();
     const isCore = isCoreExercise(ex.manifest.id);
-    const ariaLabel = `${ex.manifest.name}.${isCore ? ' Основная программа.' : ''} Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`;
+    const ariaLabel = L(
+      `${exName}.${isCore ? ' Основная программа.' : ''} Домен: ${domainLabel(ex.manifest.domain)}. Статус: ${currentStateLabel}. Уровень сложности: ${intel.difficulty}. Нажмите, чтобы начать тренировку.`,
+      `${exName}.${isCore ? ' Core program.' : ''} Domain: ${domainLabel(ex.manifest.domain)}. Status: ${currentStateLabel}. Difficulty: ${intel.difficulty}. Tap to start workout.`
+    );
 
     const artHtml = generateCatalogArt(ex.manifest.id, ex.manifest.domain);
 
@@ -79,11 +85,11 @@ export function renderTrainers(container: HTMLElement) {
           ${isDiscovery ? `<div class="trainer-new-badge">New</div>` : ''}
         </div>
         <div class="trainer-card-footer">
-          <div class="trainer-name">${ex.manifest.name}</div>
+          <div class="trainer-name">${exName}</div>
           <div class="trainer-chip-row">
             <span class="trainer-domain-chip">${domainLabel(ex.manifest.domain)}</span>
-            ${isCore ? `<span class="trainer-core-chip" data-core-chip="1"><span aria-hidden="true">★</span> Основное</span>` : ''}
-            ${recency === 'quiet' ? `<span class="trainer-quiet-chip" data-recency="quiet">Давно не открывали</span>` : ''}
+            ${isCore ? `<span class="trainer-core-chip" data-core-chip="1"><span aria-hidden="true">★</span> ${L('Основное', 'Core')}</span>` : ''}
+            ${recency === 'quiet' ? `<span class="trainer-quiet-chip" data-recency="quiet">${L('Давно не открывали', 'Not played recently')}</span>` : ''}
           </div>
         </div>
       </button>
@@ -99,28 +105,28 @@ export function renderTrainers(container: HTMLElement) {
   };
 
   const DOMAIN_DESCRIPTIONS: Record<string, string> = {
-    attention: 'Концентрация и устойчивость к отвлечениям',
-    memory: 'Удержание и точное воспроизведение информации',
-    speed: 'Скорость реакции и обработки визуальных данных',
-    flexibility: 'Быстрое переключение между правилами и задачами',
-    logic: 'Анализ, пространственное мышление и вычисления'
+    attention: L('Концентрация и устойчивость к отвлечениям', 'Focus and resistance to distractions'),
+    memory: L('Удержание и точное воспроизведение информации', 'Retention and precise recall of information'),
+    speed: L('Скорость реакции и обработки визуальных данных', 'Reaction speed and visual data processing'),
+    flexibility: L('Быстрое переключение между правилами и задачами', 'Fast switching between rules and tasks'),
+    logic: L('Анализ, пространственное мышление и вычисления', 'Analysis, spatial reasoning, and calculation')
   };
 
   let filterHtml = `<button class="filter-chip active" data-dom="all" type="button" aria-pressed="true">
-    <span style="font-size:14px; margin-right:4px;">🌐</span> Все <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${catalog.length}</span>
+    <span style="font-size:14px; margin-right:4px;">🌐</span> ${L('Все', 'All')} <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${catalog.length}</span>
   </button>`;
   
   const coreCount = catalog.filter((ex) => isCoreExercise(ex.manifest.id)).length;
-  filterHtml += `<button class="filter-chip" data-dom="core" type="button" aria-pressed="false" title="${CORE_EXERCISE_IDS.length} упражнений 14-дневной программы">
-    <span style="font-size:14px; margin-right:4px;" aria-hidden="true">★</span> Основная программа <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${coreCount}</span>
+  filterHtml += `<button class="filter-chip" data-dom="core" type="button" aria-pressed="false" title="${L(`${CORE_EXERCISE_IDS.length} упражнений 14-дневной программы`, `${CORE_EXERCISE_IDS.length} exercises in the 14-day program`)}">
+    <span style="font-size:14px; margin-right:4px;" aria-hidden="true">★</span> ${L('Основная программа', 'Core program')} <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${coreCount}</span>
   </button>`;
 
   filterHtml += `<button class="filter-chip" data-dom="discovery" type="button" aria-pressed="false">
-    <span style="font-size:14px; margin-right:4px;">✨</span> Новое <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${untriedCount}</span>
+    <span style="font-size:14px; margin-right:4px;">✨</span> ${L('Новое', 'New')} <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${untriedCount}</span>
   </button>`;
 
   filterHtml += `<button class="filter-chip" data-dom="quiet" type="button" aria-pressed="false">
-    Давно не открывали <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${quietCount}</span>
+    ${L('Давно не открывали', 'Not played recently')} <span class="chip-count" style="opacity:0.6; font-size:11px; margin-left:4px;">${quietCount}</span>
   </button>`;
 
   filterHtml += `<div style="width: 1px; height: 24px; background: var(--line); margin: 0 8px; align-self: center; opacity: 0.5;"></div>`;
@@ -148,7 +154,9 @@ export function renderTrainers(container: HTMLElement) {
       if (diffA !== diffB) {
         return diffA - diffB;
       }
-      return a.manifest.name.localeCompare(b.manifest.name, 'ru');
+      const nameA = exerciseName(a.manifest);
+      const nameB = exerciseName(b.manifest);
+      return nameA.localeCompare(nameB, getLocale());
     });
     
     let gridHtml = exercises.map(renderCard).join('');
@@ -174,18 +182,21 @@ export function renderTrainers(container: HTMLElement) {
 
   content.innerHTML = `
     <div class="today-head" style="margin-bottom: 24px;">
-      <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px; font-weight: 700;">Каталог</h2>
+      <h2 style="font-size: 28px; letter-spacing: -0.03em; margin-bottom: 8px; font-weight: 700;">${L('Каталог', 'Trainers')}</h2>
       <p class="today-date" id="catalog-count-label" style="opacity: 0.7; font-size: 15px;" aria-live="polite">
-        Свободная практика — тренируйтесь без влияния на Fokus Index. Всего ${catalog.length} упражнений.
+        ${L(
+          `Свободная практика — тренируйтесь без влияния на Fokus Index. Всего ${catalog.length} упражнений.`,
+          `Free practice — train without affecting Fokus Index. ${catalog.length} exercises total.`
+        )}
       </p>
     </div>
     
     <div style="margin-bottom: 24px; position: relative;">
       <span style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); opacity: 0.5; pointer-events: none; font-size: 16px;">🔍</span>
-      <input type="search" id="catalog-search" placeholder="Поиск по названию или навыку..." style="width: 100%; padding: 14px 16px 14px 44px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px; outline: none; transition: all 0.2s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);" aria-label="Поиск упражнений" autocomplete="off">
+      <input type="search" id="catalog-search" placeholder="${L('Поиск по названию или навыку...', 'Search by name or skill...')}" style="width: 100%; padding: 14px 16px 14px 44px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); color: var(--text); font-size: 15px; outline: none; transition: all 0.2s ease; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);" aria-label="${L('Поиск упражнений', 'Search exercises')}" autocomplete="off">
     </div>
 
-    <div class="domain-filters" role="group" aria-label="Фильтры доменов" style="margin-bottom: 32px; display: flex; flex-wrap: wrap; gap: 8px;">
+    <div class="domain-filters" role="group" aria-label="${L('Фильтры доменов', 'Domain filters')}" style="margin-bottom: 32px; display: flex; flex-wrap: wrap; gap: 8px;">
       ${filterHtml}
     </div>
     
@@ -193,15 +204,15 @@ export function renderTrainers(container: HTMLElement) {
       ${validDomains.length === 0 ? `
         <div style="padding: 48px 24px; text-align: center; background: var(--surface); border-radius: 20px; border: 1px solid var(--line);">
           <div style="font-size: 48px; margin-bottom: 16px; opacity: 0.5;">📭</div>
-          <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Каталог пуст</div>
-          <div style="color: var(--muted); font-size: 14px;">Упражнения временно недоступны.</div>
+          <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">${L('Каталог пуст', 'Catalog is empty')}</div>
+          <div style="color: var(--muted); font-size: 14px;">${L('Упражнения временно недоступны.', 'Exercises are temporarily unavailable.')}</div>
         </div>
       ` : allCardsHtml}
       <div id="catalog-empty-state" style="display: none; padding: 56px 24px; text-align: center; background: linear-gradient(145deg, var(--fill-subtle), transparent); border-radius: 24px; border: 1px dashed var(--line);" role="status">
         <div id="empty-state-icon" style="font-size: 56px; margin-bottom: 20px; opacity: 0.8; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));" aria-hidden="true">🔍</div>
-        <div id="empty-state-title" style="font-size: 20px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em;">Ничего не найдено</div>
-        <div id="empty-state-desc" style="color: var(--muted); font-size: 15px; margin-bottom: 28px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.5;">По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.</div>
-        <button type="button" id="catalog-clear-search" style="padding: 12px 24px; background: var(--accent); color: var(--bg); border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">Сбросить поиск</button>
+        <div id="empty-state-title" style="font-size: 20px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.01em;">${L('Ничего не найдено', 'Nothing found')}</div>
+        <div id="empty-state-desc" style="color: var(--muted); font-size: 15px; margin-bottom: 28px; max-width: 400px; margin-left: auto; margin-right: auto; line-height: 1.5;">${L('По вашему запросу не нашлось упражнений. Попробуйте изменить текст поиска или выбрать другой раздел.', 'No exercises match your search. Try changing the search text or selecting a different section.')}</div>
+        <button type="button" id="catalog-clear-search" style="padding: 12px 24px; background: var(--accent); color: var(--bg); border: none; border-radius: 12px; font-weight: 700; font-size: 15px; cursor: pointer; transition: transform 0.2s, background 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">${L('Сбросить поиск', 'Clear search')}</button>
       </div>
     </div>
   `;
@@ -294,8 +305,14 @@ export function renderTrainers(container: HTMLElement) {
         return forms[2];
       }
       const labelText = count === catalog.length 
-        ? `${catalog.length} упражнений. Свободная практика — без влияния на Fokus Index.`
-        : `Найдено ${count} ${pluralize(count, ['упражнение', 'упражнения', 'упражнений'])}.`;
+        ? L(
+            `${catalog.length} упражнений. Свободная практика — без влияния на Fokus Index.`,
+            `${catalog.length} exercises total. Free practice — without affecting Fokus Index.`
+          )
+        : L(
+            `Найдено ${count} ${pluralize(count, ['упражнение', 'упражнения', 'упражнений'])}.`,
+            `Found ${count} ${count === 1 ? 'exercise' : 'exercises'}.`
+          );
       countLabel.textContent = labelText;
     }
     
@@ -308,13 +325,13 @@ export function renderTrainers(container: HTMLElement) {
         const btn = emptyState.querySelector('#catalog-clear-search') as HTMLElement;
         if (activeDom === 'discovery' && query === '') {
           if (icon) icon.textContent = '🎉';
-          if (title) title.textContent = 'Вы попробовали все упражнения!';
-          if (desc) desc.textContent = 'Новых упражнений в каталоге сейчас нет — это нормально. Можно вернуться к знакомым блокам или открыть все разделы.';
+          if (title) title.textContent = L('Вы попробовали все упражнения!', 'You have tried all exercises!');
+          if (desc) desc.textContent = L('Новых упражнений в каталоге сейчас нет — это нормально. Можно вернуться к знакомым блокам или открыть все разделы.', 'There are no new exercises in the catalog right now. You can return to familiar blocks or open all sections.');
           if (btn) btn.style.display = 'none';
         } else if (activeDom !== 'all' && query === '') {
           if (icon) icon.textContent = '📂';
-          if (title) title.textContent = 'В этом разделе пусто';
-          if (desc) desc.textContent = 'В выбранном домене сейчас нет упражнений по фильтру. Откройте «Все» или другой раздел.';
+          if (title) title.textContent = L('В этом разделе пусто', 'This section is empty');
+          if (desc) desc.textContent = L('В выбранном домене сейчас нет упражнений по фильтру. Откройте «Все» или другой раздел.', 'No exercises in this domain match the current filter. Select "All" or another section.');
           if (btn) btn.style.display = 'none';
         } else {
           const searchEmpty = emptyPlanCopy('search');

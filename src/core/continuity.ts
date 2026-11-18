@@ -1,5 +1,6 @@
 import type { DaySummary, ExerciseState, HistoryItem, Session } from './types';
 import { describeFirstWeekContinuity, type TodayRitual } from './onboarding';
+import { L } from './i18n';
 import {
   addCalendarDays,
   calendarDayKey,
@@ -401,51 +402,54 @@ export function getContinuityMessage(
       };
     }
     return {
-      title: `Первая неделя: День ${weekRitual.day}`,
-      body: weekRitual.copy || 'Разгоняемся. Навёрстывать дни не нужно.',
-      actionHint: 'Идём по плану'
+      title: L(`Первая неделя: День ${weekRitual.day}`, `First week: Day ${weekRitual.day}`),
+      body: weekRitual.copy || L('Разгоняемся. Навёрстывать дни не нужно.', 'Getting up to speed. No need to catch up on missed days.'),
+      actionHint: L('Идём по плану', 'On track')
     };
   }
 
   if (snapshot.streak.status === 'returned') {
     return {
-      title: 'С возвращением',
-      body: 'Пауза позади. Навык остался с вами.',
-      actionHint: 'Главное — продолжать'
+      title: L('С возвращением', 'Welcome back'),
+      body: L('Пауза позади. Навык остался с вами.', 'Pause is behind you. The skill is still with you.'),
+      actionHint: L('Главное — продолжать', 'The key is to keep going')
     };
   }
   if (snapshot.streak.status === 'fresh_start') {
     return {
-      title: 'Новый заход',
-      body: 'Накопленный навык остался с вами.',
-      actionHint: 'Отличный старт'
+      title: L('Новый заход', 'Fresh start'),
+      body: L('Накопленный навык остался с вами.', 'Your accumulated skill is still with you.'),
+      actionHint: L('Отличный старт', 'Great start')
     };
   }
   if (snapshot.weekly.sufficient) {
     const scorePct = Math.round(snapshot.weekly.score * 100);
     return {
-      title: `Регулярность: ${scorePct}%`,
-      body: `Вы тренировались ${snapshot.weekly.completedDays} из ${snapshot.weekly.windowDays} дней. Стабильный ритм — основа закрепления навыков.`,
-      actionHint: 'Ждём вас на следующей тренировке'
+      title: L(`Регулярность: ${scorePct}%`, `Regularity: ${scorePct}%`),
+      body: L(
+        `Вы тренировались ${snapshot.weekly.completedDays} из ${snapshot.weekly.windowDays} дней. Стабильный ритм — основа закрепления навыков.`,
+        `You trained ${snapshot.weekly.completedDays} of ${snapshot.weekly.windowDays} days. A steady rhythm is the basis of skill retention.`
+      ),
+      actionHint: L('Ждём вас на следующей тренировке', 'See you at the next workout')
     };
   }
   if (snapshot.streak.current > 1) {
     return {
-      title: `Серия: ${formatDaysPlural(snapshot.streak.current)}`,
-      body: 'Ритм сохраняется. Регулярная практика помогает адаптироваться к нагрузке.',
-      actionHint: 'Отличный темп'
+      title: L(`Серия: ${formatDaysPlural(snapshot.streak.current)}`, `Streak: ${snapshot.streak.current} ${snapshot.streak.current === 1 ? 'day' : 'days'}`),
+      body: L('Ритм сохраняется. Регулярная практика помогает адаптироваться к нагрузке.', 'Rhythm holds. Regular practice helps adapt to the workload.'),
+      actionHint: L('Отличный темп', 'Great pace')
     };
   }
   if (snapshot.streak.current === 1) {
     return {
-      title: 'Хороший старт',
-      body: 'Первая сессия позади. Главное — возвращаться.',
-      actionHint: 'До завтра'
+      title: L('Хороший старт', 'Good start'),
+      body: L('Первая сессия позади. Главное — возвращаться.', 'First session done. The key is to return.'),
+      actionHint: L('До завтра', 'See you tomorrow')
     };
   }
   return {
-    title: 'Тренировка завершена',
-    body: 'Результаты сохранены локально.',
-    actionHint: 'До встречи'
+    title: L('Тренировка завершена', 'Workout finished'),
+    body: L('Результаты сохранены локально.', 'Results saved locally.'),
+    actionHint: L('До встречи', 'See you soon')
   };
 }

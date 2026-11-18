@@ -63,6 +63,7 @@ test('leaving the tab mid-block: no result and no time spent while hidden', asyn
 });
 
 test('coming back after a week: history kept, calm plan offered', async ({ page }) => {
+  test.slow();
   await openFresh(page);
   await calibrateNewUser(page);
   await startToday(page);

@@ -1,4 +1,5 @@
 import { storage } from './storage';
+import { getLocale } from './i18n';
 import { getTodayRitual } from './onboarding';
 import { extractPlayedDays, computeDayStreak, calendarDayKey, resolveFokusTimeZone, addCalendarDays } from './streak';
 import { getManifest } from '../exercises/catalog';
@@ -11,6 +12,8 @@ export interface Quest {
   id: string;
   title: string;
   description: string;
+  titleEn?: string;
+  descriptionEn?: string;
   type: QuestType;
   target: number;
   progress: number;
@@ -19,6 +22,44 @@ export interface Quest {
   xpReward: number;
   difficulty?: QuestDifficulty;
   domainId?: string;
+}
+
+const QUEST_COPY_EN: Record<string, { title: string; description: string }> = {
+  e1: { title: 'Gentle start', description: 'Complete 2 blocks at a comfortable pace (optional)' },
+  e2: { title: 'Attention to detail', description: 'Aim for 80% accuracy without rushing' },
+  e3: { title: 'First steps', description: 'Collect 300 points without pressure on the result' },
+  e4: { title: 'Memory', description: 'Complete 1 memory exercise if you feel like it' },
+  e5: { title: 'Attention', description: 'Spend a little time on 1 focus exercise' },
+  m1: { title: 'Immersion', description: 'Complete 3 blocks, only if you have the energy' },
+  m2: { title: 'Accuracy', description: 'Focus on precision (90% in one block)' },
+  m3: { title: 'Steady pace', description: 'Complete exercises for 500 points in your own rhythm' },
+  m4: { title: 'Versatile focus', description: 'Try 2 different exercise formats (for variety)' },
+  m5: { title: 'Meditative flow', description: 'Try 1 block without mistakes, fully engaged in the process' },
+  m6: { title: 'Calculation', description: 'Spend time on two math exercises' },
+  m7: { title: 'Fresh perspective', description: 'Play 2 blocks. Check the catalog for attention and speed exercises if you want variety.' },
+  h1: { title: 'Full session', description: 'Complete 4 blocks (a rewarding challenge if you wish)' },
+  h2: { title: 'Great result', description: 'Score 600 points while enjoying the process' },
+  h3: { title: 'Deep focus', description: 'Aim to complete 2 blocks without errors' },
+  h4: { title: 'Fine craft', description: 'Reach 95% accuracy in one block without rushing' },
+  recovery_quest: { title: 'Gentle return', description: 'Complete 1 short block to restore rhythm. No penalties for missing days.' },
+  fresh_start_quest: { title: 'Fresh start', description: 'Complete any 1 block. Starting without haste.' },
+  streak_bonus: { title: 'Steady rhythm', description: 'Complete 2 blocks. You are in a good rhythm — focus on quality over quantity.' },
+  mindful_rest: { title: 'Listen to yourself', description: 'Take a break if you feel tired, or play 1 block just for enjoyment.' },
+  rest_kept: { title: 'Short day', description: 'The plan is shorter today. One light exercise is plenty — no heavy tasks today.' }
+};
+
+export function questTitle(quest: Quest): string {
+  if (getLocale() === 'en') {
+    return quest.titleEn || QUEST_COPY_EN[quest.id]?.title || quest.title;
+  }
+  return quest.title;
+}
+
+export function questDescription(quest: Quest): string {
+  if (getLocale() === 'en') {
+    return quest.descriptionEn || QUEST_COPY_EN[quest.id]?.description || quest.description;
+  }
+  return quest.description;
 }
 
 const QUEST_POOL: Omit<Quest, 'progress' | 'completed' | 'claimed'>[] = [
@@ -120,20 +161,30 @@ export function selectQuestSet(input: SelectQuestSetInput): Quest[] {
     if (fw) {
       let fTitle = 'Ритуал дня';
       let fDesc = `Короткий шаг первой недели: одна игра на «${domainLabel(focus)}». Без наверстывания.`;
+      let fTitleEn = 'Ritual of the day';
+      let fDescEn = `A short first-week step: one exercise in ${domainLabel(focus)}. No catching up needed.`;
       
       if (input.firstWeekDay) {
         if (input.firstWeekDay === 1) {
           fTitle = 'День 1: Знакомство';
           fDesc = `Пройдите первую игру на «${domainLabel(focus)}». Без спешки, привыкаем к формату.`;
+          fTitleEn = 'Day 1: Getting started';
+          fDescEn = `Complete your first exercise in ${domainLabel(focus)}. No rush, get used to the format.`;
         } else if (input.firstWeekDay === 4) {
           fTitle = 'День 4: Отдых';
           fDesc = `Лёгкий день. Сыграйте одну игру на «${domainLabel(focus)}» и со спокойной совестью отдыхайте.`;
+          fTitleEn = 'Day 4: Rest';
+          fDescEn = `A light day. Play one exercise in ${domainLabel(focus)} and rest with peace of mind.`;
         } else if (input.firstWeekDay === 7) {
           fTitle = 'День 7: Полный ритуал';
           fDesc = `Завершаем неделю. Сыграйте «${domainLabel(focus)}» в своём ритме.`;
+          fTitleEn = 'Day 7: Full ritual';
+          fDescEn = `Wrapping up the week. Play ${domainLabel(focus)} at your own pace.`;
         } else {
           fTitle = `День ${input.firstWeekDay}: В ритме`;
           fDesc = `Продолжаем неделю: одна игра на «${domainLabel(focus)}». Не нужно ничего наверстывать, если пропустили.`;
+          fTitleEn = `Day ${input.firstWeekDay}: In rhythm`;
+          fDescEn = `Continuing the week: one exercise in ${domainLabel(focus)}. No need to catch up if you missed a day.`;
         }
       }
 
@@ -142,6 +193,8 @@ export function selectQuestSet(input: SelectQuestSetInput): Quest[] {
         id: 'first_week_quest',
         title: fTitle,
         description: fDesc,
+        titleEn: fTitleEn,
+        descriptionEn: fDescEn,
         xpReward: Math.max(fw.xpReward, 60)
       };
     }
