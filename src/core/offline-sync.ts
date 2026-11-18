@@ -703,7 +703,12 @@ export class SyncQueue extends EventTarget {
         });
       }
       
-      const stored = window.localStorage.getItem('fokus.sync.queue');
+      let stored: string | null = null;
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          stored = window.localStorage.getItem('fokus.sync.queue');
+        }
+      } catch { /* ignore */ }
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -723,9 +728,11 @@ export class SyncQueue extends EventTarget {
   }
 
   private saveQueue() {
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('fokus.sync.queue', JSON.stringify(this.queue));
-    }
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem('fokus.sync.queue', JSON.stringify(this.queue));
+      }
+    } catch { /* ignore */ }
   }
 
   private setState(newState: SyncState) {

@@ -131,85 +131,189 @@ test('today empty history shows a quiet continuity hint, not a fake freeze', () 
 });
 
 test('today shows quality trend and a shorter recovery ritual after hard sessions', () => {
-  const p = storage.getProfile();
-  p.onboarded = true;
-  p.calibrated = true;
-  p.sessionLengthSec = 720;
-  storage.setProfile(p);
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-06-01T12:00:00Z'));
+  try {
+    const p = storage.getProfile();
+    p.onboarded = true;
+    p.calibrated = true;
+    p.sessionLengthSec = 720;
+    storage.setProfile(p);
 
-  for (let i = 0; i < 4; i++) {
-    const t = Date.now() - (4 - i) * 86400000;
-    storage.addSession({
-      id: `hard-${i}`,
-      startedAt: new Date(t).toISOString(),
-      finishedAt: new Date(t + 12 * 60 * 1000).toISOString(),
-      durationSec: 700,
-      plannedDurationSec: 720,
-      items: [
-        { exerciseId: 'grid-memory', level: 14, accuracy: 0.44, avgRtMs: 1100, score: 20 },
-        { exerciseId: 'stroop', level: 13, accuracy: 0.4, avgRtMs: 1500, score: 18 },
-        { exerciseId: 'odd-one', level: 12, accuracy: 0.42, avgRtMs: 1700, score: 16 }
-      ]
-    });
+    for (let i = 0; i < 4; i++) {
+      const t = Date.now() - (4 - i) * 86400000;
+      storage.addSession({
+        id: `hard-${i}`,
+        startedAt: new Date(t).toISOString(),
+        finishedAt: new Date(t + 12 * 60 * 1000).toISOString(),
+        durationSec: 700,
+        plannedDurationSec: 720,
+        items: [
+          { exerciseId: 'grid-memory', level: 14, accuracy: 0.44, avgRtMs: 1100, score: 20 },
+          { exerciseId: 'stroop', level: 13, accuracy: 0.4, avgRtMs: 1500, score: 18 },
+          { exerciseId: 'odd-one', level: 12, accuracy: 0.42, avgRtMs: 1700, score: 16 }
+        ]
+      });
+    }
+
+    const app = document.getElementById('app')!;
+    renderToday(app);
+    expect(app.textContent).toMatch(/Качество ритуала/);
+    expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
+    expect(app.textContent).toMatch(/5 минут/);
+    expect(app.textContent).not.toMatch(/IQ/);
+    expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
+  } finally {
+    vi.useRealTimers();
   }
+});
 
-  const app = document.getElementById('app')!;
-  renderToday(app);
-  expect(app.textContent).toMatch(/Качество ритуала/);
-  expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
-  expect(app.textContent).toMatch(/5 минут/);
-  expect(app.textContent).not.toMatch(/IQ/);
-  expect(app.querySelector('.quality-card')?.getAttribute('aria-label')).toBeTruthy();
+test('regression: recovery ritual duration across different dates and seasons', () => {
+  const dates = [
+    '2026-01-15T12:00:00Z',
+    '2026-04-15T12:00:00Z',
+    '2026-07-15T12:00:00Z',
+    '2026-10-15T12:00:00Z'
+  ];
+
+  for (const dateStr of dates) {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(dateStr));
+    try {
+      (storage as any).backend = new MockStorage();
+      storage.reset();
+      document.body.innerHTML = '<div id="app"></div>';
+
+      const p = storage.getProfile();
+      p.onboarded = true;
+      p.calibrated = true;
+      p.sessionLengthSec = 720;
+      storage.setProfile(p);
+
+      for (let i = 0; i < 4; i++) {
+        const t = Date.now() - (4 - i) * 86400000;
+        storage.addSession({
+          id: `hard-${i}-${dateStr}`,
+          startedAt: new Date(t).toISOString(),
+          finishedAt: new Date(t + 12 * 60 * 1000).toISOString(),
+          durationSec: 700,
+          plannedDurationSec: 720,
+          items: [
+            { exerciseId: 'grid-memory', level: 14, accuracy: 0.44, avgRtMs: 1100, score: 20 },
+            { exerciseId: 'stroop', level: 13, accuracy: 0.4, avgRtMs: 1500, score: 18 },
+            { exerciseId: 'odd-one', level: 12, accuracy: 0.42, avgRtMs: 1700, score: 16 }
+          ]
+        });
+      }
+
+      const app = document.getElementById('app')!;
+      renderToday(app);
+      expect(app.textContent).toMatch(/Качество ритуала/);
+      expect(app.textContent).toMatch(/Сегодня легче|Сегодня короче/);
+      expect(app.textContent).toMatch(/5 минут/);
+    } finally {
+      vi.useRealTimers();
+    }
+  }
+});
+
+test('regression: session finished after midnight counts as played today', () => {
+  // At 20:55 UTC (23:55 Europe/Moscow), a session started 24h ago at 23:55 MSK
+  // and lasting 12min finished at 00:07 MSK (today).
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-06-01T20:55:00Z'));
+  try {
+    (storage as any).backend = new MockStorage();
+    storage.reset();
+    document.body.innerHTML = '<div id="app"></div>';
+
+    const p = storage.getProfile();
+    p.onboarded = true;
+    p.calibrated = true;
+    p.sessionLengthSec = 720;
+    storage.setProfile(p);
+
+    for (let i = 0; i < 4; i++) {
+      const t = Date.now() - (4 - i) * 86400000;
+      storage.addSession({
+        id: `hard-midnight-${i}`,
+        startedAt: new Date(t).toISOString(),
+        finishedAt: new Date(t + 12 * 60 * 1000).toISOString(),
+        durationSec: 700,
+        plannedDurationSec: 720,
+        items: [
+          { exerciseId: 'grid-memory', level: 14, accuracy: 0.44, avgRtMs: 1100, score: 20 },
+          { exerciseId: 'stroop', level: 13, accuracy: 0.4, avgRtMs: 1500, score: 18 },
+          { exerciseId: 'odd-one', level: 12, accuracy: 0.42, avgRtMs: 1700, score: 16 }
+        ]
+      });
+    }
+
+    const app = document.getElementById('app')!;
+    renderToday(app);
+    // Since session hard-3 finished at 00:07 MSK on 2026-06-02 (today in Moscow),
+    // today is already played, so "План выполнен" / "На сегодня достаточно" is displayed.
+    expect(app.textContent).toMatch(/План выполнен/);
+    expect(app.textContent).toMatch(/На сегодня достаточно/);
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test('today shows ability trend chip without ritual why after enough sessions', () => {
-  const p = storage.getProfile();
-  p.onboarded = true;
-  p.calibrated = true;
-  p.sessionLengthSec = 300;
-  storage.setProfile(p);
-  storage.setDomains([
-    { domain: 'attention', value: 820, trend: 10, updatedAt: new Date().toISOString() },
-    { domain: 'memory', value: 420, trend: -6, updatedAt: new Date().toISOString() }
-  ]);
-  const day = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
-  storage.addSession({
-    id: 's1',
-    startedAt: day(4),
-    finishedAt: day(4),
-    durationSec: 300,
-    items: [
-      { exerciseId: 'grid-memory', level: 3, accuracy: 0.55, avgRtMs: 1800, score: 20, difficultyBefore: 3 },
-      { exerciseId: 'stroop', level: 5, accuracy: 0.9, avgRtMs: 900, score: 60, difficultyBefore: 5 }
-    ]
-  });
-  storage.addSession({
-    id: 's2',
-    startedAt: day(2),
-    finishedAt: day(2),
-    durationSec: 300,
-    items: [
-      { exerciseId: 'grid-memory', level: 3, accuracy: 0.6, avgRtMs: 1700, score: 22, difficultyBefore: 3 },
-      { exerciseId: 'stroop', level: 6, accuracy: 0.92, avgRtMs: 850, score: 70, difficultyBefore: 6 }
-    ]
-  });
-  storage.addSession({
-    id: 's3',
-    startedAt: day(1),
-    finishedAt: day(1),
-    durationSec: 300,
-    items: [
-      { exerciseId: 'grid-memory', level: 3, accuracy: 0.65, avgRtMs: 1600, score: 25, difficultyBefore: 3 },
-      { exerciseId: 'stroop', level: 6, accuracy: 0.95, avgRtMs: 800, score: 75, difficultyBefore: 6 }
-    ]
-  });
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-06-01T12:00:00Z'));
+  try {
+    const p = storage.getProfile();
+    p.onboarded = true;
+    p.calibrated = true;
+    p.sessionLengthSec = 300;
+    storage.setProfile(p);
+    storage.setDomains([
+      { domain: 'attention', value: 820, trend: 10, updatedAt: new Date().toISOString() },
+      { domain: 'memory', value: 420, trend: -6, updatedAt: new Date().toISOString() }
+    ]);
+    const day = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
+    storage.addSession({
+      id: 's1',
+      startedAt: day(4),
+      finishedAt: day(4),
+      durationSec: 300,
+      items: [
+        { exerciseId: 'grid-memory', level: 3, accuracy: 0.55, avgRtMs: 1800, score: 20, difficultyBefore: 3 },
+        { exerciseId: 'stroop', level: 5, accuracy: 0.9, avgRtMs: 900, score: 60, difficultyBefore: 5 }
+      ]
+    });
+    storage.addSession({
+      id: 's2',
+      startedAt: day(2),
+      finishedAt: day(2),
+      durationSec: 300,
+      items: [
+        { exerciseId: 'grid-memory', level: 3, accuracy: 0.6, avgRtMs: 1700, score: 22, difficultyBefore: 3 },
+        { exerciseId: 'stroop', level: 6, accuracy: 0.92, avgRtMs: 850, score: 70, difficultyBefore: 6 }
+      ]
+    });
+    storage.addSession({
+      id: 's3',
+      startedAt: day(1),
+      finishedAt: day(1),
+      durationSec: 300,
+      items: [
+        { exerciseId: 'grid-memory', level: 3, accuracy: 0.65, avgRtMs: 1600, score: 25, difficultyBefore: 3 },
+        { exerciseId: 'stroop', level: 6, accuracy: 0.95, avgRtMs: 800, score: 75, difficultyBefore: 6 }
+      ]
+    });
 
-  const app = document.getElementById('app')!;
-  renderToday(app);
-  expect(app.querySelector('.ability-trend-chip')).toBeTruthy();
-  expect(app.querySelector('.ability-trend-chip')?.getAttribute('aria-label')).toMatch(/Тренд:/);
-  expect(app.querySelector('.ritual-why')).toBeNull();
-  expect(app.textContent).not.toMatch(/IQ/i);
+    const app = document.getElementById('app')!;
+    renderToday(app);
+    expect(app.querySelector('.ability-trend-chip')).toBeTruthy();
+    expect(app.querySelector('.ability-trend-chip')?.getAttribute('aria-label')).toMatch(/Тренд:/);
+    expect(app.querySelector('.ritual-why')).toBeNull();
+    expect(app.textContent).not.toMatch(/IQ/i);
+  } finally {
+    vi.useRealTimers();
+  }
 });
 
 test('today 1-day gap offers a shorter familiar return, not a continued streak', () => {
