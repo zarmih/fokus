@@ -5,6 +5,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./tests/setup.ts'],
     testTimeout: 20000,
+    teardownTimeout: 30000,
     poolOptions: {
       forks: {
         maxForks: 4

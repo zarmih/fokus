@@ -108,6 +108,8 @@ export function dateOnly(iso: string, timeZone?: string): string {
   return calendarDayKey(iso, zone);
 }
 
+export const dayKey = dateOnly;
+
 export function daysBetween(fromDate: string, toDate: string): number {
   return civilDaysBetween(dateOnly(fromDate), dateOnly(toDate));
 }

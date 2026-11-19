@@ -6,7 +6,7 @@ import { goalCopy } from '../../core/labels';
 import { L, getLocale, setLocale } from '../../core/i18n';
 import { applyDocumentLang } from '../a11y';
 import { calibrationSessionItems } from '../../core/calibration';
-import { buildFirstWeekPlan, firstWeekPreviewLines, gentleDayNote } from '../../core/onboarding';
+import { buildFirstWeekPlan, dayKey, firstWeekPreviewLines, gentleDayNote } from '../../core/onboarding';
 import { registry } from '../../exercises/manifest-registry';
 import { scheduleLocalReminder } from '../../core/reminders';
 import { bindPressPhysics, enterStage } from '../../core/motion';
@@ -31,7 +31,7 @@ export function renderOnboarding(container: HTMLElement) {
     const weekPreview = buildFirstWeekPlan({
       primaryGoal: selectedGoal,
       sessionLengthSec: selectedMin * 60,
-      startDate: new Date().toISOString()
+      startDate: dayKey(new Date().toISOString())
     });
 
     const isNextDisabled = step === 3 && displayName.trim().length === 0;
@@ -230,7 +230,7 @@ export function renderOnboarding(container: HTMLElement) {
       p.firstWeekPlan = buildFirstWeekPlan({
         primaryGoal: selectedGoal,
         sessionLengthSec: selectedMin * 60,
-        startDate: new Date().toISOString()
+        startDate: dayKey(new Date().toISOString())
       });
       p.reminderHour = selectedReminderHour;
       if (displayName) {
