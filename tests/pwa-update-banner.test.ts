@@ -140,3 +140,17 @@ test('update action invokes onUpdate callback', async () => {
   (banner.querySelector('#btn-pwa-update') as HTMLButtonElement).click();
   expect(onUpdate).toHaveBeenCalledTimes(1);
 });
+
+test('listenForPwaUpdate triggers banner on pwa-update-available custom event', async () => {
+  const app = document.createElement('div');
+  app.id = 'app';
+  document.body.appendChild(app);
+
+  const { listenForPwaUpdate } = await import('../src/ui/components/pwa-update-banner');
+  listenForPwaUpdate(() => app);
+
+  window.dispatchEvent(new CustomEvent('pwa-update-available'));
+  await flushFocus();
+
+  expect(app.querySelector('.pwa-update-banner')).not.toBeNull();
+});

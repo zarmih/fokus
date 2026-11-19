@@ -13,6 +13,7 @@ import { applyDocumentLang } from './ui/a11y';
 import { applyMotionPreference } from './core/motion';
 import { safeError } from './core/log';
 import { renderOfflineBanner } from './ui/components/offline-banner';
+import { listenForPwaUpdate } from './ui/components/pwa-update-banner';
 import { errorScreenHtml } from './ui/components/accessible-markup';
 
 const INIT_ERROR_MESSAGE = 'Не удалось прочитать локальные данные. Они остаются на этом устройстве и никуда не отправлялись.';
@@ -48,6 +49,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
   if (!app) return;
 
+  listenForPwaUpdate(() => document.getElementById('app'));
   renderOfflineBanner(document.body);
 
   const unlock = () => unlockAudio();
