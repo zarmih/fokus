@@ -142,9 +142,12 @@ export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: st
     targetDate = addCalendarDays(today, -daysAgo + 1);
   }
 
+  // Day summaries may store a full ISO instant; bucket on the Moscow civil day so
+  // a row written at 21:30Z (already tomorrow in Moscow) is not counted as "previous".
   const withIndex = summaries
     .filter((s) => typeof s.fokusIndex === 'number' && s.fokusIndex > 0)
-    .filter((s) => !today || s.date < (targetDate || today));
+    .filter((s) => !today || fokusDayKey(s.date) < (targetDate || today))
+    .sort((a, b) => fokusDayKey(a.date).localeCompare(fokusDayKey(b.date)));
   if (withIndex.length === 0) return null;
   return withIndex[withIndex.length - 1].fokusIndex as number;
 }
