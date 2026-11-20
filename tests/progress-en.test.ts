@@ -48,7 +48,7 @@ describe('Progress screen in English', () => {
     setLocale('en');
 
     const days = [];
-    const now = new Date('2026-11-13T12:00:00Z');
+    const now = new Date();
     for (let i = 10; i >= 0; i--) {
       const d = new Date(now.getTime() - i * 86_400_000);
       days.push({
@@ -76,14 +76,14 @@ describe('Progress screen in English', () => {
     ]);
 
     storage.addHistory({
-      date: '2026-11-13T10:30:00Z',
+      date: new Date(now.getTime() - 3600_000).toISOString(),
       minutes: 7,
       score: 420,
       accuracy: 0.94,
       domainDeltas: { attention: 4 }
     });
     storage.addHistory({
-      date: '2026-11-12T09:15:00Z',
+      date: new Date(now.getTime() - 86400_000).toISOString(),
       minutes: 5,
       score: 310,
       accuracy: 0.88,
@@ -93,8 +93,8 @@ describe('Progress screen in English', () => {
     storage.setSessions([
       {
         id: 's1',
-        startedAt: '2026-11-13T10:30:00Z',
-        finishedAt: '2026-11-13T10:37:00Z',
+        startedAt: new Date(now.getTime() - 3600_000).toISOString(),
+        finishedAt: new Date(now.getTime() - 3600_000 + 420_000).toISOString(),
         durationSec: 420,
         mode: 'normal',
         items: [
@@ -105,8 +105,8 @@ describe('Progress screen in English', () => {
       },
       {
         id: 's2',
-        startedAt: '2026-11-12T09:15:00Z',
-        finishedAt: '2026-11-12T09:20:00Z',
+        startedAt: new Date(now.getTime() - 86400_000).toISOString(),
+        finishedAt: new Date(now.getTime() - 86400_000 + 300_000).toISOString(),
         durationSec: 300,
         mode: 'normal',
         items: [
