@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { renderProgress } from '../src/ui/screens/progress';
 import { storage } from '../src/core/storage';
 import { setLocale } from '../src/core/i18n';
@@ -13,12 +13,15 @@ class MockStorage {
 const CYR = /[А-Яа-яЁё]/;
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-11-13T12:00:00Z'));
   (storage as any).backend = new MockStorage();
   storage.reset();
   document.body.innerHTML = '<div id="app"></div>';
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   setLocale('ru');
 });
 
