@@ -415,7 +415,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <button id="btn-retry" class="btn-secondary" type="button" style="width: 100%;">Обновить</button>
       </div>
     `;
-  } else if (!navigator.onLine) {
+  } else if (!navigator.onLine && noPlanState) {
     actionHtml = `
       <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" aria-live="polite" tabindex="-1" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
         <div class="workout-kicker">${offlineCopy.kicker}</div>
@@ -638,7 +638,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const startBtn = content.querySelector('#btn-start') as HTMLElement | null;
   if (startBtn && !isLoading && !errorState) {
     requestAnimationFrame(() => startBtn.focus());
-  } else if (!navigator.onLine) {
+  } else if (!navigator.onLine && noPlanState) {
     const retryBtn = content.querySelector('#btn-retry') as HTMLElement | null;
     if (retryBtn) requestAnimationFrame(() => retryBtn.focus());
   }
