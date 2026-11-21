@@ -415,7 +415,30 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
         <button id="btn-retry" class="btn-secondary" type="button" style="width: 100%;">Обновить</button>
       </div>
     `;
-  } else if (!navigator.onLine && noPlanState) {
+  } else if (unfinishedSession) {
+    actionHtml = `
+      <div class="workout-card fx-enter coach-${spark.tone} ${skillClass}" role="region" aria-labelledby="cta-resume-title">
+        <div class="workout-kicker" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: text-bottom;"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          ${L('Возвращение к сессии', 'Back to your session')}
+        </div>
+        <h3 id="cta-resume-title" style="font-size: 22px; margin-bottom: 4px; letter-spacing: -0.02em;">${L('Продолжить с того места', 'Pick up where you left off')}</h3>
+        <p style="font-size: 14px; font-weight: 600; color: var(--accent-ink); margin-bottom: 12px;">
+          ${L(`Осталось ${Math.floor(ritualDuration / 60)} минут`, `${Math.floor(ritualDuration / 60)} min left`)} &middot; ${focusText}
+        </p>
+        ${budgetWhyHtml}
+        <p class="workout-coach-insight" style="line-height: 1.5; color: var(--text); opacity: 0.9; margin-bottom: 16px;">${L('Вы уже начали эту тренировку сегодня. Продолжаем.', 'You already started this workout today. Let’s continue.')}</p>
+        ${spark.quietTip ? `<p class="coach-quiet-tip" style="margin-bottom: 16px; font-size: 13px; opacity: 0.85; color: var(--accent-ink); font-weight: 500;">${spark.quietTip}</p>` : ''}
+        <div class="workout-chips" role="list" aria-label="${L('Оставшиеся упражнения', 'Remaining exercises')}" style="display: flex; flex-direction: column; gap: 8px;">${compositionHtml}</div>
+        ${snoozeApplied ? `<p data-slot-snooze="1" style="margin-top: 12px; margin-bottom: 4px; font-size: 13px; opacity: 0.85; color: var(--text);">${L('Это упражнение вернётся завтра. Сегодняшний план от этого не ломается.', 'This exercise comes back tomorrow. Today’s plan still works.')}</p>` : ''}
+        <button id="btn-start" class="btn-primary" type="button" style="margin-top: 8px; width: 100%; display: flex; justify-content: space-between; align-items: center; padding-left: 20px; padding-right: 20px;">
+          <span>${L('Продолжить тренировку', 'Continue workout')}</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </button>
+        <button id="btn-restart" class="btn-secondary" type="button" style="margin-top: 8px; width: 100%;">${L('Начать заново', 'Start over')}</button>
+      </div>
+    `;
+  } else if (!navigator.onLine) {
     actionHtml = `
       <div class="workout-card offline-card fx-enter" role="region" aria-labelledby="cta-offline-title" aria-live="polite" tabindex="-1" style="background: var(--surface-2); border-left: 4px solid var(--muted);">
         <div class="workout-kicker">${offlineCopy.kicker}</div>
