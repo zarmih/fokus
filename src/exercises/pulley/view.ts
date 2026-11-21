@@ -14,7 +14,27 @@ export function renderPulley(
   let rounds = 0;
   let totalAcc = 0;
   let totalRt = 0;
-  
+  let isAnimating = false;
+  let finished = false;
+
+  const finishBlock = () => {
+    if (finished) return;
+    finished = true;
+    clearInterval(checkInterval);
+    stage.cleanup();
+    onBlockEnd({
+      accuracy: rounds > 0 ? totalAcc / rounds : 0,
+      avgRtMs: rounds > 0 ? totalRt / rounds : 0,
+      rounds
+    });
+  };
+
+  const checkInterval = setInterval(() => {
+    if (isTimeUp() && !isAnimating) {
+      finishBlock();
+    }
+  }, 250);
+
   const startRound = (customParams?: any) => {
     if (isTimeUp()) {
       finishBlock();
@@ -25,7 +45,6 @@ export function renderPulley(
     const engine = new PulleyEngine();
     engine.generate(params);
     const roundStart = Date.now();
-    let isAnimating = false;
 
     const render = () => {
       if (isTimeUp() && !isAnimating) {
@@ -147,7 +166,8 @@ export function renderPulley(
 
       stage.board.querySelectorAll('.weight-floor').forEach(el => {
         el.addEventListener('click', () => {
-          if (isTimeUp() || isAnimating) return;
+          if (isTimeUp()) { finishBlock(); return; }
+          if (isAnimating) return;
           const idx = parseInt((el as HTMLElement).dataset.idx || '0');
           engine.takeFloor(idx);
           render();
@@ -156,7 +176,8 @@ export function renderPulley(
 
       stage.board.querySelectorAll('.weight-hook-on-door').forEach(el => {
         el.addEventListener('click', () => {
-          if (isTimeUp() || isAnimating) return;
+          if (isTimeUp()) { finishBlock(); return; }
+          if (isAnimating) return;
           const idx = parseInt((el as HTMLElement).dataset.idx || '0');
           engine.dropHook(idx);
           render();
@@ -165,7 +186,8 @@ export function renderPulley(
 
       stage.board.querySelectorAll('.weight-hook-large').forEach(el => {
         el.addEventListener('click', () => {
-          if (isTimeUp() || isAnimating) return;
+          if (isTimeUp()) { finishBlock(); return; }
+          if (isAnimating) return;
           const idx = parseInt((el as HTMLElement).dataset.idx || '0');
           engine.dropHook(idx);
           render();
@@ -173,13 +195,15 @@ export function renderPulley(
       });
 
       stage.board.querySelector('#btn-drop-all')?.addEventListener('click', () => {
-        if (isTimeUp() || isAnimating) return;
+        if (isTimeUp()) { finishBlock(); return; }
+        if (isAnimating) return;
         engine.dumpAllToFloor();
         render();
       });
 
       stage.board.querySelector('#btn-reset')?.addEventListener('click', () => {
-        if (isTimeUp() || isAnimating) return;
+        if (isTimeUp()) { finishBlock(); return; }
+        if (isAnimating) return;
         rounds++;
         totalRt += Date.now() - roundStart;
         
@@ -189,7 +213,8 @@ export function renderPulley(
       });
 
       stage.board.querySelector('#btn-walk')?.addEventListener('click', () => {
-        if (isTimeUp() || !canWalk || isAnimating) return;
+        if (isTimeUp()) { finishBlock(); return; }
+        if (!canWalk || isAnimating) return;
         isAnimating = true;
         
         const playerEl = stage.board.querySelector('#player-sprite') as HTMLElement;
@@ -213,15 +238,9 @@ export function renderPulley(
     render();
   };
 
-  const finishBlock = () => {
-    stage.cleanup();
-    onBlockEnd({
-      accuracy: rounds > 0 ? totalAcc / rounds : 0,
-      avgRtMs: rounds > 0 ? totalRt / rounds : 0,
-      rounds
-    });
-  };
-
   startRound();
-  return () => stage.cleanup();
+  return () => {
+    clearInterval(checkInterval);
+    stage.cleanup();
+  };
 }
