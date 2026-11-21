@@ -1,6 +1,6 @@
 import { navigateTo } from '../router';
 import { initialZones } from '../../core/time-zone-choice';
-import { deviceTimeZone } from '../../core/streak';
+import { configureFokusTimeZones, deviceTimeZone, resolveFokusTimeZone } from '../../core/streak';
 import { storage } from '../../core/storage';
 import { goalCopy } from '../../core/labels';
 import { L, getLocale, setLocale } from '../../core/i18n';
