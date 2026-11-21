@@ -71,7 +71,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   }
   const topInsight = insights[0];
   const weeklyFocus = suggestFocusOfTheWeek(domains, ds, sessions);
-  const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, ds);
+  const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, ds, snap.timeZone);
   const coachTarget = topInsight?.domainId || intel.weakDomainId || profile.primaryGoal;
   const targetGoal = weeklyFocus?.domain || (weekRitual.ritualDay && weekRitual.ritualDay.focusDomains[0]) || coachTarget;
   const baseDuration = weekRitual.inFirstWeek && weekRitual.ritualDay

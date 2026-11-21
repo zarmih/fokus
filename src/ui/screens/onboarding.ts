@@ -28,10 +28,12 @@ export function renderOnboarding(container: HTMLElement) {
   const totalSteps = 3;
 
   const render = () => {
+    const userZone = deviceTimeZone() || resolveFokusTimeZone().timeZone;
     const weekPreview = buildFirstWeekPlan({
       primaryGoal: selectedGoal,
       sessionLengthSec: selectedMin * 60,
-      startDate: dayKey(new Date().toISOString())
+      startDate: dayKey(new Date().toISOString(), userZone),
+      timeZone: userZone
     });
 
     const isNextDisabled = step === 3 && displayName.trim().length === 0;
@@ -223,14 +225,21 @@ export function renderOnboarding(container: HTMLElement) {
       const p = storage.getProfile();
       p.onboarded = true;
       // A new profile has no days to re-date: start in the device zone (changeable in Settings).
-      if (!storage.getSessions().length && !storage.getDaySummaries().length) p.timeZones = initialZones(deviceTimeZone());
+      if (!storage.getSessions().length && !storage.getDaySummaries().length) {
+        p.timeZones = initialZones(deviceTimeZone());
+        configureFokusTimeZones(p.timeZones);
+      }
       p.onboardingCompletedAt = new Date().toISOString();
       p.sessionLengthSec = selectedMin * 60;
       p.primaryGoal = selectedGoal;
+      const activeZone = (p.timeZones && p.timeZones.length)
+        ? p.timeZones[p.timeZones.length - 1].zone
+        : resolveFokusTimeZone().timeZone;
       p.firstWeekPlan = buildFirstWeekPlan({
         primaryGoal: selectedGoal,
         sessionLengthSec: selectedMin * 60,
-        startDate: dayKey(new Date().toISOString())
+        startDate: dayKey(new Date().toISOString(), activeZone),
+        timeZone: activeZone
       });
       p.reminderHour = selectedReminderHour;
       if (displayName) {

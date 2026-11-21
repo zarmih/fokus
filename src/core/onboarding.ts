@@ -110,8 +110,8 @@ export function dateOnly(iso: string, timeZone?: string): string {
 
 export const dayKey = dateOnly;
 
-export function daysBetween(fromDate: string, toDate: string): number {
-  return civilDaysBetween(dateOnly(fromDate), dateOnly(toDate));
+export function daysBetween(fromDate: string, toDate: string, timeZone?: string): number {
+  return civilDaysBetween(dateOnly(fromDate, timeZone), dateOnly(toDate, timeZone));
 }
 
 function asDomain(raw?: string): CognitiveDomain | null {
@@ -161,6 +161,7 @@ export function buildFirstWeekPlan(input: {
   sessionLengthSec: number;
   startDate: string;
   snapshot?: ProbeSnapshot | null;
+  timeZone?: string;
 }): FirstWeekPlan {
   const primaryGoal = input.primaryGoal || 'balance';
   const durations = rampDurations(input.sessionLengthSec);
@@ -177,7 +178,7 @@ export function buildFirstWeekPlan(input: {
   });
 
   return {
-    startDate: dateOnly(input.startDate),
+    startDate: dateOnly(input.startDate, input.timeZone),
     targetSessionSec: Math.max(300, input.sessionLengthSec),
     primaryGoal,
     skipPolicy: 'one-forgiven',
@@ -196,20 +197,21 @@ export interface TodayRitual {
   copy: string;
 }
 
-function playedDates(summaries: { date: string }[]): Set<string> {
-  const tz = resolveFokusTimeZone().timeZone;
+function playedDates(summaries: { date: string }[], timeZone?: string): Set<string> {
+  const tz = timeZone || resolveFokusTimeZone().timeZone;
   return new Set(summaries.map((s) => calendarDayKey(s.date, tz)));
 }
 
 export function countMissedDays(
   startDate: string,
   today: string,
-  summaries: { date: string }[]
+  summaries: { date: string }[],
+  timeZone?: string
 ): number {
-  const played = playedDates(summaries);
-  const start = dateOnly(startDate);
-  const end = dateOnly(today);
-  const span = daysBetween(start, end);
+  const played = playedDates(summaries, timeZone);
+  const start = dateOnly(startDate, timeZone);
+  const end = dateOnly(today, timeZone);
+  const span = daysBetween(start, end, timeZone);
   if (span <= 0) return played.has(start) ? 0 : 0;
   let missed = 0;
   for (let i = 0; i < span; i++) {
@@ -238,7 +240,8 @@ export function skipCopy(state: WeekSkipState): string {
 export function getTodayRitual(
   plan: FirstWeekPlan | undefined,
   todayIso: string,
-  summaries: { date: string }[] = []
+  summaries: { date: string }[] = [],
+  timeZone?: string
 ): TodayRitual {
   if (!plan) {
     return {
@@ -251,8 +254,9 @@ export function getTodayRitual(
     };
   }
 
-  const today = dateOnly(todayIso);
-  const offset = daysBetween(plan.startDate, today) + 1;
+  const today = dateOnly(todayIso, timeZone);
+  const start = dateOnly(plan.startDate, timeZone);
+  const offset = daysBetween(start, today, timeZone) + 1;
 
   if (offset < 1) {
     return {
@@ -276,7 +280,7 @@ export function getTodayRitual(
     };
   }
 
-  const missedDays = countMissedDays(plan.startDate, today, summaries);
+  const missedDays = countMissedDays(plan.startDate, today, summaries, timeZone);
   const skipState: WeekSkipState =
     missedDays <= 0 ? 'on-track' : missedDays === 1 ? 'forgiven' : 'resume';
   const ritualDay = plan.days[offset - 1];
