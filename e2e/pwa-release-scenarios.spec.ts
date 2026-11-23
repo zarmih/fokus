@@ -168,8 +168,11 @@ test.describe('PWA Release Scenarios — Service Worker, Data Privacy, Offline R
 
     // Valid confirmation word
     await page.fill('#wipe-confirm-input', 'УДАЛИТЬ');
-    await page.locator('#btn-wipe-confirm').click();
-    await tick(page, 1500);
+    await Promise.all([
+      page.waitForEvent('framenavigated', frame => frame === page.mainFrame()),
+      page.locator('#btn-wipe-confirm').click(),
+    ]);
+    await expect(page.getByRole('progressbar').first()).toBeVisible();
 
     // Check state in localStorage is completely reset
     const raw = await page.evaluate(() => localStorage.getItem('fokus.v1'));
