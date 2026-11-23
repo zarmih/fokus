@@ -40,6 +40,13 @@ describe('civil-day bucketing in the 21:00–23:59Z window', () => {
     expect(new Date(BEFORE_MOSCOW_MIDNIGHT).toISOString().slice(0, 10)).toBe('2026-10-03');
   });
 
+  test('incomplete stored summaries do not hide valid history', () => {
+    const valid = summary('2026-10-02', { memory: 5 }, { fokusIndex: 200 });
+    const incomplete = { ...valid, date: undefined } as unknown as DaySummary;
+    expect(previousFokusIndex([valid, incomplete], '2026-10-04')).toBe(200);
+    expect(evaluateDomainWorkload(['2026-10-02'], '2026-10-04', [incomplete, valid], TZ).recentDomains).toEqual(['memory']);
+  });
+
   test('previousFokusIndex ignores a row written after Moscow midnight (it is today)', () => {
     if (!timeZoneSupported(TZ)) return;
     const summaries = [

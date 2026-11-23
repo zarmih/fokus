@@ -148,6 +148,7 @@ export function previousFokusIndex(summaries: DaySummary[], excludeTodayIso?: st
   let latestIndex: number | null = null;
   for (const summary of summaries) {
     if (typeof summary.fokusIndex !== 'number' || !(summary.fokusIndex > 0)) continue;
+    if (typeof summary.date !== 'string' || !summary.date) continue;
     const day = fokusDayKey(summary.date);
     if ((!targetDate || day < targetDate) && day >= latestDay) {
       latestDay = day;

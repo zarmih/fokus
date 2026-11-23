@@ -295,6 +295,7 @@ export function evaluateDomainWorkload(
   // Fokus zone (Europe/Moscow) so a 21:30Z row is not silently unmatched.
   const byDay = new Map<string, DaySummary>();
   for (const s of summaries) {
+    if (typeof s.date !== 'string' || !s.date) continue;
     const key = calendarDayKey(s.date, timeZone);
     if (!byDay.has(key)) byDay.set(key, s);
   }
