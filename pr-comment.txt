@@ -1,0 +1,6 @@
+Gate results:
+- Typecheck & Build: Passed
+- Unit Tests (3x TZ): 164/164 passed
+- E2E Playwright: 12/12 passed
+
+Merge approved after green local gate.
