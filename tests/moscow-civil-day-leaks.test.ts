@@ -66,7 +66,8 @@ describe('civil-day bucketing in the 21:00–23:59Z window', () => {
     const yesterday = summary('2026-10-02T12:00:00.000Z', {}, { fokusIndex: 200 });
     const today = summary(AFTER_MOSCOW_MIDNIGHT, {}, { fokusIndex: 999 });
     // Newest-first input: the old code returned whichever row happened to be last.
-    const newestFirst = [today, yesterday] as unknown as DaySummary[];
+    const older = summary('2026-10-01', {}, { fokusIndex: 100 });
+    const newestFirst = [today, yesterday, older] as unknown as DaySummary[];
     expect(previousFokusIndex(newestFirst, '2026-10-04T12:00:00Z')).toBe(200);
   });
 });
@@ -74,7 +75,7 @@ describe('civil-day bucketing in the 21:00–23:59Z window', () => {
 describe('assessDataSufficiency daysSinceLast on the Moscow civil day', () => {
   test('a block at 23:00 MSK and now at 00:30 MSK is 1 day apart, not 0', () => {
     if (!timeZoneSupported(TZ)) return;
-    const nowMs = Date.parse('2026-10-04T00:30:00Z'); // 10-04 03:30 MSK
+    const nowMs = Date.parse('2026-10-03T21:30:00Z'); // 10-04 00:30 MSK
     const s = [session('2026-10-03T20:00:00.000Z', ['a1'])]; // 10-03 23:00 MSK
 
     const res = assessDataSufficiency({ sessions: s, domainOf: () => 'attention', nowMs });
@@ -127,11 +128,12 @@ describe('evaluateDomainWorkload matches ISO-dated summaries on the civil day', 
   test('evaluateDomainWorkload is explicit about the zone it was given', () => {
     if (!timeZoneSupported(TZ)) return;
     const played = ['2026-10-02', '2026-10-03'];
-    const utc = evaluateDomainWorkload(played, '2026-10-04', isoDays, 'UTC');
+    const rows = isoDays.slice(0, 2);
+    const utc = evaluateDomainWorkload(played, '2026-10-04', rows, 'UTC');
     // In UTC those ISO rows land on 10-01/02/03, so only one of them is "recent".
-    expect(utc.recentDomains).not.toEqual(['attention', 'memory']);
+    expect(utc.fatigued).toEqual([]);
 
-    const msk = evaluateDomainWorkload(played, '2026-10-04', isoDays, TZ);
-    expect(msk.recentDomains.sort()).toEqual(['attention', 'memory']);
+    const msk = evaluateDomainWorkload(played, '2026-10-04', rows, TZ);
+    expect(msk.fatigued.sort()).toEqual(['attention', 'memory']);
   });
 });
