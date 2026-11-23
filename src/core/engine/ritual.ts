@@ -105,7 +105,12 @@ export function composeRitual(params: ComposeRitualParams): RitualPlan {
       goal,
       phaseId
     });
-    const chosen = pickWithExplore(ranked, rng);
+    // During orientation a focused plan may repeat one domain once.
+    // Balance plans cover a new domain whenever the available catalog allows it.
+    const repeats = selectedDomains.length - new Set(selectedDomains).size;
+    const preferNewDomain = phaseId === 'orient' && repeats >= (goal === 'balance' ? 0 : 1);
+    const unseen = preferNewDomain ? ranked.filter(c => !selectedDomains.includes(c.domain)) : [];
+    const chosen = pickWithExplore(unseen.length ? unseen : ranked, rng);
     if (!chosen) return;
     selectedIds.add(chosen.exerciseId);
     selectedDomains.push(chosen.domain);
