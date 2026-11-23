@@ -4,9 +4,10 @@
 Every evidence string was checked against the local clone (refs/remotes/pr/<n>,
 origin/main) with the commands listed in the generated doc header.
 """
+from triage_paths import OUTPUT
 import json
 
-EV = {json.loads(l)["number"]: json.loads(l) for l in open("/tmp/pr_evidence.jsonl")}
+EV = {json.loads(l)["number"]: json.loads(l) for l in open(OUTPUT / "pr_evidence.jsonl")}
 
 V = {
 # ================= ALREADY_IN_MAIN =================

@@ -9,15 +9,15 @@ For each open PR from data/fokus_open_prs.json emits a JSONL record with:
   - changed files, and whether those exact lines already exist in main
 No network access; uses only local refs refs/remotes/pr/<n>.
 """
+from triage_paths import REPO, DATA, OUTPUT
 import json
 import subprocess
 import sys
 
 MAIN = "origin/main"
-DATA = "/workspace/cloud/hermes/data/fokus_open_prs.json"
 
 
-def run(args, cwd="/workspace/cloud/hermes/fokus"):
+def run(args, cwd=REPO):
     p = subprocess.run(args, cwd=cwd, capture_output=True, text=True)
     return p.returncode, p.stdout, p.stderr
 
@@ -83,7 +83,7 @@ def diff_files(n):
 
 def main():
     prs = json.load(open(DATA))
-    out_path = sys.argv[1] if len(sys.argv) > 1 else "/tmp/pr_evidence.jsonl"
+    out_path = sys.argv[1] if len(sys.argv) > 1 else OUTPUT / "pr_evidence.jsonl"
     with open(out_path, "w") as f:
         for pr in prs:
             n = pr["number"]

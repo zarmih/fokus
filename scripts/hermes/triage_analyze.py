@@ -14,13 +14,12 @@ Method (per PR, against refs/remotes/pr/<n>):
 
 Writes JSON to /tmp/pr_analysis.json
 """
+from triage_paths import REPO, DATA, OUTPUT
 import json
 import subprocess
 from collections import defaultdict
 
 MAIN = "origin/main"
-REPO = "/workspace/cloud/hermes/fokus"
-DATA = "/workspace/cloud/hermes/data/fokus_open_prs.json"
 
 
 def run(args):
@@ -60,7 +59,7 @@ def main_lines(ref, path):
 
 def main():
     prs = json.load(open(DATA))
-    ev = {json.loads(l)["number"]: json.loads(l) for l in open("/tmp/pr_evidence.jsonl")}
+    ev = {json.loads(l)["number"]: json.loads(l) for l in open(OUTPUT / "pr_evidence.jsonl")}
     out = {}
     for pr in prs:
         n = pr["number"]
@@ -90,7 +89,7 @@ def main():
             "per_file": per_file,
         }
         print(f"#{n}: coverage={out[n]['line_coverage']}", flush=True)
-    json.dump(out, open("/tmp/pr_analysis.json", "w"), indent=1)
+    json.dump(out, open(OUTPUT / "pr_analysis.json", "w"), indent=1)
 
 
 if __name__ == "__main__":

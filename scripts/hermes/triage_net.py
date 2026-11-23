@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 """Net-diff analysis: what does each PR actually change RELATIVE TO CURRENT MAIN?
 
-Two-dot diff `origin/main..pr/N` = the change that merging this PR would introduce.
+Two-dot diff compares tip trees and includes subsequent changes on main.
 If empty -> tree identical -> ALREADY_IN_MAIN.
 Also computes per-PR: net files, net lines, and which commits are NOT in main.
 """
+from triage_paths import REPO, DATA, OUTPUT
 import json
 import subprocess
 
-REPO = "/workspace/cloud/hermes/fokus"
-DATA = "/workspace/cloud/hermes/data/fokus_open_prs.json"
 
 
 def run(args):
@@ -40,7 +39,7 @@ def main():
             "cherry_minus": minus,
         })
         print(f"#{n}: net=[{short}] files={len(names)} cherry +{plus}/-{minus}", flush=True)
-    json.dump(out, open("/tmp/pr_net.json", "w"), indent=1)
+    json.dump(out, open(OUTPUT / "pr_net.json", "w"), indent=1)
 
 
 if __name__ == "__main__":

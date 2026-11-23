@@ -8,12 +8,11 @@ Duplicate signal: for each PR pair compute
     resulting trees => duplicate work.
 Also: which PRs touch exactly the same single file set.
 """
+from triage_paths import REPO, DATA, OUTPUT
 import json
 import subprocess
 import itertools
 
-REPO = "/workspace/cloud/hermes/fokus"
-DATA = "/workspace/cloud/hermes/data/fokus_open_prs.json"
 
 
 def run(args):
@@ -28,7 +27,7 @@ def tree_diff(a, b):
 
 def main():
     prs = {p["number"]: p for p in json.load(open(DATA))}
-    ev = {json.loads(l)["number"]: json.loads(l) for l in open("/tmp/pr_evidence.jsonl")}
+    ev = {json.loads(l)["number"]: json.loads(l) for l in open(OUTPUT / "pr_evidence.jsonl")}
 
     # save full trees list for pairwise
     pairs = []

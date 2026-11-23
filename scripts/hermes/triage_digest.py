@@ -2,11 +2,10 @@
 """Compact per-PR diff digest for manual review: commit subject, files, hunk headers,
 and added/removed line snippets (truncated). Writes /tmp/pr_digest.txt
 """
+from triage_paths import REPO, DATA, OUTPUT
 import json
 import subprocess
 
-REPO = "/workspace/cloud/hermes/fokus"
-DATA = "/workspace/cloud/hermes/data/fokus_open_prs.json"
 
 
 def run(args):
@@ -40,7 +39,7 @@ def digest(n):
 
 if __name__ == "__main__":
     prs = [p["number"] for p in json.load(open(DATA))]
-    with open("/tmp/pr_digest.txt", "w") as f:
+    with open(OUTPUT / "pr_digest.txt", "w") as f:
         for n in prs:
             f.write(digest(n) + "\n")
             f.flush()

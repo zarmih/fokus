@@ -5,12 +5,11 @@ For each open PR: list its own commits (origin/main..pr/N, cherry-pick aware via
 A PR is a DUPLICATE of PR M when its commit set is a subset of M's commit set
 (or its patch-id set is equal). Also reports the smallest such M.
 """
+from triage_paths import REPO, DATA
 import json
 import subprocess
 from collections import defaultdict
 
-REPO = "/workspace/cloud/hermes/fokus"
-DATA = "/workspace/cloud/hermes/data/fokus_open_prs.json"
 
 
 def run(args):

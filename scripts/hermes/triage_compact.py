@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """Compact per-PR digest: skip lockfiles, cap hunks, so all 80 fit in a readable file."""
+from triage_paths import REPO, DATA, OUTPUT
 import json
 import re
 import subprocess
 
-REPO = "/workspace/cloud/hermes/fokus"
-DATA = "/workspace/cloud/hermes/data/fokus_open_prs.json"
 SKIP = re.compile(r"(package-lock\.json|^docs/|^ARCHITECTURE|^CHANGELOG|\.md$)")
 
 
@@ -60,7 +59,7 @@ def digest(n):
 
 if __name__ == "__main__":
     prs = [p["number"] for p in json.load(open(DATA))]
-    with open("/tmp/pr_compact.txt", "w") as f:
+    with open(OUTPUT / "pr_compact.txt", "w") as f:
         for n in prs:
             f.write(digest(n) + "\n")
     print("ok")

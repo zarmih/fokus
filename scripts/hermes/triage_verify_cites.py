@@ -5,10 +5,10 @@ where a quoted token is given, that the token appears on that line.
 Reports MISMATCH for citations whose line does not exist, and TOKEN_MISS when a
 backticked token near the citation is not found on the cited line.
 """
+from triage_paths import REPO
 import re
 import subprocess
 
-REPO = "/workspace/cloud/hermes/fokus"
 DOC = f"{REPO}/docs/PR_TRIAGE.md"
 
 text = open(DOC).read()

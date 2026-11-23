@@ -9,35 +9,32 @@ or modifies PR state — every check runs against local refs
 
 | Script | What it does |
 |--------|--------------|
-| `triage_collect.py` | Per PR: `git cherry` (+/-), commits ahead, diffstat, `git merge-tree` conflict list, changed files. Writes JSONL to a path you pass (default `/tmp/pr_evidence.jsonl`). |
-| `triage_analyze.py` | Per PR: how many of the PR's added lines already exist verbatim in main's version of each touched file (textual coverage). Writes `/tmp/pr_analysis.json`. |
-| `triage_net.py` | Per PR: net `origin/main..pr` diffstat — shows how much main has drifted since the branch point. Writes `/tmp/pr_net.json`. |
-| `triage_reverse.py` | The ALREADY_IN_MAIN test: `git apply --reverse --check` of each PR's own 3-dot patch, whole and per file. Writes `/tmp/pr_reverse.json`. |
+| `triage_collect.py` | Per PR: `git cherry` (+/-), commits ahead, diffstat, `git merge-tree` conflict list, changed files. Writes JSONL to a path you pass (default `$FOKUS_TRIAGE_DIR/pr_evidence.jsonl`). |
+| `triage_analyze.py` | Per PR: how many of the PR's added lines already exist verbatim in main's version of each touched file (textual coverage). Writes `$FOKUS_TRIAGE_DIR/pr_analysis.json`. |
+| `triage_net.py` | Per PR: net `origin/main..pr` diffstat — shows how much main has drifted since the branch point. Writes `$FOKUS_TRIAGE_DIR/pr_net.json`. |
+| `triage_reverse.py` | The ALREADY_IN_MAIN test: `git apply --reverse --check` of each PR's own 3-dot patch, whole and per file. Writes `$FOKUS_TRIAGE_DIR/pr_reverse.json`. |
 | `triage_dupes.py` | First-pass duplicate detection: identical/near-identical changed-file sets. |
 | `triage_dupes2.py` | Duplicate detection by commit-set containment (finds stacked PRs: A's commits ⊂ B's). |
 | `triage_digest.py` | Full per-PR diff digest with hunk headers (verbose, ~33k lines). |
 | `triage_compact.py` | Same, but lockfiles skipped and hunks capped (readable in one sitting). |
-| `triage_render.py` | Renders `docs/PR_TRIAGE.md` from `/tmp/pr_evidence.jsonl` + the hand-written verdict table. Run this after editing verdicts. |
+| `triage_render.py` | Renders `docs/PR_TRIAGE.md` from `$FOKUS_TRIAGE_DIR/pr_evidence.jsonl` + the hand-written verdict table. Run this after editing verdicts. |
 
 ## Reproducing
 
 ```sh
-cd /workspace/cloud/hermes/fokus
-git fetch origin '+refs/heads/*:refs/remotes/origin/*'
-for n in $(gh pr list --state open --json number -q '.[].number'); do
-  git fetch origin "pull/$n/head:refs/remotes/pr/$n"
-done
+export FOKUS_TRIAGE_DIR="$(mktemp -d)"
+gh pr list --limit 1000 --json number,title,headRefName,author,createdAt,updatedAt,additions,deletions,changedFiles,body > "$FOKUS_TRIAGE_DIR/fokus_open_prs.json"
+git fetch origin main
+git fetch origin '+refs/pull/*/head:refs/remotes/pr/*'
+python3 scripts/hermes/triage_collect.py
+python3 scripts/hermes/triage_analyze.py
+python3 scripts/hermes/triage_reverse.py
+python3 scripts/hermes/triage_dupes2.py
+python3 scripts/hermes/triage_compact.py
 
-flock /tmp/heavy-gate.lock python3 scripts/hermes/triage_collect.py /tmp/pr_evidence.jsonl
-flock /tmp/heavy-gate.lock python3 scripts/hermes/triage_analyze.py
-flock /tmp/heavy-gate.lock python3 scripts/hermes/triage_reverse.py
-flock /tmp/heavy-gate.lock python3 scripts/hermes/triage_dupes2.py
-flock /tmp/heavy-gate.lock python3 scripts/hermes/triage_compact.py
-python3 scripts/hermes/triage_render.py     # rewrites docs/PR_TRIAGE.md
 ```
 
-Heavy steps are wrapped in `flock /tmp/heavy-gate.lock` so they never overlap
-with other test runs on this host.
+The reverse check uses a temporary index populated from origin/main. The renderer contains the manual verdicts for the original 80-PR snapshot and requires matching evidence and citations. Refresh the verdicts before rendering a different set.
 
 ## Note on categories
 
