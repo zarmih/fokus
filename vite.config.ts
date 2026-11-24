@@ -25,7 +25,7 @@ function fokusSw(): Plugin {
         .map((f) => path.relative(dist, f).split(path.sep).join('/'))
         .filter(shouldPrecache)
         .sort();
-      const hash = createHash('sha256');
+      const hash = createHash('sha256').update(generateServiceWorker(files, ''));
       for (const file of files) {
         hash.update(file);
         hash.update(createHash('sha256').update(fs.readFileSync(path.join(dist, file))).digest());

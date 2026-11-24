@@ -32,6 +32,7 @@ export function generateServiceWorker(assets: string[], version: string): string
   return `/* Fokus precache ${version} */
 const CACHE = ${JSON.stringify('fokus-' + version)};
 const ASSETS = ${list};
+const UPDATE_CAPABILITY = '__fokus_confirmed_sw_update__';
 
 function toUrl(path) {
   return new URL(path, self.registration.scope).href;
@@ -41,6 +42,10 @@ self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     await cache.addAll(ASSETS.map(toUrl));
+    // Legacy Fokus pages can only reload. Their worker did not record support for confirmed updates.
+    if (self.registration.active && !(await caches.match(toUrl(UPDATE_CAPABILITY)))) {
+      await self.skipWaiting();
+    }
   })());
 });
 
@@ -54,6 +59,8 @@ self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
     await Promise.all(keys.filter((k) => k !== CACHE && k.startsWith('fokus-')).map((k) => caches.delete(k)));
+    const cache = await caches.open(CACHE);
+    await cache.put(toUrl(UPDATE_CAPABILITY), new Response('1'));
     await self.clients.claim();
   })());
 });
