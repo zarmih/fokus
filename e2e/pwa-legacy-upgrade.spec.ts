@@ -59,7 +59,9 @@ self.addEventListener('fetch', event => {
     }, legacyCache);
     await context.setOffline(true);
     await Promise.all([page.waitForEvent('load'), page.locator('#legacy-update').click()]);
-    await expect(page.locator('#btn-start')).toBeVisible();
+    await expect(page.locator('#cta-offline-title')).toHaveText('Нет подключения');
+    await page.locator('#tab-program').click();
+    await expect(page.locator('.ritual-row').first()).toBeVisible();
     const after = await page.evaluate(() => JSON.parse(localStorage.getItem('fokus.v1')!));
     expect(after.profile).toMatchObject(before.profile);
     expect(after.sessions).toEqual(before.sessions);
