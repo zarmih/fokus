@@ -85,6 +85,7 @@ export async function navigate(page: Page, screenId: string) {
 
 export async function calibrateNewUser(page: Page) {
   await onboard(page);
+  await expect(page.locator('[data-session-phase="intro"]')).toBeVisible();
   await playThrough(page, 3000);
   await tick(page, 1500);
   await navigate(page, 'today');
