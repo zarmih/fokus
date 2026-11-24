@@ -76,8 +76,7 @@ test('export → wipe → import restores profile and history', async ({ page })
   page.on('dialog', (d) => d.accept());
   await page.setInputFiles('#file-input', file!);
   await tick(page, 500);
-  await page.locator('#btn-import-replace').click();
-  await page.waitForLoadState('load');
+  await Promise.all([page.waitForEvent('load'), page.locator('#btn-import-replace').click()]);
   await tick(page, 1500);
   const after = await stored(page);
   expect(after.profile.name).toBe(before.profile.name);
