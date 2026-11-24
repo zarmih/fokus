@@ -9,6 +9,7 @@
  */
 import type { Session, SessionItem } from '../types';
 import { getLocale } from '../i18n';
+import { calendarDayKey, daysBetween, resolveFokusTimeZone } from '../streak';
 
 export const ANALYTICS_METHODOLOGY_VERSION = 2;
 /** Date methodology 2 shipped; earlier persisted values are method 1. */
@@ -106,6 +107,7 @@ export function assessDataSufficiency(params: {
   nowMs?: number;
 }): DataSufficiency {
   const now = params.nowMs ?? Date.now();
+  const zone = resolveFokusTimeZone().timeZone;
   const since = now - 28 * DAY_MS;
   let blocks = 0;
   let lastMs: number | null = null;
@@ -123,7 +125,9 @@ export function assessDataSufficiency(params: {
     }
   }
   const domainsCovered = [...perDomain.values()].filter((n) => n >= 3).length;
-  const daysSinceLast = lastMs == null ? null : Math.floor((now - lastMs) / DAY_MS);
+  // Civil-day distance in the Fokus zone (Europe/Moscow), not elapsed 24h blocks:
+  // a block at 23:00 MSK and "now" at 00:30 MSK are 1 civil day apart, not 0.
+  const daysSinceLast = lastMs == null ? null : Math.max(0, daysBetween(calendarDayKey(new Date(lastMs), zone), calendarDayKey(new Date(now), zone)));
 
   let level: SufficiencyLevel;
   if (blocks === 0) level = 'none';
