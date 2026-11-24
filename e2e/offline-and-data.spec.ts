@@ -38,10 +38,18 @@ test.describe('service worker', () => {
       fs.writeFileSync(swPath, original.replace(/const CACHE = "fokus-[^"]+"/, 'const CACHE = "fokus-e2e-next"'));
       await page.evaluate(async () => { const reg = await navigator.serviceWorker.getRegistration(); await reg?.update(); });
       await expect(page.locator('#btn-pwa-update')).toBeVisible({ timeout: 20_000 });
-      // Nothing reloaded under the user: the current screen is still there until they accept.
+      await page.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting);
+      // The old cache and controller still serve the current screen.
+      const activeBefore = await page.evaluate(() => caches.keys());
+      expect(activeBefore.filter((k) => k.startsWith('fokus-'))).toHaveLength(2);
       await expect(page.locator('#app *').first()).toBeVisible();
-      await page.locator('#btn-pwa-update').click();
-      await page.waitForFunction(() => caches.keys().then((k) => k.includes('fokus-e2e-next')));
+      await page.locator('#btn-pwa-dismiss').click();
+      await page.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting);
+
+      await page.reload();
+      await expect(page.locator('#btn-pwa-update')).toBeVisible();
+      await Promise.all([page.waitForEvent('load'), page.locator('#btn-pwa-update').click()]);
+      await page.waitForFunction(() => caches.keys().then((k) => k.filter((name) => name.startsWith('fokus-')).join() === 'fokus-e2e-next'));
     } finally {
       fs.writeFileSync(swPath, original);
     }

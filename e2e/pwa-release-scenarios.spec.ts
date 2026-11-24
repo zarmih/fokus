@@ -63,18 +63,16 @@ test.describe('PWA Release Scenarios — Service Worker, Data Privacy, Offline R
         await reg?.update();
       });
       await expect(page.locator('#btn-pwa-update')).toBeVisible({ timeout: 20_000 });
-      await page.locator('#btn-pwa-update').click();
-      await page.waitForFunction(() => caches.keys().then((k) => k.includes('fokus-pwa-scenarios-update')));
-
-      // Reload under new version
-      await page.reload();
+      await page.waitForFunction(async () => !!(await navigator.serviceWorker.getRegistration())?.waiting);
+      await Promise.all([page.waitForEvent('load'), page.locator('#btn-pwa-update').click()]);
+      await page.waitForFunction(() => caches.keys().then((k) => k.filter((name) => name.startsWith('fokus-')).join() === 'fokus-pwa-scenarios-update'));
       await page.waitForSelector('#app *');
       const after = await stored(page);
       expect(after.profile.calibrated).toBe(true);
       expect(after.profile.name).toBe(before.profile.name);
       expect(after.profile.onboarded).toBe(true);
-      expect(after.sessions.length).toBe(before.sessions.length);
-      expect(after.daySummaries.length).toBe(before.daySummaries.length);
+      expect(after.sessions).toEqual(before.sessions);
+      expect(after.daySummaries).toEqual(before.daySummaries);
     } finally {
       fs.writeFileSync(swPath, original);
     }
@@ -211,6 +209,13 @@ test.describe('PWA Release Scenarios — Service Worker, Data Privacy, Offline R
     await expect(page.locator('#cta-resume-title')).toBeVisible();
     await expect(page.locator('#cta-resume-title')).toContainText(/Продолжить с того места|Pick up where you left off/);
     await expect(page.locator('#btn-start')).toBeVisible();
+    const remaining = await page.locator('.workout-chip').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-exercise-id')));
+    expect(remaining).not.toContain('odd-one');
+    await page.locator('#tab-program').click();
+    const program = page.locator('.ritual-row');
+    await expect(program).toHaveCount(remaining.length);
+    expect(await program.evaluateAll((rows) => rows.map((row) => row.getAttribute('data-exercise-id')))).toEqual(remaining);
+    await page.locator('#tab-today').click();
 
     // Clicking #btn-start directly resumes the workout offline without asking for lifestyle checkin
     await page.locator('#btn-start').click();
@@ -225,6 +230,7 @@ test.describe('PWA Release Scenarios — Service Worker, Data Privacy, Offline R
     const after = await stored(page);
     const completed = after.sessions.filter((x: any) => x.finishedAt !== null);
     expect(completed.length).toBeGreaterThanOrEqual(1);
+    expect(completed.at(-1)?.plannedDurationSec).toBe(240);
   });
 
   test('core exercises a11y: keyboard navigation, reduced motion, and non-color accessible cues', async ({ page }) => {

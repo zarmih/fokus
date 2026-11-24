@@ -3,6 +3,8 @@ import { calendarDayKey, resolveFokusTimeZone } from './streak';
 
 export const FOKUS_KEY_PREFIX = 'fokus.';
 export const APP_STATE_KEY = 'fokus.v1';
+export const DAILY_PLAN_EDITS_KEY = 'fokus.daily-plan-edits';
+export const LEGACY_DAILY_PLAN_SNOOZE_KEY = 'fokus-slot-snooze';
 export const REMINDER_LAST_KEY = 'fokus.reminder.last';
 export const ANON_NAME = 'User';
 export const WIPE_CONFIRM_WORD = 'УДАЛИТЬ';
@@ -56,6 +58,14 @@ export const KNOWN_STORES: KnownStoreSpec[] = [
       'Имя, настройки, история сессий, прогресс (XP), данные о сне и стрессе. Хранится только локально.',
     mayContainPii: true,
     category: 'state'
+  },
+  {
+    id: 'daily-plan-edits',
+    key: DAILY_PLAN_EDITS_KEY,
+    title: 'Изменения плана дня',
+    description: 'Замены и пропуски упражнений на текущий день.',
+    mayContainPii: false,
+    category: 'preference'
   },
   {
     id: 'reminder',
@@ -298,6 +308,7 @@ export function resetProgressState(
 
 export function wipeFokusKeys(store: StorageBackend): string[] {
   const keys = listFokusKeys(store);
+  if (store.getItem(LEGACY_DAILY_PLAN_SNOOZE_KEY) != null) keys.push(LEGACY_DAILY_PLAN_SNOOZE_KEY);
   for (const key of keys) store.removeItem(key);
   return keys;
 }

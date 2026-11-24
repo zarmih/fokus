@@ -16,6 +16,7 @@ import { computeAbilityTrajectory } from '../../core/ability-trajectory';
 import { programTrendChipHtml } from '../components/accessible-markup';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
 import { explainTodayPlan } from '../../core/today-plan';
+import { calendarDayKey, resolveFokusTimeZone } from '../../core/streak';
 import { getTodayRitual } from '../../core/onboarding';
 import { describeProgramPhase, phaseForWeek } from '../../core/program-phases';
 import { getQuietCoachTip } from '../../core/coach';
@@ -30,7 +31,8 @@ export function renderProgram(container: HTMLElement) {
   
   const snapshot = loadContinuitySnapshot(storage as any);
   const todayStr = snapshot.today;
-  const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, storage.getDaySummaries());
+  shell.dataset.planDay = todayStr;
+  const weekRitual = getTodayRitual(profile.firstWeekPlan, todayStr, storage.getDaySummaries(), snapshot.timeZone);
   const contMsg = getContinuityMessage(snapshot, weekRitual);
   const playedToday = snapshot.streak.playedToday;
   
@@ -147,7 +149,7 @@ export function renderProgram(container: HTMLElement) {
     const p = (item as any).pSuccess != null ? Math.round((item as any).pSuccess * 100) : null;
     const reason = planReasonText(item.reason);
     return `
-      <div class="ritual-row">
+      <div class="ritual-row" data-exercise-id="${item.exerciseId}">
         <div class="ritual-idx">${i + 1}</div>
         <img src="${exerciseIconSrc(r?.manifest.id, r?.manifest.domain)}" width="28" height="28" alt="">
         <div class="ritual-copy">
@@ -394,6 +396,10 @@ export function renderProgram(container: HTMLElement) {
     });
   };
   const startRitual = () => {
+    if (calendarDayKey(new Date(), resolveFokusTimeZone().timeZone) !== todayStr) {
+      renderProgram(container);
+      return;
+    }
     navigateTo('session', { mode: 'normal', items: plan.items, durationSec: daily.durationSec });
   };
   const startRecal = () => {

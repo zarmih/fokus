@@ -4,6 +4,8 @@ import './styles.css';
 import './styles/scenes/index.css';
 import { renderToday } from './ui/screens/today';
 import { storage } from './core/storage';
+import { calendarDayKey, resolveFokusTimeZone } from './core/streak';
+import { navigateTo } from './ui/router';
 import { applyTheme } from './ui/theme';
 import { suggestLocale, initI18n } from './core/i18n';
 import { scheduleLocalReminder, maybeNotify } from './core/reminders';
@@ -49,8 +51,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const app = document.getElementById('app');
   if (!app) return;
 
-  listenForPwaUpdate(() => document.getElementById('app'));
+  listenForPwaUpdate(() => document.body);
   renderOfflineBanner(document.body);
+
+  const refreshDailyScreen = () => {
+    if (document.hidden || app.getAttribute('aria-busy') === 'true' || document.querySelector('.modal-root')) return;
+    const day = app.querySelector<HTMLElement>('[data-plan-day]')?.dataset.planDay;
+    if (!day || day === calendarDayKey(new Date(), resolveFokusTimeZone().timeZone)) return;
+    navigateTo(app.querySelector('#tab-program.active') ? 'program' : 'today');
+  };
+  window.setInterval(refreshDailyScreen, 15_000);
+  document.addEventListener('visibilitychange', refreshDailyScreen);
 
   const unlock = () => unlockAudio();
   window.addEventListener('pointerdown', unlock, { once: true });
@@ -62,16 +73,18 @@ document.addEventListener('DOMContentLoaded', () => {
         navigator.serviceWorker
           .register(`${import.meta.env.BASE_URL}sw.js`)
           .then((reg) => {
-            reg.addEventListener('updatefound', () => {
-              const newWorker = reg.installing;
-              if (newWorker) {
-                newWorker.addEventListener('statechange', () => {
-                  if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    window.dispatchEvent(new CustomEvent('pwa-update-available'));
-                  }
-                });
-              }
-            });
+            const announceUpdate = () => {
+              window.dispatchEvent(new CustomEvent('pwa-update-available', { detail: reg }));
+            };
+            const watchInstalling = () => {
+              const worker = reg.installing;
+              worker?.addEventListener('statechange', () => {
+                if (worker.state === 'installed' && navigator.serviceWorker.controller) announceUpdate();
+              });
+            };
+            reg.addEventListener('updatefound', watchInstalling);
+            watchInstalling();
+            if (reg.waiting && navigator.serviceWorker.controller) announceUpdate();
           })
           .catch((err) => safeError('SW reg failed', err));
       } else {

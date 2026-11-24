@@ -23,8 +23,14 @@ function fokusSw(): Plugin {
       const dist = path.join(process.cwd(), 'dist');
       const files = listFiles(dist)
         .map((f) => path.relative(dist, f).split(path.sep).join('/'))
-        .filter(shouldPrecache);
-      const version = createHash('sha1').update(files.join('|')).digest('hex').slice(0, 10);
+        .filter(shouldPrecache)
+        .sort();
+      const hash = createHash('sha256');
+      for (const file of files) {
+        hash.update(file);
+        hash.update(createHash('sha256').update(fs.readFileSync(path.join(dist, file))).digest());
+      }
+      const version = hash.digest('hex').slice(0, 10);
       fs.writeFileSync(path.join(dist, 'sw.js'), generateServiceWorker(files, version));
     }
   };

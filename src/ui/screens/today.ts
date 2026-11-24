@@ -4,7 +4,7 @@ import { catalog, getManifest } from '../../exercises/catalog';
 import { bindDialog } from '../a11y';
 import { abilityTrendChip } from '../../core/adaptive-depth';
 import { computeAbilityTrajectory } from '../../core/ability-trajectory';
-import { planToday, PRIMARY_CTA, primaryCta, budgetReason, type DailyPlan } from '../../core/daily-plan';
+import { planToday, editDailyPlan, PRIMARY_CTA, primaryCta, budgetReason, type DailyPlan } from '../../core/daily-plan';
 import { L, getLocale } from '../../core/i18n';
 import { planReasonText, slotLabelText } from '../../core/plan-copy';
 export { PRIMARY_CTA };
@@ -12,7 +12,6 @@ import { applyGentleReturnBias, loadContinuitySnapshot, ritualDurationSec } from
 import { navigateTo } from '../router';
 import { planForNow, snoozeRecalibration, getProgramPosition } from '../../core/adaptive-plan';
 import { phaseForWeek } from '../../core/program-phases';
-import { fillRenderedSlotAlternatives } from '../../core/session-builder';
 import { SLOT_LABEL, isRecalibrationActive } from '../../core/engine';
 import { renderShell } from '../shell';
 import { getLevelProgress } from '../../core/xp';
@@ -33,14 +32,14 @@ import { exerciseName } from '../../core/exercise-copy';
 import { bindLifestyleField, lifestyleCheckinHtml } from '../components/lifestyle-checkin';
 import { questProgressBarHtml } from '../components/accessible-markup';
 import { assessRetention, describeProgramRetention } from '../../core/retention';
-import { explainTodayPlan, applyRetentionRitualOrder, emptyPlanCopy, applySlotSnooze } from '../../core/today-plan';
+import { explainTodayPlan, emptyPlanCopy, rerollTodayPlanSlot } from '../../core/today-plan';
 import { softReturnInstallCopy } from '../../core/reminders';
 import { enterStage } from '../../core/motion';
 import { renderContinuityHint, renderStreakChip } from '../components/habit-continuity';
 import { calendarDayKey, fokusWallHour, resolveFokusTimeZone } from '../../core/streak';
 import { quietNormsHintFromSessions, quietNormsHintDisclaimerRu } from '../../core/norms-hint';
 
-export function renderToday(container: HTMLElement, cachedState?: any) {
+export function renderToday(container: HTMLElement) {
   const content = renderShell(container, { active: 'today' });
   const profile = storage.getProfile();
   const lvl = getLevelProgress(profile.xp || 0);
@@ -51,6 +50,7 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   const todayStr = snap.today;
   const playedToday = snap.streak.playedToday;
   const streak = snap.streak.current;
+  content.dataset.planDay = todayStr;
   const skippedYesterday = snap.streak.openMisses === 1;
   const gapDays = snap.streak.openMisses;
 
@@ -79,41 +79,17 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     : profile.sessionLengthSec;
   const durationSec = ritualDurationSec(baseDuration, snap.ritual);
 
-  const lastSession = sessions.length > 0 ? sessions[sessions.length - 1] : null;
-  const unfinishedSession = lastSession && lastSession.finishedAt === null && calendarDayKey(lastSession.startedAt, snap.timeZone) === todayStr ? lastSession : null;
-  const effectiveDurationSec = unfinishedSession
-    ? Math.max(60, (unfinishedSession.plannedDurationSec || durationSec) - (unfinishedSession.durationSec || 0))
-    : durationSec;
-
-
   let plan: { items: any[]; focusDomains: string[] } = { items: [], focusDomains: [] };
-  let ritualDuration = effectiveDurationSec;
+  let ritualDuration = durationSec;
   let recal: any = { probe: [] as any[], forced: false, summary: '' };
   let depth = { chip: null as any, why: null as string | null, ritual: null as any, trajectory: null as any };
   let ritual: any = null;
   let dailyPlan: DailyPlan | null = null;
   let errorState = false;
   let noPlanState = false;
-  let snoozeApplied = false;
-  
-  if (cachedState) {
-    plan = cachedState.plan;
-    ritualDuration = cachedState.ritualDuration;
-    recal = cachedState.recal;
-    depth = cachedState.depth;
-    ritual = cachedState.ritual;
-    dailyPlan = cachedState.dailyPlan ?? null;
-    errorState = cachedState.errorState;
-    noPlanState = cachedState.noPlanState;
-    snoozeApplied = cachedState.snoozeApplied || false;
-  } else {
 
   try {
-    // One plan for what is shown, explained and played (core/daily-plan.ts).
-    const daily = planToday({
-      excludeIds: unfinishedSession ? unfinishedSession.items.map((i: any) => i.exerciseId) : [],
-      resumeSec: unfinishedSession ? effectiveDurationSec : undefined
-    });
+    const daily = planToday();
     dailyPlan = daily;
     ritual = { plan: { items: daily.items, focusDomains: daily.focusDomains }, snapshot: daily.recovery, recalibration: daily.recalibration };
     plan = { items: daily.items.map((it) => ({ ...it })), focusDomains: daily.focusDomains };
@@ -131,31 +107,13 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
     }
     depth = { chip: trajectory ? abilityTrendChip(trajectory) : null, why: daily.why, ritual: null, trajectory };
 
-    if (plan.items.length === 0) {
-      noPlanState = true;
-    } else {
-      plan.items = fillRenderedSlotAlternatives(plan.items, catalog);
-    }
+    noPlanState = plan.items.length === 0;
   } catch (err) {
     console.error('Plan generation error:', err);
     errorState = true;
   }
-
-  try {
-    const snoozeRaw = localStorage.getItem('fokus-slot-snooze');
-    if (snoozeRaw) {
-      const snoozeData = JSON.parse(snoozeRaw);
-      if (snoozeData.date === todayStr && snoozeData.exerciseId) {
-        const res = applySlotSnooze(plan.items, snoozeData.exerciseId);
-        if (res.applied) {
-          plan.items = res.items;
-          snoozeApplied = true;
-        }
-      }
-    }
-  } catch (e) {}
-
-  }
+  const unfinishedSession = dailyPlan?.unfinishedSession;
+  const snoozeApplied = dailyPlan?.snoozeApplied;
   const trendChipHtml = depth.chip
     ? `<div class="ability-trend-chip chip dom-${depth.chip.domain}" role="status" aria-label="${depth.chip.aria}">${depth.chip.label}</div>`
     : '';
@@ -589,32 +547,22 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
 
 
 
-  content.querySelectorAll('[data-reroll-slot]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const idx = parseInt((e.currentTarget as HTMLElement).dataset.rerollSlot!, 10);
-      import('../../core/today-plan').then(({ rerollTodayPlanSlot }) => {
-        const res = rerollTodayPlanSlot(plan.items, idx);
-        if (res.applied) {
-          plan.items = res.items;
-          renderToday(container, { plan, ritualDuration, recal, depth, ritual, dailyPlan, errorState, noPlanState, snoozeApplied });
-        }
-      });
+  content.querySelectorAll<HTMLElement>('[data-reroll-slot]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const index = Number(btn.dataset.rerollSlot);
+      if (rerollTodayPlanSlot(plan.items, index).applied) {
+        editDailyPlan(todayStr, { kind: 'swap', exerciseId: plan.items[index].exerciseId });
+        renderToday(container);
+      }
     });
   });
 
-  content.querySelectorAll('[data-snooze-slot]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const idx = parseInt((e.currentTarget as HTMLElement).dataset.snoozeSlot!, 10);
-      const item = plan.items[idx];
-      if (item && item.exerciseId) {
-        localStorage.setItem('fokus-slot-snooze', JSON.stringify({ date: todayStr, exerciseId: item.exerciseId }));
-        const res = applySlotSnooze(plan.items, item.exerciseId);
-        if (res.applied) {
-          plan.items = res.items;
-          renderToday(container, { plan, ritualDuration, recal, depth, ritual, dailyPlan, errorState, noPlanState, snoozeApplied: true });
-        }
+  content.querySelectorAll<HTMLElement>('[data-snooze-slot]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = plan.items[Number(btn.dataset.snoozeSlot)];
+      if (item) {
+        editDailyPlan(todayStr, { kind: 'snooze', exerciseId: item.exerciseId });
+        renderToday(container);
       }
     });
   });
@@ -688,6 +636,10 @@ export function renderToday(container: HTMLElement, cachedState?: any) {
   
   const handleStart = (itemsToPlay: any[], duration: number) => {
     const startSession = () => {
+      if (calendarDayKey(new Date(), resolveFokusTimeZone().timeZone) !== todayStr) {
+        renderToday(container);
+        return;
+      }
       if (!profile.calibrated) {
         navigateTo('session', {
           mode: 'calibration',
