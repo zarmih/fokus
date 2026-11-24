@@ -115,9 +115,23 @@ let listening = false;
 export function listenForPwaUpdate(getContainer: () => HTMLElement | null = () => document.getElementById('app')) {
   if (typeof window === 'undefined' || listening) return;
   listening = true;
-  window.addEventListener('pwa-update-available', () => {
+  window.addEventListener('pwa-update-available', (event) => {
     const app = getContainer();
     if (!app) return;
-    showPwaUpdateBanner(app);
+    const registration: ServiceWorkerRegistration | undefined = (event as CustomEvent).detail;
+    showPwaUpdateBanner(app, registration ? {
+      onUpdate: () => {
+        const worker = registration.waiting;
+        if (!worker) {
+          window.location.reload();
+          return;
+        }
+        const button = document.querySelector<HTMLButtonElement>('#btn-pwa-update');
+        if (button?.disabled) return;
+        if (button) button.disabled = true;
+        navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload(), { once: true });
+        worker.postMessage({ type: 'SKIP_WAITING' });
+      }
+    } : undefined);
   });
 }

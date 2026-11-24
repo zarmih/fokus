@@ -5,6 +5,7 @@ const port = process.env.PLAYWRIGHT_PORT || '4173';
 // E2E runs against the production build (vite preview, base /fokus/), Russian locale, Moscow time.
 export default defineConfig({
   testDir: './e2e',
+  testIgnore: '**/._*', // macOS resource forks on external volumes are not test files.
   timeout: 120_000,
   expect: { timeout: 10_000 },
   fullyParallel: false,

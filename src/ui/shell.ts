@@ -5,7 +5,6 @@ import { t, L } from '../core/i18n';
 import { focusMain, setScreenTitle } from './a11y';
 import { streakAriaLabel } from './components/habit-continuity';
 import { syncQueue, type SyncStatus } from '../core/offline-sync';
-import { listenForPwaUpdate } from './components/pwa-update-banner';
 
 const OFFLINE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7L12 21.5 23.64 7zM12 4.5c4.7 0 8.35 2.22 9.53 3.03L12 19 2.47 7.53C3.65 6.72 7.3 4.5 12 4.5z"/></svg>';
 const LOCAL_SAVE_SVG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true" focusable="false"><path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm2 16H5V5h11.17L19 7.83V19zm-7-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3zM6 6h9v4H6z"/></svg>';
@@ -51,8 +50,6 @@ export function syncIndicatorView(status: SyncStatus): SyncIndicatorView {
   // online / unknown: never flash «Синхронизировано» on every shell render
   return hidden;
 }
-
-listenForPwaUpdate();
 
 export function renderShell(container: HTMLElement, params: {active: 'today' | 'program' | 'trainers' | 'progress' | 'duel' | 'settings', hideNav?: boolean}): HTMLElement {
   const snap = loadContinuitySnapshot(storage);

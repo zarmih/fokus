@@ -81,15 +81,23 @@ test.describe('Calendar Day Consistency — Moscow midnight boundary', () => {
     expect(s2.daySummaries.length).toBeGreaterThanOrEqual(1);
     expect(s2.daySummaries[0].date).toContain('2026-10-01');
 
-    // Advance clock past Moscow midnight (2026-10-01 21:05:00 UTC = 2026-10-02 00:05:00 MSK)
-    await page.clock.setSystemTime(new Date('2026-10-01T21:05:00Z'));
+    // Keep Today open while the clock crosses Moscow midnight.
     await navigate(page, 'today');
-    await tick(page, 1500);
+    await expect(page.locator('[data-plan-day]')).toHaveAttribute('data-plan-day', '2026-10-01');
+    await page.clock.setSystemTime(new Date('2026-10-01T20:59:59Z'));
+    await tick(page, 16_000);
 
     // It is now Day 2 of the program
     await expect(page.locator('.week-card')).toBeVisible();
     await expect(page.locator('.week-kicker')).toContainText('день 2 из 7');
     await expect(page.locator('.habit-chip .stat-num')).toHaveText('1');
+    const nextPlan = await page.locator('.workout-chip').evaluateAll((rows) => rows.map((row) => row.getAttribute('data-exercise-id')));
+    expect(nextPlan.length).toBeGreaterThan(0);
+    await page.locator('#tab-program').click();
+    await expect(page.locator('[data-plan-day]')).toHaveAttribute('data-plan-day', '2026-10-02');
+    const program = page.locator('.ritual-row');
+    await expect(program).toHaveCount(nextPlan.length);
+    expect(await program.evaluateAll((rows) => rows.map((row) => row.getAttribute('data-exercise-id')))).toEqual(nextPlan);
   });
 
   test('previously recorded ISO timestamp in firstWeekPlan.startDate parses cleanly', async ({ page }) => {

@@ -13,11 +13,14 @@ import { L, getLocale } from './i18n';
  * one retention re-order, one explanation derived from the items actually planned.
  */
 import { storage } from './storage';
+import { DAILY_PLAN_EDITS_KEY, LEGACY_DAILY_PLAN_SNOOZE_KEY } from './privacy';
 import { registry } from '../exercises/manifest-registry';
 import { planWithRecovery } from './recovery';
 import { loadContinuitySnapshot, ritualDurationSec } from './continuity';
 import { assessRetention, describeProgramRetention } from './retention';
-import { applyRetentionRitualOrder } from './today-plan';
+import { applyRetentionRitualOrder, applySlotSnooze, rerollTodayPlanSlot } from './today-plan';
+import { fillRenderedSlotAlternatives } from './session-builder';
+import { calendarDayKey } from './streak';
 import { getTodayRitual } from './onboarding';
 import { getProgramPosition } from './adaptive-plan';
 import { CORE_PROGRAM_DAYS, inCoreProgram, isCoreExercise, programDayNumber } from './core-catalog';
@@ -89,6 +92,8 @@ export interface DailyPlanItem {
 }
 
 export interface DailyPlan {
+  unfinishedSession: ReturnType<typeof storage.getSessions>[number] | null;
+  snoozeApplied: boolean;
   items: DailyPlanItem[];
   focusDomains: string[];
   durationSec: number;
@@ -138,6 +143,29 @@ function plural(n: number, one: string, few: string, many: string): string {
   return many;
 }
 
+type PlanEdit = { kind: 'snooze' | 'swap'; exerciseId: string };
+
+function readDailyPlanEdits(day: string): PlanEdit[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(DAILY_PLAN_EDITS_KEY) || 'null');
+    if (saved?.date === day && Array.isArray(saved.edits)) return saved.edits;
+    if (saved) return [];
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_DAILY_PLAN_SNOOZE_KEY) || 'null');
+    if (legacy?.date === day && typeof legacy.exerciseId === 'string') {
+      return [{ kind: 'snooze', exerciseId: legacy.exerciseId }];
+    }
+  } catch {
+    // The basic workout is available if local preferences cannot be read.
+  }
+  return [];
+}
+
+export function editDailyPlan(date: string, edit: PlanEdit): void {
+  const edits = [...readDailyPlanEdits(date), edit];
+  localStorage.setItem(DAILY_PLAN_EDITS_KEY, JSON.stringify({ date, edits }));
+  localStorage.removeItem(LEGACY_DAILY_PLAN_SNOOZE_KEY);
+}
+
 export function planToday(opts: { nowMs?: number; excludeIds?: string[]; resumeSec?: number } = {}): DailyPlan {
   const now = new Date(opts.nowMs ?? Date.now());
   const profile = storage.getProfile();
@@ -148,7 +176,15 @@ export function planToday(opts: { nowMs?: number; excludeIds?: string[]; resumeS
   const states = storage.getExerciseStates();
   const profileSec = profile.sessionLengthSec || 300;
 
-  const weekRitual = getTodayRitual(profile.firstWeekPlan, snap.today, ds);
+  const weekRitual = getTodayRitual(profile.firstWeekPlan, snap.today, ds, snap.timeZone);
+  const firstWeekSec = weekRitual.inFirstWeek ? weekRitual.ritualDay?.durationSec : undefined;
+  const lastSession = sessions[sessions.length - 1];
+  const unfinishedSession = lastSession?.finishedAt === null
+    && calendarDayKey(lastSession.startedAt, snap.timeZone) === snap.today ? lastSession : null;
+  const resumeSec = unfinishedSession
+    ? Math.max(60, (unfinishedSession.plannedDurationSec || ritualDurationSec(firstWeekSec ?? profileSec, snap.ritual))
+      - (unfinishedSession.durationSec || 0))
+    : null;
   let retentionSec: number | null = null;
   let retSnap: ReturnType<typeof assessRetention> | null = null;
   let programRet: ReturnType<typeof describeProgramRetention> | null = null;
@@ -177,10 +213,10 @@ export function planToday(opts: { nowMs?: number; excludeIds?: string[]; resumeS
 
   const pre = resolveDailyBudget({
     profile: profileSec,
-    'first-week': weekRitual.inFirstWeek && weekRitual.ritualDay ? weekRitual.ritualDay.durationSec : null,
+    'first-week': firstWeekSec,
     'soft-return': snap.ritual.active ? ritualDurationSec(profileSec, snap.ritual) : null,
     retention: retentionSec,
-    resume: opts.resumeSec ?? null
+    resume: opts.resumeSec ?? resumeSec
   });
 
   const ritual = planWithRecovery({
@@ -194,7 +230,7 @@ export function planToday(opts: { nowMs?: number; excludeIds?: string[]; resumeS
     daySummaries: ds,
     recoveryHintsEnabled: profile.recoveryHints !== false,
     nowIso: now.toISOString(),
-    excludeIds: opts.excludeIds
+    excludeIds: [...(opts.excludeIds ?? []), ...(unfinishedSession?.items.map((item) => item.exerciseId) ?? [])]
   });
 
   const budget = resolveDailyBudget({
@@ -219,6 +255,20 @@ export function planToday(opts: { nowMs?: number; excludeIds?: string[]; resumeS
     items = ordered.items as DailyPlanItem[];
     focusDomains = ordered.focusDomains;
   }
+  let snoozeApplied = false;
+  items = fillRenderedSlotAlternatives(items, registry);
+  for (const edit of readDailyPlanEdits(snap.today)) {
+    if (!edit || typeof edit.exerciseId !== 'string') continue;
+    if (edit.kind === 'snooze') {
+      const result = applySlotSnooze(items, edit.exerciseId);
+      items = result.items;
+      snoozeApplied ||= result.applied;
+    } else if (edit.kind === 'swap') {
+      const index = items.findIndex((item) => item.exerciseId === edit.exerciseId);
+      const result = rerollTodayPlanSlot(items, index);
+      items = result.items;
+    }
+  }
   const domainOf = new Map(registry.map((r) => [r.manifest.id, r.manifest.domain] as const));
   items = items.map((it) => ({ ...it, domain: it.domain || domainOf.get(it.exerciseId), core: isCoreExercise(it.exerciseId) }));
   focusDomains = honestFocus(focusDomains, items);
@@ -227,6 +277,8 @@ export function planToday(opts: { nowMs?: number; excludeIds?: string[]; resumeS
   const programDay = programDayNumber(pos.playedCount, pos.playedToday);
 
   return {
+    unfinishedSession,
+    snoozeApplied,
     items,
     focusDomains,
     durationSec: budget.durationSec,

@@ -16,15 +16,32 @@ function listFiles(dir: string, acc: string[] = []): string[] {
 }
 
 function fokusSw(): Plugin {
+  const staticImports = new Map<string, string[]>();
   return {
     name: 'fokus-sw',
     apply: 'build',
+    generateBundle(_options, bundle) {
+      for (const output of Object.values(bundle)) {
+        if (output.type === 'chunk') staticImports.set(output.fileName, output.imports);
+      }
+    },
     closeBundle() {
       const dist = path.join(process.cwd(), 'dist');
-      const files = listFiles(dist)
-        .map((f) => path.relative(dist, f).split(path.sep).join('/'))
-        .filter(shouldPrecache);
-      const version = createHash('sha1').update(files.join('|')).digest('hex').slice(0, 10);
+      const precache = new Set(listFiles(dist)
+        .map((file) => path.relative(dist, file).split(path.sep).join('/'))
+        .filter(shouldPrecache));
+      // Rollup can put boot dependencies in exercise-named chunks. Follow static imports
+      // of the precached chunks while leaving optional dynamic exercise imports on demand.
+      for (const file of precache) {
+        for (const dependency of staticImports.get(file) ?? []) precache.add(dependency);
+      }
+      const files = [...precache].sort();
+      const hash = createHash('sha256').update(generateServiceWorker(files, ''));
+      for (const file of files) {
+        hash.update(file);
+        hash.update(createHash('sha256').update(fs.readFileSync(path.join(dist, file))).digest());
+      }
+      const version = hash.digest('hex').slice(0, 10);
       fs.writeFileSync(path.join(dist, 'sw.js'), generateServiceWorker(files, version));
     }
   };

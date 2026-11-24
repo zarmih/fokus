@@ -51,10 +51,12 @@ function recordDay(items: { exerciseId: string }[], nowMs: number, streak: numbe
 beforeEach(() => {
   (storage as any).backend = new MockStorage();
   storage.reset();
+  localStorage.clear();
   document.body.innerHTML = '<div id="app"></div>';
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   setLocale('ru');
 });
 
@@ -194,6 +196,8 @@ describe('one plan: shown on Today == explained on Program == played in Session'
     renderProgram(app);
     const btn = app.querySelector('#btn-program-start') as HTMLButtonElement;
     expect(btn.textContent).toContain(PRIMARY_CTA);
+    const shown = [...app.querySelectorAll<HTMLElement>('.ritual-row')].map((el) => el.dataset.exerciseId);
+    expect(shown).toEqual(expected.items.map((i) => i.exerciseId));
     const nav = captureNavigate();
     btn.click();
     nav.stop();
@@ -202,7 +206,37 @@ describe('one plan: shown on Today == explained on Program == played in Session'
     expect(start.params.durationSec).toBe(expected.durationSec);
   });
 
+  test('Today adjustments carry over to Program and the started workout', () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-24T12:00:00+03:00'));
+    calibratedUser(300);
+    const app = document.getElementById('app')!;
+    const todayIds = () => [...app.querySelectorAll<HTMLElement>('.workout-chip')].map((el) => el.dataset.exerciseId);
+    renderToday(app);
+    const initial = todayIds();
+    const swap = app.querySelector<HTMLButtonElement>('[data-reroll-slot]')!;
+    const slot = Number(swap.dataset.rerollSlot);
+    swap.click();
+    expect(todayIds()[slot]).not.toBe(initial[slot]);
+    app.querySelector<HTMLButtonElement>('[data-snooze-slot]')!.click();
+    const adjusted = todayIds();
+    expect(adjusted).toHaveLength(initial.length - 1);
+    renderProgram(app);
+    expect([...app.querySelectorAll<HTMLElement>('.ritual-row')].map((el) => el.dataset.exerciseId)).toEqual(adjusted);
+    const nav = captureNavigate();
+    app.querySelector<HTMLButtonElement>('#btn-program-start')!.click();
+    nav.stop();
+    expect(nav.calls[0].params.items.map((item: { exerciseId: string }) => item.exerciseId)).toEqual(adjusted);
+
+    vi.setSystemTime(new Date('2026-11-25T12:00:00+03:00'));
+    expect(planToday().snoozeApplied).toBe(false);
+    expect(planToday().items).toHaveLength(initial.length);
+  });
+
   test('first week after calibration: header focus and «Акцент дня» only name areas the plan trains', () => {
+    // On this civil day the old composer picked three memory exercises for the memory goal.
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-24T12:00:00+03:00'));
     const now = Date.now();
     for (const goal of ['balance', 'attention', 'speed', 'memory']) {
       (storage as any).backend = new MockStorage();
@@ -225,7 +259,7 @@ describe('one plan: shown on Today == explained on Program == played in Session'
       renderToday(app);
       const chipDomains = new Set([...app.querySelectorAll<HTMLElement>('.workout-chip[data-exercise-id]')].map((el) => domainOf.get(el.dataset.exerciseId!)));
       const doms = plan.items.map((i) => i.domain);
-      expect(new Set(doms).size).toBeGreaterThanOrEqual(goal === 'balance' ? doms.length : doms.length - 1);
+      expect(new Set(doms).size, `${goal}: ${plan.items.map((i) => i.exerciseId).join(', ')}`).toBeGreaterThanOrEqual(goal === 'balance' ? doms.length : doms.length - 1);
       const header = app.querySelector<HTMLElement>('[data-plan-focus]');
       if (header) for (const d of header.dataset.planFocus!.split(',').filter(Boolean)) expect(chipDomains.has(d as any)).toBe(true);
       const allowed = new Set([...chipDomains].map((d) => domainLabel(d as string)));
