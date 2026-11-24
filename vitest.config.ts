@@ -11,6 +11,6 @@ export default defineConfig({
         maxForks: 4
       }
     },
-    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**']
+    exclude: ['**/node_modules/**', '**/dist/**', 'e2e/**', '**/._*']
   }
 });

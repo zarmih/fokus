@@ -9,7 +9,7 @@ const DOMAINS = ['attention', 'memory', 'speed', 'logic', 'flexibility'] as cons
 
 function sceneCss(): string {
   return readdirSync(SCENES_DIR)
-    .filter((f) => f.endsWith('.css') && f !== 'index.css' && f !== 'base.css')
+    .filter((f) => !f.startsWith('._') && f.endsWith('.css') && f !== 'index.css' && f !== 'base.css')
     .map((f) => readFileSync(join(SCENES_DIR, f), 'utf8'))
     .join('\n');
 }
