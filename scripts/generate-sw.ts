@@ -43,7 +43,7 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE);
     await cache.addAll(ASSETS.map(toUrl));
     // Legacy Fokus pages can only reload. Their worker did not record support for confirmed updates.
-    if (self.registration.active && !(await caches.match(toUrl(UPDATE_CAPABILITY)))) {
+    if (self.registration.active && !(await caches.match(toUrl(UPDATE_CAPABILITY), { ignoreVary: true }))) {
       await self.skipWaiting();
     }
   })());
