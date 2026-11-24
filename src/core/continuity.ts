@@ -285,14 +285,24 @@ export function applyGentleReturnBias(
 export function evaluateDomainWorkload(
   playedDays: string[],
   today: string,
-  summaries: DaySummary[]
+  summaries: DaySummary[],
+  timeZone: string = resolveFokusTimeZone().timeZone
 ): DomainWorkload {
   const played = [...playedDays].sort().reverse();
   const recent = played.filter(d => d < today).slice(0, 3);
-  
+
+  // Day summaries may store a full ISO instant; compare on the civil day in the
+  // Fokus zone (Europe/Moscow) so a 21:30Z row is not silently unmatched.
+  const byDay = new Map<string, DaySummary>();
+  for (const s of summaries) {
+    if (typeof s.date !== 'string' || !s.date) continue;
+    const key = calendarDayKey(s.date, timeZone);
+    if (!byDay.has(key)) byDay.set(key, s);
+  }
+
   const hits: Record<string, number> = {};
   for (const d of recent) {
-    const s = summaries.find(x => x.date === d);
+    const s = byDay.get(d);
     if (s && s.domainDeltas) {
       for (const dom of Object.keys(s.domainDeltas)) {
         hits[dom] = (hits[dom] || 0) + 1;
@@ -334,7 +344,7 @@ export function buildContinuitySnapshot(input: ContinuityInput = {}): Continuity
     daySummaries: input.daySummaries,
     exerciseStates: input.exerciseStates
   });
-  const workload = evaluateDomainWorkload(playedDays, today, input.daySummaries || []);
+  const workload = evaluateDomainWorkload(playedDays, today, input.daySummaries || [], resolved.timeZone);
   return {
     timeZone: resolved.timeZone,
     timeZoneSource: resolved.source,
